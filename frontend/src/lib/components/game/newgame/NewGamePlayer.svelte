@@ -38,7 +38,7 @@
 					{/if}
 				</div>
 				<div class="my-auto mx-1">
-					<button onclick={onRemove} type="button" class="btn btn-outline btn-sm my-1 normal-case"
+					<button data-type="delete-button" data-id={`Player ${index}`} onclick={onRemove} type="button" class="btn btn-outline btn-sm my-1 normal-case"
 						><Icon size="16" src={XMark} /></button
 					>
 				</div>

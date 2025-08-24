@@ -1,4 +1,4 @@
-import { apiErrorsFailTest, expect, test } from './setup';
+import { apiErrorsFailTest, expect, submitTurn, test } from './setup';
 import { WaypointTaskTransportAction } from '../src/lib/protogen/craig_stars/v1/fleet_pb';
 
 test('create a new game', async ({ newGamePage }) => {
@@ -64,6 +64,7 @@ test('relations page', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Relations' }).click();
+	await page.waitForURL(`/games/${id}/relations`);
 
 	await page.getByRole('radio', { name: 'Friend' }).first().check();
 	await page.getByRole('radio', { name: 'Neutral' }).first().check();
@@ -78,6 +79,7 @@ test('battle plans page', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Battle Plans' }).click();
+	await page.waitForURL(`/games/${id}/battle-plans`);
 
 	await page.getByRole('link', { name: 'Create' }).click();
 	await page.getByRole('textbox', { name: 'Name' }).fill(name);
@@ -107,6 +109,7 @@ test('production plans page', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Production Plans' }).click();
+	await page.waitForURL(`/games/${id}/production-plans`);
 
 	await page.getByRole('link', { name: 'Create' }).click();
 	await page.getByRole('textbox', { name: 'Name' }).fill(name);
@@ -147,6 +150,7 @@ test('transport plans page', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Transport Plans' }).click();
+	await page.waitForURL(`/games/${id}/transport-plans`);
 
 	await page.getByRole('link', { name: 'Create' }).click();
 	await page.getByRole('textbox', { name: 'Name' }).fill(name);
@@ -327,6 +331,22 @@ test('battles report page', async ({ newGamePage }) => {
 	await page.getByRole('button', { name: 'Ours Left' }).click();
 	await page.getByRole('button', { name: 'Theirs Left' }).click();
 	await page.getByRole('button', { name: 'Theirs Left' }).click();
+});
+
+test('players report page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+
+	// generate some data
+	await submitTurn(page);
+
+	await page.locator('label').filter({ hasText: 'Reports' }).click();
+	await page.getByRole('link', { name: 'Players' }).click();
+	await page.waitForURL(`/games/${id}/players`);
+
+	await page.getByText('1 admin').click();
+	await expect(page.getByRole('main')).toContainText('1 admin');
+	await expect(page.getByRole('main')).toContainText('Humanoids');
+	await expect(page.getByRole('main')).toContainText('Playing');
 });
 
 test('game techs page', async ({ newGamePage }) => {

@@ -2,6 +2,7 @@ import { expect, test } from './setup';
 
 test('view techs', async ({ authenticatedPage: page }) => {
 	await page.getByRole('link', { name: 'Techs' }).click();
+	await page.waitForURL(`/techs`);
 
 	// wait for cards to show up
 	await expect(page.getByRole('link', { name: 'Tritanium' })).toBeVisible();
@@ -14,6 +15,7 @@ test('view techs', async ({ authenticatedPage: page }) => {
 
 test('filter techs', async ({ authenticatedPage: page }) => {
 	await page.getByRole('link', { name: 'Techs' }).click();
+	await page.waitForURL(`/techs`);
 
 	// wait for cards to show up
 	await expect(page.getByRole('link', { name: 'Tritanium' })).toBeVisible();
@@ -29,6 +31,7 @@ test('filter techs', async ({ authenticatedPage: page }) => {
 
 test('browse to tritanium', async ({ authenticatedPage: page }) => {
 	await page.getByRole('link', { name: 'Techs' }).click();
+	await page.waitForURL(`/techs`);
 
 	// wait for cards to show up
 	await expect(page.getByRole('link', { name: 'Tritanium' })).toBeVisible();
@@ -42,6 +45,7 @@ test('browse to tritanium', async ({ authenticatedPage: page }) => {
 
 test('browse to scout', async ({ authenticatedPage: page }) => {
 	await page.getByRole('link', { name: 'Techs' }).click();
+	await page.waitForURL(`/techs`);
 
 	// wait for cards to show up
 	await expect(page.getByRole('link', { name: 'Scout' })).toBeVisible();

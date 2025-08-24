@@ -7,6 +7,7 @@ test('ship designer - create', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Ship Designer' }).click();
+	await page.waitForURL(`/games/${id}/designer`);
 
 	await page.getByRole('link', { name: 'Create' }).click();
 	await page.getByRole('link', { name: 'Small Freighter' }).click();

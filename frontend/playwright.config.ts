@@ -1,10 +1,10 @@
 /// <reference types="node"/>
 import { defineConfig } from '@playwright/test';
 
-// const command = 'npm run build && npm run preview';
-// const port = 4173;
-const command = 'npm run dev';
-const port = 5173;
+const command = 'npm run build && npm run preview';
+const port = 4173;
+// const command = 'npm run dev';
+// const port = 5173;
 
 export default defineConfig({
 	retries: process.env.CI ? 2 : 0, // set to 2 when running on CI

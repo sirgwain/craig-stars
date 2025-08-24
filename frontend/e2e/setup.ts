@@ -15,6 +15,8 @@ import {
 	type SubmitTurnResponseJson
 } from '../src/lib/protogen/craig_stars/v1/playerservice_pb';
 
+let gameNum = 1;
+
 export const test = base.extend<{
 	authenticatedPage: Page;
 	newGamePage: {
@@ -47,11 +49,12 @@ export const test = base.extend<{
 		await authenticatedPage.getByRole('link', { name: 'Single Player' }).click();
 
 		// fill in some fields
-		const name = 'Test Game';
+		const name = `Test Game ${gameNum++}`;
 		await authenticatedPage.getByRole('textbox', { name: 'Name', exact: true }).fill(name);
 		await authenticatedPage.getByLabel('Size').selectOption('Tiny');
 		await authenticatedPage.getByLabel('Density').selectOption('Sparse');
 		await authenticatedPage.getByRole('checkbox', { name: 'Public Player Scores' }).click();
+		await authenticatedPage.locator('[data-type="delete-button"][data-id="Player 3"]').click();
 
 		authenticatedPage.getByRole('button', { name: 'Create Game' }).click();
 		const response = await authenticatedPage.waitForResponse(
@@ -83,8 +86,12 @@ export const test = base.extend<{
 		if (!universe) {
 			throw new Error('failed to get universe for game');
 		}
+		await authenticatedPage.waitForURL(`/games/${game.game.id}`);
 
-		const gameLink = authenticatedPage.getByRole('link', { name: name });
+		const gameLink = authenticatedPage.getByRole('link', {
+			name: `${name} - ${game.game.year}`,
+			exact: true
+		});
 		await expect(gameLink).toBeVisible();
 		await expect(gameLink).toHaveText(`${name} - 2400`);
 
@@ -115,7 +122,10 @@ export const test = base.extend<{
 
 	newRacePage: async ({ authenticatedPage }, use) => {
 		await authenticatedPage.getByRole('link', { name: 'Races' }).click();
+		await authenticatedPage.waitForURL(`/races`);
+
 		await authenticatedPage.getByRole('link', { name: 'Create' }).click();
+		await authenticatedPage.waitForURL(`/races/new`);
 
 		const name = 'Test Race';
 		await authenticatedPage.getByRole('textbox', { name: 'Name', exact: true }).fill(name);
@@ -153,7 +163,7 @@ export const test = base.extend<{
 });
 
 export async function loadGamePage(page: Page, name: string) {
-	const gameLink = page.getByRole('link', { name });
+	const gameLink = page.getByRole('link', { name, exact: true });
 	await expect(gameLink).toBeVisible();
 
 	// fail if any api calls to this game fail
@@ -196,6 +206,8 @@ export async function loadGamePage(page: Page, name: string) {
 	if (!player || !universe) {
 		throw new Error('failed to load universe and player');
 	}
+
+	await page.waitForURL(`/games/${gameId}`);
 	await expect(page.locator(`[data-type="game-view"][data-id="${gameId}"]`)).toBeVisible();
 
 	return { page, gameId, universe, player };
