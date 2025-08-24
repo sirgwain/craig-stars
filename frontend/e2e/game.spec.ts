@@ -3,7 +3,7 @@ import { WaypointTaskTransportAction } from '../src/lib/protogen/craig_stars/v1/
 
 test('create a new game', async ({ newGamePage }) => {
 	const { page, name } = newGamePage;
-	const gameLink = page.getByRole('link', { name: name });
+	const gameLink = await page.locator('[data-type="game-link"]').first();
 	await expect(gameLink).toBeVisible();
 	await expect(gameLink).toHaveText(`${name} - 2400`);
 });
@@ -13,7 +13,7 @@ test('submit turn', async ({ newGamePage }) => {
 	apiErrorsFailTest(page, id);
 
 	// start with a new game, ensure we have year 2400
-	const gameLink = page.getByRole('link', { name: name });
+	const gameLink = await page.locator('[data-type="game-link"]').first();
 	await expect(gameLink).toBeVisible();
 	await expect(gameLink).toHaveText(`${name} - 2400`);
 

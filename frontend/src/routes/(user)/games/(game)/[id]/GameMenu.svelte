@@ -29,8 +29,11 @@
 	<div class="flex-1">
 		<a class="btn btn-ghost text-xl text-primary" href="/">cs</a>
 		<div class="md:block">
-			<a class="btn btn-ghost text-lg text-accent" href={`/games/${$game.id}`}
-				>{$game.name} - {$game.year}</a
+			<a
+				data-type="game-link"
+				data-id={`${$game.name}`}
+				class="btn btn-ghost text-lg text-accent"
+				href={`/games/${$game.id}`}>{$game.name} - {$game.year}</a
 			>
 		</div>
 	</div>

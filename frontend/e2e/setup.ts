@@ -88,10 +88,7 @@ export const test = base.extend<{
 		}
 		await authenticatedPage.waitForURL(`/games/${game.game.id}`);
 
-		const gameLink = authenticatedPage.getByRole('link', {
-			name: `${name} - ${game.game.year}`,
-			exact: true
-		});
+		const gameLink = await authenticatedPage.locator('[data-type="game-link"]').first();
 		await expect(gameLink).toBeVisible();
 		await expect(gameLink).toHaveText(`${name} - 2400`);
 
