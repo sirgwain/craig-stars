@@ -24,7 +24,7 @@
 			(commandedMapObject as Fleet).orbitingPlanetNum === planet.mapObject?.num
 		) {
 			return true;
-		} else if (commandedPlanet?.mapObject?.num === planet.mapObject?.num) {
+		} else if (commandedPlanet?.mapObject.num === planet.mapObject?.num) {
 			return true;
 		}
 		return false;

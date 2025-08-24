@@ -18,7 +18,7 @@
 	let { fleet, hideTitle, onRenameFleet, onNextMapObject, onPreviousMapObject }: Props = $props();
 
 	const design: ShipDesign | undefined = $derived.by(() => {
-		if (fleet.tokens && fleet.tokens.length > 0) {
+		if (fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
 			return $universe.getDesign(fleet.mapObject.playerNum, designNum);
 		}

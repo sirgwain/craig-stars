@@ -63,8 +63,8 @@
 					const key = positionKey(packet);
 					const scanner = {
 						position: packet.mapObject?.position ?? emptyVector(),
-						scanRange: packet.scanRange ?? 0,
-						scanRangePen: packet.scanRangePen ?? 0
+						scanRange: packet.scanRange,
+						scanRangePen: packet.scanRangePen
 					};
 					const existing = scannersByPosition.get(key);
 					if (existing) {
@@ -121,8 +121,8 @@
 					const key = positionKey(packet);
 					const scanner = {
 						position: packet.mapObject?.position ?? emptyVector(),
-						scanRange: packet.scanRange ?? 0,
-						scanRangePen: packet.scanRangePen ?? 0
+						scanRange: packet.scanRange,
+						scanRangePen: packet.scanRangePen
 					};
 					const existing = scannersByPosition.get(key);
 					if (existing) {

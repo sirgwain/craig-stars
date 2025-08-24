@@ -237,6 +237,7 @@ func build_backend(buildArgs ...string) error {
 	args = append(args, buildArgs...)
 	args = append(args, "-o", "dist/"+binary_name, "main.go")
 
+	println("building backend")
 	if err := sh.RunV("go", args...); err != nil {
 		return err
 	}
@@ -256,6 +257,7 @@ func Build_WASM() error {
 	if err = os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
+	println("building wasm")
 	if is_CI() {
 		err = sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
 			"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "-ldflags", "-s -w", "wasm/main.go")
@@ -275,6 +277,7 @@ func Build_WASM_TinyGo() error {
 	if err = os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
+	println("building tinygo wasm")
 	if is_CI() {
 		err = sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
 			"tinygo", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "-no-debug", "wasm/main.go")

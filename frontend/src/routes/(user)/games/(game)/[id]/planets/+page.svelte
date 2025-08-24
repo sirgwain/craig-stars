@@ -19,15 +19,15 @@
 	import { showTooltip, techs } from '$lib/services/Stores';
 	import { population } from '$lib/types/Cargo';
 	import { ReportAgeUnexplored } from '$lib/types/Consts';
+	import type { Planet, ShipDesign } from '$lib/types/cs-proto';
+	import { MapObjectTargetSchema, MapObjectType, MineralSchema } from '$lib/types/cs-proto';
 	import { owned, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
 	import { getGrowth, planetsSortBy } from '$lib/types/Planet';
 	import { emptyVector } from '$lib/types/Vector';
+	import { create } from '@bufbuild/protobuf';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
-	import { MapObjectTargetSchema, MineralSchema, type Fleet } from '$lib/types/cs-proto';
-	import type { Planet, ShipDesign } from '$lib/types/cs-proto';
-	import { create } from '@bufbuild/protobuf';
 
 	const {
 		game,
@@ -51,7 +51,7 @@
 
 	let filteredPlanets: Planet[] = $derived(
 		$settings.showAllPlanets
-			? ($universe
+			? $universe
 					.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
 					.map<TablePlanet>( // convert Planet to a TablePlanet, so populate all the planet fields as empty
 						(r) =>
@@ -67,15 +67,14 @@
 						(i) =>
 							i.mapObject?.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 							$universe
-								.getPlayerPluralName(i.mapObject?.playerNum)
-								?.toLowerCase()
+								.getPlayerPluralName(i.mapObject.playerNum)
+								.toLowerCase()
 								.indexOf(search.toLowerCase()) != -1
-					) ?? [])
-			: ($universe
+					)
+			: $universe
 					.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
 					.map<TablePlanet>((r) => r as TablePlanet)
-					.filter((i) => i.mapObject?.name?.toLowerCase().indexOf(search.toLowerCase()) != -1) ??
-					[])
+					.filter((i) => i.mapObject?.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
 	);
 
 	// columns change based on whether we are showing all planets or just the player planets
@@ -112,7 +111,7 @@
 			sortBy: (a, b) =>
 				$universe
 					.getPlayerPluralName(a.mapObject?.playerNum)
-					?.localeCompare($universe.getPlayerPluralName(b.mapObject?.playerNum))
+					.localeCompare($universe.getPlayerPluralName(b.mapObject?.playerNum))
 		},
 		{
 			key: 'reportAge',
@@ -237,7 +236,7 @@
 			mines: planet.mines,
 			maxMines: planet.spec?.maxMines ?? 0,
 			maxPossibleMines: planet.spec?.maxPossibleMines ?? 0,
-			canBuildMines: $player.race.spec.innateMining ?? false
+			canBuildMines: $player.race.spec.innateMining
 		});
 	}
 
@@ -248,7 +247,7 @@
 			factories: planet.factories,
 			maxFactories: planet.spec?.maxFactories ?? 0,
 			maxPossibleFactories: planet.spec?.maxPossibleFactories ?? 0,
-			canBuildFactories: $player.race.spec.innateResources ?? false
+			canBuildFactories: $player.race.spec.innateResources
 		});
 	}
 
@@ -269,7 +268,10 @@
 	}
 
 	function gotoMapObject(mo: MapObjectLike) {
-		if (ownedBy(mo, $player.num) && ((mo as Planet) || (mo as Fleet))) {
+		if (
+			(ownedBy(mo, $player.num) && mo.mapObject?.type === MapObjectType.PLANET) ||
+			mo.mapObject?.type === MapObjectType.FLEET
+		) {
 			commandMapObject(mo);
 		}
 		selectMapObject(mo);
@@ -344,7 +346,7 @@
 					>
 				{:else if column.key == 'owner'}
 					<span style={`color: ${$universe.getPlayerColor(row.mapObject?.playerNum)};`}>
-						{owned(row) ? ($universe.getPlayerPluralName(row.mapObject?.playerNum) ?? '') : ''}
+						{owned(row) ? $universe.getPlayerPluralName(row.mapObject?.playerNum) : ''}
 					</span>
 				{:else if column.key == 'reportAge'}
 					{#if row.mapObject?.reportAge === 0 || row.mapObject?.reportAge === undefined}
@@ -397,9 +399,9 @@
 						onclick={() => onProductionQueueDialog(planet)}
 						class="text-base w-32 flex justify-between text-left cursor-pointer"
 					>
-						{#if planet.planetOrders?.productionQueue?.length}
+						{#if planet.planetOrders?.productionQueue.length}
 							<ProductionQueueItemLine
-								item={planet.planetOrders?.productionQueue[0]}
+								item={planet.planetOrders.productionQueue[0]}
 								index={0}
 								shortName={true}
 							/>
@@ -409,11 +411,11 @@
 					</button>
 				{:else if column.key == 'mines'}
 					<span class="cursor-help" onpointerdown={(e) => onMinesTooltip(e, planet)}>
-						{planet.mines ?? 0} / {planet.spec?.maxMines ?? 0}</span
+						{planet.mines} / {planet.spec?.maxMines ?? 0}</span
 					>
 				{:else if column.key == 'factories'}
 					<span class="cursor-help" onpointerdown={(e) => onFactoriesTooltip(e, planet)}>
-						{planet.factories ?? 0}/ {planet.spec?.maxFactories ?? 0}
+						{planet.factories}/ {planet.spec?.maxFactories ?? 0}
 					</span>
 				{:else if column.key == 'defense'}
 					{#if row.spec?.defenseCoverage}
@@ -439,10 +441,9 @@
 						<Icon src={Check} size="24" class="stroke-success" />
 					{/if}
 				{:else if column.key == 'driverDest'}
-					{@const targetPlanet =
-						planet && planet.planetOrders?.packetTargetNum
-							? $universe.getPlanet(planet.planetOrders?.packetTargetNum)
-							: undefined}
+					{@const targetPlanet = planet.planetOrders?.packetTargetNum
+						? $universe.getPlanet(planet.planetOrders.packetTargetNum)
+						: undefined}
 					{#if targetPlanet}
 						<button class="cs-link text-xl text-left" onclick={() => gotoMapObject(targetPlanet)}
 							>{targetPlanet.mapObject?.name ?? ''}</button
@@ -451,17 +452,16 @@
 						--
 					{/if}
 				{:else if column.key == 'routingDestination'}
-					{@const routeTarget =
-						planet && planet.planetOrders?.routeTargetNum
-							? $universe.getMapObject(
-									create(MapObjectTargetSchema, {
-										targetPosition: emptyVector(),
-										targetType: planet.planetOrders?.routeTargetType,
-										targetNum: planet.planetOrders?.routeTargetNum,
-										targetPlayerNum: planet.planetOrders?.routeTargetPlayerNum
-									})
-								)
-							: undefined}
+					{@const routeTarget = planet.planetOrders?.routeTargetNum
+						? $universe.getMapObject(
+								create(MapObjectTargetSchema, {
+									targetPosition: emptyVector(),
+									targetType: planet.planetOrders.routeTargetType,
+									targetNum: planet.planetOrders.routeTargetNum,
+									targetPlayerNum: planet.planetOrders.routeTargetPlayerNum
+								})
+							)
+						: undefined}
 					{#if routeTarget}
 						<button class="cs-link text-xl text-left" onclick={() => gotoMapObject(routeTarget)}
 							>{routeTarget.mapObject?.name}</button

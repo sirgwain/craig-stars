@@ -24,8 +24,8 @@
 		e.preventDefault();
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
 			mineralType: 'Ironium',
-			surfaceAmount: planet.cargo?.ironium ?? 0,
-			concentration: planet.mineralConcentration?.ironium ?? 0,
+			surfaceAmount: planet.cargo.ironium,
+			concentration: planet.mineralConcentration.ironium,
 			miningRate: planet.spec.miningOutput?.ironium ?? 0,
 			homeworld: !!planet.homeworld
 		});
@@ -34,8 +34,8 @@
 		e.preventDefault();
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
 			mineralType: 'Boranium',
-			surfaceAmount: planet.cargo?.boranium ?? 0,
-			concentration: planet.mineralConcentration?.boranium ?? 0,
+			surfaceAmount: planet.cargo.boranium,
+			concentration: planet.mineralConcentration.boranium,
 			miningRate: planet.spec.miningOutput?.boranium ?? 0,
 			homeworld: !!planet.homeworld
 		});
@@ -44,8 +44,8 @@
 		e.preventDefault();
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
 			mineralType: 'Germanium',
-			surfaceAmount: planet.cargo?.germanium ?? 0,
-			concentration: planet.mineralConcentration?.germanium ?? 0,
+			surfaceAmount: planet.cargo.germanium,
+			concentration: planet.mineralConcentration.germanium,
 			miningRate: planet.spec.miningOutput?.germanium ?? 0,
 			homeworld: !!planet.homeworld
 		});
@@ -56,9 +56,9 @@
 		showTooltip<MinesTooltipProps>(e.x, e.y, MinesTooltip, {
 			planetName: planet.mapObject.name,
 			mines: planet.mines,
-			maxMines: planet.spec.maxMines ?? 0,
-			maxPossibleMines: planet.spec.maxPossibleMines ?? 0,
-			canBuildMines: $player.race.spec.innateMining ?? false
+			maxMines: planet.spec.maxMines,
+			maxPossibleMines: planet.spec.maxPossibleMines,
+			canBuildMines: $player.race.spec.innateMining
 		});
 	}
 
@@ -67,9 +67,9 @@
 		showTooltip<FactoriesTooltipProps>(e.x, e.y, FactoriesTooltip, {
 			planetName: planet.mapObject.name,
 			factories: planet.factories,
-			maxFactories: planet.spec.maxFactories ?? 0,
-			maxPossibleFactories: planet.spec.maxPossibleFactories ?? 0,
-			canBuildFactories: $player.race.spec.innateResources ?? false
+			maxFactories: planet.spec.maxFactories,
+			maxPossibleFactories: planet.spec.maxPossibleFactories,
+			canBuildFactories: $player.race.spec.innateResources
 		});
 	}
 </script>
@@ -78,15 +78,15 @@
 	<CommandTile title="Minerals on Hand">
 		<div class="flex justify-between cursor-help" onpointerdown={onIroniumTooltip}>
 			<div class="text-tile-item-title text-ironium">Ironium</div>
-			<div>{planet.cargo.ironium ?? 0}kT</div>
+			<div>{planet.cargo.ironium}kT</div>
 		</div>
 		<div class="flex justify-between cursor-help" onpointerdown={onBoraniumTooltip}>
 			<div class="text-tile-item-title text-boranium">Boranium</div>
-			<div>{planet.cargo.boranium ?? 0}kT</div>
+			<div>{planet.cargo.boranium}kT</div>
 		</div>
 		<div class="flex justify-between cursor-help" onpointerdown={onGermaniumTooltip}>
 			<div class="text-tile-item-title text-germanium">Germanium</div>
-			<div>{planet.cargo.germanium ?? 0}kT</div>
+			<div>{planet.cargo.germanium}kT</div>
 		</div>
 
 		<div class="divider p-0 m-0"></div>
@@ -97,7 +97,7 @@
 				{#if $player.race.spec.innateMining}
 					{planet.mines}*
 				{:else}
-					{planet.mines} of {planet.spec.maxMines ?? 0}
+					{planet.mines} of {planet.spec.maxMines}
 				{/if}
 			</div>
 		</div>
@@ -107,7 +107,7 @@
 				{#if $player.race.spec.innateResources}
 					n/a
 				{:else}
-					{planet.factories} of {planet.spec.maxFactories ?? 0}
+					{planet.factories} of {planet.spec.maxFactories}
 				{/if}
 			</div>
 		</div>

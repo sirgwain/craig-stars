@@ -9,14 +9,12 @@
 	const { game, player, universe, deleteProductionPlan } = getGameContext();
 
 	async function deletePlan(plan: ProductionPlan) {
-		if ($game) {
-			try {
-				await deleteProductionPlan(plan.num);
-				// trigger reactivity
-				$player.playerPlans.productionPlans = $player.playerPlans.productionPlans;
-			} catch (e) {
-				addError(e as ConnectError);
-			}
+		try {
+			await deleteProductionPlan(plan.num);
+			// trigger reactivity
+			$player.playerPlans.productionPlans = $player.playerPlans.productionPlans;
+		} catch (e) {
+			addError(e as ConnectError);
 		}
 	}
 </script>

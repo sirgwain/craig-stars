@@ -158,14 +158,12 @@ func (m *PlayerMessageSpec) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0xb2
 	}
-	if len(m.QueueItemType) > 0 {
-		i -= len(m.QueueItemType)
-		copy(dAtA[i:], m.QueueItemType)
-		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.QueueItemType)))
+	if m.QueueItemType != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.QueueItemType))
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xaa
+		dAtA[i] = 0xa8
 	}
 	if m.PrevAmount != 0 {
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.PrevAmount))
@@ -333,8 +331,8 @@ func (m *PlayerMessageSpec) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.Target != nil {
-		size, err := m.Target.MarshalToSizedBufferVT(dAtA[:i])
+	if m.MapObjectTarget != nil {
+		size, err := m.MapObjectTarget.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -801,8 +799,8 @@ func (m *PlayerMessageSpec) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Target != nil {
-		l = m.Target.SizeVT()
+	if m.MapObjectTarget != nil {
+		l = m.MapObjectTarget.SizeVT()
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	if m.Amount != 0 {
@@ -876,9 +874,8 @@ func (m *PlayerMessageSpec) SizeVT() (n int) {
 	if m.PrevAmount != 0 {
 		n += 2 + protohelpers.SizeOfVarint(uint64(m.PrevAmount))
 	}
-	l = len(m.QueueItemType)
-	if l > 0 {
-		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	if m.QueueItemType != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.QueueItemType))
 	}
 	if m.RouteTarget != nil {
 		l = m.RouteTarget.SizeVT()
@@ -1296,7 +1293,7 @@ func (m *PlayerMessageSpec) UnmarshalVT(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Target", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MapObjectTarget", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1323,10 +1320,10 @@ func (m *PlayerMessageSpec) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Target == nil {
-				m.Target = &MapObjectTarget{}
+			if m.MapObjectTarget == nil {
+				m.MapObjectTarget = &MapObjectTarget{}
 			}
-			if err := m.Target.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.MapObjectTarget.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1918,10 +1915,10 @@ func (m *PlayerMessageSpec) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 		case 21:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field QueueItemType", wireType)
 			}
-			var stringLen uint64
+			m.QueueItemType = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return protohelpers.ErrIntOverflow
@@ -1931,24 +1928,11 @@ func (m *PlayerMessageSpec) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.QueueItemType |= QueueItemType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return protohelpers.ErrInvalidLength
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return protohelpers.ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.QueueItemType = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 22:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field RouteTarget", wireType)

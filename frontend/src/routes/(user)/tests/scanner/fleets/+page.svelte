@@ -97,8 +97,8 @@
 			)
 	);
 
-	const xGetter = (mo: MapObjectLike) => mo?.mapObject?.position?.x;
-	const yGetter = (mo: MapObjectLike) => mo?.mapObject?.position?.y;
+	const xGetter = (mo: MapObjectLike) => mo.mapObject?.position?.x;
+	const yGetter = (mo: MapObjectLike) => mo.mapObject?.position?.y;
 
 	selectMapObject(fleets[0]);
 	commandMapObject(fleets[0]);

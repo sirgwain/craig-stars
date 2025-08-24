@@ -57,9 +57,7 @@
 	function findItem(x: number, y: number) {
 		let [x1, y1] = [x, y];
 
-		if (transform) {
-			[x1, y1] = transform.invert([x1, y1]);
-		}
+		[x1, y1] = transform.invert([x1, y1]);
 
 		const found = finder.find(x1, y1, searchRadius / $scale);
 		const position = { x: Math.round(x1 / $xScale(1)), y: Math.round(y1 / $yScale(1)) };

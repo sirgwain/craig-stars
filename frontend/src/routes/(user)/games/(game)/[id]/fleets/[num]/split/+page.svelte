@@ -8,7 +8,7 @@
 	let num = parseInt(page.params.num);
 
 	onMount(() => {
-		if (!$commandedFleet || $commandedFleet.mapObject?.num !== num) {
+		if (!$commandedFleet || $commandedFleet.mapObject.num !== num) {
 			const fleet = $universe.getMyFleet(num);
 			if (fleet) {
 				commandMapObject(fleet);

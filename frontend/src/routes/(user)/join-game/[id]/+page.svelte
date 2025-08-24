@@ -14,7 +14,7 @@
 	let game: GameWithPlayersFlat | undefined = $state();
 	let race = $state(humanoid());
 	let name = $state($me.username);
-	let valid: boolean = $derived(!!(game && (game.openPlayerSlots ?? 0) > 0));
+	let valid: boolean = $derived(!!(game && game.openPlayerSlots > 0));
 	let error = $state('');
 
 	onMount(async () => {
@@ -61,7 +61,7 @@
 					valid =
 						raceValid &&
 						!!(
-							(game && (game.openPlayerSlots ?? 0) > 0) ||
+							(game && game.openPlayerSlots > 0) ||
 							// guests are already joined, just need to pick their race
 							($me.isGuest() && game?.players.some((p) => p.userId === $me.id))
 						);

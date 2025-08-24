@@ -20,7 +20,7 @@
 	const minArea = Math.PI * minRadius * minRadius;
 
 	let planetProps = $derived.by(() => {
-		const pop = population(planet.cargo) ?? 0;
+		const pop = population(planet.cargo);
 		if (pop <= 0) {
 			return {
 				radius: 0,
@@ -37,7 +37,7 @@
 		let strokeWidth = pop / 1_300_000;
 
 		if (planet.mapObject?.playerNum) {
-			color = $universe.getPlayerColor(planet.mapObject?.playerNum) ?? '#FF0000';
+			color = $universe.getPlayerColor(planet.mapObject.playerNum);
 		}
 
 		// setup the properties of our planet circle

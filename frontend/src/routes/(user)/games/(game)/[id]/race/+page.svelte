@@ -24,7 +24,7 @@
 			<div class="stat-title">Growth Rate</div>
 			<div class="stat-figure"><Population class="w-8 h-8 fill-base-content" /></div>
 			<div class="stat-value">
-				{race.growthRate * (race.spec?.growthFactor ?? 1)}%
+				{race.growthRate * (race.spec.growthFactor || 1)}%
 			</div>
 		</div>
 	</div>
@@ -52,20 +52,20 @@
 	<div class="flex flex-col gap-2">
 		<HabBar
 			habType={Grav}
-			habLow={race.habLow?.grav}
-			habHigh={race.habHigh?.grav}
+			habLow={race.habLow.grav}
+			habHigh={race.habHigh.grav}
 			immune={race.immuneGrav}
 		/>
 		<HabBar
 			habType={Temp}
-			habLow={race.habLow?.temp}
-			habHigh={race.habHigh?.temp}
+			habLow={race.habLow.temp}
+			habHigh={race.habHigh.temp}
 			immune={race.immuneTemp}
 		/>
 		<HabBar
 			habType={Rad}
-			habLow={race.habLow?.rad}
-			habHigh={race.habHigh?.rad}
+			habLow={race.habLow.rad}
+			habHigh={race.habHigh.rad}
 			immune={race.immuneRad}
 		/>
 		<HabChance {race} />

@@ -26,14 +26,14 @@
 			($selectedMapObject.mapObject?.type === MapObjectType.MINERAL_PACKET ||
 				$selectedMapObject.mapObject?.type === MapObjectType.MYSTERY_TRADER ||
 				($selectedMapObject.mapObject?.type === MapObjectType.FLEET &&
-					$selectedMapObject.mapObject?.playerNum != $player.num))
+					$selectedMapObject.mapObject.playerNum != $player.num))
 		) {
 			const mo = $selectedMapObject as MovingMapObject;
-			const heading = mo.heading ?? { x: 0, y: 0 };
-			const warpSpeed = mo.warpSpeed ?? 0;
+			const heading = mo.heading;
+			const warpSpeed = mo.warpSpeed;
 			const distPerLy = warpSpeed * warpSpeed;
 			if (mo.mapObject?.playerNum) {
-				color = $universe.getPlayerColor(mo.mapObject?.playerNum);
+				color = $universe.getPlayerColor(mo.mapObject.playerNum);
 			} else if (mo.mapObject?.type === MapObjectType.MYSTERY_TRADER) {
 				color = '#00FFFF';
 			}

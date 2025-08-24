@@ -55,7 +55,7 @@
 		Math.max(
 			...$universe.scoreIntels
 				.map((score) => score.scoreHistory)
-				.filter((scoreHistory) => scoreHistory && scoreHistory.length > 0)
+				.filter((scoreHistory) => scoreHistory.length > 0)
 				.map((scoreHistory) => scoreHistory as PlayerScoreJson[]) // make the types happy
 				.flat()
 				.map((scoreHistory) => scoreHistory[type] ?? 0)
@@ -69,7 +69,7 @@
 	 */
 	let dataLong: DataLongTypeItem[] = $derived(
 		$universe.playerIntels.map((playerIntel, i) => {
-			const name = playerIntel.racePluralName ?? playerIntel.name;
+			const name = playerIntel.racePluralName || playerIntel.name;
 			const num = playerIntel.num;
 			const playerScores = $universe.scoreIntels[i].scoreHistory;
 
@@ -78,7 +78,7 @@
 				playerName: name,
 				playerNum: num,
 				values: [...Array(turnsPassed).keys()].map((turn) => ({
-					[yKey]: playerScores && playerScores[turn] ? (playerScores[turn][type] ?? 0) : 0,
+					[yKey]: playerScores[turn] ? playerScores[turn][type] || 0 : 0,
 					[xKey]: turn,
 					[zKey]: String(playerIntel.num)
 				}))

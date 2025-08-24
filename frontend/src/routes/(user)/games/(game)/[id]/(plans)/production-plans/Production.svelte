@@ -60,16 +60,13 @@
 
 	function addAvailableItem(item?: ProductionPlanItem) {
 		item = item ?? selectedAvailableItem;
-		if (!queueItems || !item) {
+		if (!item) {
 			return;
 		}
 
 		const quantity = quantityModifier;
 		if (selectedQueueItem) {
-			if (
-				selectedQueueItem.type === item?.type &&
-				selectedQueueItem.designNum === item?.designNum
-			) {
+			if (selectedQueueItem.type === item.type && selectedQueueItem.designNum === item.designNum) {
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item
@@ -87,7 +84,7 @@
 			}
 		} else {
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
-			if (nextItem && nextItem.type === item?.type && nextItem.designNum == item.designNum) {
+			if (nextItem && nextItem.type === item.type && nextItem.designNum == item.designNum) {
 				nextItem.quantity++;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
@@ -111,12 +108,12 @@
 	}
 
 	function removeItem() {
-		if (queueItems && selectedQueueItem) {
+		if (selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifier;
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
-				queueItems = queueItems?.filter((item) => item != selectedQueueItem);
+				queueItems = queueItems.filter((item) => item != selectedQueueItem);
 				selectedQueueItem =
 					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
 				selectedQueueItemIndex--;
@@ -125,7 +122,7 @@
 	}
 
 	function itemUp() {
-		if (queueItems && selectedQueueItem && selectedQueueItemIndex > 0) {
+		if (selectedQueueItem && selectedQueueItemIndex > 0) {
 			const swap = queueItems[selectedQueueItemIndex - 1];
 			queueItems[selectedQueueItemIndex - 1] = selectedQueueItem;
 			queueItems[selectedQueueItemIndex] = swap;
@@ -135,7 +132,7 @@
 	}
 
 	function itemDown() {
-		if (queueItems && selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
+		if (selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
 			const swap = queueItems[selectedQueueItemIndex + 1];
 			queueItems[selectedQueueItemIndex + 1] = selectedQueueItem;
 			queueItems[selectedQueueItemIndex] = swap;

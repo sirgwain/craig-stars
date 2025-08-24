@@ -32,12 +32,12 @@
 		if (
 			!fleet.fleetOrders ||
 			waypointIndex < 0 ||
-			waypointIndex > (fleet.fleetOrders?.waypoints?.length ?? 0) - 1
+			waypointIndex > fleet.fleetOrders.waypoints.length - 1
 		) {
 			return;
 		}
 		const target = $universe.getMapObject(
-			fleet.fleetOrders?.waypoints[waypointIndex].mapObjectTarget
+			fleet.fleetOrders.waypoints[waypointIndex].mapObjectTarget
 		);
 		if (target) {
 			selectMapObject(target);
@@ -55,7 +55,7 @@
 	let filteredFleets = $derived(
 		$universe
 			.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
-			.filter((i) => i.mapObject?.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? []
+			.filter((i) => i.mapObject?.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
 	);
 
 	type TableFleet = Fleet & {
@@ -213,12 +213,10 @@
 						<CargoBar value={row.cargo} capacity={row.spec?.shipDesignSpec?.cargoCapacity} />
 					</div>
 				{:else if column.key == 'composition'}
-					{@const design = $game
-						? $universe.getDesign(
-								$player.num,
-								row.tokens && row.tokens.length ? row.tokens[0].designNum : 0
-							)
-						: undefined}
+					{@const design = $universe.getDesign(
+						$player.num,
+						row.tokens && row.tokens.length ? row.tokens[0].designNum : 0
+					)}
 					<div class="flex flex-row justify-between">
 						<div>
 							{design ? design.name : ''}
@@ -235,9 +233,7 @@
 						? row.spec.shipDesignSpec?.cloakPercent + '%'
 						: '--'}
 				{:else if column.key == 'battlePlanNum'}
-					{@const battlePlan = $game
-						? $player.getBattlePlan(row.fleetOrders?.battlePlanNum ?? 0)
-						: undefined}
+					{@const battlePlan = $player.getBattlePlan(row.fleetOrders?.battlePlanNum ?? 0)}
 					{battlePlan?.name ?? ''}
 				{:else if column.key == 'mass'}
 					{row.spec?.shipDesignSpec?.mass ?? 0}

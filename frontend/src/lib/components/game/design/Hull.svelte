@@ -29,7 +29,7 @@
 		shipDesignSlots = $bindable([]),
 		highlightedSlots = [],
 		highlightedClass = '',
-		cargoCapacity = hull.cargoCapacity ?? 0,
+		cargoCapacity = hull.cargoCapacity,
 		showTooltips = true,
 		onSlotClicked: onSlotClicked
 	}: Props = $props();
@@ -81,7 +81,7 @@
 			role="link"
 			tabindex="-1"
 			oncontextmenu={(e) =>
-				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))}
+				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot.hullComponent))}
 		>
 			<HullComponent
 				{shipDesignSlot}

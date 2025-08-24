@@ -11,7 +11,7 @@ test('new game scout test', async ({ newGamePage }) => {
 		throw new Error('failed to find homeworld');
 	}
 
-	const nearestPlanet = nearest(homeworld, universe.planets ?? []);
+	const nearestPlanet = nearest(homeworld, universe.planets);
 	if (!nearestPlanet) {
 		throw new Error('failed to find nearest planet');
 	}
@@ -173,6 +173,6 @@ test('Colonizer Test', async ({ authenticatedPage }) => {
 			.first()
 	).toBeVisible();
 
-	expect(mapObjectSummary.getByText('Population: 2,500').first()).toBeVisible();
-	expect(mapObjectSummary.getByText('Value: 100%').first()).toBeVisible();
+	await expect(mapObjectSummary).toContainText('Population: 2,500');
+	await expect(mapObjectSummary).toContainText('Value: 100%');
 });

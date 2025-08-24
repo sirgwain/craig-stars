@@ -16,7 +16,7 @@
 	type DataType = [number, number][];
 
 	let data: DataType = $derived(
-		engine?.fuelUsage
+		engine.fuelUsage
 			? engine.fuelUsage.map((usage: number, index: number): [number, number] => [index, usage])
 			: []
 	);

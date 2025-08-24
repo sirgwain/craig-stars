@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { totalMinerals } from '$lib/types/Cost';
-	import { absSum } from '$lib/types/Hab';
 	import { UnlimitedSpaceDock } from '$lib/types/Consts';
+	import { totalMinerals } from '$lib/types/Cost';
 	import {
 		CometSize,
 		PlayerMessageType,
+		ProductionQueueItemSchema,
 		type Planet,
 		type PlayerIntel,
 		type PlayerMessage
 	} from '$lib/types/cs-proto';
+	import { absSum } from '$lib/types/Hab';
+	import { getFullName } from '$lib/types/QueueItemType';
+	import { create } from '@bufbuild/protobuf';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { player, universe } = getGameContext();
@@ -22,7 +25,7 @@
 
 	let { message, planet, owner }: Props = $props();
 
-	let growthRate = $derived($player.race.growthRate * ($player.race.spec.growthFactor ?? 0));
+	let growthRate = $derived($player.race.growthRate * $player.race.spec.growthFactor);
 </script>
 
 {#if message.text}
@@ -33,21 +36,21 @@
 {:else if message.type === PlayerMessageType.PLANET_BOMBED}
 	{@const bombing = message.spec?.bombing}
 	{#if bombing}
-		{$universe.getPlayerPluralName(message.spec?.target?.targetPlayerNum)}
-		{message.spec?.target?.targetName} has bombed your planet {planet.mapObject?.name}
+		{$universe.getPlayerPluralName(message.spec?.mapObjectTarget?.targetPlayerNum)}
+		{message.spec?.mapObjectTarget?.targetName} has bombed your planet {planet.mapObject?.name}
 		{#if message.spec?.bombing?.planetEmptied}
 			killing off all its colonists.
 		{:else}
 			{#if bombing.colonistsKilled == 0 && bombing.minesDestroyed == 0 && bombing.factoriesDestroyed == 0 && bombing.defensesDestroyed == 0}
 				doing no physical damage.
 			{:else}
-				killing {(bombing.colonistsKilled ?? 0).toLocaleString()} colonists, and destroying {bombing.minesDestroyed ??
-					0} mines,
-				{bombing.factoriesDestroyed ?? 0} factories and {bombing.defensesDestroyed ?? 0} defenses.
+				killing {bombing.colonistsKilled.toLocaleString()} colonists, and destroying {bombing.minesDestroyed}
+				mines,
+				{bombing.factoriesDestroyed} factories and {bombing.defensesDestroyed} defenses.
 			{/if}
 
 			{#if absSum(bombing.unterraformAmount) > 0}
-				{#if bombing.numBombers ?? 0 > 1}
+				{#if bombing.numBombers > 1}
 					The bombers have also retro-bombed the planet, undoing {absSum(
 						bombing.unterraformAmount
 					)}% of its terraforming.
@@ -90,8 +93,10 @@
 		You have built {message.spec?.amount ?? 0} mines on {planet.mapObject?.name}.
 	{/if}
 {:else if message.type === PlayerMessageType.PLANET_BUILT_INVALID_ITEM}
-	You have attempted to build a {message.spec?.queueItemType?.toLowerCase()} on {planet.mapObject
-		?.name}, but {planet.mapObject?.name}
+	You have attempted to build a {getFullName(
+		create(ProductionQueueItemSchema, { type: message.spec?.queueItemType }),
+		$universe
+	).toLowerCase()} on {planet.mapObject?.name}, but {planet.mapObject?.name}
 	is unable to build any of these. The order has been canceled.
 {:else if message.type === PlayerMessageType.PLANET_BUILT_INVALID_MINERAL_PACKET_NO_MASS_DRIVER}
 	You have attempted to build a mineral packet on {planet.mapObject?.name}, but you have no starbase
@@ -128,25 +133,19 @@
 	{/if}
 {:else if message.type === PlayerMessageType.PLANET_COMET_STRIKE_MY_PLANET}
 	{#if message.spec?.comet?.size === CometSize.SMALL}
-		A small comet has crashed into your planet {planet.mapObject?.name}, killing {(
-			message.spec?.comet?.colonistsKilled ?? 0
-		).toLocaleString()} of your colonists. The comet brought additional minerals and has slightly altered
-		the planet's habitat.
+		A small comet has crashed into your planet {planet.mapObject?.name}, killing {message.spec.comet.colonistsKilled.toLocaleString()}
+		of your colonists. The comet brought additional minerals and has slightly altered the planet's habitat.
 	{:else if message.spec?.comet?.size === CometSize.MEDIUM}
-		A medium-sized comet has crashed into your planet {planet.mapObject?.name}, killing {(
-			message.spec?.comet?.colonistsKilled ?? 0
-		).toLocaleString()} of your colonists. The comet brought additional minerals and has altered the
-		planet's environment.
+		A medium-sized comet has crashed into your planet {planet.mapObject?.name}, killing {message.spec.comet.colonistsKilled.toLocaleString()}
+		of your colonists. The comet brought additional minerals and has altered the planet's environment.
 	{:else if message.spec?.comet?.size === CometSize.LARGE}
-		A large comet has crashed into your planet {planet.mapObject?.name}, killing {(
-			message.spec?.comet?.colonistsKilled ?? 0
-		).toLocaleString()} of your colonists. The comet brought significant quantities of minerals and has
-		greatly altered the planet's environment.
+		A large comet has crashed into your planet {planet.mapObject?.name}, killing {message.spec.comet.colonistsKilled.toLocaleString()}
+		of your colonists. The comet brought significant quantities of minerals and has greatly altered the
+		planet's environment.
 	{:else if message.spec?.comet?.size === CometSize.HUGE}
-		A huge comet has crashed into your planet {planet.mapObject?.name}, killing {(
-			message.spec?.comet?.colonistsKilled ?? 0
-		).toLocaleString()} of your colonists. The comet has embedded vast stores of minerals and drastically
-		altered the planet's environment.
+		A huge comet has crashed into your planet {planet.mapObject?.name}, killing {message.spec.comet.colonistsKilled.toLocaleString()}
+		of your colonists. The comet has embedded vast stores of minerals and drastically altered the planet's
+		environment.
 	{:else}
 		A comet has crashed into {planet.mapObject?.name} bringing new minerals and altering the planet's
 		environment.
@@ -162,21 +161,21 @@
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.mapObject?.name} is currently owned by
 		the {owner.racePluralName}.
-	{:else if $player.race.spec.instaforming && ((planet.spec?.terraformedHabitability && planet.spec?.terraformedHabitability > 0) || (planet.spec?.habitability && planet.spec?.habitability > 0))}
+	{:else if $player.race.spec.instaforming && ((planet.spec?.terraformedHabitability && planet.spec.terraformedHabitability > 0) || (planet.spec?.habitability && planet.spec.habitability > 0))}
 		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
 			1,
-			((planet.spec?.terraformedHabitability ?? planet.spec?.habitability ?? 0) * growthRate) / 100
+			((planet.spec.terraformedHabitability || planet.spec.habitability) * growthRate) / 100
 		).toFixed(2)}% per year if you colonize {planet.mapObject?.name}.
-	{:else if planet.spec?.habitability && planet.spec?.habitability > 0}
+	{:else if planet.spec?.habitability && planet.spec.habitability > 0}
 		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
 			1,
-			(planet.spec?.habitability * growthRate) / 100
+			(planet.spec.habitability * growthRate) / 100
 		).toFixed(2)}% per year if you colonize {planet.mapObject?.name}.
-	{:else if planet.spec?.terraformedHabitability && planet.spec?.terraformedHabitability > 0}
+	{:else if planet.spec?.terraformedHabitability && planet.spec.terraformedHabitability > 0}
 		You have found a new planet which you have the ability to make habitable. With terraforming,
 		your colonists will grow by up to {Math.max(
 			1,
-			(planet.spec?.terraformedHabitability * growthRate) / 100
+			(planet.spec.terraformedHabitability * growthRate) / 100
 		).toFixed(2)}% per year if you colonize {planet.mapObject?.name}.
 	{:else}
 		You have found a new planet which unfortunately is not habitable by you. {Math.max(
@@ -200,12 +199,12 @@
 	{@const invasion = message.spec?.invasion}
 	{#if invasion}
 		{#if invasion.successful}
-			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} have successfully wrested
+			Your troops beaming down from {invasion.fleetName || 'multiple fleets'} have successfully wrested
 			{planet.mapObject?.name}
 			from {$universe.getPlayerName(invasion.defenderPlayerNum)} control, killing off all their colonists
 			with only {invasion.attackersKilled} causalties.
 		{:else}
-			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} tried to invade {planet
+			Your troops beaming down from {invasion.fleetName || 'multiple fleets'} tried to invade {planet
 				.mapObject?.name}, but all of them were massacred by the {$universe.getPlayerName(
 				invasion.defenderPlayerNum
 			)}. Your valiant fighters managed to kill {invasion.defendersKilled} of their colonists in return.
@@ -217,13 +216,13 @@
 	{@const invasion = message.spec?.invasion}
 	{#if invasion}
 		{#if invasion.successful}
-			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ??
+			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ||
 				'multiple fleets'} have successfully invaded {planet.mapObject?.name} and wrested it from your
 			control. Your colonists managed to defeat {invasion.attackersKilled} of their invaders before being
-			overrun. Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} have successfully
+			overrun. Your troops beaming down from {invasion.fleetName || 'multiple fleets'} have successfully
 			wrested
 		{:else}
-			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ??
+			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ||
 				'multiple fleets'} tried to invade {planet.mapObject?.name}, but your troops were able to
 			fend them off. You lost {invasion.defendersKilled} colonists in the process.
 		{/if}
@@ -243,14 +242,16 @@
 	how to build {message.spec?.techGained}.
 {:else if message.type === PlayerMessageType.FLEET_SCRAPPED}
 	{#if planet.spec?.planetStarbaseSpec?.hasStarbase}
-		{message.spec?.target?.targetName} has been dismantled for {totalMinerals(message.spec?.cost)}kT
-		of minerals at the starbase orbiting {planet.mapObject?.name}.
+		{message.spec?.mapObjectTarget?.targetName} has been dismantled for {totalMinerals(
+			message.spec?.cost
+		)}kT of minerals at the starbase orbiting {planet.mapObject?.name}.
 	{:else}
-		{message.spec?.target?.targetName} has been dismantled for {totalMinerals(message.spec?.cost)}kT
-		of minerals which have been deposited on {planet.mapObject?.name}.
+		{message.spec?.mapObjectTarget?.targetName} has been dismantled for {totalMinerals(
+			message.spec?.cost
+		)}kT of minerals which have been deposited on {planet.mapObject?.name}.
 	{/if}
 	{#if message.spec?.cost?.resources}
-		&nbsp;Ultimate Recycling has also made {message.spec?.cost?.resources} resources available for immediate
+		&nbsp;Ultimate Recycling has also made {message.spec.cost.resources} resources available for immediate
 		use (less if other ships were scrapped here this year).
 	{/if}
 {:else if message.type === PlayerMessageType.PLAYER_TECH_LEVEL_GAINED_SCRAP_FLEET}

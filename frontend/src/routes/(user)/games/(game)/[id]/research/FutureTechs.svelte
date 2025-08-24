@@ -36,12 +36,12 @@
 				// i.e. if we are at level 5 for energy and this tech requires 3, distanceToLearn.Energy will equal -2
 				// this makes it zero
 
-				distanceToLearn.energy = Math.max(0, distanceToLearn.energy ?? 0);
-				distanceToLearn.weapons = Math.max(0, distanceToLearn.weapons ?? 0);
-				distanceToLearn.propulsion = Math.max(0, distanceToLearn.propulsion ?? 0);
-				distanceToLearn.construction = Math.max(0, distanceToLearn.construction ?? 0);
-				distanceToLearn.electronics = Math.max(0, distanceToLearn.electronics ?? 0);
-				distanceToLearn.biotechnology = Math.max(0, distanceToLearn.biotechnology ?? 0);
+				distanceToLearn.energy = Math.max(0, distanceToLearn.energy);
+				distanceToLearn.weapons = Math.max(0, distanceToLearn.weapons);
+				distanceToLearn.propulsion = Math.max(0, distanceToLearn.propulsion);
+				distanceToLearn.construction = Math.max(0, distanceToLearn.construction);
+				distanceToLearn.electronics = Math.max(0, distanceToLearn.electronics);
+				distanceToLearn.biotechnology = Math.max(0, distanceToLearn.biotechnology);
 
 				if (sum(distanceToLearn) == get(distanceToLearn, field)) {
 					// if the required tech difference is only in the field we care about
@@ -50,7 +50,7 @@
 				}
 			})
 			.filter((t) => t != undefined)
-			.sort((t1, t2) => (t1?.distance ?? 0) - (t2?.distance ?? 0)) as FutureTech[]
+			.sort((t1, t2) => t1.distance - t2.distance) as FutureTech[]
 	);
 </script>
 

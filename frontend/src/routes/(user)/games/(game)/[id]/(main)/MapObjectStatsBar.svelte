@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { equal, getMapObjectName, type MapObjectLike } from '$lib/types/MapObject';
-	import { distance } from '$lib/types/Vector';
+	import { distance, emptyVector } from '$lib/types/Vector';
 
 	const { highlightedMapObject, selectedMapObject, commandedMapObject } = getGameContext();
 
@@ -15,7 +15,7 @@
 				: $selectedMapObject
 			: $commandedMapObject
 	);
-	const posOf = (m: MapObjectLike | undefined) => m?.mapObject?.position;
+	const posOf = (m: MapObjectLike | undefined) => m?.mapObject?.position ?? emptyVector();
 	const numOf = (m: MapObjectLike | undefined) => m?.mapObject?.num ?? 0;
 	let dist = $derived(from && to ? distance(posOf(from), posOf(to)) : 0);
 </script>
@@ -26,7 +26,7 @@
 			ID: {numOf(to)}
 		</div>
 		<div class="w-20">
-			X: {posOf(to)?.x ?? 0}, Y: {posOf(to)?.y ?? 0}
+			X: {posOf(to).x}, Y: {posOf(to).y}
 		</div>
 		<div>
 			{getMapObjectName(to)}

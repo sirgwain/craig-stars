@@ -74,13 +74,13 @@
 	}
 
 	async function deleteGame(game: GameWithPlayers) {
-		if (game.game?.id && confirm(`Are you sure you want to delete ${game.game?.name}?`)) {
+		if (game.game?.id && confirm(`Are you sure you want to delete ${game.game.name}?`)) {
 			await gameClient.deleteGame({ gameId: game.game.id });
 			removeGame(game);
 		}
 	}
 	async function archiveGame(game: GameWithPlayers) {
-		if (game.game?.id && confirm(`Are you sure you want to archive ${game.game?.name}?`)) {
+		if (game.game?.id && confirm(`Are you sure you want to archive ${game.game.name}?`)) {
 			await gameClient.archiveGame({ gameId: game.game.id });
 			removeGame(game);
 		}
@@ -100,11 +100,11 @@
 	</a>
 </div>
 
-{#if newTurnGames?.length > 0}
+{#if newTurnGames.length > 0}
 	<ItemTitle>New Turns</ItemTitle>
 
 	<div class="mt-2 grid grid-cols-12 gap-1">
-		{#if newTurnGames?.length > 0}
+		{#if newTurnGames.length > 0}
 			<div class="col-span-5 text-secondary">Name</div>
 			<div class="col-span-2 text-secondary">Year</div>
 			<div class="col-span-3 text-secondary">Players</div>
@@ -121,7 +121,7 @@
 	</div>
 {/if}
 
-{#if singlePlayerGames?.length > 0}
+{#if singlePlayerGames.length > 0}
 	<ItemTitle>Single Player Games</ItemTitle>
 
 	<div class="mt-2 grid grid-cols-12 gap-1">
@@ -140,7 +140,7 @@
 	</div>
 {/if}
 
-{#if submittedTurnGames?.length > 0}
+{#if submittedTurnGames.length > 0}
 	<ItemTitle>Submitted</ItemTitle>
 
 	<div class="mt-2 grid grid-cols-12 gap-1">
@@ -154,7 +154,7 @@
 		{/each}
 	</div>
 {/if}
-{#if gamesWaitingToStart?.length > 0}
+{#if gamesWaitingToStart.length > 0}
 	<ItemTitle>Waiting to Start</ItemTitle>
 	<div class="mt-2 grid grid-cols-12 gap-1">
 		<div class="col-span-5 text-secondary">Name</div>
@@ -166,7 +166,7 @@
 	</div>
 {/if}
 
-{#if openGames?.length > 0 && !$me.isGuest()}
+{#if openGames.length > 0 && !$me.isGuest()}
 	<ItemTitle>New Open Games</ItemTitle>
 	<div class="mt-2 grid grid-cols-12 gap-1">
 		<div class="col-span-5 text-secondary">Name</div>

@@ -57,8 +57,8 @@
 			>
 				<div class="flex flex-col">
 					<div>
-						{design?.name}
-						{#if (tokenState.quantity ?? 0) > 1}
+						{design.name}
+						{#if tokenState.quantity > 1}
 							x{tokenState.quantity}
 						{/if}
 						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
@@ -95,7 +95,7 @@
 			{/if}
 		</div>
 		<div>
-			Shields: {tokenState.stackShields ?? 'none'}
+			Shields: {tokenState.stackShields || 'none'}
 		</div>
 		<div>
 			Tactic: {enumToString(

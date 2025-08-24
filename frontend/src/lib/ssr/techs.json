@@ -10,7 +10,6 @@
 					"resources": 100
 				},
 				"requirements": {
-					"techLevel": {},
 					"prtsDenied": ["PRT_AR"]
 				},
 				"category": "TECH_CATEGORY_PLANETARY_SCANNER",
@@ -229,7 +228,6 @@
 					"resources": 100
 				},
 				"requirements": {
-					"techLevel": {},
 					"lrtsRequired": 2
 				},
 				"category": "TECH_CATEGORY_TERRAFORMING",
@@ -651,7 +649,6 @@
 					"resources": 15
 				},
 				"requirements": {
-					"techLevel": {},
 					"prtsDenied": ["PRT_AR"]
 				},
 				"category": "TECH_CATEGORY_PLANETARY_DEFENSE",
@@ -789,7 +786,6 @@
 					"resources": 2
 				},
 				"requirements": {
-					"techLevel": {},
 					"prtsRequired": ["PRT_HE"],
 					"hullsAllowed": ["Mini-Colony Ship"]
 				},
@@ -816,9 +812,7 @@
 					"germanium": 1,
 					"resources": 3
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 10,
 				"category": "TECH_CATEGORY_ENGINE",
 				"tags": {
@@ -1741,7 +1735,6 @@
 					"resources": 50
 				},
 				"requirements": {
-					"techLevel": {},
 					"lrtsRequired": 4
 				},
 				"ranking": 10,
@@ -2311,9 +2304,7 @@
 					"germanium": 1,
 					"resources": 1
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 10,
 				"category": "TECH_CATEGORY_SCANNER",
 				"tags": {
@@ -2750,9 +2741,7 @@
 					"ironium": 5,
 					"resources": 10
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 10,
 				"category": "TECH_CATEGORY_ARMOR",
 				"tags": {
@@ -3056,7 +3045,6 @@
 					"resources": 3
 				},
 				"requirements": {
-					"techLevel": {},
 					"prtsRequired": ["PRT_SS"]
 				},
 				"category": "TECH_CATEGORY_ELECTRICAL",
@@ -3186,9 +3174,7 @@
 					"germanium": 15,
 					"resources": 6
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 40,
 				"category": "TECH_CATEGORY_ELECTRICAL",
 				"tags": {
@@ -3488,7 +3474,6 @@
 					"resources": 45
 				},
 				"requirements": {
-					"techLevel": {},
 					"prtsRequired": ["PRT_SD"]
 				},
 				"category": "TECH_CATEGORY_MINE_LAYER",
@@ -3750,7 +3735,6 @@
 					"resources": 10
 				},
 				"requirements": {
-					"techLevel": {},
 					"prtsDenied": ["PRT_AR"]
 				},
 				"category": "TECH_CATEGORY_MECHANICAL",
@@ -3773,7 +3757,6 @@
 					"resources": 20
 				},
 				"requirements": {
-					"techLevel": {},
 					"prtsRequired": ["PRT_AR"],
 					"hullsAllowed": ["Colony Ship"]
 				},
@@ -3877,9 +3860,7 @@
 					"ironium": 6,
 					"resources": 4
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 40,
 				"category": "TECH_CATEGORY_MECHANICAL",
 				"tags": {
@@ -4024,9 +4005,7 @@
 					"boranium": 6,
 					"resources": 5
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"category": "TECH_CATEGORY_BEAM_WEAPON",
 				"tags": {
 					"BeamWeapon": true
@@ -4664,9 +4643,7 @@
 					"germanium": 3,
 					"resources": 5
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"category": "TECH_CATEGORY_TORPEDO",
 				"tags": {
 					"Torpedo": true
@@ -5014,9 +4991,7 @@
 					"germanium": 1,
 					"resources": 4
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 10,
 				"category": "TECH_CATEGORY_SHIELD",
 				"tags": {
@@ -5277,9 +5252,7 @@
 					"germanium": 17,
 					"resources": 20
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 10,
 				"category": "TECH_CATEGORY_SHIP_HULL"
 			},
@@ -5295,8 +5268,6 @@
 				"x": 1,
 				"y": 1
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -5350,8 +5321,6 @@
 				"x": 2,
 				"y": 1
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -5406,8 +5375,6 @@
 				"x": 2,
 				"y": 2
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -5465,8 +5432,6 @@
 				"x": 2,
 				"y": 2.975
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -5510,9 +5475,7 @@
 					"germanium": 4,
 					"resources": 10
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 40,
 				"category": "TECH_CATEGORY_SHIP_HULL"
 			},
@@ -5520,10 +5483,6 @@
 			"mass": 8,
 			"armor": 20,
 			"fuelCapacity": 50,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 1,
 			"builtInScanner": true,
 			"slots": [
@@ -5544,8 +5503,7 @@
 				},
 				{
 					"type": 10700,
-					"capacity": 1,
-					"position": {}
+					"capacity": 1
 				}
 			]
 		},
@@ -5570,10 +5528,6 @@
 			"mass": 8,
 			"armor": 45,
 			"fuelCapacity": 125,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 4,
 			"builtInScanner": true,
 			"slots": [
@@ -5629,10 +5583,6 @@
 			"mass": 30,
 			"armor": 200,
 			"fuelCapacity": 280,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 3,
 			"builtInScanner": true,
 			"slots": [
@@ -5669,8 +5619,7 @@
 				},
 				{
 					"type": 256,
-					"capacity": 2,
-					"position": {}
+					"capacity": 2
 				},
 				{
 					"type": 8,
@@ -5711,10 +5660,6 @@
 			"mass": 90,
 			"armor": 700,
 			"fuelCapacity": 600,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 5,
 			"slots": [
 				{
@@ -5795,10 +5740,6 @@
 			"mass": 120,
 			"armor": 1000,
 			"fuelCapacity": 1400,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 5,
 			"slots": [
 				{
@@ -5878,10 +5819,6 @@
 			"mass": 222,
 			"armor": 2000,
 			"fuelCapacity": 2800,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 10,
 			"slots": [
 				{
@@ -5947,8 +5884,7 @@
 				},
 				{
 					"type": 256,
-					"capacity": 6,
-					"position": {}
+					"capacity": 6
 				},
 				{
 					"type": 64,
@@ -5990,10 +5926,6 @@
 			"mass": 250,
 			"armor": 4500,
 			"fuelCapacity": 4500,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 10,
 			"slots": [
 				{
@@ -6068,8 +6000,7 @@
 				},
 				{
 					"type": 256,
-					"capacity": 8,
-					"position": {}
+					"capacity": 8
 				},
 				{
 					"type": 2176,
@@ -6125,8 +6056,6 @@
 				"x": 2,
 				"y": 1
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 3,
 			"slots": [
 				{
@@ -6202,8 +6131,6 @@
 				"x": 1.525,
 				"y": 2
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 4,
 			"slots": [
 				{
@@ -6308,8 +6235,6 @@
 				"x": 2,
 				"y": 2
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 4,
 			"slots": [
 				{
@@ -6386,7 +6311,6 @@
 					"resources": 3
 				},
 				"requirements": {
-					"techLevel": {},
 					"prtsRequired": ["PRT_HE"]
 				},
 				"ranking": 150,
@@ -6397,13 +6321,10 @@
 			"armor": 10,
 			"fuelCapacity": 150,
 			"cargoCapacity": 10,
-			"cargoSlotPosition": {},
 			"cargoSlotSize": {
 				"x": 1,
 				"y": 1
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6430,9 +6351,7 @@
 					"germanium": 15,
 					"resources": 20
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 160,
 				"category": "TECH_CATEGORY_SHIP_HULL"
 			},
@@ -6441,13 +6360,10 @@
 			"armor": 20,
 			"fuelCapacity": 200,
 			"cargoCapacity": 25,
-			"cargoSlotPosition": {},
 			"cargoSlotSize": {
 				"x": 1,
 				"y": 1
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6487,10 +6403,6 @@
 			"mass": 28,
 			"armor": 50,
 			"fuelCapacity": 120,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6530,10 +6442,6 @@
 			"mass": 69,
 			"armor": 175,
 			"fuelCapacity": 400,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6588,10 +6496,6 @@
 			"mass": 70,
 			"armor": 225,
 			"fuelCapacity": 750,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6654,10 +6558,6 @@
 			"mass": 110,
 			"armor": 450,
 			"fuelCapacity": 750,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6724,7 +6624,6 @@
 					"resources": 20
 				},
 				"requirements": {
-					"techLevel": {},
 					"lrtsRequired": 4
 				},
 				"ranking": 210,
@@ -6734,10 +6633,6 @@
 			"mass": 10,
 			"armor": 100,
 			"fuelCapacity": 210,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6776,10 +6671,6 @@
 			"mass": 80,
 			"armor": 130,
 			"fuelCapacity": 210,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6833,10 +6724,6 @@
 			"mass": 110,
 			"armor": 475,
 			"fuelCapacity": 500,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6908,10 +6795,6 @@
 			"mass": 110,
 			"armor": 1400,
 			"fuelCapacity": 850,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -6983,10 +6866,6 @@
 			"mass": 100,
 			"armor": 1500,
 			"fuelCapacity": 1300,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"slots": [
 				{
 					"type": 2,
@@ -7059,10 +6938,6 @@
 			"armor": 5,
 			"fuelCapacity": 750,
 			"fuelGeneration": 200,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"repairBonus": 0.05,
 			"slots": [
 				{
@@ -7103,10 +6978,6 @@
 			"armor": 12,
 			"fuelCapacity": 2250,
 			"fuelGeneration": 200,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"repairBonus": 0.1,
 			"slots": [
 				{
@@ -7119,8 +6990,7 @@
 				},
 				{
 					"type": 128,
-					"capacity": 2,
-					"position": {}
+					"capacity": 2
 				},
 				{
 					"type": 4,
@@ -7141,7 +7011,6 @@
 					"resources": 20
 				},
 				"requirements": {
-					"techLevel": {},
 					"prtsRequired": ["PRT_SD"]
 				},
 				"ranking": 280,
@@ -7151,10 +7020,6 @@
 			"mass": 10,
 			"armor": 60,
 			"fuelCapacity": 400,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"mineLayingBonus": 1,
 			"immuneToOwnDetonation": true,
 			"slots": [
@@ -7211,10 +7076,6 @@
 			"mass": 30,
 			"armor": 1200,
 			"fuelCapacity": 2200,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"mineLayingBonus": 1,
 			"immuneToOwnDetonation": true,
 			"slots": [
@@ -7288,10 +7149,6 @@
 			"mass": 100,
 			"armor": 5000,
 			"fuelCapacity": 5000,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 2,
 			"slots": [
 				{
@@ -7366,8 +7223,7 @@
 				},
 				{
 					"type": 10700,
-					"capacity": 3,
-					"position": {}
+					"capacity": 3
 				},
 				{
 					"type": 10700,
@@ -7424,8 +7280,6 @@
 				"x": 1,
 				"y": 2
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 2,
 			"slots": [
 				{
@@ -7515,8 +7369,6 @@
 				"x": 1,
 				"y": 2
 			},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 2,
 			"slots": [
 				{
@@ -7583,18 +7435,12 @@
 					"germanium": 17,
 					"resources": 40
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 10,
 				"category": "TECH_CATEGORY_STARBASE_HULL"
 			},
 			"type": "TECH_HULL_TYPE_ORBITAL_FORT",
 			"armor": 100,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
-			"spaceDockSlotPosition": {},
-			"spaceDockSlotSize": {},
 			"initiative": 10,
 			"repairBonus": 0.03,
 			"rangeBonus": 1,
@@ -7604,8 +7450,7 @@
 			"slots": [
 				{
 					"type": 4160,
-					"capacity": 1,
-					"position": {}
+					"capacity": 1
 				},
 				{
 					"type": 2048,
@@ -7657,8 +7502,6 @@
 			},
 			"type": "TECH_HULL_TYPE_STARBASE",
 			"armor": 250,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
 			"spaceDock": 200,
 			"spaceDockSlotPosition": {
 				"x": -0.125,
@@ -7746,18 +7589,13 @@
 					"germanium": 250,
 					"resources": 600
 				},
-				"requirements": {
-					"techLevel": {}
-				},
+				"requirements": {},
 				"ranking": 30,
 				"category": "TECH_CATEGORY_STARBASE_HULL"
 			},
 			"type": "TECH_HULL_TYPE_STARBASE",
 			"armor": 500,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
 			"spaceDock": -1,
-			"spaceDockSlotPosition": {},
 			"spaceDockSlotSize": {
 				"x": 1,
 				"y": 1
@@ -7882,10 +7720,7 @@
 			},
 			"type": "TECH_HULL_TYPE_STARBASE",
 			"armor": 1000,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
 			"spaceDock": -1,
-			"spaceDockSlotPosition": {},
 			"spaceDockSlotSize": {
 				"x": 1,
 				"y": 1
@@ -8043,10 +7878,7 @@
 			},
 			"type": "TECH_HULL_TYPE_STARBASE",
 			"armor": 1500,
-			"cargoSlotPosition": {},
-			"cargoSlotSize": {},
 			"spaceDock": -1,
-			"spaceDockSlotPosition": {},
 			"spaceDockSlotSize": {
 				"x": 1,
 				"y": 1

@@ -23,62 +23,60 @@
 				<div
 					class="flex flex-row justify-between gap-1"
 					class:text-error={player?.techLevels &&
-						(player.techLevels.energy ?? 0) < (tech.requirements?.techLevel?.energy ?? 0)}
+						player.techLevels.energy < tech.requirements.techLevel.energy}
 				>
 					<div>Energy:</div>
-					<div>{tech.requirements?.techLevel?.energy}</div>
+					<div>{tech.requirements.techLevel.energy}</div>
 				</div>
 			{/if}
 			{#if tech.requirements?.techLevel?.weapons}
 				<div
 					class="flex flex-row justify-between gap-1"
 					class:text-error={player?.techLevels &&
-						(player.techLevels.weapons ?? 0) < (tech.requirements?.techLevel?.weapons ?? 0)}
+						player.techLevels.weapons < tech.requirements.techLevel.weapons}
 				>
 					<div>Weapons:</div>
-					<div>{tech.requirements?.techLevel?.weapons}</div>
+					<div>{tech.requirements.techLevel.weapons}</div>
 				</div>
 			{/if}
 			{#if tech.requirements?.techLevel?.propulsion}
 				<div
 					class="flex flex-row justify-between gap-1"
 					class:text-error={player?.techLevels &&
-						(player.techLevels.propulsion ?? 0) < (tech.requirements?.techLevel?.propulsion ?? 0)}
+						player.techLevels.propulsion < tech.requirements.techLevel.propulsion}
 				>
 					<div>Propulsion:</div>
-					<div>{tech.requirements?.techLevel?.propulsion}</div>
+					<div>{tech.requirements.techLevel.propulsion}</div>
 				</div>
 			{/if}
 			{#if tech.requirements?.techLevel?.construction}
 				<div
 					class="flex flex-row justify-between gap-1"
 					class:text-error={player?.techLevels &&
-						(player.techLevels.construction ?? 0) <
-							(tech.requirements?.techLevel?.construction ?? 0)}
+						player.techLevels.construction < tech.requirements.techLevel.construction}
 				>
 					<div>Construction:</div>
-					<div>{tech.requirements?.techLevel?.construction}</div>
+					<div>{tech.requirements.techLevel.construction}</div>
 				</div>
 			{/if}
 			{#if tech.requirements?.techLevel?.electronics}
 				<div
 					class="flex flex-row justify-between gap-1"
 					class:text-error={player?.techLevels &&
-						(player.techLevels.electronics ?? 0) < (tech.requirements?.techLevel?.electronics ?? 0)}
+						player.techLevels.electronics < tech.requirements.techLevel.electronics}
 				>
 					<div>Electronics:</div>
-					<div>{tech.requirements?.techLevel?.electronics}</div>
+					<div>{tech.requirements.techLevel.electronics}</div>
 				</div>
 			{/if}
 			{#if tech.requirements?.techLevel?.biotechnology}
 				<div
 					class="flex flex-row justify-between gap-1"
 					class:text-error={player?.techLevels &&
-						(player.techLevels.biotechnology ?? 0) <
-							(tech.requirements?.techLevel?.biotechnology ?? 0)}
+						player.techLevels.biotechnology < tech.requirements.techLevel.biotechnology}
 				>
 					<div>Biotechnology:</div>
-					<div>{tech.requirements?.techLevel?.biotechnology}</div>
+					<div>{tech.requirements.techLevel.biotechnology}</div>
 				</div>
 			{/if}
 		{/if}

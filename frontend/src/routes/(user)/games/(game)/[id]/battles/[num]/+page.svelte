@@ -19,7 +19,7 @@
 	}
 </script>
 
-{#if $game && battle}
+{#if battle}
 	<Breadcrumb>
 		{#snippet crumbs()}
 			<li><a class="cs-link" href={`/games/${$game.id}/battles`}>Battles</a></li>

@@ -10,7 +10,7 @@
 	let planets = $derived(
 		$universe.planets.filter(
 			(planet) =>
-				planet.planetOrders?.packetTargetNum && planet.planetOrders?.packetTargetNum != None
+				planet.planetOrders?.packetTargetNum && planet.planetOrders.packetTargetNum != None
 		)
 	);
 
@@ -24,7 +24,7 @@
 				{ position: target?.mapObject?.position ?? planet.mapObject?.position }
 			];
 
-			const strokeWidth = planet.mapObject?.num === $commandedPlanet?.mapObject?.num ? 1.5 : 1;
+			const strokeWidth = planet.mapObject?.num === $commandedPlanet?.mapObject.num ? 1.5 : 1;
 			const dist =
 				(planet.planetOrders?.packetSpeed ?? 0) * (planet.planetOrders?.packetSpeed ?? 0);
 

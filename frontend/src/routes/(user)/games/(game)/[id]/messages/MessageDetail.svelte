@@ -17,7 +17,7 @@
 	let target = $derived($universe.getMapObject(getMapObjectTarget(message)));
 	let owner = $derived(
 		target && target.mapObject?.playerNum
-			? $universe.getPlayerIntel(target.mapObject?.playerNum)
+			? $universe.getPlayerIntel(target.mapObject.playerNum)
 			: undefined
 	);
 	let planet = $derived(

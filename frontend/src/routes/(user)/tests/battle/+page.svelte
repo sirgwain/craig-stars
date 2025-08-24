@@ -20,8 +20,8 @@
 		universe.setData(
 			player.num,
 			create(PlayerUniverseSchema, {
-				designs: resp.designs ?? [],
-				fleets: resp.fleets ?? []
+				designs: resp.designs,
+				fleets: resp.fleets
 			})
 		);
 	});

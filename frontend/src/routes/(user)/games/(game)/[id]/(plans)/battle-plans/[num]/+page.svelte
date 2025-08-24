@@ -21,7 +21,7 @@
 		error = '';
 
 		try {
-			if (plan && $game) {
+			if (plan) {
 				// save to server
 				await updateBattlePlan(plan);
 				notify(`Saved ${plan.name}`);

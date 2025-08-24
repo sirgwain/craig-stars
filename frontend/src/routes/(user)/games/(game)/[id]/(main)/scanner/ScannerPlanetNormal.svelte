@@ -5,6 +5,7 @@
 	import { MapObjectType } from '$lib/types/cs-proto';
 	import { filterFleet } from '$lib/types/Filter';
 	import { owned } from '$lib/types/MapObject';
+	import { emptyVector } from '$lib/types/Vector';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
@@ -34,7 +35,7 @@
 
 	let orbitingFleets = $derived(
 		$universe
-			.getMapObjectsByPosition(planet.mapObject?.position)
+			.getMapObjectsByPosition(planet.mapObject?.position ?? emptyVector())
 			.filter((mo) => mo.mapObject?.type === MapObjectType.FLEET)
 			.filter((f) => filterFleet($player, f as Fleet, $settings))
 	);
@@ -48,7 +49,7 @@
 		if (planet.mapObject?.playerNum === $player.num) {
 			color = '#00FF00';
 		} else if (planet.mapObject?.playerNum) {
-			color = $universe.getPlayerColor(planet.mapObject?.playerNum) ?? '#FF0000';
+			color = $universe.getPlayerColor(planet.mapObject.playerNum);
 		} else if (
 			planet.mapObject?.reportAge !== ReportAgeUnexplored &&
 			!planet.mapObject?.playerNum
@@ -68,7 +69,7 @@
 	// setup props for the ring
 	let ringProps = $derived.by(() => {
 		// if anything is orbiting our planet, put a ring on it
-		if (orbitingFleets?.length > 0) {
+		if (orbitingFleets.length > 0) {
 			const { enemies, friends } = getEnemiesAndFriends(orbitingFleets, $player);
 
 			let ringColor = 'stroke-orbit';

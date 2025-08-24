@@ -13,7 +13,7 @@
 		tokens?: ShipToken[];
 	};
 
-	let { fleet, tokens = fleet.tokens ?? [] }: Props = $props();
+	let { fleet, tokens = fleet.tokens }: Props = $props();
 
 	const design: ShipDesign | undefined = $derived.by(() => {
 		const token = tokens.find((t) => t.quantity > 0);
@@ -28,7 +28,7 @@
 		class="border-2 border-neutral p-2 bg-black"
 		style={`border-color: ${$universe.getPlayerColor(fleet.mapObject?.playerNum)};`}
 	>
-		{#if tokens && tokens.reduce((count, t) => count + t.quantity, 0) > 1}
+		{#if tokens.reduce((count, t) => count + t.quantity, 0) > 1}
 			<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 		{/if}
 

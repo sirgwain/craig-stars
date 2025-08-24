@@ -42,9 +42,9 @@
 	let { hull, design = $bindable(), error = '', numHullSets = 4, onSave }: Props = $props();
 
 	// Local runes state for frequently bound fields
-	let name: string = $state(design.name ?? '');
-	let hullSetNumber: number = $state(design.hullSetNumber ?? 0);
-	let slots: ShipDesignSlot[] = $state(design.slots ?? []);
+	let name: string = $state(design.name);
+	let hullSetNumber: number = $state(design.hullSetNumber);
+	let slots: ShipDesignSlot[] = $state(design.slots);
 
 	// Derived/spec state from wasm
 	let designSpec: ShipDesignSpec = $state(create(ShipDesignSpecSchema));
@@ -71,7 +71,7 @@
 	let selectedComponent = $derived(
 		$shipDesignerContext.selectedHullComponent ??
 			($shipDesignerContext.selectedShipDesignSlot?.hullComponent
-				? $techs.getHullComponent($shipDesignerContext.selectedShipDesignSlot?.hullComponent)
+				? $techs.getHullComponent($shipDesignerContext.selectedShipDesignSlot.hullComponent)
 				: undefined)
 	);
 
@@ -113,15 +113,14 @@
 			}
 
 			// highlight compatible slots
-			highlightedSlots =
-				hull?.slots
-					.map((slot, index) => ({ slot, index }))
-					.filter(
-						(s) =>
-							$shipDesignerContext.selectedHullComponent &&
-							canFillSlot($shipDesignerContext.selectedHullComponent.hullSlotType, s.slot.type)
-					)
-					.map((s) => s.index) ?? [];
+			highlightedSlots = hull.slots
+				.map((slot, index) => ({ slot, index }))
+				.filter(
+					(s) =>
+						$shipDesignerContext.selectedHullComponent &&
+						canFillSlot($shipDesignerContext.selectedHullComponent.hullSlotType, s.slot.type)
+				)
+				.map((s) => s.index);
 		}
 	}
 
@@ -158,7 +157,7 @@
 		if (existingShipDesignSlot) {
 			// mutate then reassign to trigger reactivity
 			existingShipDesignSlot.hullComponent = hc.tech?.name ?? '';
-			existingShipDesignSlot.quantity = slot.capacity ?? 0;
+			existingShipDesignSlot.quantity = slot.capacity;
 			slots = [...slots];
 		} else {
 			slots = [
@@ -249,10 +248,10 @@
 				<div class="flex flex-col">
 					<div>Cost of one {name}</div>
 					<div class="pl-2 hidden sm:block">
-						<Cost cost={designSpec?.cost} />
+						<Cost cost={designSpec.cost} />
 					</div>
 					<div class="pl-2 sm:hidden flex justify-between">
-						<CostMini cost={designSpec?.cost} />
+						<CostMini cost={designSpec.cost} />
 						<!-- <div class="ml-2"><button type="button" class="btn btn-sm btn-outline btn-secondary">Stats</button></div> -->
 					</div>
 				</div>

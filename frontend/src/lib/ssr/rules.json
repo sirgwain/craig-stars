@@ -138,7 +138,6 @@
 			"fuelEfficiencyOffset": -0.15
 		},
 		"2": {
-			"startingTechLevels": {},
 			"techCostOffset": {
 				"30": -0.3
 			}
@@ -155,56 +154,44 @@
 					"hullName": "Midget-Miner",
 					"purpose": "Miner"
 				}
-			],
-			"startingTechLevels": {}
+			]
 		},
 		"8": {
-			"startingTechLevels": {},
 			"starbaseBuiltInCloakUnits": 40,
 			"starbaseCostFactor": 0.8
 		},
 		"16": {
-			"startingTechLevels": {},
 			"researchFactorOffset": -0.5,
 			"researchSplashDamage": 0.15
 		},
 		"32": {
-			"startingTechLevels": {},
 			"scrapMineralOffset": 0.11666666666666667,
 			"scrapMineralOffsetStarbase": 0.1,
 			"scrapResourcesOffset": 0.35,
 			"scrapResourcesOffsetStarbase": 0.7
 		},
-		"64": {
-			"startingTechLevels": {}
-		},
+		"64": {},
 		"128": {
-			"startingTechLevels": {},
 			"maxPopulationOffset": 0.1
 		},
 		"256": {
-			"startingTechLevels": {},
 			"noAdvancedScanners": true,
 			"scanRangeFactorOffset": 1
 		},
 		"512": {
-			"startingTechLevels": {},
 			"startingPopulationFactorDelta": -0.3
 		},
 		"1024": {
-			"startingTechLevels": {},
 			"newTechCostFactorOffset": 1,
 			"miniaturizationMax": 0.05,
 			"miniaturizationPerLevel": 0.01
 		},
 		"2048": {
-			"startingTechLevels": {},
 			"shieldStrengthFactorOffset": 0.4,
 			"shieldRegenerationRateOffset": 0.1,
 			"armorStrengthFactorOffset": -0.5
 		},
 		"4096": {
-			"startingTechLevels": {},
 			"mineralAlchemyCostOffset": -75
 		},
 		"8192": {
@@ -436,7 +423,6 @@
 	"prtSpecs": {
 		"1": {
 			"pointCost": 66,
-			"startingTechLevels": {},
 			"startingPlanets": [
 				{
 					"population": 25000,
@@ -478,10 +464,7 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {},
 			"growthFactor": 2,
@@ -537,10 +520,7 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {},
 			"growthFactor": 1,
@@ -619,10 +599,7 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {},
 			"growthFactor": 1,
@@ -689,10 +666,7 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {},
 			"growthFactor": 1,
@@ -716,7 +690,6 @@
 		},
 		"5": {
 			"pointCost": 66,
-			"startingTechLevels": {},
 			"startingPlanets": [
 				{
 					"population": 25000,
@@ -754,10 +727,7 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {
 				"growthFactor": 0.5
@@ -825,10 +795,7 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {},
 			"growthFactor": 1,
@@ -909,10 +876,7 @@
 			"packetPermaformChance": 0.001,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {},
 			"growthFactor": 1,
@@ -1000,10 +964,7 @@
 			"packetPermaTerraformSizeUnit": 100,
 			"canGateCargo": true,
 			"canDetectStargatePlanets": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {},
 			"growthFactor": 1,
@@ -1058,10 +1019,7 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {
 				"absolute": true,

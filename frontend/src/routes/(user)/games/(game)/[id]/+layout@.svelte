@@ -52,7 +52,7 @@
 			hotkeys.setScope('root');
 		} catch (e) {
 			const err = e as ConnectError;
-			if (err?.code === Code.NotFound) {
+			if (err.code === Code.NotFound) {
 				error = 'Game not found';
 			} else {
 				error = `${e}`;

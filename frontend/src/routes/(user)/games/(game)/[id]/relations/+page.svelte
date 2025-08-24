@@ -6,7 +6,5 @@
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
-	{#if player}
-		<Relations player={$player} onUpdatePlayerRelationships={updatePlayerRelationships} />
-	{/if}
+	<Relations player={$player} onUpdatePlayerRelationships={updatePlayerRelationships} />
 </div>

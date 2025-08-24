@@ -7,8 +7,9 @@ import "craig_stars/v1/common.proto";
 import "craig_stars/v1/minefield.proto";
 import "craig_stars/v1/mineralpacket.proto";
 import "craig_stars/v1/mysterytrader.proto";
-import "craig_stars/v1/shipdesign.proto";
+import "craig_stars/v1/planet.proto";
 import "craig_stars/v1/rules.proto";
+import "craig_stars/v1/shipdesign.proto";
 
 message PlayerMessage {
   PlayerMessageTarget target = 1;
@@ -145,7 +146,7 @@ enum CargoTransferStatus {
 }
 
 message PlayerMessageSpec {
-  MapObjectTarget target = 1;
+  MapObjectTarget map_object_target = 1;
   int32 amount = 2;
   int32 amount2 = 3;
   BattleRecordStats battle = 4;
@@ -165,7 +166,7 @@ message PlayerMessageSpec {
   string name = 18;
   string next_field = 19;
   int32 prev_amount = 20;
-  string queue_item_type = 21;
+  QueueItemType queue_item_type = 21;
   MapObjectTarget route_target = 22;
   int32 source_player_num = 23;
   string tech_gained = 24;

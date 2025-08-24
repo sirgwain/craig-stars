@@ -72,7 +72,7 @@
 		<input
 			type="number"
 			class="input input-sm input-bordered hide-spinner"
-			onchange={(e) => (phase = clamp(parseInt(e.currentTarget.value) ?? 0, 0, battle.totalPhases))}
+			onchange={(e) => (phase = clamp(parseInt(e.currentTarget.value), 0, battle.totalPhases))}
 			onclick={(e) => e.currentTarget.select()}
 			min={0}
 			max={battle.totalPhases}

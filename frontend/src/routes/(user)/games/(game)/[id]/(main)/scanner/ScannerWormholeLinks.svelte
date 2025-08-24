@@ -24,7 +24,7 @@
 		return wormholes
 			.filter((wormhole) => {
 				const used =
-					numsUsed.has(wormhole.mapObject?.num ?? 0) || numsUsed.has(wormhole.destinationNum ?? 0);
+					numsUsed.has(wormhole.mapObject?.num ?? 0) || numsUsed.has(wormhole.destinationNum);
 				numsUsed.add(wormhole.mapObject?.num ?? 0);
 				if (wormhole.destinationNum) {
 					numsUsed.add(wormhole.destinationNum);
@@ -34,7 +34,7 @@
 			.map((wormhole) => {
 				// get the target, if it's empty, just point to our planet position (which will render an empty line)
 				// it should not be empty...
-				const target = $universe.getWormhole(wormhole.destinationNum ?? 0);
+				const target = $universe.getWormhole(wormhole.destinationNum);
 				const coords = [
 					{ position: wormhole.mapObject?.position ?? emptyVector() },
 					{ position: target?.mapObject?.position ?? wormhole.mapObject?.position ?? emptyVector() }
@@ -42,7 +42,7 @@
 
 				const heading = normalized(subtract(coords[0].position, coords[1].position));
 				coords[0].position = create(VectorSchema, {
-					x: (coords[0].position.x ?? 0) - heading.x * 3,
+					x: coords[0].position.x - heading.x * 3,
 					y: coords[0].position.y - heading.y * 3
 				});
 				coords[1].position = create(VectorSchema, {

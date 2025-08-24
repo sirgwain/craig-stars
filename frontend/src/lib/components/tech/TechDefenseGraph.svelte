@@ -30,17 +30,15 @@
 			Standard: [],
 			Smart: []
 		};
-		if (defense) {
-			for (let i = 0; i <= 100; i += 100 / (numTicks - 1)) {
-				data['Standard'].push({
-					defenses: i,
-					coverage: getDefenseCoverage(defense, i) * 100
-				});
-				data['Smart'].push({
-					defenses: i,
-					coverage: getSmartDefenseCoverage(defense, i) * 100
-				});
-			}
+		for (let i = 0; i <= 100; i += 100 / (numTicks - 1)) {
+			data['Standard'].push({
+				defenses: i,
+				coverage: getDefenseCoverage(defense, i) * 100
+			});
+			data['Smart'].push({
+				defenses: i,
+				coverage: getSmartDefenseCoverage(defense, i) * 100
+			});
 		}
 
 		return data;

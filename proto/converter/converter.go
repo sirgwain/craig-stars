@@ -39,6 +39,14 @@ var C Converter
 // goverter:extend CSCargoTransfersToCargoTransfers
 // goverter:extend ActionsPerRoundToCSActionsPerRound
 // goverter:extend CSActionsPerRoundToActionsPerRound
+// goverter:extend CSHabToHab
+// goverter:extend CSGameDBObjectToGameDBObject
+// goverter:extend CSMineralToMineral
+// goverter:extend CSCargoToCargo
+// goverter:extend CSCostToCost
+// goverter:extend CSMapObjectTargetToMapObjectTarget
+// goverter:extend CSVectorToVector
+// goverter:extend CSTechLevelToTechLevel
 //
 // goverter:extend AIDifficultyToCSAIDifficulty
 // goverter:extend CSAIDifficultyToAIDifficulty
@@ -207,6 +215,7 @@ type Converter interface {
 	// goverter:ignore TechsJustGained
 	ConvertPlayer(source *craig_starsv1.Player) *cs.Player
 
+	// goverter:ignore ScoreHistory
 	ConvertIntels(source *craig_starsv1.Intels) cs.Intels
 	ConvertCSIntels(source cs.Intels) *craig_starsv1.Intels
 	ConvertCSPlayerIntels(source []cs.PlayerIntel) []*craig_starsv1.PlayerIntel
@@ -497,5 +506,103 @@ func CSResourceTypeToResourceType(m cs.ResourceType) craig_starsv1.ResourceType 
 		return craig_starsv1.ResourceType_RESOURCE_TYPE_RESOURCES
 	default:
 		return craig_starsv1.ResourceType_RESOURCE_TYPE_UNSPECIFIED
+	}
+}
+
+func CSMapObjectTargetToMapObjectTarget(c Converter, source cs.MapObjectTarget) *craig_starsv1.MapObjectTarget {
+	if source == (cs.MapObjectTarget{}) {
+		return nil
+	}
+	return &craig_starsv1.MapObjectTarget{
+		TargetPosition: &craig_starsv1.Vector{
+			X: source.TargetPosition.X,
+			Y: source.TargetPosition.Y,
+		},
+		TargetType:      CSMapObjectTypeToMapObjectType(source.TargetType),
+		TargetName:      source.TargetName,
+		TargetNum:       int32(source.TargetNum),
+		TargetPlayerNum: int32(source.TargetPlayerNum),
+	}
+}
+
+func CSVectorToVector(source cs.Vector) *craig_starsv1.Vector {
+	if source == (cs.Vector{}) {
+		return nil
+	}
+	return &craig_starsv1.Vector{
+		X: source.X,
+		Y: source.Y,
+	}
+}
+
+func CSHabToHab(source cs.Hab) *craig_starsv1.Hab {
+	if source == (cs.Hab{}) {
+		return nil
+	}
+	return &craig_starsv1.Hab{
+		Grav: int32(source.Grav),
+		Temp: int32(source.Temp),
+		Rad:  int32(source.Rad),
+	}
+}
+
+func CSMineralToMineral(source cs.Mineral) *craig_starsv1.Mineral {
+	if source == (cs.Mineral{}) {
+		return nil
+	}
+	return &craig_starsv1.Mineral{
+		Ironium:   int32(source.Ironium),
+		Boranium:  int32(source.Boranium),
+		Germanium: int32(source.Germanium),
+	}
+}
+
+func CSCargoToCargo(source cs.Cargo) *craig_starsv1.Cargo {
+	if source == (cs.Cargo{}) {
+		return nil
+	}
+	return &craig_starsv1.Cargo{
+		Ironium:   int32(source.Ironium),
+		Boranium:  int32(source.Boranium),
+		Germanium: int32(source.Germanium),
+		Colonists: int32(source.Colonists),
+	}
+}
+
+func CSCostToCost(source cs.Cost) *craig_starsv1.Cost {
+	if source == (cs.Cost{}) {
+		return nil
+	}
+	return &craig_starsv1.Cost{
+		Ironium:   int32(source.Ironium),
+		Boranium:  int32(source.Boranium),
+		Germanium: int32(source.Germanium),
+		Resources: int32(source.Resources),
+	}
+}
+func CSTechLevelToTechLevel(source cs.TechLevel) *craig_starsv1.TechLevel {
+	if source == (cs.TechLevel{}) {
+		return nil
+	}
+	return &craig_starsv1.TechLevel{
+		Energy:        int32(source.Energy),
+		Weapons:       int32(source.Weapons),
+		Propulsion:    int32(source.Propulsion),
+		Construction:  int32(source.Construction),
+		Electronics:   int32(source.Electronics),
+		Biotechnology: int32(source.Biotechnology),
+	}
+}
+
+func CSGameDBObjectToGameDBObject(source cs.GameDBObject) *craig_starsv1.GameDBObject {
+	if source == (cs.GameDBObject{}) {
+		return nil
+	}
+	return &craig_starsv1.GameDBObject{
+		Id:             source.ID,
+		GameId:         source.GameID,
+		IntelPlayerNum: int32(source.IntelPlayerNum),
+		CreatedAt:      TimeToTimestamp(source.CreatedAt),
+		UpdatedAt:      TimeToTimestamp(source.UpdatedAt),
 	}
 }

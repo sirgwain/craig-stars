@@ -50,7 +50,7 @@
 	onMount(async () => {
 		try {
 			const resp = await raceClient.getRaces({});
-			races = resp.races ?? [];
+			races = resp.races;
 		} catch (e) {
 			addError(e as ConnectError);
 		}

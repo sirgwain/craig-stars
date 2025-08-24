@@ -67,7 +67,7 @@
 		<div class="border border-secondary bg-base-300 min-w-fit max-h-[26rem] h-full overflow-y-auto">
 			<ul class="w-full p-1">
 				{#each otherFleetsHere as otherFleet, index (key(otherFleet))}
-					{#if otherFleet.mapObject?.num !== fleet.mapObject?.num}
+					{#if otherFleet.mapObject?.num !== fleet.mapObject.num}
 						<li
 							bind:this={fleetRefs[index]}
 							class="pl-1"

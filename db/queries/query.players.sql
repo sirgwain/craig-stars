@@ -25,6 +25,7 @@ ORDER BY
 
 -- name: GetPlayerIntel :one
 SELECT
+    score_history,
     battle_records,
     player_intels,
     score_intels,

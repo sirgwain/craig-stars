@@ -15,10 +15,10 @@
 		commandedMapObject: MapObjectLike | undefined
 	): boolean => {
 		if (
-			equal(selectedMapObject, commandedMapObject) ||
+			(commandedMapObject && equal(selectedMapObject, commandedMapObject)) ||
 			(commandedMapObject?.mapObject?.type === MapObjectType.FLEET &&
 				selectedMapObject?.mapObject?.type === MapObjectType.PLANET &&
-				(commandedMapObject as Fleet).orbitingPlanetNum == selectedMapObject.mapObject?.num)
+				(commandedMapObject as Fleet).orbitingPlanetNum == selectedMapObject.mapObject.num)
 		) {
 			return true;
 		}

@@ -60,7 +60,7 @@ func (m *Player) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xca
+		dAtA[i] = 0xc2
 	}
 	if m.Archived {
 		i--
@@ -72,7 +72,7 @@ func (m *Player) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xc0
+		dAtA[i] = 0xb8
 	}
 	if m.Victor {
 		i--
@@ -84,14 +84,14 @@ func (m *Player) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xb8
+		dAtA[i] = 0xb0
 	}
 	if m.AchievedVictoryConditions != 0 {
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.AchievedVictoryConditions))
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xb0
+		dAtA[i] = 0xa8
 	}
 	if len(m.AcquiredTechs) > 0 {
 		for k := range m.AcquiredTechs {
@@ -111,20 +111,6 @@ func (m *Player) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			i--
 			dAtA[i] = 0xa
 			i = protohelpers.EncodeVarint(dAtA, i, uint64(baseI-i))
-			i--
-			dAtA[i] = 0x1
-			i--
-			dAtA[i] = 0xaa
-		}
-	}
-	if len(m.ScoreHistory) > 0 {
-		for iNdEx := len(m.ScoreHistory) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.ScoreHistory[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
 			i--
 			dAtA[i] = 0x1
 			i--
@@ -1490,12 +1476,6 @@ func (m *Player) SizeVT() (n int) {
 			n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
 		}
 	}
-	if len(m.ScoreHistory) > 0 {
-		for _, e := range m.ScoreHistory {
-			l = e.SizeVT()
-			n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
-		}
-	}
 	if len(m.AcquiredTechs) > 0 {
 		for k, v := range m.AcquiredTechs {
 			_ = k
@@ -2534,40 +2514,6 @@ func (m *Player) UnmarshalVT(dAtA []byte) error {
 			iNdEx = postIndex
 		case 20:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ScoreHistory", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protohelpers.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return protohelpers.ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return protohelpers.ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ScoreHistory = append(m.ScoreHistory, &PlayerScore{})
-			if err := m.ScoreHistory[len(m.ScoreHistory)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 21:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AcquiredTechs", wireType)
 			}
 			var msglen int
@@ -2681,7 +2627,7 @@ func (m *Player) UnmarshalVT(dAtA []byte) error {
 			}
 			m.AcquiredTechs[mapkey] = mapvalue
 			iNdEx = postIndex
-		case 22:
+		case 21:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AchievedVictoryConditions", wireType)
 			}
@@ -2700,7 +2646,7 @@ func (m *Player) UnmarshalVT(dAtA []byte) error {
 					break
 				}
 			}
-		case 23:
+		case 22:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Victor", wireType)
 			}
@@ -2720,7 +2666,7 @@ func (m *Player) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.Victor = bool(v != 0)
-		case 24:
+		case 23:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Archived", wireType)
 			}
@@ -2740,7 +2686,7 @@ func (m *Player) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.Archived = bool(v != 0)
-		case 25:
+		case 24:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Stats", wireType)
 			}

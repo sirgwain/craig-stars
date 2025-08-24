@@ -23,6 +23,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
 	import CommandTile from './CommandTile.svelte';
+	import { emptyVector } from '$lib/types/Vector';
 
 	const { game, player, universe } = getGameContext();
 
@@ -41,19 +42,19 @@
 
 	// local state for the ui components
 	let fleet = $state(propFleet);
-	let waypoint = $state(propFleet.fleetOrders?.waypoints[selectedWaypointIndex]);
+	let waypoint = $state(propFleet.fleetOrders.waypoints[selectedWaypointIndex]);
 
 	$effect(() => {
 		// update state when the props change
 		fleet = propFleet;
-		waypoint = propFleet.fleetOrders?.waypoints[selectedWaypointIndex];
+		waypoint = propFleet.fleetOrders.waypoints[selectedWaypointIndex];
 	});
 
-	let selectedWaypointTask = $derived(waypoint.task ?? WaypointTask.UNSPECIFIED);
+	let selectedWaypointTask = $derived(waypoint.task);
 	let selectedWaypointPlanet = $derived(
 		waypoint.mapObjectTarget?.targetType === MapObjectType.PLANET &&
-			waypoint.mapObjectTarget?.targetNum
-			? $universe.getPlanet(waypoint.mapObjectTarget?.targetNum)
+			waypoint.mapObjectTarget.targetNum
+			? $universe.getPlanet(waypoint.mapObjectTarget.targetNum)
 			: undefined
 	);
 
@@ -119,8 +120,10 @@
 		<div>
 			<OtherMapObjectsHere
 				{fleet}
-				otherMapObjectsHere={$universe.getOtherMapObjectsHereByType(waypoint.position)}
-				target={waypoint.mapObjectTarget!}
+				otherMapObjectsHere={$universe.getOtherMapObjectsHereByType(
+					waypoint.position ?? emptyVector()
+				)}
+				target={waypoint.mapObjectTarget}
 				position={waypoint.position}
 				class="w-36"
 				onSelected={onTargetChanged}
@@ -136,7 +139,7 @@
 				class="select select-outline select-secondary select-sm text-sm w-36"
 				value={selectedWaypointTask}
 				onchange={(e) => {
-					onSelectedWaypointTaskChange(parseInt(e.currentTarget.value) ?? WaypointTask.UNSPECIFIED);
+					onSelectedWaypointTaskChange(parseInt(e.currentTarget.value));
 				}}
 			>
 				{#each WaypointTasks as task (task)}
@@ -206,7 +209,7 @@
 					mineral={getMineralOutput(
 						selectedWaypointPlanet,
 						fleet.spec.shipDesignSpec?.miningRate ?? 0,
-						$game.rules.remoteMiningMineOutput ?? 0
+						$game.rules.remoteMiningMineOutput
 					)}
 					showUnits={true}
 				/>
@@ -260,7 +263,7 @@
 					onValueDragged={(value) => onPatrolWarpSpeedDragged(value)}
 					value={waypoint.patrolWarpSpeed}
 					warnSpeed={fleet.spec.shipDesignSpec?.engine?.maxSafeSpeed
-						? fleet.spec.shipDesignSpec?.engine.maxSafeSpeed + 1
+						? fleet.spec.shipDesignSpec.engine.maxSafeSpeed + 1
 						: undefined}
 					warp0Text="Automatic"
 				/>

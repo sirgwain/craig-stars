@@ -75,6 +75,7 @@ func (item *ProductionQueueItem) GetTag(key string) string {
 type QueueItemType string
 
 const (
+	QueueItemTypeUnspecified            QueueItemType = ""
 	QueueItemTypeIroniumMineralPacket   QueueItemType = "IroniumMineralPacket"
 	QueueItemTypeBoraniumMineralPacket  QueueItemType = "BoraniumMineralPacket"
 	QueueItemTypeGermaniumMineralPacket QueueItemType = "GermaniumMineralPacket"

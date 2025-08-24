@@ -34,7 +34,6 @@ type Player struct {
 	Relations                 []PlayerRelationship `json:"relations,omitempty"`
 	Messages                  []PlayerMessage      `json:"messages,omitempty"`
 	Designs                   []*ShipDesign        `json:"designs,omitempty"`
-	ScoreHistory              []PlayerScore        `json:"scoreHistory"`
 	AcquiredTechs             map[string]bool      `json:"acquiredTechs,omitempty"`
 	AchievedVictoryConditions Bitmask              `json:"achievedVictoryConditions,omitempty"`
 	Victor                    bool                 `json:"victor"`
@@ -73,6 +72,7 @@ type GamePlayer struct {
 }
 
 type Intels struct {
+	ScoreHistory        []PlayerScore    `json:"scoreHistory"`
 	BattleRecords       []BattleRecord   `json:"battleRecords,omitempty"`
 	PlayerIntels        []PlayerIntel    `json:"playerIntels,omitempty"`
 	ScoreIntels         []ScoreIntel     `json:"scoreIntels,omitempty"`
@@ -171,6 +171,7 @@ const (
 type BattleTactic string
 
 const (
+	BattleTacticUnspecified BattleTactic = ""
 	// RUN AWAY!
 	BattleTacticDisengage BattleTactic = "Disengage"
 	// MaximizeDamage until we are damaged, then disengage
@@ -185,6 +186,7 @@ const (
 type BattleAttackWho string
 
 const (
+	BattleAttackWhoUnspecified        BattleAttackWho = ""
 	BattleAttackWhoEnemies            BattleAttackWho = "Enemies"
 	BattleAttackWhoEnemiesAndNeutrals BattleAttackWho = "EnemiesAndNeutrals"
 	BattleAttackWhoEveryone           BattleAttackWho = "Everyone"

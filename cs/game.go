@@ -12,10 +12,11 @@ type Tags map[string]string
 type NewGamePlayerType string
 
 const (
-	NewGamePlayerTypeHost  NewGamePlayerType = "Host"
-	NewGamePlayerTypeGuest NewGamePlayerType = "Guest"
-	NewGamePlayerTypeOpen  NewGamePlayerType = "Open"
-	NewGamePlayerTypeAI    NewGamePlayerType = "AI"
+	NewGamePlayerTypeUnspecified NewGamePlayerType = ""
+	NewGamePlayerTypeHost        NewGamePlayerType = "Host"
+	NewGamePlayerTypeGuest       NewGamePlayerType = "Guest"
+	NewGamePlayerTypeOpen        NewGamePlayerType = "Open"
+	NewGamePlayerTypeAI          NewGamePlayerType = "AI"
 )
 
 type AIDifficulty string
@@ -124,34 +125,37 @@ func (g *FullGame) IsSinglePlayer() bool {
 type Size string
 
 const (
-	SizeTiny       Size = "Tiny"
-	SizeTinyWide   Size = "TinyWide"
-	SizeSmall      Size = "Small"
-	SizeSmallWide  Size = "SmallWide"
-	SizeMedium     Size = "Medium"
-	SizeMediumWide Size = "MediumWide"
-	SizeLarge      Size = "Large"
-	SizeLargeWide  Size = "LargeWide"
-	SizeHuge       Size = "Huge"
-	SizeHugeWide   Size = "HugeWide"
+	SizeUnspecified Size = ""
+	SizeTiny        Size = "Tiny"
+	SizeTinyWide    Size = "TinyWide"
+	SizeSmall       Size = "Small"
+	SizeSmallWide   Size = "SmallWide"
+	SizeMedium      Size = "Medium"
+	SizeMediumWide  Size = "MediumWide"
+	SizeLarge       Size = "Large"
+	SizeLargeWide   Size = "LargeWide"
+	SizeHuge        Size = "Huge"
+	SizeHugeWide    Size = "HugeWide"
 )
 
 type Density string
 
 const (
-	DensitySparse Density = "Sparse"
-	DensityNormal Density = "Normal"
-	DensityDense  Density = "Dense"
-	DensityPacked Density = "Packed"
+	DensityUnspecified Density = ""
+	DensitySparse      Density = "Sparse"
+	DensityNormal      Density = "Normal"
+	DensityDense       Density = "Dense"
+	DensityPacked      Density = "Packed"
 )
 
 type PlayerPositions string
 
 const (
-	PlayerPositionsClose    PlayerPositions = "Close"
-	PlayerPositionsModerate PlayerPositions = "Moderate"
-	PlayerPositionsFarther  PlayerPositions = "Farther"
-	PlayerPositionsDistant  PlayerPositions = "Distant"
+	PlayerPositionsUnspecified PlayerPositions = ""
+	PlayerPositionsClose       PlayerPositions = "Close"
+	PlayerPositionsModerate    PlayerPositions = "Moderate"
+	PlayerPositionsFarther     PlayerPositions = "Farther"
+	PlayerPositionsDistant     PlayerPositions = "Distant"
 )
 
 type GameStartMode string
@@ -165,7 +169,7 @@ const (
 type GameState string
 
 const (
-	GameStateNone                GameState = ""
+	GameStateUnspecified         GameState = ""
 	GameStateSetup               GameState = "Setup"
 	GameStateGeneratingUniverse  GameState = "GeneratingUniverse"
 	GameStateWaitingForPlayers   GameState = "WaitingForPlayers"

@@ -25,7 +25,7 @@
 
 		// load the user's races
 		const { races: userRaces } = await raceClient.getRaces({});
-		if (userRaces?.length > 0) {
+		if (userRaces.length > 0) {
 			races = userRaces;
 			raceUpdated?.(races[0], true);
 		}

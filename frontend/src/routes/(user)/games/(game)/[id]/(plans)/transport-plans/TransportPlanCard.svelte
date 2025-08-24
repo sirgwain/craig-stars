@@ -14,7 +14,7 @@
 	let { plan, href, showDelete = true, onDelete }: Props = $props();
 
 	const deletePlan = async (plan: TransportPlan) => {
-		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
+		if (confirm(`Are you sure you want to delete ${plan.name}?`)) {
 			onDelete?.(plan);
 		}
 	};

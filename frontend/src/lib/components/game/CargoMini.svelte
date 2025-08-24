@@ -10,9 +10,9 @@
 
 {#if cargo}
 	<div class="tracking-wider text-center">
-		<span class="text-ironium">{cargo.ironium ?? 0}</span>
-		<span class="text-boranium">{cargo.boranium ?? 0}</span>
-		<span class="text-germanium">{cargo.germanium ?? 0}</span>
-		<span class="text-colonists">{cargo.colonists ?? 0}</span>
+		<span class="text-ironium">{cargo.ironium}</span>
+		<span class="text-boranium">{cargo.boranium}</span>
+		<span class="text-germanium">{cargo.germanium}</span>
+		<span class="text-colonists">{cargo.colonists}</span>
 	</div>
 {/if}

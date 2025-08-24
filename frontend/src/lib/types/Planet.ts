@@ -307,9 +307,6 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 			return (a, b) => (a.mapObject?.name ?? '').localeCompare(b.mapObject?.name ?? '');
 		case 'production':
 			return (a, b) => {
-				if (!('planetOrders' in a && 'planetOrders' in b)) {
-					return 0;
-				}
 				const aItem =
 					a.planetOrders?.productionQueue && (a.planetOrders.productionQueue?.length ?? 0) > 0
 						? `${JSON.stringify({
@@ -343,10 +340,9 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 		case 'habitability':
 			return (a, b) => (a.spec?.habitability ?? 0) - (b.spec?.habitability ?? 0);
 		case 'mines':
-			return (a, b) => ('mines' in a && 'mines' in b ? (a.mines ?? 0) - (b.mines ?? 0) : 0);
+			return (a, b) => (a.mines ?? 0) - (b.mines ?? 0);
 		case 'factories':
-			return (a, b) =>
-				'factories' in a && 'factories' in b ? (a.factories ?? 0) - (b.factories ?? 0) : 0;
+			return (a, b) => (a.factories ?? 0) - (b.factories ?? 0);
 		case 'defense':
 			return (a, b) => (a.spec?.defenseCoverage ?? 0) - (b.spec?.defenseCoverage ?? 0);
 		case 'minerals':
@@ -361,10 +357,8 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 				(a.spec?.resourcesPerYearAvailable ?? 0) - (b.spec?.resourcesPerYearAvailable ?? 0);
 		case 'contributesOnlyLeftoverToResearch':
 			return (a, b) =>
-				'contributesOnlyLeftoverToResearch' in a && 'contributesOnlyLeftoverToResearch' in b
-					? ((a.contributesOnlyLeftoverToResearch ?? false) ? 1 : 0) -
-						((b.contributesOnlyLeftoverToResearch ?? false) ? 1 : 0)
-					: 0;
+				(a.planetOrders?.contributesOnlyLeftoverToResearch ? 1 : 0) -
+				(b.planetOrders?.contributesOnlyLeftoverToResearch ? 1 : 0);
 		default:
 			return (a, b) => (a.mapObject?.num ?? 0) - (b.mapObject?.num ?? 0);
 	}

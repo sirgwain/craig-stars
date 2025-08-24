@@ -63,6 +63,7 @@ func (s *playerService) GetUniverse(ctx context.Context, req *connect.Request[cr
 	fleets := append(pmos.Fleets, intels.FleetIntels...)
 	minefields := append(pmos.Minefields, intels.MinefieldIntels...)
 	mineralPackets := append(pmos.MineralPackets, intels.MineralPacketIntels...)
+	intels.ScoreIntels[gamePlayer.Num-1].ScoreHistory = intels.ScoreHistory
 
 	// replace intel with the actual planet from the DB
 	planets := intels.PlanetIntels

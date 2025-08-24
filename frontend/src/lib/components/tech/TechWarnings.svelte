@@ -15,15 +15,13 @@
 	onMount(() => {
 		if ('hullSlotType' in tech) {
 			const hullComponent = tech as TechHullComponent;
-			if (hullComponent) {
-				if (hullComponent.radiating) {
-					warnings.push(
-						`This ${enumToString(
-							TechCategory,
-							hullComponent.tech?.category ?? TechCategory.UNSPECIFIED
-						).toLowerCase()} creates powerful waves of radiation and will kill some of your colonists if the midpoint of your race's Radiation band isn't at least 85mR.`
-					);
-				}
+			if (hullComponent.radiating) {
+				warnings.push(
+					`This ${enumToString(
+						TechCategory,
+						hullComponent.tech?.category ?? TechCategory.UNSPECIFIED
+					).toLowerCase()} creates powerful waves of radiation and will kill some of your colonists if the midpoint of your race's Radiation band isn't at least 85mR.`
+				);
 			}
 		}
 		warnings = warnings;

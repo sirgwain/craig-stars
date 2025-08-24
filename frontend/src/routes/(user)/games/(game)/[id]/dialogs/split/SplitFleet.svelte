@@ -63,7 +63,7 @@
 	// if quantity is negative, this means moving dest -> source
 	function moveToken(quantity: number, token: ShipToken, index: number) {
 		const design = $universe.getMyDesign(token.designNum);
-		if (!dest.mapObject || !destTokens || !design || !quantity) {
+		if (!dest.mapObject || !design || !quantity) {
 			return;
 		}
 
@@ -111,14 +111,13 @@
 			let key: keyof CargoJson;
 			for (key in emptyCargoJson()) {
 				// move over as much cargo as necessary
-				const value = (src.cargo[key] ?? 0) + transferAmount[key];
-				if ((value ?? 0) + transferAmount[key] > 0) {
-					transferAmount[key] -= Math.min(value ?? 0, overload);
-					overload -= Math.min(value ?? 0, overload);
+				const value = src.cargo[key] + transferAmount[key];
+				if (value + transferAmount[key] > 0) {
+					transferAmount[key] -= Math.min(value, overload);
+					overload -= Math.min(value, overload);
 				}
 			}
 		} else if (
-			dest &&
 			dest.cargo &&
 			totalCargo(dest.cargo) + absoluteCargoSize(transferAmount) > destCargoCapacity
 		) {
@@ -127,10 +126,10 @@
 			let key: keyof CargoJson;
 			for (key in emptyCargoJson()) {
 				// move over as much cargo as necessary
-				const value = (dest.cargo[key] ?? 0) - transferAmount[key];
-				if ((value ?? 0) - transferAmount[key] > 0) {
-					transferAmount[key] += Math.min(value ?? 0, overload);
-					overload -= Math.min(value ?? 0, overload);
+				const value = dest.cargo[key] - transferAmount[key];
+				if (value - transferAmount[key] > 0) {
+					transferAmount[key] += Math.min(value, overload);
+					overload -= Math.min(value, overload);
 				}
 			}
 		}
@@ -167,7 +166,7 @@
 
 		if (!destFleetProp) {
 			srcTokens = cloneDeep(src.tokens);
-			destTokens = cloneDeep(dest.tokens ?? []);
+			destTokens = cloneDeep(dest.tokens);
 		} else {
 			// we have a source and a dest, make the srcTokens and destTokens match up
 			srcTokens = cloneDeep(src.tokens);
@@ -175,7 +174,7 @@
 				src.tokens.map((t) => Object.assign({}, t, { quantity: 0, quantityDamaged: 0, damage: 0 }))
 			);
 
-			dest.tokens?.forEach((token) => {
+			dest.tokens.forEach((token) => {
 				const tokenWithDesignInSrc = srcTokens.find((t) => t.designNum === token.designNum);
 				if (!tokenWithDesignInSrc) {
 					// this token only exists in the destination, so add a 0 quantity copy to the src
@@ -202,7 +201,7 @@
 	});
 </script>
 
-{#if dest && destTokens}
+{#if destTokens}
 	<div class="flex flex-col px-1 w-full h-full">
 		<div class="flex flex-col grow">
 			<div class="text-xl font-semibold w-full text-center">Split Fleet</div>

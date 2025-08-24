@@ -46,16 +46,14 @@
 		error = '';
 
 		try {
-			if (plan && $game) {
-				// save to server
-				await createTransportPlan(plan);
-				notify(`Saved ${plan.name}`);
-				goto(
-					`/games/${$game.id}/transport-plans/${
-						$player.playerPlans.transportPlans[$player.playerPlans.transportPlans.length - 1].num
-					}`
-				);
-			}
+			// save to server
+			await createTransportPlan(plan);
+			notify(`Saved ${plan.name}`);
+			goto(
+				`/games/${$game.id}/transport-plans/${
+					$player.playerPlans.transportPlans[$player.playerPlans.transportPlans.length - 1].num
+				}`
+			);
 		} catch (e) {
 			addError(e as ConnectError);
 		}
@@ -71,7 +69,7 @@
 	<Breadcrumb>
 		{#snippet crumbs()}
 			<li><a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a></li>
-			<li>{plan?.name ?? '<unknown>'}</li>
+			<li>{plan.name}</li>
 		{/snippet}
 		{#snippet end()}
 			<div class="flex justify-end mb-1">

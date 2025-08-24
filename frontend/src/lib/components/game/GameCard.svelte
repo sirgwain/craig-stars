@@ -15,7 +15,7 @@
 	let { game, href = undefined, showDelete = false, onDelete }: Props = $props();
 
 	const deleteGame = async (game: Game) => {
-		if (game.name != undefined && confirm(`Are you sure you want to delete ${game.name}?`)) {
+		if (game.name && confirm(`Are you sure you want to delete ${game.name}?`)) {
 			onDelete?.(game);
 		}
 	};
@@ -50,13 +50,13 @@
 				</div>
 				<div class="flex flex-row">
 					<div class="text-right font-semibold mr-2 w-32">Year</div>
-					<div>{game.year ?? '2400'}</div>
+					<div>{game.year || '2400'}</div>
 				</div>
 				<div class="flex flex-row">
 					<div class="text-right font-semibold mr-2 w-32">Players</div>
 					<div>
-						{#if (game.openPlayerSlots ?? 0) > 0}
-							{(game.numPlayers ?? 0) - (game.openPlayerSlots ?? 0)}/ {game.numPlayers ?? 1}
+						{#if game.openPlayerSlots > 0}
+							{game.numPlayers - game.openPlayerSlots}/ {game.numPlayers || 1}
 						{:else}
 							{game.players.length}
 						{/if}

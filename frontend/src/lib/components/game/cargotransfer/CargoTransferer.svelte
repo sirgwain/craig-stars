@@ -5,7 +5,13 @@
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
 	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 	import { CargoTransferRequest, negative } from '$lib/types/CargoTransferRequest.svelte';
-	import { MapObjectTargetSchema, MapObjectType, ResourceType, type Fleet } from '$lib/types/cs-proto';
+	import {
+		MapObjectTargetSchema,
+		MapObjectType,
+		ResourceType,
+		VectorSchema,
+		type Fleet
+	} from '$lib/types/cs-proto';
 	import { canTransferCargoType, type CommandedFleet } from '$lib/types/Fleet';
 	import { create } from '@bufbuild/protobuf';
 	import FleetTransfer from './FleetTransfer.svelte';
@@ -46,7 +52,9 @@
 			dest
 				? dest.cargo
 				: $player.getByHandTransfer(
-						create(MapObjectTargetSchema, { targetPosition: src.mapObject.position })
+						create(MapObjectTargetSchema, {
+							targetPosition: src.mapObject.position ?? create(VectorSchema)
+						})
 					), // we are either tranfering to a location, or jettisoning
 			dest && 'fuel' in dest ? dest.fuel : 0
 		)
@@ -58,7 +66,7 @@
 
 	function getCargoCapacity(dest: CargoDest): number {
 		if (dest && 'spec' in dest && dest.spec && 'shipDesignSpec' in dest.spec) {
-			return dest.spec?.shipDesignSpec?.cargoCapacity ?? 0;
+			return dest.spec.shipDesignSpec?.cargoCapacity ?? 0;
 		}
 		if (dest?.mapObject?.type === MapObjectType.FLEET) {
 			// if a fleet doesn't have a capcity, it's 0
@@ -71,7 +79,7 @@
 
 	function getFuelCapacity(dest: CargoDest): number {
 		if (dest && 'spec' in dest && dest.spec && 'shipDesignSpec' in dest.spec) {
-			return dest.spec?.shipDesignSpec?.fuelCapacity ?? 0;
+			return dest.spec.shipDesignSpec?.fuelCapacity ?? 0;
 		}
 		// can't dump fuel here
 		return 0;
@@ -118,7 +126,7 @@
 			// given the current transferAmount, figure out the current state of the source
 			// and destination cargos
 			const updatedSourceFuel = srcCargo.fuel + transferAmount.fuel;
-			const sourceRemainingCapacity = (srcFuelCapacity ?? 0) - updatedSourceFuel;
+			const sourceRemainingCapacity = srcFuelCapacity - updatedSourceFuel;
 			const updatedDestFuel = destCargo.fuel - transferAmount.fuel;
 			const destRemainingCapacity = destFleet
 				? destFuelCapacity - updatedDestFuel
@@ -159,12 +167,12 @@
 			transferAmount.ironium +
 			getTransferAmount(
 				amount,
-				(srcCargo.ironium ?? 0) + transferAmount.ironium,
-				(destCargo?.ironium ?? 0) - transferAmount.ironium
+				srcCargo.ironium + transferAmount.ironium,
+				destCargo.ironium - transferAmount.ironium
 			);
 		return {
-			src: (srcCargo.ironium ?? 0) + transferAmount.ironium,
-			dest: (destCargo?.ironium ?? 0) - transferAmount.ironium
+			src: srcCargo.ironium + transferAmount.ironium,
+			dest: destCargo.ironium - transferAmount.ironium
 		};
 	}
 
@@ -174,12 +182,12 @@
 			transferAmount.boranium +
 			getTransferAmount(
 				amount,
-				(srcCargo.boranium ?? 0) + transferAmount.boranium,
-				(destCargo?.boranium ?? 0) - transferAmount.boranium
+				srcCargo.boranium + transferAmount.boranium,
+				destCargo.boranium - transferAmount.boranium
 			);
 		return {
-			src: (srcCargo.boranium ?? 0) + transferAmount.boranium,
-			dest: (destCargo?.boranium ?? 0) - transferAmount.boranium
+			src: srcCargo.boranium + transferAmount.boranium,
+			dest: destCargo.boranium - transferAmount.boranium
 		};
 	}
 
@@ -189,12 +197,12 @@
 			transferAmount.germanium +
 			getTransferAmount(
 				amount,
-				(srcCargo.germanium ?? 0) + transferAmount.germanium,
-				(destCargo?.germanium ?? 0) - transferAmount.germanium
+				srcCargo.germanium + transferAmount.germanium,
+				destCargo.germanium - transferAmount.germanium
 			);
 		return {
-			src: (srcCargo.germanium ?? 0) + transferAmount.germanium,
-			dest: (destCargo?.germanium ?? 0) - transferAmount.germanium
+			src: srcCargo.germanium + transferAmount.germanium,
+			dest: destCargo.germanium - transferAmount.germanium
 		};
 	}
 
@@ -204,17 +212,17 @@
 			transferAmount.colonists +
 			getTransferAmount(
 				amount,
-				(srcCargo.colonists ?? 0) + transferAmount.colonists,
-				(destCargo?.colonists ?? 0) - transferAmount.colonists
+				srcCargo.colonists + transferAmount.colonists,
+				destCargo.colonists - transferAmount.colonists
 			);
 		return {
-			src: (srcCargo.colonists ?? 0) + transferAmount.colonists,
-			dest: (destCargo?.colonists ?? 0) - transferAmount.colonists
+			src: srcCargo.colonists + transferAmount.colonists,
+			dest: destCargo.colonists - transferAmount.colonists
 		};
 	}
 </script>
 
-{#if src?.spec}
+{#if src.spec}
 	<div class="flex flex-row h-full w-full grid-cols-3">
 		<div class="flex-1 h-full bg-base-100 py-1 px-1">
 			<h1 class="text-xl text-center font-semibold h-[2rem]">
@@ -294,12 +302,12 @@
 						cargo={destCargo.cargo()}
 						transferAmount={negativeCargo(transferAmount.cargo())}
 					/>
-				{:else if !dest || dest?.mapObject?.type === MapObjectType.SALVAGE}
+				{:else if !dest || dest.mapObject?.type === MapObjectType.SALVAGE}
 					<SalvageTransfer
 						cargo={destCargo.cargo()}
 						transferAmount={negative(transferAmount).cargo()}
 					/>
-				{:else if !dest || dest?.mapObject?.type === MapObjectType.MINERAL_PACKET}
+				{:else if !dest || dest.mapObject?.type === MapObjectType.MINERAL_PACKET}
 					<MineralPacketTransfer
 						cargo={destCargo.cargo()}
 						transferAmount={negative(transferAmount).cargo()}

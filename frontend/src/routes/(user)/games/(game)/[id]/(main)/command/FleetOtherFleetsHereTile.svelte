@@ -44,9 +44,7 @@
 	let cargoDestsByPlayer = $derived(
 		cargoDestsInOrbit.reduce<Record<number, CargoDest[]>>((acc, mo) => {
 			const playerNum = mo?.mapObject?.playerNum ?? 0;
-			if (!acc[playerNum]) {
-				acc[playerNum] = [];
-			}
+			acc[playerNum] ??= [];
 			acc[playerNum].push(mo);
 			return acc;
 		}, {})
@@ -80,7 +78,7 @@
 			!selectedMapObject ||
 			selectedMapObject.mapObject?.type !== MapObjectType.FLEET ||
 			!onShowSplitFleetDialog ||
-			selectedMapObject.mapObject?.playerNum !== $player.num
+			selectedMapObject.mapObject.playerNum !== $player.num
 		) {
 			return;
 		}
@@ -115,7 +113,7 @@
 					</option>
 				{/each}
 			{/if}
-			{#each cargoDestsByPlayer[$player.num]?.filter((m) => m && key(m) !== key(fleet)) as m (key(m))}
+			{#each cargoDestsByPlayer[$player.num].filter((m) => m && key(m) !== key(fleet)) as m (key(m))}
 				<option
 					style={m?.mapObject?.playerNum !== $player.num
 						? `color: ${$universe.getPlayerColor(m?.mapObject?.playerNum)};`
@@ -146,7 +144,7 @@
 				<div class="tooltip" data-tip="goto fleet">
 					<button
 						onclick={gotoTarget}
-						disabled={!selectedMapObject || !commandable($player.num, selectedMapObject)}
+						disabled={!commandable($player.num, selectedMapObject)}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto">Goto</button
 					>
@@ -154,9 +152,8 @@
 				<div class="tooltip" data-tip="merge fleet">
 					<button
 						onclick={mergeTarget}
-						disabled={!selectedMapObject ||
-							selectedMapObject.mapObject?.type !== MapObjectType.FLEET ||
-							selectedMapObject.mapObject?.playerNum !== $player.num}
+						disabled={selectedMapObject.mapObject?.type !== MapObjectType.FLEET ||
+							selectedMapObject.mapObject.playerNum !== $player.num}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto"
 						>Merge
@@ -165,7 +162,7 @@
 				<div class="tooltip" data-tip="transfer cargo">
 					<button
 						onclick={transfer}
-						disabled={!selectedMapObject || !canLoadFuelOrCargo(fleet, selectedMapObject)}
+						disabled={!canLoadFuelOrCargo(fleet, selectedMapObject)}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto"
 						>Transfer

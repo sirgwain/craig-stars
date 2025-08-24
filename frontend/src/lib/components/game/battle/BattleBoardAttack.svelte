@@ -9,8 +9,8 @@
 
 	let { battle, phase }: Props = $props();
 
-	let actionToken = $derived(battle.getActionToken(phase ?? 0));
-	let action = $derived(battle.getActionForPhase(phase ?? 0));
+	let actionToken = $derived(battle.getActionToken(phase));
+	let action = $derived(battle.getActionForPhase(phase));
 	let targetVector = $derived.by(() => {
 		if (action?.to && actionToken) {
 			const target = {
@@ -42,12 +42,12 @@
 				/>
 			</svg>
 		</div>
-	{:else if action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_TORPEDO_FIRE' && action?.to}
+	{:else if action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_TORPEDO_FIRE' && action.to}
 		<div class="relative left-0 top-0 w-full h-full">
 			<TorpedoHit
 				class="w-8 h-8 fill-transparent"
 				fill="#FF0000"
-				style={`transform: translate(${(action.to?.x ?? 0) * 66 + 32 - 16}px, ${(action.to?.y ?? 0) * 68 + 32 - 16}px)`}
+				style={`transform: translate(${(action.to.x ?? 0) * 66 + 32 - 16}px, ${(action.to.y ?? 0) * 68 + 32 - 16}px)`}
 			/>
 		</div>
 	{/if}

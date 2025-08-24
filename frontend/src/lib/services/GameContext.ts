@@ -66,6 +66,7 @@ import {
 import { FullGame } from './FullGame';
 import { rollover } from './Math';
 import { Universe } from './Universe';
+import { emptyVector } from '$lib/types/Vector';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -292,7 +293,9 @@ export async function createGameContext(
 		[universe, selectedMapObject],
 		([$universe, $selectedMapObject]) => {
 			if ($selectedMapObject) {
-				const mos = $universe.getMapObjectsByPosition($selectedMapObject.mapObject?.position);
+				const mos = $universe.getMapObjectsByPosition(
+					$selectedMapObject.mapObject?.position ?? emptyVector()
+				);
 				return findIndex(mos, (mo) => equal($selectedMapObject, mo));
 			}
 			return -1;
@@ -352,11 +355,11 @@ export async function createGameContext(
 			}
 		}
 
-		if (message.spec?.target?.targetType === MapObjectType.MINEFIELD) {
+		if (message.spec?.mapObjectTarget?.targetType === MapObjectType.MINEFIELD) {
 			const fleet = universe.getFleet(message.target?.targetPlayerNum, message.target?.targetNum);
 			const mf = universe.getMinefield(
-				message.spec?.target?.targetPlayerNum,
-				message.spec?.target?.targetNum
+				message.spec?.mapObjectTarget?.targetPlayerNum,
+				message.spec?.mapObjectTarget?.targetNum
 			);
 			if (fleet) {
 				if (ownedBy(fleet, playerNum)) {
@@ -381,7 +384,7 @@ export async function createGameContext(
 
 			if (moType != MapObjectType.UNSPECIFIED) {
 				const target = universe.getMapObject(getMapObjectTarget(message));
-				const targetTarget = universe.getMapObject(message.spec?.target);
+				const targetTarget = universe.getMapObject(message.spec?.mapObjectTarget);
 				if (target) {
 					// if this is a fleet that we own, select the planet before we command the fleet
 					if (target.mapObject?.type === MapObjectType.FLEET) {
@@ -481,7 +484,7 @@ export async function createGameContext(
 		const index = get(currentSelectedMapObjectIndex);
 
 		if (index != -1 && selected) {
-			const mos = u.getMapObjectsByPosition(selected.mapObject?.position);
+			const mos = u.getMapObjectsByPosition(selected.mapObject?.position ?? emptyVector());
 			if (mos) {
 				if (index >= mos.length - 1) {
 					selectMapObject(mos[0]);

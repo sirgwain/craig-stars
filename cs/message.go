@@ -38,10 +38,10 @@ type PlayerMessage struct {
 // or the field of research leveled up in.
 type PlayerMessageSpec struct {
 	// the thing being targeted by the message target, i.e. the planet for a fleet bombed a planet message
-	Target[MapObjectType]
+	MapObjectTarget
 	Amount              int                             `json:"amount,omitempty"`
 	Amount2             int                             `json:"amount2,omitempty"`
-	Battle              BattleRecordStats               `json:"battle,omitempty"`
+	Battle              *BattleRecordStats              `json:"battle,omitempty"`
 	Bombing             *BombingResult                  `json:"bombing,omitempty"`
 	Cargo               *Cargo                          `json:"cargo,omitempty"`
 	CargoTransfer       *PlayerMessageSpecCargoTransfer `json:"cargoTransfer,omitempty"`
@@ -59,7 +59,7 @@ type PlayerMessageSpec struct {
 	NextField           TechField                       `json:"nextField,omitempty"`
 	PrevAmount          int                             `json:"prevAmount,omitempty"`
 	QueueItemType       QueueItemType                   `json:"queueItemType,omitempty"`
-	RouteTarget         Target[MapObjectType]           `json:"routeTarget,omitempty"`
+	RouteTarget         *MapObjectTarget                `json:"routeTarget,omitempty"`
 	SourcePlayerNum     int                             `json:"sourcePlayerNum,omitempty"`
 	TechGained          string                          `json:"techGained,omitempty"`
 	TerraformAmount     Hab                             `json:"terraformAmount,omitempty"`
@@ -268,7 +268,7 @@ func (m PlayerMessage) withText(text string) PlayerMessage {
 }
 
 func (spec PlayerMessageSpec) withTargetFleet(fleet *Fleet) PlayerMessageSpec {
-	spec.Target = MapObjectTarget{
+	spec.MapObjectTarget = MapObjectTarget{
 		TargetType:      MapObjectTypeFleet,
 		TargetPlayerNum: fleet.PlayerNum,
 		TargetNum:       fleet.Num,
@@ -282,7 +282,7 @@ func (spec PlayerMessageSpec) withTargetPlanet(planet *Planet) PlayerMessageSpec
 	if planet == nil {
 		return spec
 	}
-	spec.Target = MapObjectTarget{
+	spec.MapObjectTarget = MapObjectTarget{
 		TargetType:      MapObjectTypePlanet,
 		TargetPlayerNum: planet.PlayerNum,
 		TargetNum:       planet.Num,
@@ -293,7 +293,7 @@ func (spec PlayerMessageSpec) withTargetPlanet(planet *Planet) PlayerMessageSpec
 }
 
 func (spec PlayerMessageSpec) withTargetMinefield(minefield *Minefield) PlayerMessageSpec {
-	spec.Target = MapObjectTarget{
+	spec.MapObjectTarget = MapObjectTarget{
 		TargetType:      MapObjectTypeMinefield,
 		TargetPlayerNum: minefield.PlayerNum,
 		TargetNum:       minefield.Num,
@@ -321,7 +321,7 @@ func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRec
 
 	// create a new message targeting a battle
 	player.Messages = append(player.Messages, newBattleMessage(PlayerMessageBattle, planet, battle).
-		withSpec(PlayerMessageSpec{Name: location, Battle: battle.Stats}))
+		withSpec(PlayerMessageSpec{Name: location, Battle: &battle.Stats}))
 }
 
 func (m *messageClient) battleAlly(player *Player, planet *Planet, battle *BattleRecord) {
@@ -332,7 +332,7 @@ func (m *messageClient) battleAlly(player *Player, planet *Planet, battle *Battl
 
 	// create a new message targeting a battle
 	player.Messages = append(player.Messages, newBattleMessage(PlayerMessageBattleAlly, planet, battle).
-		withSpec(PlayerMessageSpec{Name: location, Battle: battle.Stats}))
+		withSpec(PlayerMessageSpec{Name: location, Battle: &battle.Stats}))
 }
 
 func (mc *messageClient) battleReports(player *Player) {
@@ -361,7 +361,7 @@ func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet,
 		}
 	}
 	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetBuilt, fleet).
-		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt, RouteTarget: target}.withTargetPlanet(planet)))
+		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt, RouteTarget: &target}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetColonizeNonPlanet(player *Player, fleet *Fleet) {
@@ -447,8 +447,8 @@ func (m *messageClient) fleetOutOfFuel(player *Player, fleet *Fleet, warpSpeed i
 func (m *messageClient) fleetPatrolTargeted(player *Player, fleet *Fleet, target *Fleet) {
 	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetPatrolTargeted, fleet).withSpec(
 		PlayerMessageSpec{
-			Name:   fleet.Name,
-			Target: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: target.Name, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num},
+			Name:            fleet.Name,
+			MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: target.Name, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num},
 		},
 	))
 }
@@ -655,8 +655,8 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 func (m *messageClient) fleetByHandTransferIncomplete(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int, wanted int, status CargoTransferStatus) {
 	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetByHandTransferIncomplete, fleet).
 		withSpec(PlayerMessageSpec{
-			Target:        dest.GetMapObject().ToTarget(),
-			CargoTransfer: &PlayerMessageSpecCargoTransfer{CargoType: cargoType, Transfered: transferAmount, Wanted: wanted, Status: status}}))
+			MapObjectTarget: dest.GetMapObject().ToTarget(),
+			CargoTransfer:   &PlayerMessageSpecCargoTransfer{CargoType: cargoType, Transfered: transferAmount, Wanted: wanted, Status: status}}))
 }
 
 func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
@@ -1018,7 +1018,7 @@ func (m *messageClient) playerAcquirablePartGainedScrappedFleet(player *Player, 
 
 // tell a player they are dead. This always appears as the first message
 func (mc *messageClient) playerDead(player, deadPlayer *Player) {
-	player.Messages = append([]PlayerMessage{newMessage(PlayerMessagePlayerDead).withSpec(PlayerMessageSpec{Target: MapObjectTarget{TargetPlayerNum: deadPlayer.Num}})}, player.Messages...)
+	player.Messages = append([]PlayerMessage{newMessage(PlayerMessagePlayerDead).withSpec(PlayerMessageSpec{MapObjectTarget: MapObjectTarget{TargetPlayerNum: deadPlayer.Num}})}, player.Messages...)
 }
 
 // tell a player they have no planets but still have colonists. This always appears as the first message

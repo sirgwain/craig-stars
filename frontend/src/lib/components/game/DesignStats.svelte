@@ -17,16 +17,16 @@
 	{#if spec}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Mass</div>
-			<div>{spec.mass ?? 0}kT</div>
+			<div>{spec.mass}kT</div>
 		</div>
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Max Fuel</div>
-			<div>{spec.fuelCapacity ?? 0}mg</div>
+			<div>{spec.fuelCapacity}mg</div>
 		</div>
 		{#if spec.fuelGeneration && spec.fuelGeneration > 0}
 			<div class="flex justify-between">
 				<div class="font-semibold mr-5">Fuel Generation</div>
-				<div>{spec.fuelGeneration ?? 0}mg</div>
+				<div>{spec.fuelGeneration}mg</div>
 			</div>
 		{/if}
 		{#if spec.estimatedRange}
@@ -37,11 +37,11 @@
 				{:else if spec.cargoCapacity}
 					<div class="font-semibold mr-5">Est Range (w/cargo)</div>
 					<div class="text-right">
-						{spec.estimatedRange ?? 0}ly ({spec.estimatedRangeFull ?? 0}ly)
+						{spec.estimatedRange}ly ({spec.estimatedRangeFull}ly)
 					</div>
 				{:else}
 					<div class="font-semibold mr-5">Est Range</div>
-					<div>{spec.estimatedRange ?? 0}ly</div>
+					<div>{spec.estimatedRange}ly</div>
 				{/if}
 			</div>
 		{/if}
@@ -54,7 +54,7 @@
 		{/if}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Armor</div>
-			<div>{spec.armor ?? 0}dp</div>
+			<div>{spec.armor}dp</div>
 		</div>
 		{#if spec.shields}
 			<div class="flex justify-between">
@@ -73,12 +73,12 @@
 			{#if spec.cargoCapacity}
 				<div class="flex justify-between">
 					<div class="font-semibold mr-5">Cloak (with cargo)</div>
-					<div class="">{spec.cloakPercent ?? 0}% ({spec.cloakPercentFullCargo ?? 0}%)</div>
+					<div class="">{spec.cloakPercent}% ({spec.cloakPercentFullCargo}%)</div>
 				</div>
 			{:else}
 				<div class="flex justify-between">
 					<div class="font-semibold mr-5">Cloak</div>
-					<div>{spec.cloakPercent ?? 0}%</div>
+					<div>{spec.cloakPercent}%</div>
 				</div>
 			{/if}
 		{/if}
@@ -86,9 +86,7 @@
 			<div class="flex justify-between">
 				<div class="font-semibold mr-5">Torpedo Bonus/Jamming</div>
 				<div>
-					{((spec.torpedoBonus ?? 0) * 100).toFixed()}%/{((spec.torpedoJamming ?? 0) * 100).toFixed(
-						2
-					)}%
+					{(spec.torpedoBonus * 100).toFixed()}%/{(spec.torpedoJamming * 100).toFixed(2)}%
 				</div>
 			</div>
 		{/if}
@@ -96,13 +94,13 @@
 			<div class="flex justify-between">
 				<div class="font-semibold mr-5">Beam Bonus/Defense</div>
 				<div>
-					x{(spec.beamBonus ?? 1).toFixed(2)}/x{(spec.beamDefense ?? 1).toFixed(2)}
+					x{(spec.beamBonus || 1).toFixed(2)}/x{(spec.beamDefense || 1).toFixed(2)}
 				</div>
 			</div>
 		{/if}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Initiative/Moves</div>
-			<div>{spec.initiative ?? 0}/{spec.movement ?? 0}</div>
+			<div>{spec.initiative}/{spec.movement}</div>
 		</div>
 		{#if spec.scanRange != NoScanner || spec.scanRangePen != NoScanner}
 			<div class="flex justify-between">
@@ -111,19 +109,19 @@
 			</div>
 		{/if}
 
-		{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MinefieldType.STANDARD]}
+		{#if spec.mineLayingRateByMineType[MinefieldType.STANDARD]}
 			<div class="flex justify-between">
 				<div class="font-semibold mr-5">Mine Laying</div>
 				<div>{spec.mineLayingRateByMineType[MinefieldType.STANDARD]} std/yr</div>
 			</div>
 		{/if}
-		{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MinefieldType.HEAVY]}
+		{#if spec.mineLayingRateByMineType[MinefieldType.HEAVY]}
 			<div class="flex justify-between">
 				<div class="font-semibold mr-5">Mine Laying</div>
 				<div>{spec.mineLayingRateByMineType[MinefieldType.HEAVY]} hvy/yr</div>
 			</div>
 		{/if}
-		{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MinefieldType.SPEED_BUMP]}
+		{#if spec.mineLayingRateByMineType[MinefieldType.SPEED_BUMP]}
 			<div class="flex justify-between">
 				<div class="font-semibold mr-5">Mine Laying</div>
 				<div>{spec.mineLayingRateByMineType[MinefieldType.SPEED_BUMP]} spd/yr</div>

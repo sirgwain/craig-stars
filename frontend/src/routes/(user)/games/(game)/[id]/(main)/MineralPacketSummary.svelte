@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { MineralPacket } from '$lib/types/cs-proto';
-	import { distance } from '$lib/types/Vector';
+	import { distance, emptyVector } from '$lib/types/Vector';
 
 	const { universe } = getGameContext();
 
@@ -29,7 +29,7 @@
 		<div class="flex flex-row">
 			<div class="w-28 mr-2">Location:</div>
 			<div>
-				({mineralPacket.mapObject?.position?.x?.toFixed() ?? 0}, {mineralPacket.mapObject?.position?.y?.toFixed() ??
+				({mineralPacket.mapObject?.position?.x.toFixed() ?? 0}, {mineralPacket.mapObject?.position?.y.toFixed() ??
 					0})
 			</div>
 		</div>
@@ -50,7 +50,10 @@
 				<div class="w-28 mr-2">ETA:</div>
 				<div>
 					{Math.ceil(
-						distance(mineralPacket.mapObject?.position, target.mapObject?.position) /
+						distance(
+							mineralPacket.mapObject?.position ?? emptyVector(),
+							target.mapObject?.position ?? emptyVector()
+						) /
 							(mineralPacket.warpSpeed * mineralPacket.warpSpeed)
 					)} years
 				</div>

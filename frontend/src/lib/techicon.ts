@@ -15,7 +15,7 @@ export function getTechIcon(techLike: TechLike | undefined, hullSetNumber: numbe
 	}
 	const raw = (techLike.tech.name ?? '').replace("'", '').replace(' ', '').replace('±', '');
 	const name = kebabCase(raw);
-	const category = techLike.tech.category ?? TechCategory.UNSPECIFIED;
+	const category = techLike.tech.category;
 	if (category === TechCategory.SHIP_HULL || category === TechCategory.STARBASE_HULL) {
 		return `hull-${name}-${hullSetNumber ?? 0}`;
 	}

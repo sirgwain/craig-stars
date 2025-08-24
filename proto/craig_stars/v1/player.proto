@@ -13,7 +13,6 @@ import "craig_stars/v1/mysterytrader.proto";
 import "craig_stars/v1/planet.proto";
 import "craig_stars/v1/race.proto";
 import "craig_stars/v1/salvage.proto";
-import "craig_stars/v1/score.proto";
 import "craig_stars/v1/shipdesign.proto";
 import "craig_stars/v1/wormhole.proto";
 import "google/protobuf/timestamp.proto";
@@ -47,12 +46,11 @@ message Player {
   int32 research_spent_last_year = 17;
   repeated PlayerRelationship relations = 18;
   repeated PlayerMessage messages = 19;
-  repeated PlayerScore score_history = 20;
-  map<string, bool> acquired_techs = 21;
-  uint32 achieved_victory_conditions = 22;
-  bool victor = 23;
-  bool archived = 24;
-  PlayerStats stats = 25;
+  map<string, bool> acquired_techs = 20;
+  uint32 achieved_victory_conditions = 21;
+  bool victor = 22;
+  bool archived = 23;
+  PlayerStats stats = 24;
 }
 
 // Aggregate universe view used by SubmitTurnResponse/ForceGenerateTurnResponse/GetPlayerResponse.

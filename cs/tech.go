@@ -188,6 +188,7 @@ type TechHullSlot struct {
 type TechHullType string
 
 const (
+	TechHullTypeNone                  TechHullType = ""
 	TechHullTypeBomber                TechHullType = "Bomber"
 	TechHullTypeColonizer             TechHullType = "Colonizer"
 	TechHullTypeCapitalShip           TechHullType = "CapitalShip" // big, bulky capital ships

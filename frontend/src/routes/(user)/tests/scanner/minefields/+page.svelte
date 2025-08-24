@@ -45,8 +45,8 @@
 		})
 	];
 
-	const xGetter = (mo: MapObjectLike) => mo?.mapObject?.position?.x;
-	const yGetter = (mo: MapObjectLike) => mo?.mapObject?.position?.y;
+	const xGetter = (mo: MapObjectLike) => mo.mapObject?.position?.x;
+	const yGetter = (mo: MapObjectLike) => mo.mapObject?.position?.y;
 
 	selectMapObject(minefields[0]);
 </script>

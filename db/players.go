@@ -205,6 +205,7 @@ func (c *client) GetPlayerIntel(ctx context.Context, gameID int64, playerNum int
 	}
 
 	return &cs.Intels{
+		ScoreHistory:        *intels.ScoreHistory,
 		BattleRecords:       *intels.BattleRecords,
 		PlayerIntels:        *intels.PlayerIntels,
 		ScoreIntels:         *intels.ScoreIntels,

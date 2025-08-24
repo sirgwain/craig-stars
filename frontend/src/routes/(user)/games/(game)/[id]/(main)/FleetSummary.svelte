@@ -18,10 +18,9 @@
 	} & ShowCargoTransferDialogProps;
 
 	let { fleet, onShowCargoTransferDialog }: Props = $props();
-	let playerFleet = $derived('fleetOrders' in fleet ? (fleet as Fleet) : undefined);
 
 	const design: ShipDesign | undefined = $derived.by(() => {
-		if (fleet.tokens && fleet.tokens.length > 0) {
+		if (fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
 			return $universe.getDesign(fleet.mapObject?.playerNum ?? 0, designNum);
 		}
@@ -30,11 +29,9 @@
 	// get either warpSpeed as a number, or "stargate"
 	function getWarpSpeed(fleet: Fleet): string {
 		const warpSpeed: number =
-			('fleetOrders' in fleet &&
-			fleet.fleetOrders?.waypoints &&
-			fleet.fleetOrders.waypoints.length > 1
+			fleet.fleetOrders?.waypoints && fleet.fleetOrders.waypoints.length > 1
 				? fleet.fleetOrders.waypoints[1].warpSpeed
-				: fleet.warpSpeed) ?? 0;
+				: fleet.warpSpeed;
 
 		if (warpSpeed == StargateWarpSpeed) {
 			return 'Use Stargate';
@@ -47,7 +44,7 @@
 	}
 
 	function transfer() {
-		if (!onShowCargoTransferDialog || !('fleetOrders' in fleet)) {
+		if (!onShowCargoTransferDialog) {
 			return;
 		}
 		const f = new CommandedFleet(fleet);
@@ -62,7 +59,7 @@
 				class="border-2 border-neutral p-2 bg-black"
 				style={`border-color: ${$universe.getPlayerColor(fleet.mapObject?.playerNum)};`}
 			>
-				{#if fleet.tokens && fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
+				{#if fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
 					<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 				{/if}
 
@@ -82,7 +79,7 @@
 		<div class="flex flex-row">
 			<div class="w-32 text-tile-item-title">Ship Count:</div>
 			<div>
-				{fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 'unknown'}
+				{fleet.tokens.reduce((count, t) => count + t.quantity, 0)}
 			</div>
 		</div>
 		<div class="flex flex-row">
@@ -91,14 +88,11 @@
 				{getMass(fleet)}kT
 			</div>
 		</div>
-		{#if ownedBy(fleet, $player.num) && playerFleet}
+		{#if ownedBy(fleet, $player.num)}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Fuel:</div>
 				<div class="grow">
-					<FuelBar
-						value={playerFleet.fuel}
-						capacity={playerFleet.spec?.shipDesignSpec?.fuelCapacity ?? 0}
-					/>
+					<FuelBar value={fleet.fuel} capacity={fleet.spec?.shipDesignSpec?.fuelCapacity ?? 0} />
 				</div>
 			</div>
 			<div class="flex flex-row">
@@ -106,27 +100,27 @@
 				<div class="grow">
 					<CargoBar
 						onPointerDown={() => transfer()}
-						canTransferCargo={canTransferCargo(playerFleet)}
-						value={playerFleet.cargo}
-						capacity={playerFleet.spec?.shipDesignSpec?.cargoCapacity}
+						canTransferCargo={canTransferCargo(fleet)}
+						value={fleet.cargo}
+						capacity={fleet.spec?.shipDesignSpec?.cargoCapacity}
 					/>
 				</div>
 			</div>
 		{/if}
-		{#if playerFleet && playerFleet.fleetOrders?.waypoints && playerFleet.fleetOrders.waypoints.length > 1}
+		{#if fleet.fleetOrders?.waypoints && fleet.fleetOrders.waypoints.length > 1}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Next Waypoint:</div>
-				<div>{$universe.getTargetName(playerFleet.fleetOrders.waypoints[1])}</div>
+				<div>{$universe.getTargetName(fleet.fleetOrders.waypoints[1])}</div>
 			</div>
-			{#if playerFleet.fleetOrders.waypoints[1].task !== WaypointTask.UNSPECIFIED}
+			{#if fleet.fleetOrders.waypoints[1].task !== WaypointTask.UNSPECIFIED}
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Task:</div>
-					<div>{enumToString(WaypointTask, playerFleet.fleetOrders.waypoints[1].task)}</div>
+					<div>{enumToString(WaypointTask, fleet.fleetOrders.waypoints[1].task)}</div>
 				</div>
 			{/if}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Warp Speed:</div>
-				<div>{getWarpSpeed(playerFleet)}</div>
+				<div>{getWarpSpeed(fleet)}</div>
 			</div>
 		{:else}
 			<div class="flex flex-row">
@@ -152,7 +146,7 @@
 										)}
 								>
 									<span class="flex flex-row justify-between relative">
-										{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
+										{#if token.damage > 0 && token.quantityDamaged > 0}
 											<div
 												style={`width: ${getDamagePercentForToken(
 													token,

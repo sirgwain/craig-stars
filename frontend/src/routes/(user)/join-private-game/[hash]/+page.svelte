@@ -29,7 +29,7 @@
 		}
 	};
 
-	let valid = $derived(!!(game && (game.openPlayerSlots ?? 0) > 0));
+	let valid = $derived(!!(game && game.openPlayerSlots > 0));
 </script>
 
 <ItemTitle>Join Private Game</ItemTitle>
@@ -53,7 +53,7 @@
 			<PlayerChooser
 				raceUpdated={(updated, raceValid) => {
 					race = updated;
-					valid = raceValid && !!(game && (game.openPlayerSlots ?? 0) > 0);
+					valid = raceValid && !!(game && game.openPlayerSlots > 0);
 				}}
 			/>
 		</fieldset>

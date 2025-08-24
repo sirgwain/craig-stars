@@ -22,7 +22,7 @@
 		error = '';
 
 		try {
-			if (plan && $game) {
+			if (plan) {
 				// save to server
 				await updateProductionPlan(plan);
 				notify(`Saved ${plan.name}`);

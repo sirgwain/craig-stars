@@ -14,11 +14,9 @@
 	let { designFinder, plan = $bindable() }: Props = $props();
 
 	// Local Svelte 5 runes state mirroring plan fields to allow binding to reactive values
-	let name: string = $state(plan.name ?? '');
-	let items: ProductionPlanItem[] = $state(plan.items ?? []);
-	let contributesOnlyLeftoverToResearch: boolean = $state(
-		plan.contributesOnlyLeftoverToResearch ?? false
-	);
+	let name: string = $state(plan.name);
+	let items: ProductionPlanItem[] = $state(plan.items);
+	let contributesOnlyLeftoverToResearch: boolean = $state(plan.contributesOnlyLeftoverToResearch);
 
 	// Keep parent prop in sync with local state (runes-compliant)
 	$effect(() => {

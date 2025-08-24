@@ -62,7 +62,7 @@
 	onMount(async () => {
 		try {
 			const resp = await adminClient.getUsers({});
-			users = resp.users ?? [];
+			users = resp.users;
 		} catch (e) {
 			addError(e as ConnectError);
 		}

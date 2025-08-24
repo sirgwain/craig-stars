@@ -18,7 +18,7 @@
 	onMount(async () => {
 		player.race = hostRaces[0];
 		const { races } = await raceClient.getRaces({});
-		if (races?.length > 0) {
+		if (races.length > 0) {
 			hostRaces = races;
 			player.race = hostRaces[0];
 		}

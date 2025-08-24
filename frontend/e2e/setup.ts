@@ -153,29 +153,35 @@ export const test = base.extend<{
 });
 
 export async function loadGamePage(page: Page, name: string) {
-	const gameLink = page.getByRole('link', { name: name });
+	const gameLink = page.getByRole('link', { name });
 	await expect(gameLink).toBeVisible();
 
 	// fail if any api calls to this game fail
 	const gameId = await gameLink.getAttribute('data-id');
 	apiErrorsFailTest(page, gameId);
 
-	// open the game
-	await gameLink.click();
-
-	const playerResponse = await page.waitForResponse(
+	// kick off the response waiters before clicking
+	const playerResponsePromise = page.waitForResponse(
 		(resp) =>
 			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetPlayer') &&
 			resp.request().method() === 'POST' &&
 			resp.status() === 200
 	);
-
-	const universeResponse = await page.waitForResponse(
+	const universeResponsePromise = page.waitForResponse(
 		(resp) =>
 			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetUniverse') &&
 			resp.request().method() === 'POST' &&
 			resp.status() === 200
 	);
+
+	// open the game (this will trigger both requests)
+	await gameLink.click();
+
+	// wait for both to finish, order doesn’t matter
+	const [playerResponse, universeResponse] = await Promise.all([
+		playerResponsePromise,
+		universeResponsePromise
+	]);
 
 	const { universe } = fromJson(
 		GetUniverseResponseSchema,
@@ -208,29 +214,39 @@ export async function apiErrorsFailTest(page: Page, gameId: string | null) {
 }
 
 export async function submitTurn(page: Page) {
-	await page.getByRole('button', { name: 'Submit Turn' }).click();
-
-	// wait for turn submit to finish
-	const submitTurnResponse = await page.waitForResponse(
+	// start waiting for all three before clicking
+	const submitTurnResponsePromise = page.waitForResponse(
 		(resp) =>
 			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/SubmitTurn') &&
 			resp.request().method() === 'POST' &&
 			resp.status() === 200
 	);
 
-	const universeResponse = await page.waitForResponse(
+	const universeResponsePromise = page.waitForResponse(
 		(resp) =>
 			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetUniverse') &&
 			resp.request().method() === 'POST' &&
 			resp.status() === 200
 	);
 
-	const playerResponse = await page.waitForResponse(
+	const playerResponsePromise = page.waitForResponse(
 		(resp) =>
 			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetPlayer') &&
 			resp.request().method() === 'POST' &&
 			resp.status() === 200
 	);
+
+	// trigger the requests
+	await page.getByRole('button', { name: 'Submit Turn' }).click();
+
+	// await submit turn (must finish first)
+	const submitTurnResponse = await submitTurnResponsePromise;
+
+	// then wait for the others in parallel
+	const [universeResponse, playerResponse] = await Promise.all([
+		universeResponsePromise,
+		playerResponsePromise
+	]);
 
 	const { game } = fromJson(
 		SubmitTurnResponseSchema,
@@ -247,9 +263,9 @@ export async function submitTurn(page: Page) {
 		(await playerResponse.json()) as GetPlayerResponseJson
 	);
 
-	// wait for turn submit to finish
-	await page.locator('#loading-modal').waitFor({ state: 'visible' }); // wait for loading modal to show up
-	await expect(page.locator('#loading-modal')).not.toHaveClass(/modal-open/); // ensure submit is done
+	// wait for turn submit UI flow to finish
+	await page.locator('#loading-modal').waitFor({ state: 'visible' });
+	await expect(page.locator('#loading-modal')).not.toHaveClass(/modal-open/);
 
 	return { game, player, universe };
 }

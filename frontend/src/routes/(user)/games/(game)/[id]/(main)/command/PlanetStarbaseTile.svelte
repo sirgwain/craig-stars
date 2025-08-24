@@ -21,13 +21,13 @@
 
 	let stargate = $derived(
 		starbase?.spec?.shipDesignSpec?.stargate
-			? $techs.getHullComponent(starbase.spec.shipDesignSpec?.stargate)
+			? $techs.getHullComponent(starbase.spec.shipDesignSpec.stargate)
 			: undefined
 	);
 
 	let massDriver = $derived(
 		starbase?.spec?.shipDesignSpec?.massDriver
-			? $techs.getHullComponent(starbase.spec.shipDesignSpec?.massDriver)
+			? $techs.getHullComponent(starbase.spec.shipDesignSpec.massDriver)
 			: undefined
 	);
 
@@ -36,7 +36,7 @@
 		if (starbase?.tokens && starbase.tokens.length > 0) {
 			onShipDesignTooltip(
 				e,
-				$universe.getDesign($player.num, starbase?.tokens[0].designNum) as ShipDesign | undefined
+				$universe.getDesign($player.num, starbase.tokens[0].designNum) as ShipDesign | undefined
 			);
 		}
 	}
@@ -63,11 +63,11 @@
 				<div class="text-tile-item-title">Shields</div>
 				<div>
 					{starbase.spec.shipDesignSpec?.shields
-						? starbase.spec.shipDesignSpec?.shields + 'dp'
+						? starbase.spec.shipDesignSpec.shields + 'dp'
 						: 'none'}
 				</div>
 			</div>
-			{#if starbase.tokens && starbase.tokens.length > 0}
+			{#if starbase.tokens.length > 0}
 				<div class="flex justify-between">
 					<div class="text-tile-item-title">Damage</div>
 					{#if !starbase.tokens[0].damage}
@@ -132,7 +132,7 @@
 							isPacket={true}
 							min={5}
 							max={(planet.spec.planetStarbaseSpec?.basePacketSpeed ?? 0) +
-								($game.rules.packetMaxOverwarpSpeed ?? 0)}
+								$game.rules.packetMaxOverwarpSpeed}
 							warnSpeed={(planet.spec.planetStarbaseSpec?.safePacketSpeed ?? 0) + 1}
 							dangerSpeed={(planet.spec.planetStarbaseSpec?.safePacketSpeed ?? 0) + 3}
 							onValueDragged={(warpSpeed) => {

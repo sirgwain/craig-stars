@@ -20,7 +20,7 @@
 	<ScannerFleet
 		{fleet}
 		color={$universe.getPlayerColor(fleet.mapObject?.playerNum)}
-		commanded={$commandedFleet?.mapObject?.num === fleet.mapObject?.num &&
-			$commandedFleet?.mapObject?.playerNum === fleet.mapObject?.playerNum}
+		commanded={$commandedFleet?.mapObject.num === fleet.mapObject?.num &&
+			$commandedFleet?.mapObject.playerNum === fleet.mapObject?.playerNum}
 	/>
 {/each}

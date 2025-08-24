@@ -9,7 +9,7 @@
 	import { MapObjectType, WaypointSchema, type Waypoint } from '$lib/types/cs-proto';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { StargateWarpSpeed } from '$lib/types/Consts';
-	import { distance } from '$lib/types/Vector';
+	import { distance, emptyVector } from '$lib/types/Vector';
 	import CommandTile from './CommandTile.svelte';
 	import { create } from '@bufbuild/protobuf';
 
@@ -39,24 +39,24 @@
 	$effect(() => {
 		// update state when the props change
 		fleet = propFleet;
-		waypoint = propFleet.fleetOrders?.waypoints[selectedWaypointIndex];
+		waypoint = propFleet.fleetOrders.waypoints[selectedWaypointIndex];
 	});
 
 	let previousWaypoint: Waypoint | undefined = $derived.by(() => {
 		if (selectedWaypointIndex > 0) {
-			return fleet.fleetOrders?.waypoints[selectedWaypointIndex - 1];
+			return fleet.fleetOrders.waypoints[selectedWaypointIndex - 1];
 		}
 	});
 	let nextWaypoint: Waypoint | undefined = $derived.by(() => {
-		if (selectedWaypointIndex < fleet.fleetOrders?.waypoints.length) {
-			return fleet.fleetOrders?.waypoints[selectedWaypointIndex + 1];
+		if (selectedWaypointIndex < fleet.fleetOrders.waypoints.length) {
+			return fleet.fleetOrders.waypoints[selectedWaypointIndex + 1];
 		}
 	});
 
 	let waypointPlanet = $derived(
 		waypoint.mapObjectTarget?.targetType === MapObjectType.PLANET &&
-			waypoint.mapObjectTarget?.targetNum
-			? $universe.getPlanet(waypoint.mapObjectTarget?.targetNum)
+			waypoint.mapObjectTarget.targetNum
+			? $universe.getPlanet(waypoint.mapObjectTarget.targetNum)
 			: undefined
 	);
 	let waypointPlanetFriendly = $derived(
@@ -65,26 +65,26 @@
 	let dist = $derived(
 		nextWaypoint || previousWaypoint
 			? distance(
-					waypoint?.position,
-					previousWaypoint ? previousWaypoint?.position : nextWaypoint?.position
+					waypoint.position ?? emptyVector(),
+					(previousWaypoint ? previousWaypoint.position : nextWaypoint?.position) ?? emptyVector()
 				)
 			: 0
 	);
 
 	// calculate the fuel used per leg of each waypoint, starting at wp1
 	let fuelUsagePerLeg = $derived(
-		fleet.fleetOrders?.waypoints.slice(1).map((wp1) => wp1.estFuelUsage ?? 0)
+		fleet.fleetOrders.waypoints.slice(1).map((wp1) => wp1.estFuelUsage)
 	);
 
 	// get the total fuel usage, but accounting for fueling stations
 	let fuelUsageTotal = $derived(
 		fuelUsagePerLeg.reduce(
 			(total, wpUsage, i) =>
-				fleet.fleetOrders?.waypoints.length < i + 1 &&
-				fleet.fleetOrders?.waypoints[i + 1].mapObjectTarget?.targetType === MapObjectType.PLANET &&
+				fleet.fleetOrders.waypoints.length < i + 1 &&
+				fleet.fleetOrders.waypoints[i + 1].mapObjectTarget?.targetType === MapObjectType.PLANET &&
 				fleet.canFuel(
 					$player,
-					$universe.getPlanet(fleet.fleetOrders?.waypoints[i + 1].mapObjectTarget?.targetNum)
+					$universe.getPlanet(fleet.fleetOrders.waypoints[i + 1].mapObjectTarget?.targetNum)
 				)
 					? 0
 					: total + wpUsage,
@@ -110,11 +110,11 @@
 	}
 </script>
 
-{#if fleet.fleetOrders?.waypoints}
+{#if fleet.fleetOrders.waypoints}
 	<CommandTile title="Fleet Waypoints">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">
-				{#each fleet.fleetOrders?.waypoints as wp, index (index)}
+				{#each fleet.fleetOrders.waypoints as wp, index (index)}
 					<li class="pl-1 {selectedWaypointIndex == index ? 'bg-primary-focus' : ''}">
 						<button
 							type="button"
@@ -156,7 +156,7 @@
 							onValueDragged={(value) => onWarpSpeedDragged(value)}
 							value={waypoint.warpSpeed}
 							warnSpeed={fleet.spec.shipDesignSpec?.engine?.maxSafeSpeed
-								? fleet.spec.shipDesignSpec?.engine.maxSafeSpeed + 1
+								? fleet.spec.shipDesignSpec.engine.maxSafeSpeed + 1
 								: undefined}
 							max={StargateWarpSpeed}
 							useStargate={true}
@@ -166,7 +166,7 @@
 							onValueChanged={(value) => onWarpSpeedChanged(value)}
 							onValueDragged={(value) => onWarpSpeedDragged(value)}
 							warnSpeed={fleet.spec.shipDesignSpec?.engine?.maxSafeSpeed
-								? fleet.spec.shipDesignSpec?.engine.maxSafeSpeed + 1
+								? fleet.spec.shipDesignSpec.engine.maxSafeSpeed + 1
 								: undefined}
 							value={waypoint.warpSpeed}
 						/>

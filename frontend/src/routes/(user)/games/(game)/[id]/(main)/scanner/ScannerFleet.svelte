@@ -26,7 +26,7 @@
 	}
 
 	function getTokenCount(fleet: Fleet): number {
-		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
+		return fleet.tokens.reduce((count, t) => count + t.quantity, 0);
 	}
 
 	let textColor = $derived(

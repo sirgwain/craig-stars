@@ -21,16 +21,9 @@
 
 	let spec: MinefieldSpec | undefined = $state();
 
-	let stats = $derived(
-		$game.rules?.minefieldStatsByType
-			? $game.rules?.minefieldStatsByType[minefield.minefieldType]
-			: undefined
-	);
+	let stats = $derived($game.rules.minefieldStatsByType[minefield.minefieldType]);
 
 	$effect(() => {
-		if (!(minefield as Minefield)) {
-			return;
-		}
 		cs.wasmService.computeMinefieldSpec({ minefield: minefield as Minefield }).then((resp) => {
 			spec = resp.spec;
 		});
@@ -44,7 +37,7 @@
 
 	// update the minefield to detonate on the server
 	const minefieldDetonateChecked: ChangeEventHandler<HTMLInputElement> = async (e) => {
-		if ('minefieldOrders' in minefield && minefield.minefieldOrders) {
+		if (minefield.minefieldOrders) {
 			minefield.minefieldOrders.detonate = e.currentTarget.checked;
 			await updateMinefieldOrders(minefield);
 		} else {
@@ -90,19 +83,19 @@
 		<div class="flex flex-row">
 			<div class="w-40">Maximum Safe Speed:</div>
 			<div>
-				Warp {stats?.maxSpeed ?? 0}
+				Warp {stats.maxSpeed}
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-40">Chance/l.y. of a Hit:</div>
 			<div>
-				{(Number(stats?.chanceOfHit) * 100).toFixed(2)}%
+				{(stats.chanceOfHit * 100).toFixed(2)}%
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-40">Dmg done to each ship:</div>
 			<div>
-				{stats?.damagePerEngine} ({stats?.damagePerEngineRs}) / engine
+				{stats.damagePerEngine} ({stats.damagePerEngineRs}) / engine
 				<span class="cursor-help" onpointerdown={(e) => onTooltip(e)}>
 					<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 				</span>
@@ -111,7 +104,7 @@
 		<div class="flex flex-row">
 			<div class="w-40">Min damage done to fleet:</div>
 			<div>
-				{stats?.minDamagePerFleet} ({stats?.minDamagePerFleetRs})
+				{stats.minDamagePerFleet} ({stats.minDamagePerFleetRs})
 				<span class="cursor-help" onpointerdown={(e) => onTooltip(e)}>
 					<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 				</span>
@@ -124,7 +117,7 @@
 					{spec.decayRate} / year
 				</div>
 			</div>
-			{#if 'minefieldOrders' in minefield && spec.canDetonate}
+			{#if spec.canDetonate}
 				<div class="flex flex-row mt-2">
 					<label>
 						<input

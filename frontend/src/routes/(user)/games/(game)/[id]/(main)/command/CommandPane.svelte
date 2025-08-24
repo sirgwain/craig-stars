@@ -16,6 +16,7 @@
 		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { emptyVector } from '$lib/types/Vector';
 	import FleetCompositionTile from './FleetCompositionTile.svelte';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOrbitingTile from './FleetOrbitingTile.svelte';
@@ -81,7 +82,9 @@
 	<div class="lg:flex lg:flex-col">
 		<PlanetFleetsInOrbitTile
 			planet={$commandedPlanet}
-			fleetsInOrbit={$universe.getMyFleetsByPosition($commandedPlanet.mapObject?.position)}
+			fleetsInOrbit={$universe.getMyFleetsByPosition(
+				$commandedPlanet.mapObject.position ?? emptyVector()
+			)}
 			{onShowCargoTransferDialog}
 		/>
 		<PlanetProductionTile
@@ -91,7 +94,7 @@
 		/>
 		<PlanetStarbaseTile
 			planet={$commandedPlanet}
-			starbase={$universe.getMyPlanetStarbase($commandedPlanet.mapObject?.num ?? 0)}
+			starbase={$universe.getMyPlanetStarbase($commandedPlanet.mapObject.num)}
 			{onChangeMassDriverSpeed}
 		/>
 	</div>
@@ -106,7 +109,9 @@
 		<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		<FleetOtherFleetsHereTile
 			fleet={$commandedFleet}
-			cargoDestsInOrbit={$universe.getCargoDestsByPosition($commandedFleet.mapObject?.position)}
+			cargoDestsInOrbit={$universe.getCargoDestsByPosition(
+				$commandedFleet.mapObject.position ?? emptyVector()
+			)}
 			{onShowSplitFleetDialog}
 			{onShowCargoTransferDialog}
 		/>

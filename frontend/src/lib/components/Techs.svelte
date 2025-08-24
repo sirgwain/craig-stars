@@ -45,8 +45,8 @@
 	let filteredTechs = $derived(
 		techs.filter(
 			(t) =>
-				t.tech?.name?.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
-				enumToString(TechCategory, t.tech?.category)
+				t.tech?.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
+				enumToString(TechCategory, t.tech.category)
 					.toLocaleLowerCase()
 					.indexOf(filter.toLocaleLowerCase()) != -1
 		)
@@ -75,7 +75,7 @@
 			[TechCategory.TORPEDO]: []
 		};
 		filteredTechs.forEach((t) => {
-			techsByCategory[t.tech?.category ?? TechCategory.UNSPECIFIED]?.push(t);
+			techsByCategory[t.tech?.category ?? TechCategory.UNSPECIFIED].push(t);
 		});
 		return techsByCategory;
 	});
@@ -89,7 +89,7 @@
 		player &&
 			techs.filter(
 				(t) =>
-					player?.hasTech(t) && levelsAbove(t.tech?.requirements?.techLevel, player.techLevels) == 0
+					player.hasTech(t) && levelsAbove(t.tech?.requirements?.techLevel, player.techLevels) == 0
 			)
 	);
 </script>
@@ -116,7 +116,7 @@
 {/if}
 
 {#each TechCategories as category (category)}
-	{#if techsByCategory[category]?.length > 0}
+	{#if techsByCategory[category].length > 0}
 		<a
 			id={kebabCase(enumToString(TechCategory, category))}
 			href={`#${kebabCase(enumToString(TechCategory, category))}`}

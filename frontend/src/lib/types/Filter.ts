@@ -47,7 +47,6 @@ export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 
 	// show our fleets that are idle
 	if (
-		'fleetOrders' in fleet &&
 		fleet.fleetOrders?.waypoints &&
 		fleet.fleetOrders?.waypoints.length == 1 &&
 		fleet.fleetOrders?.waypoints[0].task == WaypointTask.UNSPECIFIED

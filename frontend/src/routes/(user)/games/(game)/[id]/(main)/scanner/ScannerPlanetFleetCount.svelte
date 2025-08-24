@@ -6,6 +6,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import { getEnemiesAndFriends, getScannerContext } from './Scanner';
+	import { emptyVector } from '$lib/types/Vector';
 
 	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 	const { player, universe, settings } = getGameContext();
@@ -20,7 +21,7 @@
 
 	let orbitingFleets = $derived(
 		$universe
-			.getMapObjectsByPosition(planet.mapObject?.position)
+			.getMapObjectsByPosition(planet.mapObject?.position ?? emptyVector())
 			.filter((mo) => mo.mapObject?.type === MapObjectType.FLEET)
 	);
 
@@ -29,8 +30,7 @@
 			.map((of) => of as Fleet)
 			.filter((f: Fleet) => filterFleet($player, f, $settings))
 			.reduce(
-				(count, f) =>
-					count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
+				(count, f) => count + f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0),
 				0
 			)
 	);

@@ -4,6 +4,7 @@ import {
 	CostSchema,
 	GameDBObjectSchema,
 	HabSchema,
+	MapObjectTargetSchema,
 	PlayerOrdersSchema,
 	PlayerPlansSchema,
 	PlayerRelation,
@@ -236,7 +237,7 @@ export class CommandedPlayer implements Player {
 
 		// sum up all transfers for this target
 		transfers
-			.filter((t) => targetsEqual(target, t.mapObjectTarget))
+			.filter((t) => targetsEqual(target, t.mapObjectTarget ?? create(MapObjectTargetSchema)))
 			.forEach((t) => (cargo = add(cargo, t.cargo)));
 
 		return cargo;

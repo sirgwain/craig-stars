@@ -19,7 +19,7 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { None } from './Consts';
 import { getTokenCount, hasDestination } from './Fleet';
-import { distance } from './Vector';
+import { distance, emptyVector } from './Vector';
 
 export type MapObjectLike = {
 	mapObject?: MapObject;
@@ -60,7 +60,7 @@ export function getMapObjectName(mo: MapObjectLike | Fleet | undefined): string 
 	}
 
 	// for fleets, we want the name to indicate if it has ships
-	if ('tokens' in (mo as Fleet)) {
+	if (mo.mapObject?.type === MapObjectType.FLEET) {
 		const fleet = mo as Fleet;
 		const numShips = getTokenCount(fleet);
 		const numTokens = fleet.tokens?.length;
@@ -119,29 +119,27 @@ export function commandable(playerNum: number, mo: MapObjectLike | undefined): b
 
 export const positionKey = (pos: Position | MapObjectLike | undefined): string => {
 	if (!pos) {
-		return '';
+		// assume vector 0,0
+		return '0,0';
 	}
 	// MapObjectLike
-	if ((pos as MapObjectLike)?.mapObject?.position) {
-		const p = (pos as MapObjectLike).mapObject!.position!;
+	if ((pos as MapObjectLike)?.mapObject) {
+		const p = (pos as MapObjectLike).mapObject?.position ?? emptyVector();
 		return `${p.x ?? 0},${p.y ?? 0}`;
 	}
 	// Position
-	if ((pos as Position)?.x !== undefined) {
-		const v = pos as Position;
-		return `${v.x ?? 0},${v.y ?? 0}`;
-	}
-
-	return '';
+	const v = pos as Position;
+	return `${v.x ?? 0},${v.y ?? 0}`;
 };
 
 export const key = (mo: MapObjectLike | undefined): string => {
-	return `${mo?.mapObject?.type ?? ''}-${mo?.mapObject?.num ?? ''}-${mo?.mapObject?.playerNum ?? ''}`;
+	return `${mo?.mapObject?.type ?? 0}-${mo?.mapObject?.num ?? 0}-${mo?.mapObject?.playerNum ?? 0}`;
 };
 
 // compare two map objects for equivalence using their natural keys (num, type, playerNum)
-export function equal(mo1: MapObjectLike | undefined, mo2: MapObjectLike | undefined): boolean {
+export function equal(mo1: MapObjectLike | undefined, mo2: MapObjectLike): boolean {
 	return !!(
+		mo1 &&
 		mo1?.mapObject &&
 		mo2?.mapObject &&
 		mo1.mapObject.num === mo2.mapObject.num &&
@@ -150,13 +148,9 @@ export function equal(mo1: MapObjectLike | undefined, mo2: MapObjectLike | undef
 	);
 }
 
-export function equalsTarget(
-	mo1: MapObjectLike | undefined,
-	target: MapObjectTargetLike | undefined
-): boolean {
+export function equalsTarget(mo1: MapObjectLike, target: MapObjectTargetLike): boolean {
 	return !!(
 		mo1?.mapObject &&
-		target &&
 		(mo1.mapObject.num ?? 0) === (target.targetNum ?? 0) &&
 		(mo1.mapObject.type ?? '') === (target.targetType ?? '') &&
 		(mo1.mapObject.playerNum ?? 0) === (target.targetPlayerNum ?? 0)
@@ -173,14 +167,9 @@ export function toTarget(mo: MapObjectLike): MapObjectTarget {
 	});
 }
 // compare two map objects for equivalence using their natural keys (num, type, playerNum)
-export function targetsEqual(
-	mo1: MapObjectTargetLike | undefined,
-	mo2: MapObjectTargetLike | undefined
-): boolean {
+export function targetsEqual(mo1: MapObjectTargetLike, mo2: MapObjectTargetLike): boolean {
 	return !!(
-		mo1 &&
-		mo2 &&
-		(mo1?.targetType ?? '') === (mo2?.targetType ?? '') &&
+		(mo1?.targetType ?? 0) === (mo2?.targetType ?? 0) &&
 		mo1?.targetNum === mo2?.targetNum &&
 		mo1?.targetPlayerNum === mo2?.targetPlayerNum
 	);
@@ -194,7 +183,10 @@ export function nearest(mo: MapObjectLike, mapObjects: MapObjectLike[]): MapObje
 		if (equal(mo, other)) {
 			return;
 		}
-		const dist = distance(other.mapObject?.position, mo.mapObject?.position);
+		const dist = distance(
+			other.mapObject?.position ?? emptyVector(),
+			mo.mapObject?.position ?? emptyVector()
+		);
 		if (dist < nearestDist) {
 			nearest = other;
 			nearestDist = dist;

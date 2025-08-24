@@ -51,11 +51,24 @@
 <div
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative select-none bg-gauge"
 	class:cursor-pointer={editable}
-	onpointerdown={(e) =>
-		editable && e.preventDefault() && onPointerDown(getXFromPointerEvent(e, e.currentTarget))}
-	onpointerup={(e) => editable && e.preventDefault() && onPointerUp()}
-	onpointermove={(e) =>
-		editable && e.preventDefault() && onPointerMove(getXFromPointerEvent(e, e.currentTarget))}
+	onpointerdown={(e) => {
+		if (editable) {
+			e.preventDefault();
+			onPointerDown(getXFromPointerEvent(e, e.currentTarget));
+		}
+	}}
+	onpointerup={(e) => {
+		if (editable) {
+			e.preventDefault();
+			onPointerUp();
+		}
+	}}
+	onpointermove={(e) => {
+		if (editable) {
+			e.preventDefault();
+			onPointerMove(getXFromPointerEvent(e, e.currentTarget));
+		}
+	}}
 >
 	<div class="font-extrabold text-sm text-center align-middle w-full absolute text-white">
 		{value} of {capacity}mg

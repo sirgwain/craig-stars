@@ -49,26 +49,23 @@
 		// return true if a mapboject name or player matches a search term
 		const termSearch = (term: string, mo: MapObjectLike): boolean =>
 			mo.mapObject?.name.toLowerCase().indexOf(term.toLowerCase()) != -1 ||
-			(mo.mapObject?.playerNum != None &&
+			(mo.mapObject.playerNum != None &&
 				$universe
-					.getPlayerPluralName(mo.mapObject?.playerNum)
+					.getPlayerPluralName(mo.mapObject.playerNum)
 					.toLowerCase()
 					.indexOf(term.toLowerCase()) != -1);
 
 		return {
-			planets:
-				planets
-					.filter((i) => terms.every((term) => termSearch(term, i)))
-					.slice(0, maxPlanetResults) ?? [],
-			fleets:
-				fleets
-					.filter((i) => terms.every((term) => termSearch(term, i)))
-					.slice(0, maxFleetResults) ?? [],
+			planets: planets
+				.filter((i) => terms.every((term) => termSearch(term, i)))
+				.slice(0, maxPlanetResults),
+			fleets: fleets
+				.filter((i) => terms.every((term) => termSearch(term, i)))
+				.slice(0, maxFleetResults),
 
-			mysteryTraders:
-				mysteryTraders
-					.filter((i) => terms.every((term) => termSearch(term, i)))
-					.slice(0, maxMiscResults) ?? []
+			mysteryTraders: mysteryTraders
+				.filter((i) => terms.every((term) => termSearch(term, i)))
+				.slice(0, maxMiscResults)
 		};
 	}
 
@@ -188,13 +185,13 @@
 										<div class="text-base my-auto">
 											{#if planet.spec?.canTerraform}
 												<span
-													class:text-habitable={(planet.spec?.habitability ?? 0) > 0}
-													class:text-uninhabitable={(planet.spec?.habitability ?? 0) < 0}
-													>{planet.spec?.habitability ?? 0}%</span
+													class:text-habitable={planet.spec.habitability > 0}
+													class:text-uninhabitable={planet.spec.habitability < 0}
+													>{planet.spec.habitability}%</span
 												>
 												/
 												<span class="text-terraformable"
-													>{planet.spec?.terraformedHabitability ?? 0}%</span
+													>{planet.spec.terraformedHabitability}%</span
 												>
 											{:else}
 												<span
@@ -209,7 +206,7 @@
 											<div>-</div>
 											<div class="text-base my-auto">
 												{planet.spec?.resourcesPerYear
-													? planet.spec?.resourcesPerYear.toLocaleString() + ' res'
+													? planet.spec.resourcesPerYear.toLocaleString() + ' res'
 													: ''}
 											</div>
 											<div>-</div>

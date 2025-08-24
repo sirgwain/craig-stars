@@ -97,12 +97,11 @@ type Player struct {
 	ResearchSpentLastYear     int32                  `protobuf:"varint,17,opt,name=research_spent_last_year,json=researchSpentLastYear,proto3" json:"research_spent_last_year,omitempty"`
 	Relations                 []*PlayerRelationship  `protobuf:"bytes,18,rep,name=relations,proto3" json:"relations,omitempty"`
 	Messages                  []*PlayerMessage       `protobuf:"bytes,19,rep,name=messages,proto3" json:"messages,omitempty"`
-	ScoreHistory              []*PlayerScore         `protobuf:"bytes,20,rep,name=score_history,json=scoreHistory,proto3" json:"score_history,omitempty"`
-	AcquiredTechs             map[string]bool        `protobuf:"bytes,21,rep,name=acquired_techs,json=acquiredTechs,proto3" json:"acquired_techs,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
-	AchievedVictoryConditions uint32                 `protobuf:"varint,22,opt,name=achieved_victory_conditions,json=achievedVictoryConditions,proto3" json:"achieved_victory_conditions,omitempty"`
-	Victor                    bool                   `protobuf:"varint,23,opt,name=victor,proto3" json:"victor,omitempty"`
-	Archived                  bool                   `protobuf:"varint,24,opt,name=archived,proto3" json:"archived,omitempty"`
-	Stats                     *PlayerStats           `protobuf:"bytes,25,opt,name=stats,proto3" json:"stats,omitempty"`
+	AcquiredTechs             map[string]bool        `protobuf:"bytes,20,rep,name=acquired_techs,json=acquiredTechs,proto3" json:"acquired_techs,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	AchievedVictoryConditions uint32                 `protobuf:"varint,21,opt,name=achieved_victory_conditions,json=achievedVictoryConditions,proto3" json:"achieved_victory_conditions,omitempty"`
+	Victor                    bool                   `protobuf:"varint,22,opt,name=victor,proto3" json:"victor,omitempty"`
+	Archived                  bool                   `protobuf:"varint,23,opt,name=archived,proto3" json:"archived,omitempty"`
+	Stats                     *PlayerStats           `protobuf:"bytes,24,opt,name=stats,proto3" json:"stats,omitempty"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -266,13 +265,6 @@ func (x *Player) GetRelations() []*PlayerRelationship {
 func (x *Player) GetMessages() []*PlayerMessage {
 	if x != nil {
 		return x.Messages
-	}
-	return nil
-}
-
-func (x *Player) GetScoreHistory() []*PlayerScore {
-	if x != nil {
-		return x.ScoreHistory
 	}
 	return nil
 }
@@ -1405,7 +1397,7 @@ var File_craig_stars_v1_player_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_player_proto_rawDesc = "" +
 	"\n" +
-	"\x1bcraig_stars/v1/player.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/battle.proto\x1a\x1bcraig_stars/v1/common.proto\x1a\x1acraig_stars/v1/fleet.proto\x1a\x1acraig_stars/v1/intel.proto\x1a\x1ccraig_stars/v1/message.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\"craig_stars/v1/mineralpacket.proto\x1a\"craig_stars/v1/mysterytrader.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1ccraig_stars/v1/salvage.proto\x1a\x1acraig_stars/v1/score.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\x1a\x1dcraig_stars/v1/wormhole.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe9\t\n" +
+	"\x1bcraig_stars/v1/player.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/battle.proto\x1a\x1bcraig_stars/v1/common.proto\x1a\x1acraig_stars/v1/fleet.proto\x1a\x1acraig_stars/v1/intel.proto\x1a\x1ccraig_stars/v1/message.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\"craig_stars/v1/mineralpacket.proto\x1a\"craig_stars/v1/mysterytrader.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1ccraig_stars/v1/salvage.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\x1a\x1dcraig_stars/v1/wormhole.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa7\t\n" +
 	"\x06Player\x12B\n" +
 	"\x0egame_db_object\x18\x01 \x01(\v2\x1c.craig_stars.v1.GameDBObjectR\fgameDbObject\x12A\n" +
 	"\rplayer_orders\x18\x02 \x01(\v2\x1c.craig_stars.v1.PlayerOrdersR\fplayerOrders\x12>\n" +
@@ -1427,13 +1419,12 @@ const file_craig_stars_v1_player_proto_rawDesc = "" +
 	"\x11tech_levels_spent\x18\x10 \x01(\v2\x19.craig_stars.v1.TechLevelR\x0ftechLevelsSpent\x127\n" +
 	"\x18research_spent_last_year\x18\x11 \x01(\x05R\x15researchSpentLastYear\x12@\n" +
 	"\trelations\x18\x12 \x03(\v2\".craig_stars.v1.PlayerRelationshipR\trelations\x129\n" +
-	"\bmessages\x18\x13 \x03(\v2\x1d.craig_stars.v1.PlayerMessageR\bmessages\x12@\n" +
-	"\rscore_history\x18\x14 \x03(\v2\x1b.craig_stars.v1.PlayerScoreR\fscoreHistory\x12P\n" +
-	"\x0eacquired_techs\x18\x15 \x03(\v2).craig_stars.v1.Player.AcquiredTechsEntryR\racquiredTechs\x12>\n" +
-	"\x1bachieved_victory_conditions\x18\x16 \x01(\rR\x19achievedVictoryConditions\x12\x16\n" +
-	"\x06victor\x18\x17 \x01(\bR\x06victor\x12\x1a\n" +
-	"\barchived\x18\x18 \x01(\bR\barchived\x121\n" +
-	"\x05stats\x18\x19 \x01(\v2\x1b.craig_stars.v1.PlayerStatsR\x05stats\x1a@\n" +
+	"\bmessages\x18\x13 \x03(\v2\x1d.craig_stars.v1.PlayerMessageR\bmessages\x12P\n" +
+	"\x0eacquired_techs\x18\x14 \x03(\v2).craig_stars.v1.Player.AcquiredTechsEntryR\racquiredTechs\x12>\n" +
+	"\x1bachieved_victory_conditions\x18\x15 \x01(\rR\x19achievedVictoryConditions\x12\x16\n" +
+	"\x06victor\x18\x16 \x01(\bR\x06victor\x12\x1a\n" +
+	"\barchived\x18\x17 \x01(\bR\barchived\x121\n" +
+	"\x05stats\x18\x18 \x01(\v2\x1b.craig_stars.v1.PlayerStatsR\x05stats\x1a@\n" +
 	"\x12AcquiredTechsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\"\xa5\x05\n" +
@@ -1582,28 +1573,27 @@ var file_craig_stars_v1_player_proto_goTypes = []any{
 	(*Race)(nil),                   // 20: craig_stars.v1.Race
 	(*TechLevel)(nil),              // 21: craig_stars.v1.TechLevel
 	(*PlayerMessage)(nil),          // 22: craig_stars.v1.PlayerMessage
-	(*PlayerScore)(nil),            // 23: craig_stars.v1.PlayerScore
-	(*BattleRecord)(nil),           // 24: craig_stars.v1.BattleRecord
-	(*PlayerIntel)(nil),            // 25: craig_stars.v1.PlayerIntel
-	(*ScoreIntel)(nil),             // 26: craig_stars.v1.ScoreIntel
-	(*ShipDesign)(nil),             // 27: craig_stars.v1.ShipDesign
-	(*Planet)(nil),                 // 28: craig_stars.v1.Planet
-	(*Fleet)(nil),                  // 29: craig_stars.v1.Fleet
-	(*Minefield)(nil),              // 30: craig_stars.v1.Minefield
-	(*MineralPacket)(nil),          // 31: craig_stars.v1.MineralPacket
-	(*MysteryTrader)(nil),          // 32: craig_stars.v1.MysteryTrader
-	(*Salvage)(nil),                // 33: craig_stars.v1.Salvage
-	(*Wormhole)(nil),               // 34: craig_stars.v1.Wormhole
-	(*MapObjectTarget)(nil),        // 35: craig_stars.v1.MapObjectTarget
-	(*Cargo)(nil),                  // 36: craig_stars.v1.Cargo
-	(*timestamppb.Timestamp)(nil),  // 37: google.protobuf.Timestamp
-	(TechField)(0),                 // 38: craig_stars.v1.TechField
-	(NextResearchField)(0),         // 39: craig_stars.v1.NextResearchField
-	(BattleTarget)(0),              // 40: craig_stars.v1.BattleTarget
-	(BattleTactic)(0),              // 41: craig_stars.v1.BattleTactic
-	(BattleAttackWho)(0),           // 42: craig_stars.v1.BattleAttackWho
-	(*WaypointTransportTasks)(nil), // 43: craig_stars.v1.WaypointTransportTasks
-	(QueueItemType)(0),             // 44: craig_stars.v1.QueueItemType
+	(*BattleRecord)(nil),           // 23: craig_stars.v1.BattleRecord
+	(*PlayerIntel)(nil),            // 24: craig_stars.v1.PlayerIntel
+	(*ScoreIntel)(nil),             // 25: craig_stars.v1.ScoreIntel
+	(*ShipDesign)(nil),             // 26: craig_stars.v1.ShipDesign
+	(*Planet)(nil),                 // 27: craig_stars.v1.Planet
+	(*Fleet)(nil),                  // 28: craig_stars.v1.Fleet
+	(*Minefield)(nil),              // 29: craig_stars.v1.Minefield
+	(*MineralPacket)(nil),          // 30: craig_stars.v1.MineralPacket
+	(*MysteryTrader)(nil),          // 31: craig_stars.v1.MysteryTrader
+	(*Salvage)(nil),                // 32: craig_stars.v1.Salvage
+	(*Wormhole)(nil),               // 33: craig_stars.v1.Wormhole
+	(*MapObjectTarget)(nil),        // 34: craig_stars.v1.MapObjectTarget
+	(*Cargo)(nil),                  // 35: craig_stars.v1.Cargo
+	(*timestamppb.Timestamp)(nil),  // 36: google.protobuf.Timestamp
+	(TechField)(0),                 // 37: craig_stars.v1.TechField
+	(NextResearchField)(0),         // 38: craig_stars.v1.NextResearchField
+	(BattleTarget)(0),              // 39: craig_stars.v1.BattleTarget
+	(BattleTactic)(0),              // 40: craig_stars.v1.BattleTactic
+	(BattleAttackWho)(0),           // 41: craig_stars.v1.BattleAttackWho
+	(*WaypointTransportTasks)(nil), // 42: craig_stars.v1.WaypointTransportTasks
+	(QueueItemType)(0),             // 43: craig_stars.v1.QueueItemType
 }
 var file_craig_stars_v1_player_proto_depIdxs = []int32{
 	18, // 0: craig_stars.v1.Player.game_db_object:type_name -> craig_stars.v1.GameDBObject
@@ -1615,56 +1605,55 @@ var file_craig_stars_v1_player_proto_depIdxs = []int32{
 	21, // 6: craig_stars.v1.Player.tech_levels_spent:type_name -> craig_stars.v1.TechLevel
 	10, // 7: craig_stars.v1.Player.relations:type_name -> craig_stars.v1.PlayerRelationship
 	22, // 8: craig_stars.v1.Player.messages:type_name -> craig_stars.v1.PlayerMessage
-	23, // 9: craig_stars.v1.Player.score_history:type_name -> craig_stars.v1.PlayerScore
-	16, // 10: craig_stars.v1.Player.acquired_techs:type_name -> craig_stars.v1.Player.AcquiredTechsEntry
-	9,  // 11: craig_stars.v1.Player.stats:type_name -> craig_stars.v1.PlayerStats
-	24, // 12: craig_stars.v1.PlayerUniverse.battle_records:type_name -> craig_stars.v1.BattleRecord
-	25, // 13: craig_stars.v1.PlayerUniverse.player_intels:type_name -> craig_stars.v1.PlayerIntel
-	26, // 14: craig_stars.v1.PlayerUniverse.score_intels:type_name -> craig_stars.v1.ScoreIntel
-	27, // 15: craig_stars.v1.PlayerUniverse.designs:type_name -> craig_stars.v1.ShipDesign
-	28, // 16: craig_stars.v1.PlayerUniverse.planets:type_name -> craig_stars.v1.Planet
-	29, // 17: craig_stars.v1.PlayerUniverse.fleets:type_name -> craig_stars.v1.Fleet
-	30, // 18: craig_stars.v1.PlayerUniverse.minefields:type_name -> craig_stars.v1.Minefield
-	31, // 19: craig_stars.v1.PlayerUniverse.mineral_packets:type_name -> craig_stars.v1.MineralPacket
-	32, // 20: craig_stars.v1.PlayerUniverse.mystery_traders:type_name -> craig_stars.v1.MysteryTrader
-	33, // 21: craig_stars.v1.PlayerUniverse.salvages:type_name -> craig_stars.v1.Salvage
-	34, // 22: craig_stars.v1.PlayerUniverse.wormholes:type_name -> craig_stars.v1.Wormhole
-	35, // 23: craig_stars.v1.ByHandCargoTransfer.map_object_target:type_name -> craig_stars.v1.MapObjectTarget
-	36, // 24: craig_stars.v1.ByHandCargoTransfer.cargo:type_name -> craig_stars.v1.Cargo
-	3,  // 25: craig_stars.v1.CargoTransfers.transfers:type_name -> craig_stars.v1.ByHandCargoTransfer
-	37, // 26: craig_stars.v1.PlayerStatus.updated_at:type_name -> google.protobuf.Timestamp
-	19, // 27: craig_stars.v1.PlayerStatus.ai_difficulty:type_name -> craig_stars.v1.AiDifficulty
-	24, // 28: craig_stars.v1.Intels.battle_records:type_name -> craig_stars.v1.BattleRecord
-	25, // 29: craig_stars.v1.Intels.player_intels:type_name -> craig_stars.v1.PlayerIntel
-	26, // 30: craig_stars.v1.Intels.score_intels:type_name -> craig_stars.v1.ScoreIntel
-	28, // 31: craig_stars.v1.Intels.planet_intels:type_name -> craig_stars.v1.Planet
-	29, // 32: craig_stars.v1.Intels.fleet_intels:type_name -> craig_stars.v1.Fleet
-	27, // 33: craig_stars.v1.Intels.ship_design_intels:type_name -> craig_stars.v1.ShipDesign
-	31, // 34: craig_stars.v1.Intels.mineral_packet_intels:type_name -> craig_stars.v1.MineralPacket
-	30, // 35: craig_stars.v1.Intels.minefield_intels:type_name -> craig_stars.v1.Minefield
-	34, // 36: craig_stars.v1.Intels.wormhole_intels:type_name -> craig_stars.v1.Wormhole
-	32, // 37: craig_stars.v1.Intels.mystery_trader_intels:type_name -> craig_stars.v1.MysteryTrader
-	33, // 38: craig_stars.v1.Intels.salvage_intels:type_name -> craig_stars.v1.Salvage
-	14, // 39: craig_stars.v1.PlayerPlans.production_plans:type_name -> craig_stars.v1.ProductionPlan
-	12, // 40: craig_stars.v1.PlayerPlans.battle_plans:type_name -> craig_stars.v1.BattlePlan
-	13, // 41: craig_stars.v1.PlayerPlans.transport_plans:type_name -> craig_stars.v1.TransportPlan
-	38, // 42: craig_stars.v1.PlayerOrders.researching:type_name -> craig_stars.v1.TechField
-	39, // 43: craig_stars.v1.PlayerOrders.next_research_field:type_name -> craig_stars.v1.NextResearchField
-	17, // 44: craig_stars.v1.PlayerOrders.cargo_transfers:type_name -> craig_stars.v1.PlayerOrders.CargoTransfersEntry
-	0,  // 45: craig_stars.v1.PlayerRelationship.relation:type_name -> craig_stars.v1.PlayerRelation
-	40, // 46: craig_stars.v1.BattlePlan.primary_target:type_name -> craig_stars.v1.BattleTarget
-	40, // 47: craig_stars.v1.BattlePlan.secondary_target:type_name -> craig_stars.v1.BattleTarget
-	41, // 48: craig_stars.v1.BattlePlan.tactic:type_name -> craig_stars.v1.BattleTactic
-	42, // 49: craig_stars.v1.BattlePlan.attack_who:type_name -> craig_stars.v1.BattleAttackWho
-	43, // 50: craig_stars.v1.TransportPlan.tasks:type_name -> craig_stars.v1.WaypointTransportTasks
-	15, // 51: craig_stars.v1.ProductionPlan.items:type_name -> craig_stars.v1.ProductionPlanItem
-	44, // 52: craig_stars.v1.ProductionPlanItem.type:type_name -> craig_stars.v1.QueueItemType
-	4,  // 53: craig_stars.v1.PlayerOrders.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
-	54, // [54:54] is the sub-list for method output_type
-	54, // [54:54] is the sub-list for method input_type
-	54, // [54:54] is the sub-list for extension type_name
-	54, // [54:54] is the sub-list for extension extendee
-	0,  // [0:54] is the sub-list for field type_name
+	16, // 9: craig_stars.v1.Player.acquired_techs:type_name -> craig_stars.v1.Player.AcquiredTechsEntry
+	9,  // 10: craig_stars.v1.Player.stats:type_name -> craig_stars.v1.PlayerStats
+	23, // 11: craig_stars.v1.PlayerUniverse.battle_records:type_name -> craig_stars.v1.BattleRecord
+	24, // 12: craig_stars.v1.PlayerUniverse.player_intels:type_name -> craig_stars.v1.PlayerIntel
+	25, // 13: craig_stars.v1.PlayerUniverse.score_intels:type_name -> craig_stars.v1.ScoreIntel
+	26, // 14: craig_stars.v1.PlayerUniverse.designs:type_name -> craig_stars.v1.ShipDesign
+	27, // 15: craig_stars.v1.PlayerUniverse.planets:type_name -> craig_stars.v1.Planet
+	28, // 16: craig_stars.v1.PlayerUniverse.fleets:type_name -> craig_stars.v1.Fleet
+	29, // 17: craig_stars.v1.PlayerUniverse.minefields:type_name -> craig_stars.v1.Minefield
+	30, // 18: craig_stars.v1.PlayerUniverse.mineral_packets:type_name -> craig_stars.v1.MineralPacket
+	31, // 19: craig_stars.v1.PlayerUniverse.mystery_traders:type_name -> craig_stars.v1.MysteryTrader
+	32, // 20: craig_stars.v1.PlayerUniverse.salvages:type_name -> craig_stars.v1.Salvage
+	33, // 21: craig_stars.v1.PlayerUniverse.wormholes:type_name -> craig_stars.v1.Wormhole
+	34, // 22: craig_stars.v1.ByHandCargoTransfer.map_object_target:type_name -> craig_stars.v1.MapObjectTarget
+	35, // 23: craig_stars.v1.ByHandCargoTransfer.cargo:type_name -> craig_stars.v1.Cargo
+	3,  // 24: craig_stars.v1.CargoTransfers.transfers:type_name -> craig_stars.v1.ByHandCargoTransfer
+	36, // 25: craig_stars.v1.PlayerStatus.updated_at:type_name -> google.protobuf.Timestamp
+	19, // 26: craig_stars.v1.PlayerStatus.ai_difficulty:type_name -> craig_stars.v1.AiDifficulty
+	23, // 27: craig_stars.v1.Intels.battle_records:type_name -> craig_stars.v1.BattleRecord
+	24, // 28: craig_stars.v1.Intels.player_intels:type_name -> craig_stars.v1.PlayerIntel
+	25, // 29: craig_stars.v1.Intels.score_intels:type_name -> craig_stars.v1.ScoreIntel
+	27, // 30: craig_stars.v1.Intels.planet_intels:type_name -> craig_stars.v1.Planet
+	28, // 31: craig_stars.v1.Intels.fleet_intels:type_name -> craig_stars.v1.Fleet
+	26, // 32: craig_stars.v1.Intels.ship_design_intels:type_name -> craig_stars.v1.ShipDesign
+	30, // 33: craig_stars.v1.Intels.mineral_packet_intels:type_name -> craig_stars.v1.MineralPacket
+	29, // 34: craig_stars.v1.Intels.minefield_intels:type_name -> craig_stars.v1.Minefield
+	33, // 35: craig_stars.v1.Intels.wormhole_intels:type_name -> craig_stars.v1.Wormhole
+	31, // 36: craig_stars.v1.Intels.mystery_trader_intels:type_name -> craig_stars.v1.MysteryTrader
+	32, // 37: craig_stars.v1.Intels.salvage_intels:type_name -> craig_stars.v1.Salvage
+	14, // 38: craig_stars.v1.PlayerPlans.production_plans:type_name -> craig_stars.v1.ProductionPlan
+	12, // 39: craig_stars.v1.PlayerPlans.battle_plans:type_name -> craig_stars.v1.BattlePlan
+	13, // 40: craig_stars.v1.PlayerPlans.transport_plans:type_name -> craig_stars.v1.TransportPlan
+	37, // 41: craig_stars.v1.PlayerOrders.researching:type_name -> craig_stars.v1.TechField
+	38, // 42: craig_stars.v1.PlayerOrders.next_research_field:type_name -> craig_stars.v1.NextResearchField
+	17, // 43: craig_stars.v1.PlayerOrders.cargo_transfers:type_name -> craig_stars.v1.PlayerOrders.CargoTransfersEntry
+	0,  // 44: craig_stars.v1.PlayerRelationship.relation:type_name -> craig_stars.v1.PlayerRelation
+	39, // 45: craig_stars.v1.BattlePlan.primary_target:type_name -> craig_stars.v1.BattleTarget
+	39, // 46: craig_stars.v1.BattlePlan.secondary_target:type_name -> craig_stars.v1.BattleTarget
+	40, // 47: craig_stars.v1.BattlePlan.tactic:type_name -> craig_stars.v1.BattleTactic
+	41, // 48: craig_stars.v1.BattlePlan.attack_who:type_name -> craig_stars.v1.BattleAttackWho
+	42, // 49: craig_stars.v1.TransportPlan.tasks:type_name -> craig_stars.v1.WaypointTransportTasks
+	15, // 50: craig_stars.v1.ProductionPlan.items:type_name -> craig_stars.v1.ProductionPlanItem
+	43, // 51: craig_stars.v1.ProductionPlanItem.type:type_name -> craig_stars.v1.QueueItemType
+	4,  // 52: craig_stars.v1.PlayerOrders.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
+	53, // [53:53] is the sub-list for method output_type
+	53, // [53:53] is the sub-list for method input_type
+	53, // [53:53] is the sub-list for extension type_name
+	53, // [53:53] is the sub-list for extension extendee
+	0,  // [0:53] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_player_proto_init() }
@@ -1683,7 +1672,6 @@ func file_craig_stars_v1_player_proto_init() {
 	file_craig_stars_v1_planet_proto_init()
 	file_craig_stars_v1_race_proto_init()
 	file_craig_stars_v1_salvage_proto_init()
-	file_craig_stars_v1_score_proto_init()
 	file_craig_stars_v1_shipdesign_proto_init()
 	file_craig_stars_v1_wormhole_proto_init()
 	type x struct{}

@@ -23,7 +23,7 @@
 	let queueItems: ProductionQueueItem[] | undefined = $derived(planet.planetOrders.productionQueue);
 
 	const clear = async () => {
-		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
+		if (confirm('Are you sure you want to clear the planet production queue?')) {
 			planet.planetOrders.productionQueue = [];
 			onClearProductionQueue?.({ planet });
 		}
@@ -48,9 +48,9 @@
 		{@const routeDest = $universe.getMapObject(
 			create(MapObjectTargetSchema, {
 				targetPosition: emptyVector(),
-				targetType: planet.planetOrders.routeTargetType ?? '',
-				targetNum: planet.planetOrders.routeTargetNum ?? 0,
-				targetPlayerNum: planet.planetOrders.routeTargetPlayerNum ?? 0
+				targetType: planet.planetOrders.routeTargetType,
+				targetNum: planet.planetOrders.routeTargetNum,
+				targetPlayerNum: planet.planetOrders.routeTargetPlayerNum
 			})
 		)}
 		<div class="flex justify-between mt-1">

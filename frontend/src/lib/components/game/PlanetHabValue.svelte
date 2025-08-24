@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { Planet } from "$lib/types/cs-proto";
-
+	import type { Planet } from '$lib/types/cs-proto';
 
 	type Props = {
 		planet: Planet;
@@ -15,7 +14,7 @@
 	class:text-terraformable={(planet.spec?.habitability ?? 0) < 0 &&
 		(planet.spec?.terraformedHabitability ?? 0) > 0}
 	>{planet.spec?.habitability ?? 0}%{planet.spec?.terraformedHabitability &&
-	planet.spec?.terraformedHabitability !== planet.spec?.habitability
-		? ` (${planet.spec?.terraformedHabitability}%)`
+	planet.spec.terraformedHabitability !== planet.spec.habitability
+		? ` (${planet.spec.terraformedHabitability}%)`
 		: ''}</span
 >

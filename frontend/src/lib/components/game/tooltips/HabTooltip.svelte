@@ -43,7 +43,7 @@
 		cs.wasmService
 			.getPlanetHabitability({ race: player.race, hab: habAfterTerraforming })
 			.then((resp) => {
-				habitabilityAfterTerraforming = resp.result ?? 0;
+				habitabilityAfterTerraforming = resp.result;
 			});
 	});
 </script>

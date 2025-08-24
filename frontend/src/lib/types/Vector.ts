@@ -3,11 +3,10 @@ import { create } from '@bufbuild/protobuf';
 
 export const emptyVector = () => create(VectorSchema, { x: 0, y: 0 });
 
-export const equal = (v1: Vector | undefined, v2?: Vector | undefined) =>
-	v1?.x === v2?.x && v1?.y === v2?.y;
+export const equal = (v1: Vector, v2: Vector) => v1.x === v2.x && v1.y === v2.y;
 
 // compute the distance between two vectors
-export const distance = (v1: Vector | undefined, v2: Vector | undefined): number =>
+export const distance = (v1: Vector, v2: Vector): number =>
 	v2 && v1
 		? Math.sqrt(
 				((v1?.x ?? 0) - (v2?.x ?? 0)) * ((v1?.x ?? 0) - (v2?.x ?? 0)) +
@@ -36,4 +35,4 @@ export const subtract = (from: Vector, to: Vector): Vector => {
 	return create(VectorSchema, { x: from.x - to.x, y: from.y - to.y });
 };
 
-export const string = (v: Vector | Vector | undefined) => `(${v?.x ?? 0}, ${v?.y ?? 0})`;
+export const string = (v: Vector | undefined) => `(${v?.x ?? 0}, ${v?.y ?? 0})`;

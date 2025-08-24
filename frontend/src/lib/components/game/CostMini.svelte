@@ -10,9 +10,9 @@
 
 {#if cost}
 	<div>
-		<span class="text-ironium">i: </span><span>{cost.ironium ?? 0}kT</span>
-		<span class="text-boranium">b: </span><span>{cost.boranium ?? 0}kT</span>
-		<span class="text-germanium">g: </span><span>{cost.germanium ?? 0}kT</span>
-		<span>r: </span><span>{cost.resources ?? 0}</span>
+		<span class="text-ironium">i: </span><span>{cost.ironium}kT</span>
+		<span class="text-boranium">b: </span><span>{cost.boranium}kT</span>
+		<span class="text-germanium">g: </span><span>{cost.germanium}kT</span>
+		<span>r: </span><span>{cost.resources}</span>
 	</div>
 {/if}

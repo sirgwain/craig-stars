@@ -13,7 +13,7 @@
 
 	let { battle, phase = $bindable(0) }: Props = $props();
 
-	let action = $derived(battle.getActionForPhase(phase ?? 0));
+	let action = $derived(battle.getActionForPhase(phase));
 	let selectedToken: PhaseToken | undefined = $state();
 	let actionToken: PhaseToken | undefined = $state();
 	let target: PhaseToken | undefined = $derived(battle.getTargetForPhase(phase));
@@ -35,7 +35,7 @@
 								{phase}
 								{selectedToken}
 								tokens={battle.getTokensAtLocation(phase, x, y)}
-								selected={selectedToken?.x === x && selectedToken?.y === y}
+								selected={selectedToken?.x === x && selectedToken.y === y}
 								onSelected={(token) => {
 									selectedToken = token;
 								}}

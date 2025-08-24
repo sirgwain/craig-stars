@@ -23,8 +23,8 @@
 {:else if message.type === PlayerMessageType.MYSTERY_TRADER_CHANGED_COURSE}
 	The Mystery Trader has unexplicably changed course and/or speed. Perhaps something startled him?
 {:else if message.type === PlayerMessageType.MYSTERY_TRADER_ALREADY_REWARDED}
-	The Mystery Trader eyes the captain of {message.spec?.target?.targetName} suspiciously and suggests
-	that he is still recovering from the last transaction with you.
+	The Mystery Trader eyes the captain of {message.spec?.mapObjectTarget?.targetName} suspiciously and
+	suggests that he is still recovering from the last transaction with you.
 {:else if message.type === PlayerMessageType.MYSTERY_TRADER_MET_WITHOUT_REWARD}
 	{@const detail = message.spec?.mysteryTrader}
 	{#if detail?.ship}
@@ -32,12 +32,13 @@
 		The Mystery Trader tried to give you an auxillary ship called the {detail.ship}, but you were
 		unable to learn the design.
 	{:else}
-		The Mystery Trader has refused to give the captain of {message.spec?.target?.targetName} an audience.
-		It may be due to an insufficient quantity of minerals carried by your fleet.
+		The Mystery Trader has refused to give the captain of {message.spec?.mapObjectTarget
+			?.targetName} an audience. It may be due to an insufficient quantity of minerals carried by your
+		fleet.
 	{/if}
 {:else if message.type === PlayerMessageType.MYSTERY_TRADER_MET_WITH_REWARD}
 	{@const detail = message.spec?.mysteryTrader}
-	{message.spec?.target?.targetName} has been absorbed by the Mystery Trader.
+	{message.spec?.mapObjectTarget?.targetName} has been absorbed by the Mystery Trader.
 	{#if detail}
 		{#if detail.type === MysteryTraderRewardType.RESEARCH}
 			The trader has given you {sum(detail.techLevels)} technology advances.
@@ -48,8 +49,8 @@
 			In return, you have been given the plans for a new ship hull. The trader suggests you visit
 			other traders.
 		{:else if detail.type === MysteryTraderRewardType.LIFEBOAT}
-			In return, you have been given {detail.shipCount ?? 0} of the Trader's auxillary ships for your
-			own use.
+			In return, you have been given {detail.shipCount} of the Trader's auxillary ships for your own
+			use.
 		{:else if detail.type === MysteryTraderRewardType.GENESIS}
 			In return, you have been given the plans for a powerful planetary device. The trader suggests
 			you visit other traders.

@@ -18,7 +18,7 @@
 </Breadcrumb>
 <ul class="px-1">
 	{#each $techs.hulls as hull (hull.tech?.name)}
-		{#if $player && canLearnTech($player, hull) && hasRequiredLevels($player.techLevels, hull.tech?.requirements?.techLevel)}
+		{#if canLearnTech($player, hull) && hasRequiredLevels($player.techLevels, hull.tech?.requirements?.techLevel)}
 			<li>
 				<a
 					class="cs-link"

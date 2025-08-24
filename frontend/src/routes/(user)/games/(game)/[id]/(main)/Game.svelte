@@ -26,7 +26,7 @@
 		type MapObjectLike
 	} from '$lib/types/MapObject';
 	import { None } from '$lib/types/Consts';
-	import { equal } from '$lib/types/Vector';
+	import { emptyVector, equal } from '$lib/types/Vector';
 	import type { ConnectError } from '@connectrpc/connect';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
@@ -143,7 +143,7 @@
 		const wp = e.waypoint;
 		selectWaypoint(wp);
 
-		if (wp.mapObjectTarget?.targetType && wp.mapObjectTarget?.targetNum) {
+		if (wp.mapObjectTarget?.targetType && wp.mapObjectTarget.targetNum) {
 			const mo = $universe.getMapObject(wp.mapObjectTarget);
 			if (mo) {
 				selectMapObject(mo);
@@ -192,7 +192,7 @@
 		// close the dialog
 		showCargoTransferDialog = false;
 
-		if (e && absoluteSize(e.transferAmount) > 0) {
+		if (absoluteSize(e.transferAmount) > 0) {
 			try {
 				await transferCargo(e.src, e.dest, e.transferAmount);
 			} catch (err) {
@@ -257,7 +257,10 @@
 	function onSelectMapObject(mo: MapObjectLike) {
 		if (
 			!$selectedMapObject ||
-			!equal($selectedMapObject.mapObject?.position, mo.mapObject?.position)
+			!equal(
+				$selectedMapObject.mapObject?.position ?? emptyVector(),
+				mo.mapObject?.position ?? emptyVector()
+			)
 		) {
 			// nothing selected, or nothing selected at this location yet, select this object
 			selectMapObject(mo);
@@ -265,12 +268,14 @@
 		}
 
 		// get all the mapobjects here we want to cycle, starting with commandable map objects
-		const commandables = $universe.getCommandableMapObjectsByPosition(mo.mapObject?.position);
+		const commandables = $universe.getCommandableMapObjectsByPosition(
+			mo.mapObject?.position ?? emptyVector()
+		);
 		const selectables = $universe
-			.getMapObjectsByPosition(mo.mapObject?.position)
+			.getMapObjectsByPosition(mo.mapObject?.position ?? emptyVector())
 			.filter((mo) => !commandable($player.num, mo));
-		let commandedIndex = commandables.findIndex((mo) => mapObjectEqual(mo, $commandedMapObject));
-		let selectedIndex = selectables.findIndex((mo) => mapObjectEqual(mo, $selectedMapObject));
+		let commandedIndex = commandables.findIndex((mo) => mapObjectEqual($commandedMapObject, mo));
+		let selectedIndex = selectables.findIndex((mo) => mapObjectEqual($selectedMapObject, mo));
 
 		if (commandedIndex < commandables.length - 1) {
 			// we either havne't commanded anything yet (commandedIndex=-1) or there is a commandable object to cycle to
@@ -313,7 +318,7 @@
 				// clear dest
 				$commandedPlanet.planetOrders.packetTargetNum = None;
 			} else {
-				$commandedPlanet.planetOrders.packetTargetNum = mo.mapObject?.num;
+				$commandedPlanet.planetOrders.packetTargetNum = mo.mapObject.num;
 			}
 
 			updatePlanetOrders($commandedPlanet);
@@ -335,9 +340,9 @@
 				$commandedPlanet.planetOrders.routeTargetPlayerNum = None;
 				$commandedPlanet.planetOrders.routeTargetType = MapObjectType.UNSPECIFIED;
 			} else {
-				$commandedPlanet.planetOrders.routeTargetNum = mo.mapObject?.num;
-				$commandedPlanet.planetOrders.routeTargetPlayerNum = mo.mapObject?.playerNum;
-				$commandedPlanet.planetOrders.routeTargetType = mo.mapObject?.type;
+				$commandedPlanet.planetOrders.routeTargetNum = mo.mapObject.num;
+				$commandedPlanet.planetOrders.routeTargetPlayerNum = mo.mapObject.playerNum;
+				$commandedPlanet.planetOrders.routeTargetType = mo.mapObject.type;
 			}
 
 			updatePlanetOrders($commandedPlanet);

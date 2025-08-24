@@ -754,6 +754,7 @@ func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGamePara
 
 const GetPlayerIntel = `-- name: GetPlayerIntel :one
 SELECT
+    score_history,
     battle_records,
     player_intels,
     score_intels,
@@ -778,6 +779,7 @@ type GetPlayerIntelParams struct {
 }
 
 type GetPlayerIntelRow struct {
+	ScoreHistory        *PlayerScores
 	BattleRecords       *BattleRecords
 	PlayerIntels        *PlayerIntels
 	ScoreIntels         *ScoreIntels
@@ -795,6 +797,7 @@ func (q *Queries) GetPlayerIntel(ctx context.Context, arg GetPlayerIntelParams) 
 	row := q.db.QueryRowContext(ctx, GetPlayerIntel, arg.GameID, arg.Num)
 	var i GetPlayerIntelRow
 	err := row.Scan(
+		&i.ScoreHistory,
 		&i.BattleRecords,
 		&i.PlayerIntels,
 		&i.ScoreIntels,

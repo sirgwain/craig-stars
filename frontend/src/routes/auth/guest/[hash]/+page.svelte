@@ -21,8 +21,8 @@
 		});
 
 		if (response.ok) {
-			const resolvedResponse = (await response?.json()) as { attrs?: { game_id?: string } };
-			const gameId = resolvedResponse?.attrs?.game_id;
+			const resolvedResponse = (await response.json()) as { attrs?: { game_id?: string } };
+			const gameId = resolvedResponse.attrs?.game_id;
 			if (gameId) {
 				const resp = await gameClient.getGame({ gameId: BigInt(gameId) });
 				if (resp.game?.game?.state === GameState.SETUP) {
@@ -35,7 +35,7 @@
 				document.location = '/';
 			}
 		} else {
-			const resolvedResponse = await response?.json();
+			const resolvedResponse = await response.json();
 			loginError = resolvedResponse.error;
 			console.error(loginError);
 		}

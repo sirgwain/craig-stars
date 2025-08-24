@@ -42,6 +42,8 @@ func CSAIDifficultyToAIDifficulty(m cs.AIDifficulty) craig_starsv1.AiDifficulty 
 }
 func BattleAttackWhoToCSBattleAttackWho(m craig_starsv1.BattleAttackWho) cs.BattleAttackWho {
 	switch m {
+	case craig_starsv1.BattleAttackWho_BATTLE_ATTACK_WHO_UNSPECIFIED:
+		return cs.BattleAttackWhoUnspecified
 	case craig_starsv1.BattleAttackWho_BATTLE_ATTACK_WHO_ENEMIES:
 		return cs.BattleAttackWhoEnemies
 	case craig_starsv1.BattleAttackWho_BATTLE_ATTACK_WHO_ENEMIES_AND_NEUTRALS:
@@ -55,6 +57,8 @@ func BattleAttackWhoToCSBattleAttackWho(m craig_starsv1.BattleAttackWho) cs.Batt
 
 func CSBattleAttackWhoToBattleAttackWho(m cs.BattleAttackWho) craig_starsv1.BattleAttackWho {
 	switch m {
+	case cs.BattleAttackWhoUnspecified:
+		return craig_starsv1.BattleAttackWho_BATTLE_ATTACK_WHO_UNSPECIFIED
 	case cs.BattleAttackWhoEnemies:
 		return craig_starsv1.BattleAttackWho_BATTLE_ATTACK_WHO_ENEMIES
 	case cs.BattleAttackWhoEnemiesAndNeutrals:
@@ -62,7 +66,7 @@ func CSBattleAttackWhoToBattleAttackWho(m cs.BattleAttackWho) craig_starsv1.Batt
 	case cs.BattleAttackWhoEveryone:
 		return craig_starsv1.BattleAttackWho_BATTLE_ATTACK_WHO_EVERYONE
 	default:
-		return craig_starsv1.BattleAttackWho_BATTLE_ATTACK_WHO_ENEMIES
+		return craig_starsv1.BattleAttackWho_BATTLE_ATTACK_WHO_UNSPECIFIED
 	}
 }
 func BattleRecordTokenActionTypeToCSBattleRecordTokenActionType(m craig_starsv1.BattleRecordTokenActionType) cs.BattleRecordTokenActionType {
@@ -100,6 +104,8 @@ func CSBattleRecordTokenActionTypeToBattleRecordTokenActionType(m cs.BattleRecor
 }
 func BattleTacticToCSBattleTactic(m craig_starsv1.BattleTactic) cs.BattleTactic {
 	switch m {
+	case craig_starsv1.BattleTactic_BATTLE_TACTIC_UNSPECIFIED:
+		return cs.BattleTacticUnspecified
 	case craig_starsv1.BattleTactic_BATTLE_TACTIC_DISENGAGE:
 		return cs.BattleTacticDisengage
 	case craig_starsv1.BattleTactic_BATTLE_TACTIC_DISENGAGE_IF_CHALLENGED:
@@ -119,6 +125,8 @@ func BattleTacticToCSBattleTactic(m craig_starsv1.BattleTactic) cs.BattleTactic 
 
 func CSBattleTacticToBattleTactic(m cs.BattleTactic) craig_starsv1.BattleTactic {
 	switch m {
+	case cs.BattleTacticUnspecified:
+		return craig_starsv1.BattleTactic_BATTLE_TACTIC_UNSPECIFIED
 	case cs.BattleTacticDisengage:
 		return craig_starsv1.BattleTactic_BATTLE_TACTIC_DISENGAGE
 	case cs.BattleTacticDisengageIfChallenged:
@@ -132,7 +140,7 @@ func CSBattleTacticToBattleTactic(m cs.BattleTactic) craig_starsv1.BattleTactic 
 	case cs.BattleTacticMaximizeDamage:
 		return craig_starsv1.BattleTactic_BATTLE_TACTIC_MAXIMIZE_DAMAGE
 	default:
-		return craig_starsv1.BattleTactic_BATTLE_TACTIC_DISENGAGE
+		return craig_starsv1.BattleTactic_BATTLE_TACTIC_UNSPECIFIED
 	}
 }
 func BattleTargetToCSBattleTarget(m craig_starsv1.BattleTarget) cs.BattleTarget {
@@ -223,6 +231,8 @@ func CSCargoTransferStatusToCargoTransferStatus(m cs.CargoTransferStatus) craig_
 }
 func CometSizeToCSCometSize(m craig_starsv1.CometSize) cs.CometSize {
 	switch m {
+	case craig_starsv1.CometSize_COMET_SIZE_UNSPECIFIED:
+		return cs.CometUnspecified
 	case craig_starsv1.CometSize_COMET_SIZE_SMALL:
 		return cs.CometSmall
 	case craig_starsv1.CometSize_COMET_SIZE_MEDIUM:
@@ -238,6 +248,8 @@ func CometSizeToCSCometSize(m craig_starsv1.CometSize) cs.CometSize {
 
 func CSCometSizeToCometSize(m cs.CometSize) craig_starsv1.CometSize {
 	switch m {
+	case cs.CometUnspecified:
+		return craig_starsv1.CometSize_COMET_SIZE_UNSPECIFIED
 	case cs.CometSmall:
 		return craig_starsv1.CometSize_COMET_SIZE_SMALL
 	case cs.CometMedium:
@@ -247,11 +259,13 @@ func CSCometSizeToCometSize(m cs.CometSize) craig_starsv1.CometSize {
 	case cs.CometHuge:
 		return craig_starsv1.CometSize_COMET_SIZE_HUGE
 	default:
-		return craig_starsv1.CometSize_COMET_SIZE_SMALL
+		return craig_starsv1.CometSize_COMET_SIZE_UNSPECIFIED
 	}
 }
 func DensityToCSDensity(m craig_starsv1.Density) cs.Density {
 	switch m {
+	case craig_starsv1.Density_DENSITY_UNSPECIFIED:
+		return cs.DensityUnspecified
 	case craig_starsv1.Density_DENSITY_SPARSE:
 		return cs.DensitySparse
 	case craig_starsv1.Density_DENSITY_NORMAL:
@@ -267,6 +281,8 @@ func DensityToCSDensity(m craig_starsv1.Density) cs.Density {
 
 func CSDensityToDensity(m cs.Density) craig_starsv1.Density {
 	switch m {
+	case cs.DensityUnspecified:
+		return craig_starsv1.Density_DENSITY_UNSPECIFIED
 	case cs.DensitySparse:
 		return craig_starsv1.Density_DENSITY_SPARSE
 	case cs.DensityNormal:
@@ -276,7 +292,7 @@ func CSDensityToDensity(m cs.Density) craig_starsv1.Density {
 	case cs.DensityPacked:
 		return craig_starsv1.Density_DENSITY_PACKED
 	default:
-		return craig_starsv1.Density_DENSITY_SPARSE
+		return craig_starsv1.Density_DENSITY_UNSPECIFIED
 	}
 }
 func FleetPurposeToCSFleetPurpose(m craig_starsv1.FleetPurpose) cs.FleetPurpose {
@@ -372,7 +388,7 @@ func CSGameStartModeToGameStartMode(m cs.GameStartMode) craig_starsv1.GameStartM
 func GameStateToCSGameState(m craig_starsv1.GameState) cs.GameState {
 	switch m {
 	case craig_starsv1.GameState_GAME_STATE_UNSPECIFIED:
-		return cs.GameStateNone
+		return cs.GameStateUnspecified
 	case craig_starsv1.GameState_GAME_STATE_SETUP:
 		return cs.GameStateSetup
 	case craig_starsv1.GameState_GAME_STATE_GENERATING_UNIVERSE:
@@ -390,7 +406,7 @@ func GameStateToCSGameState(m craig_starsv1.GameState) cs.GameState {
 
 func CSGameStateToGameState(m cs.GameState) craig_starsv1.GameState {
 	switch m {
-	case cs.GameStateNone:
+	case cs.GameStateUnspecified:
 		return craig_starsv1.GameState_GAME_STATE_UNSPECIFIED
 	case cs.GameStateSetup:
 		return craig_starsv1.GameState_GAME_STATE_SETUP
@@ -555,6 +571,8 @@ func CSMysteryTraderRewardTypeToMysteryTraderRewardType(m cs.MysteryTraderReward
 }
 func NewGamePlayerTypeToCSNewGamePlayerType(m craig_starsv1.NewGamePlayerType) cs.NewGamePlayerType {
 	switch m {
+	case craig_starsv1.NewGamePlayerType_NEW_GAME_PLAYER_TYPE_UNSPECIFIED:
+		return cs.NewGamePlayerTypeUnspecified
 	case craig_starsv1.NewGamePlayerType_NEW_GAME_PLAYER_TYPE_HOST:
 		return cs.NewGamePlayerTypeHost
 	case craig_starsv1.NewGamePlayerType_NEW_GAME_PLAYER_TYPE_GUEST:
@@ -570,6 +588,8 @@ func NewGamePlayerTypeToCSNewGamePlayerType(m craig_starsv1.NewGamePlayerType) c
 
 func CSNewGamePlayerTypeToNewGamePlayerType(m cs.NewGamePlayerType) craig_starsv1.NewGamePlayerType {
 	switch m {
+	case cs.NewGamePlayerTypeUnspecified:
+		return craig_starsv1.NewGamePlayerType_NEW_GAME_PLAYER_TYPE_UNSPECIFIED
 	case cs.NewGamePlayerTypeHost:
 		return craig_starsv1.NewGamePlayerType_NEW_GAME_PLAYER_TYPE_HOST
 	case cs.NewGamePlayerTypeGuest:
@@ -579,7 +599,7 @@ func CSNewGamePlayerTypeToNewGamePlayerType(m cs.NewGamePlayerType) craig_starsv
 	case cs.NewGamePlayerTypeAI:
 		return craig_starsv1.NewGamePlayerType_NEW_GAME_PLAYER_TYPE_AI
 	default:
-		return craig_starsv1.NewGamePlayerType_NEW_GAME_PLAYER_TYPE_HOST
+		return craig_starsv1.NewGamePlayerType_NEW_GAME_PLAYER_TYPE_UNSPECIFIED
 	}
 }
 func NextResearchFieldToCSNextResearchField(m craig_starsv1.NextResearchField) cs.NextResearchField {
@@ -1095,6 +1115,8 @@ func CSPlayerMessageTypeToPlayerMessageType(m cs.PlayerMessageType) craig_starsv
 }
 func PlayerPositionsToCSPlayerPositions(m craig_starsv1.PlayerPositions) cs.PlayerPositions {
 	switch m {
+	case craig_starsv1.PlayerPositions_PLAYER_POSITIONS_UNSPECIFIED:
+		return cs.PlayerPositionsUnspecified
 	case craig_starsv1.PlayerPositions_PLAYER_POSITIONS_CLOSE:
 		return cs.PlayerPositionsClose
 	case craig_starsv1.PlayerPositions_PLAYER_POSITIONS_MODERATE:
@@ -1110,6 +1132,8 @@ func PlayerPositionsToCSPlayerPositions(m craig_starsv1.PlayerPositions) cs.Play
 
 func CSPlayerPositionsToPlayerPositions(m cs.PlayerPositions) craig_starsv1.PlayerPositions {
 	switch m {
+	case cs.PlayerPositionsUnspecified:
+		return craig_starsv1.PlayerPositions_PLAYER_POSITIONS_UNSPECIFIED
 	case cs.PlayerPositionsClose:
 		return craig_starsv1.PlayerPositions_PLAYER_POSITIONS_CLOSE
 	case cs.PlayerPositionsModerate:
@@ -1119,7 +1143,7 @@ func CSPlayerPositionsToPlayerPositions(m cs.PlayerPositions) craig_starsv1.Play
 	case cs.PlayerPositionsDistant:
 		return craig_starsv1.PlayerPositions_PLAYER_POSITIONS_DISTANT
 	default:
-		return craig_starsv1.PlayerPositions_PLAYER_POSITIONS_CLOSE
+		return craig_starsv1.PlayerPositions_PLAYER_POSITIONS_UNSPECIFIED
 	}
 }
 func PlayerRelationToCSPlayerRelation(m craig_starsv1.PlayerRelation) cs.PlayerRelation {
@@ -1206,6 +1230,8 @@ func CSPRTToPRT(m cs.PRT) craig_starsv1.Prt {
 }
 func QueueItemTypeToCSQueueItemType(m craig_starsv1.QueueItemType) cs.QueueItemType {
 	switch m {
+	case craig_starsv1.QueueItemType_QUEUE_ITEM_TYPE_UNSPECIFIED:
+		return cs.QueueItemTypeUnspecified
 	case craig_starsv1.QueueItemType_QUEUE_ITEM_TYPE_IRONIUM_MINERAL_PACKET:
 		return cs.QueueItemTypeIroniumMineralPacket
 	case craig_starsv1.QueueItemType_QUEUE_ITEM_TYPE_BORANIUM_MINERAL_PACKET:
@@ -1253,6 +1279,8 @@ func QueueItemTypeToCSQueueItemType(m craig_starsv1.QueueItemType) cs.QueueItemT
 
 func CSQueueItemTypeToQueueItemType(m cs.QueueItemType) craig_starsv1.QueueItemType {
 	switch m {
+	case cs.QueueItemTypeUnspecified:
+		return craig_starsv1.QueueItemType_QUEUE_ITEM_TYPE_UNSPECIFIED
 	case cs.QueueItemTypeIroniumMineralPacket:
 		return craig_starsv1.QueueItemType_QUEUE_ITEM_TYPE_IRONIUM_MINERAL_PACKET
 	case cs.QueueItemTypeBoraniumMineralPacket:
@@ -1294,7 +1322,7 @@ func CSQueueItemTypeToQueueItemType(m cs.QueueItemType) craig_starsv1.QueueItemT
 	case cs.QueueItemTypeGenesisDevice:
 		return craig_starsv1.QueueItemType_QUEUE_ITEM_TYPE_GENESIS_DEVICE
 	default:
-		return craig_starsv1.QueueItemType_QUEUE_ITEM_TYPE_IRONIUM_MINERAL_PACKET
+		return craig_starsv1.QueueItemType_QUEUE_ITEM_TYPE_UNSPECIFIED
 	}
 }
 func RandomEventToCSRandomEvent(m craig_starsv1.RandomEvent) cs.RandomEvent {
@@ -1519,6 +1547,8 @@ func CSShipDesignPurposeToShipDesignPurpose(m cs.ShipDesignPurpose) craig_starsv
 }
 func SizeToCSSize(m craig_starsv1.Size) cs.Size {
 	switch m {
+	case craig_starsv1.Size_SIZE_UNSPECIFIED:
+		return cs.SizeUnspecified
 	case craig_starsv1.Size_SIZE_TINY:
 		return cs.SizeTiny
 	case craig_starsv1.Size_SIZE_TINY_WIDE:
@@ -1546,6 +1576,8 @@ func SizeToCSSize(m craig_starsv1.Size) cs.Size {
 
 func CSSizeToSize(m cs.Size) craig_starsv1.Size {
 	switch m {
+	case cs.SizeUnspecified:
+		return craig_starsv1.Size_SIZE_UNSPECIFIED
 	case cs.SizeTiny:
 		return craig_starsv1.Size_SIZE_TINY
 	case cs.SizeTinyWide:
@@ -1567,7 +1599,7 @@ func CSSizeToSize(m cs.Size) craig_starsv1.Size {
 	case cs.SizeHugeWide:
 		return craig_starsv1.Size_SIZE_HUGE_WIDE
 	default:
-		return craig_starsv1.Size_SIZE_TINY
+		return craig_starsv1.Size_SIZE_UNSPECIFIED
 	}
 }
 func SpendLeftoverPointsOnToCSSpendLeftoverPointsOn(m craig_starsv1.SpendLeftoverPointsOn) cs.SpendLeftoverPointsOn {
@@ -1739,6 +1771,8 @@ func CSTechFieldToTechField(m cs.TechField) craig_starsv1.TechField {
 }
 func TechHullTypeToCSTechHullType(m craig_starsv1.TechHullType) cs.TechHullType {
 	switch m {
+	case craig_starsv1.TechHullType_TECH_HULL_TYPE_UNSPECIFIED:
+		return cs.TechHullTypeNone
 	case craig_starsv1.TechHullType_TECH_HULL_TYPE_BOMBER:
 		return cs.TechHullTypeBomber
 	case craig_starsv1.TechHullType_TECH_HULL_TYPE_COLONIZER:
@@ -1770,6 +1804,8 @@ func TechHullTypeToCSTechHullType(m craig_starsv1.TechHullType) cs.TechHullType 
 
 func CSTechHullTypeToTechHullType(m cs.TechHullType) craig_starsv1.TechHullType {
 	switch m {
+	case cs.TechHullTypeNone:
+		return craig_starsv1.TechHullType_TECH_HULL_TYPE_UNSPECIFIED
 	case cs.TechHullTypeBomber:
 		return craig_starsv1.TechHullType_TECH_HULL_TYPE_BOMBER
 	case cs.TechHullTypeColonizer:
@@ -1795,7 +1831,7 @@ func CSTechHullTypeToTechHullType(m cs.TechHullType) craig_starsv1.TechHullType 
 	case cs.TechHullTypeStarbase:
 		return craig_starsv1.TechHullType_TECH_HULL_TYPE_STARBASE
 	default:
-		return craig_starsv1.TechHullType_TECH_HULL_TYPE_BOMBER
+		return craig_starsv1.TechHullType_TECH_HULL_TYPE_UNSPECIFIED
 	}
 }
 func TechOriginToCSTechOrigin(m craig_starsv1.TechOrigin) cs.TechOrigin {

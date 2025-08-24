@@ -22,7 +22,7 @@
 	let { mysteryTrader }: Props = $props();
 
 	let angle = $derived.by(() => {
-		if (!mysteryTrader || !mysteryTrader.heading) {
+		if (!mysteryTrader.heading) {
 			return 0;
 		}
 		return (

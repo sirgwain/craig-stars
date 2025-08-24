@@ -12,6 +12,7 @@ import type {
 } from '$lib/types/cs-proto';
 import {
 	MapObjectType,
+	VectorSchema,
 	type MysteryTrader,
 	type Planet,
 	type PlayerIntel,
@@ -30,7 +31,7 @@ import {
 } from '$lib/types/MapObject';
 import { planetsSortBy } from '$lib/types/Planet';
 import type { CommandedPlayer } from '$lib/types/Player';
-import type { UnknownField } from '@bufbuild/protobuf';
+import { create, type UnknownField } from '@bufbuild/protobuf';
 import { groupBy } from 'lodash-es';
 
 export type PlayerDesigns = {
@@ -129,22 +130,22 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.minefields =
 			playerUniverse.minefields.filter((mo) => mo.mapObject?.playerNum === playerNum) ?? [];
 		this.designs = playerUniverse.designs.filter((d) => d.playerNum === playerNum) ?? [];
-		this.mineralPackets = playerUniverse.mineralPackets ?? [];
+		this.mineralPackets = playerUniverse.mineralPackets;
 
 		// set player intel (now embedded under player.intels)
-		this.battleRecords = playerUniverse?.battleRecords ?? [];
-		this.playerIntels = playerUniverse?.playerIntels ?? [];
-		this.scoreIntels = playerUniverse?.scoreIntels ?? [];
-		this.planetIntels = playerUniverse.planets ?? [];
+		this.battleRecords = playerUniverse?.battleRecords;
+		this.playerIntels = playerUniverse?.playerIntels;
+		this.scoreIntels = playerUniverse?.scoreIntels;
+		this.planetIntels = playerUniverse.planets;
 		this.fleetIntels =
 			playerUniverse.fleets.filter((f) => f.mapObject?.playerNum !== playerNum && !f.starbase) ??
 			[];
 		this.minefieldIntels =
 			playerUniverse.minefields.filter((mo) => mo.mapObject?.playerNum !== playerNum) ?? [];
 		this.shipDesignIntels = playerUniverse.designs.filter((d) => d.playerNum !== playerNum) ?? [];
-		this.wormholes = playerUniverse.wormholes ?? [];
-		this.mysteryTraders = playerUniverse.mysteryTraders ?? [];
-		this.salvages = playerUniverse.salvages ?? [];
+		this.wormholes = playerUniverse.wormholes;
+		this.mysteryTraders = playerUniverse.mysteryTraders;
+		this.salvages = playerUniverse.salvages;
 
 		this.resetAllPlanets();
 		this.resetMapObjectsByPosition();
@@ -335,16 +336,15 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		return `Space (${battle.position?.x ?? 0}, ${battle.position?.y ?? 0})`;
 	}
 
-	getOtherMapObjectsHereByType(position: Position | undefined) {
+	getOtherMapObjectsHereByType(position: Position) {
 		return groupBy(this.mapObjectsByPosition[positionKey(position)], (mo) => mo.mapObject?.type);
 	}
 
-	getMapObjectsByPosition(position: Position | undefined) {
-		if (!position) return [];
-		return this.mapObjectsByPosition[positionKey(position)];
+	getMapObjectsByPosition(position: Position) {
+		return this.mapObjectsByPosition[positionKey(position ?? create(VectorSchema))];
 	}
 
-	getCargoDestsByPosition(position: Position | undefined): CargoDest[] {
+	getCargoDestsByPosition(position: Position): CargoDest[] {
 		return this.mapObjectsByPosition[positionKey(position)]
 			?.filter(
 				(mo) =>
@@ -358,7 +358,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 			.map((mo) => mo as CargoDest);
 	}
 
-	getSalvageAtPosition(position: Position | undefined): Salvage | undefined {
+	getSalvageAtPosition(position: Position): Salvage | undefined {
 		const mo = this.getMapObjectsByPosition(position)?.find(
 			(mo) => mo.mapObject?.type === MapObjectType.SALVAGE
 		);
@@ -371,11 +371,11 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		return this.salvages.find((s) => s.mapObject?.num === num);
 	}
 
-	getMyMapObjectsByPosition(position: Position | undefined) {
+	getMyMapObjectsByPosition(position: Position) {
 		return this.myMapObjectsByPosition[positionKey(position)];
 	}
 
-	getCommandableMapObjectsByPosition(position: Position | undefined | undefined) {
+	getCommandableMapObjectsByPosition(position: Position) {
 		return (
 			this.myMapObjectsByPosition[positionKey(position)]?.filter((mo) =>
 				commandable(this.playerNum, mo)
@@ -383,7 +383,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		);
 	}
 
-	getMyFleetsByPosition(position: Position | undefined): Fleet[] {
+	getMyFleetsByPosition(position: Position): Fleet[] {
 		return (
 			(this.getMyMapObjectsByPosition(position)?.filter(
 				(mo) => mo.mapObject?.type === MapObjectType.FLEET
@@ -391,7 +391,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		);
 	}
 
-	getFleetsByPosition(position: Position | undefined): Fleet[] {
+	getFleetsByPosition(position: Position): Fleet[] {
 		return (
 			(this.getMapObjectsByPosition(position)?.filter(
 				(mo) => mo.mapObject?.type === MapObjectType.FLEET
@@ -557,8 +557,9 @@ export class Universe implements PlayerUniverse, DesignFinder {
 			return wp.mapObjectTarget?.targetName;
 		}
 
+		const pos = wp.position ?? create(VectorSchema);
 		// we don't have a target name and we can't find the map object, just point it to the space location
-		return `Space: (${wp.position?.x.toFixed()}, ${wp.position?.y.toFixed()})`;
+		return `Space: (${pos.x.toFixed()}, ${pos.y.toFixed()})`;
 	}
 
 	// get a mapobject by type, number, and optionally player num

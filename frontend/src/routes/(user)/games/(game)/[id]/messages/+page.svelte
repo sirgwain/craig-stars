@@ -53,7 +53,7 @@
 			key: 'targetType',
 			title: 'Target',
 			sortBy: (a, b) => (a.target?.targetType ?? 0) - (b.target?.targetType ?? 0),
-			filterBy: (value, row) => (getTarget(row) ?? '').toLowerCase().indexOf(value) != -1
+			filterBy: (value, row) => getTarget(row).toLowerCase().indexOf(value) != -1
 		},
 		{
 			key: 'text',

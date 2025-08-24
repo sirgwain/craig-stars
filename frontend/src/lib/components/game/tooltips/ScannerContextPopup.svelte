@@ -116,7 +116,7 @@
 			</ul>
 		</li>
 	{/if}
-	{#if everythingElse?.length > 0}
+	{#if everythingElse.length > 0}
 		<li class="menu-title w-full">
 			Other
 			<ul>

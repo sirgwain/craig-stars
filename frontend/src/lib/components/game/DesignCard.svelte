@@ -19,7 +19,7 @@
 	let { design, href, copyhref, onDelete }: Props = $props();
 
 	async function deleteDesign(design: ShipDesign) {
-		if (design.num != undefined && confirm(`Are you sure you want to delete ${design.name}?`)) {
+		if (confirm(`Are you sure you want to delete ${design.name}?`)) {
 			onDelete?.(design);
 		}
 	}

@@ -170,7 +170,7 @@
 						}}
 					>
 						{#if head}
-							{@render head?.({
+							{@render head({
 								column,
 								isSorted: lastSortedKey === column.key,
 								sortDescending,
@@ -191,7 +191,7 @@
 					{#if !column.hidden}
 						<td class={assignedClasses.td}>
 							{#if cell}
-								{@render cell?.({ row, column, cell: row[column.key] })}
+								{@render cell({ row, column, cell: row[column.key] })}
 							{:else}
 								<span>{row[column.key]}</span>
 							{/if}

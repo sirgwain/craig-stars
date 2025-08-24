@@ -20,6 +20,7 @@ import { flatten, groupBy, get as pluck, sortBy, sumBy } from 'lodash-es';
 
 import type { MapObjectLike } from './MapObject';
 import type { CommandedPlayer } from './Player';
+import { emptyVector } from './Vector';
 
 export type BattleRecordDetails = {
 	// whether the player was present at this battle
@@ -311,8 +312,8 @@ export function getScannerTarget(
 	if (battle.planetNum) {
 		return universe.getPlanet(battle.planetNum);
 	} else {
-		const myMapObjectsAtPosition = universe.getMyMapObjectsByPosition(battle.position);
-		const mapObjectsAtPosition = universe.getMapObjectsByPosition(battle.position);
+		const myMapObjectsAtPosition = universe.getMyMapObjectsByPosition(battle.position ?? emptyVector());
+		const mapObjectsAtPosition = universe.getMapObjectsByPosition(battle.position ?? emptyVector());
 
 		if (myMapObjectsAtPosition?.length > 0) {
 			return myMapObjectsAtPosition[0];

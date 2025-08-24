@@ -19,10 +19,6 @@
 	});
 
 	const onSubmit = async () => {
-		if (!$me) {
-			return;
-		}
-
 		try {
 			await userClient.updateUserSettings({
 				userSettings: {
@@ -38,7 +34,7 @@
 	};
 
 	const testWebhook = async () => {
-		if (!user || !user?.discordWebhookUrl) {
+		if (!user || !user.discordWebhookUrl) {
 			return;
 		}
 

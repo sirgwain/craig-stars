@@ -27,7 +27,7 @@
 	});
 
 	const icon = (planet: Planet) =>
-		planet?.mapObject?.num ? `planet-${(planet.mapObject.num - 1) % 26}` : '';
+		planet.mapObject?.num ? `planet-${(planet.mapObject.num - 1) % 26}` : '';
 </script>
 
 {#if planet}
@@ -42,7 +42,7 @@
 			class="border-2 border-neutral p-2 bg-black"
 			style={`border-color: ${$universe.getPlayerColor(fleet.mapObject?.playerNum)};`}
 		>
-			{#if fleet.tokens && fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
+			{#if fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
 				<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 			{/if}
 

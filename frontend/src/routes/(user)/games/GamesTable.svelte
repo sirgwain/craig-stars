@@ -19,7 +19,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#if games?.length}
+			{#if games.length}
 				{#each sortedGames as game (game.id)}
 					<tr
 						><td>{game.id}</td>

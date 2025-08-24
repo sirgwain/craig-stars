@@ -785,7 +785,7 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) generated.Player {
 		generatedPlayer2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).Intels.SalvageIntels)
 		generatedPlayer2.Race = GameRaceToPlayerRace((*source).Race)
 		generatedPlayer2.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
-		generatedPlayer2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
+		generatedPlayer2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).Intels.ScoreHistory)
 		pCsBitmask := c.csBitmaskToCsBitmask((*source).AchievedVictoryConditions)
 		generatedPlayer2.AchievedVictoryConditions = &pCsBitmask
 		generatedPlayer2.Victor = (*source).Victor
@@ -846,7 +846,7 @@ func (c *GameConverter) ConvertGamePlayerToCreateParams(source *cs.Player) gener
 		generatedCreatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).Intels.SalvageIntels)
 		generatedCreatePlayerParams2.Race = GameRaceToPlayerRace((*source).Race)
 		generatedCreatePlayerParams2.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
-		generatedCreatePlayerParams2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
+		generatedCreatePlayerParams2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).Intels.ScoreHistory)
 		pCsBitmask := c.csBitmaskToCsBitmask((*source).AchievedVictoryConditions)
 		generatedCreatePlayerParams2.AchievedVictoryConditions = &pCsBitmask
 		generatedCreatePlayerParams2.Victor = (*source).Victor
@@ -907,7 +907,7 @@ func (c *GameConverter) ConvertGamePlayerToUpdateParams(source *cs.Player) gener
 		generatedUpdatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).Intels.SalvageIntels)
 		generatedUpdatePlayerParams2.Race = GameRaceToPlayerRace((*source).Race)
 		generatedUpdatePlayerParams2.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
-		generatedUpdatePlayerParams2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
+		generatedUpdatePlayerParams2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).Intels.ScoreHistory)
 		pCsBitmask := c.csBitmaskToCsBitmask((*source).AchievedVictoryConditions)
 		generatedUpdatePlayerParams2.AchievedVictoryConditions = &pCsBitmask
 		generatedUpdatePlayerParams2.Victor = (*source).Victor
@@ -1419,7 +1419,6 @@ func (c *GameConverter) ConvertLightPlayer(source generated.GetLightPlayerForGam
 	csPlayer.ResearchSpentLastYear = Int64ToInt(source.ResearchSpentLastYear)
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
-	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
 	csPlayer.AcquiredTechs = AcquiredTechsToGameAcquiredTechs(source.AcquiredTechs)
 	if source.AchievedVictoryConditions != nil {
 		csPlayer.AchievedVictoryConditions = c.csBitmaskToCsBitmask(*source.AchievedVictoryConditions)
@@ -1553,7 +1552,6 @@ func (c *GameConverter) ConvertPlayer(source generated.Player) cs.Player {
 	csPlayer.ResearchSpentLastYear = Int64ToInt(source.ResearchSpentLastYear)
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
-	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
 	csPlayer.AcquiredTechs = AcquiredTechsToGameAcquiredTechs(source.AcquiredTechs)
 	if source.AchievedVictoryConditions != nil {
 		csPlayer.AchievedVictoryConditions = c.csBitmaskToCsBitmask(*source.AchievedVictoryConditions)
@@ -1872,6 +1870,7 @@ func (c *GameConverter) generatedPlanetToCsPlanetOrders(source generated.Planet)
 }
 func (c *GameConverter) generatedPlayerToCsIntels(source generated.Player) cs.Intels {
 	var csIntels cs.Intels
+	csIntels.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
 	csIntels.BattleRecords = BattleRecordsToGameBattleRecords(source.BattleRecords)
 	csIntels.PlayerIntels = PlayerIntelsToGamePlayerIntels(source.PlayerIntels)
 	csIntels.ScoreIntels = ScoreIntelsToGameScoreIntels(source.ScoreIntels)

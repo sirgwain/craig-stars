@@ -19,7 +19,7 @@
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { commandable, equalsTarget, getMapObjectName } from '$lib/types/MapObject';
-	import { distance, equal as equalPosition } from '$lib/types/Vector';
+	import { distance, emptyVector, equal as equalPosition } from '$lib/types/Vector';
 	import { slide } from 'svelte/transition';
 	import MapObjectSummary from '../MapObjectSummary.svelte';
 	import MapObjectSummaryCollapsed from '../MapObjectSummaryMini.svelte';
@@ -97,11 +97,7 @@
 		}
 
 		// if we select a fleet, put it in the summary
-		if (
-			$commandedMapObject &&
-			$selectedMapObject &&
-			$selectedMapObject.mapObject?.type === MapObjectType.FLEET
-		) {
+		if ($commandedMapObject && $selectedMapObject.mapObject?.type === MapObjectType.FLEET) {
 			return $selectedMapObject;
 		}
 
@@ -110,8 +106,8 @@
 		if (
 			$commandedMapObject &&
 			equalPosition(
-				$selectedMapObject.mapObject?.position,
-				$commandedMapObject.mapObject?.position
+				$selectedMapObject.mapObject?.position ?? emptyVector(),
+				$commandedMapObject.mapObject?.position ?? emptyVector()
 			) &&
 			$commandedMapObject.mapObject?.type === MapObjectType.FLEET &&
 			$selectedMapObject.mapObject?.type === MapObjectType.PLANET
@@ -125,7 +121,10 @@
 
 	let dist = $derived(
 		$commandedMapObject && $selectedMapObject
-			? distance($commandedMapObject.mapObject?.position, $selectedMapObject.mapObject?.position)
+			? distance(
+					$commandedMapObject.mapObject?.position ?? emptyVector(),
+					$selectedMapObject.mapObject?.position ?? emptyVector()
+				)
 			: 0
 	);
 
@@ -188,7 +187,7 @@
 								<div id="planet-starbase-tile">
 									<PlanetStarbaseTile
 										planet={$commandedPlanet}
-										starbase={$universe.getMyPlanetStarbase($commandedPlanet.mapObject?.num)}
+										starbase={$universe.getMyPlanetStarbase($commandedPlanet.mapObject.num)}
 										{onChangeMassDriverSpeed}
 									/>
 								</div>
@@ -197,7 +196,7 @@
 								<PlanetFleetsInOrbitTile
 									planet={$commandedPlanet}
 									fleetsInOrbit={$universe.getMyFleetsByPosition(
-										$commandedPlanet.mapObject?.position
+										$commandedPlanet.mapObject.position ?? emptyVector()
 									)}
 									{onShowCargoTransferDialog}
 								/>
@@ -249,7 +248,7 @@
 								<FleetOtherFleetsHereTile
 									fleet={$commandedFleet}
 									cargoDestsInOrbit={$universe.getCargoDestsByPosition(
-										$commandedFleet.mapObject?.position
+										$commandedFleet.mapObject.position ?? emptyVector()
 									)}
 									{onShowCargoTransferDialog}
 									{onShowSplitFleetDialog}
@@ -267,14 +266,16 @@
 				<DisclosureHeader
 					{open}
 					openable={commandable($player.num, summaryMapObject) ||
-						equalsTarget(summaryMapObject, $selectedWaypoint?.mapObjectTarget)}
+						(summaryMapObject &&
+							$selectedWaypoint?.mapObjectTarget &&
+							equalsTarget(summaryMapObject, $selectedWaypoint.mapObjectTarget))}
 					onToggle={toggleDrawer}
 				>
 					<div class="flex flex-row w-full">
 						<div class="text-sm text-left flex flex-col w-20">
 							<div>
 								{#if summaryMapObject?.mapObject?.num}
-									ID: {summaryMapObject?.mapObject?.num}
+									ID: {summaryMapObject.mapObject.num}
 								{/if}
 							</div>
 							<div>

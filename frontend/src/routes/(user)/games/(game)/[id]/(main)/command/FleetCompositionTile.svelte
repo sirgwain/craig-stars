@@ -11,6 +11,7 @@
 	import { Infinite } from '$lib/types/Consts';
 	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
 	import CommandTile from './CommandTile.svelte';
+	import { emptyVector } from '$lib/types/Vector';
 
 	const { commandedFleet, player, universe } = getGameContext();
 
@@ -39,9 +40,6 @@
 	}
 
 	function splitAll() {
-		if (!onSplitAll) {
-			return;
-		}
 		onSplitAll({ fleet });
 	}
 
@@ -52,7 +50,7 @@
 		onShowMergeFleetDialog({
 			fleet,
 			otherFleetsHere: $universe
-				.getMyFleetsByPosition(fleet.mapObject.position)
+				.getMyFleetsByPosition(fleet.mapObject.position ?? emptyVector())
 				.filter((f) => f.mapObject?.num !== fleet.mapObject.num)
 		});
 	}
@@ -63,7 +61,7 @@
 	}
 </script>
 
-{#if fleet.fleetOrders?.waypoints && selectedWaypoint}
+{#if selectedWaypoint}
 	<CommandTile title="Fleet Composition">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">
@@ -76,7 +74,7 @@
 								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))}
 						>
 							<div class="flex flex-row justify-between relative">
-								{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
+								{#if token.damage > 0 && token.quantityDamaged > 0}
 									<div
 										style={`width: ${getDamagePercentForToken(
 											token,
@@ -103,7 +101,7 @@
 				<select
 					class="select select-outline select-secondary select-sm text-sm"
 					name="battlePlan"
-					value={fleet.fleetOrders?.battlePlanNum ?? 0}
+					value={fleet.fleetOrders.battlePlanNum}
 					onchange={(e) => updateBattlePlan(parseInt(e.currentTarget.value))}
 				>
 					{#each $player.playerPlans.battlePlans as battlePlan (battlePlan.num)}
@@ -116,9 +114,9 @@
 			<div class="text-tile-item-title">Est Range:</div>
 			<div>
 				{fleet.spec.shipDesignSpec?.estimatedRange
-					? fleet.spec.shipDesignSpec?.estimatedRange === Infinite
+					? fleet.spec.shipDesignSpec.estimatedRange === Infinite
 						? 'Infinite'
-						: `${fleet.spec.shipDesignSpec?.estimatedRange} l.y.`
+						: `${fleet.spec.shipDesignSpec.estimatedRange} l.y.`
 					: '--'}
 			</div>
 		</div>
@@ -126,7 +124,7 @@
 			<div class="text-tile-item-title">Percent Cloaked</div>
 			<div>
 				{fleet.spec.shipDesignSpec?.cloakPercent
-					? fleet.spec.shipDesignSpec?.cloakPercent + '%'
+					? fleet.spec.shipDesignSpec.cloakPercent + '%'
 					: 'none'}
 			</div>
 		</div>

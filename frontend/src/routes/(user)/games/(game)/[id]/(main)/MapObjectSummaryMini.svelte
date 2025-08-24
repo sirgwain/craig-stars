@@ -84,7 +84,7 @@
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Ship Count:</div>
 					<div>
-						{fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 'unknown'}
+						{fleet.tokens.reduce((count, t) => count + t.quantity, 0)}
 					</div>
 				</div>
 				<div class="flex flex-row">

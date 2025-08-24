@@ -171,7 +171,7 @@ export class CommandedFleet implements Fleet {
 			wp0.mapObjectTarget?.targetType === MapObjectType.UNSPECIFIED
 		) {
 			// return some salvage at this position
-			return universe.getSalvageAtPosition(this.mapObject?.position);
+			return universe.getSalvageAtPosition(this.mapObject?.position ?? emptyVector());
 		}
 		switch (wp0.mapObjectTarget?.targetType) {
 			case MapObjectType.PLANET:
@@ -182,7 +182,7 @@ export class CommandedFleet implements Fleet {
 					wp0.mapObjectTarget?.targetNum
 				);
 			case MapObjectType.SALVAGE:
-				return universe.getSalvageAtPosition(this.mapObject?.position);
+				return universe.getSalvageAtPosition(this.mapObject?.position ?? emptyVector());
 			case MapObjectType.MINERAL_PACKET:
 				return universe.getMineralPacket(
 					wp0.mapObjectTarget?.targetPlayerNum ?? 0,
@@ -294,7 +294,7 @@ export const getEta = (fleet: Fleet) => {
 			return 1;
 		} else {
 			return Math.ceil(
-				Math.floor(distance(wps[0].position ?? emptyVector(), wps[1].position)) /
+				Math.floor(distance(wps[0].position ?? emptyVector(), wps[1].position ?? emptyVector())) /
 					(wps[1].warpSpeed * wps[1].warpSpeed)
 			);
 		}
@@ -332,24 +332,19 @@ export function fleetsSortBy(
 		case 'location':
 			return (a, b) => getLocation(a, universe).localeCompare(getLocation(b, universe));
 		case 'destination':
-			return (a, b) =>
-				'fleetOrders' in a && 'fleetOrders' in b
-					? getDestination(a, universe).localeCompare(getDestination(b, universe))
-					: 0;
+			return (a, b) => getDestination(a, universe).localeCompare(getDestination(b, universe));
 		case 'task':
 			return (a, b) =>
-				'fleetOrders' in a && 'fleetOrders' in b
-					? (a.fleetOrders?.waypoints[a.fleetOrders?.waypoints.length - 1].task ?? 0) -
-						(b.fleetOrders?.waypoints[b.fleetOrders?.waypoints.length - 1].task ?? 0)
-					: 0;
+				(a.fleetOrders?.waypoints[a.fleetOrders?.waypoints.length - 1].task ?? 0) -
+				(b.fleetOrders?.waypoints[b.fleetOrders?.waypoints.length - 1].task ?? 0);
 		case 'eta':
-			return (a, b) => ('fleetOrders' in a && 'fleetOrders' in b ? getEta(a) - getEta(b) : 0);
+			return (a, b) => getEta(a) - getEta(b);
 		case 'cargo':
 			return (a, b) => totalCargo(a.cargo) - totalCargo(b.cargo);
 		case 'mass':
 			return (a, b) => getMass(a) - getMass(b);
 		case 'fuel':
-			return (a, b) => ('fuel' in a && 'fuel' in b ? a.fuel - b.fuel : 0);
+			return (a, b) => a.fuel - b.fuel;
 		default:
 			return (a, b) => {
 				const aVal = pluck(a, key);

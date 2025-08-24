@@ -48,34 +48,33 @@
 		const category = techLike.tech.category;
 		if (category === TechCategory.SHIP_HULL || category === TechCategory.STARBASE_HULL) {
 			const hull = techLike as TechHull;
-			if (hull) {
-				if (hull.fuelCapacity && hull.fuelCapacity > 0) {
-					stats.push({ label: 'Fuel Capacity', text: `${hull.fuelCapacity}mg` });
-				}
-				if (hull.cargoCapacity && hull.cargoCapacity > 0) {
-					stats.push({ label: 'Cargo Capacity', text: `${hull.cargoCapacity}kT` });
-				}
-				stats.push({ label: 'Armor Strength', text: hull.armor?.toString() });
-				if (hull.initiative) {
-					stats.push({ label: 'Initiative', text: hull.initiative.toString() });
-				}
 
-				if (hull.fuelGeneration && hull.fuelGeneration > 0) {
+			if (hull.fuelCapacity && hull.fuelCapacity > 0) {
+				stats.push({ label: 'Fuel Capacity', text: `${hull.fuelCapacity}mg` });
+			}
+			if (hull.cargoCapacity && hull.cargoCapacity > 0) {
+				stats.push({ label: 'Cargo Capacity', text: `${hull.cargoCapacity}kT` });
+			}
+			stats.push({ label: 'Armor Strength', text: hull.armor.toString() });
+			if (hull.initiative) {
+				stats.push({ label: 'Initiative', text: hull.initiative.toString() });
+			}
+
+			if (hull.fuelGeneration && hull.fuelGeneration > 0) {
+				descriptions.push(
+					`This hull will manufacture ${hull.fuelGeneration} units of fuel each year.`
+				);
+			}
+			if (hull.repairBonus && hull.repairBonus > 0) {
+				if (hull.starbase) {
 					descriptions.push(
-						`This hull will manufacture ${hull.fuelGeneration} units of fuel each year.`
+						`This starbase will repair friendly fleets in orbit by an additional ${hull.repairBonus * 100}% per year.`
 					);
-				}
-				if (hull.repairBonus && hull.repairBonus > 0) {
-					if (hull.starbase) {
-						descriptions.push(
-							`This starbase will repair friendly fleets in orbit by an additional ${hull.repairBonus * 100}% per year.`
-						);
-					} else {
-						descriptions.push(
-							`This hull will repair ships in the fleet by an additional ${hull.repairBonus * 100}% per year.
+				} else {
+					descriptions.push(
+						`This hull will repair ships in the fleet by an additional ${hull.repairBonus * 100}% per year.
 							Repair is disabled while bombing planets.`
-						);
-					}
+					);
 				}
 			}
 		}
@@ -109,337 +108,331 @@
 
 		if ('hullSlotType' in techLike) {
 			const hullComponent = techLike as TechHullComponent;
-			if (hullComponent) {
-				if (
-					category === TechCategory.MINE_LAYER &&
-					hullComponent.minefieldType &&
-					rules.minefieldStatsByType
-				) {
-					const minefieldStats = rules.minefieldStatsByType[hullComponent.minefieldType];
-					stats.push({ label: 'Mines laid / year', text: `${hullComponent.mineLayingRate}` });
-					stats.push({ label: 'Max safe speed', text: `${minefieldStats?.maxSpeed ?? 0}` });
-					stats.push({
-						label: 'Chance/l.y. of a hit',
-						text: `${(+(minefieldStats?.chanceOfHit ?? 0) * 100).toFixed(1)}%`
-					});
-					stats.push({
-						label: 'Dmg done to each ship',
-						text: `${minefieldStats?.damagePerEngine ?? 0} (${minefieldStats?.damagePerEngineRs ?? 0}) / engine`
-					});
-					stats.push({
-						label: 'Min damage done to fleet',
-						text: `${minefieldStats?.minDamagePerFleet ?? 0} (${minefieldStats?.minDamagePerFleetRs ?? 0})`
-					});
-					descriptions.push(
-						'Numbers in parentheses are for fleets containing a ship with ram scoop engines. Note that the chance of hitting a mine goes up the % listed for EACH warp you exceed the safe speed.'
-					);
-				}
+			if (category === TechCategory.MINE_LAYER && hullComponent.minefieldType) {
+				const minefieldStats = rules.minefieldStatsByType[hullComponent.minefieldType];
+				stats.push({ label: 'Mines laid / year', text: `${hullComponent.mineLayingRate}` });
+				stats.push({ label: 'Max safe speed', text: `${minefieldStats.maxSpeed}` });
+				stats.push({
+					label: 'Chance/l.y. of a hit',
+					text: `${(+minefieldStats.chanceOfHit * 100).toFixed(1)}%`
+				});
+				stats.push({
+					label: 'Dmg done to each ship',
+					text: `${minefieldStats.damagePerEngine} (${minefieldStats.damagePerEngineRs}) / engine`
+				});
+				stats.push({
+					label: 'Min damage done to fleet',
+					text: `${minefieldStats.minDamagePerFleet} (${minefieldStats.minDamagePerFleetRs})`
+				});
+				descriptions.push(
+					'Numbers in parentheses are for fleets containing a ship with ram scoop engines. Note that the chance of hitting a mine goes up the % listed for EACH warp you exceed the safe speed.'
+				);
+			}
 
-				if (category === TechCategory.SHIELD && (hullComponent.armor ?? 0) > 0) {
-					// if this is a shield with armor, it sounds cooler to make the armor a description
-					// this also makes it clearer that they aren't affected by shield/armor % bonuses like RS
-					descriptions.push(
-						`This shield also contains an armor component which will absorb ${hullComponent.armor} damage points.`
-					);
-				} else if ((hullComponent.armor ?? 0) > 0) {
-					stats.push({
-						label: 'Armor Strength',
-						text: hullComponent.armor ? hullComponent.armor.toString() : '0'
-					});
-				}
+			if (category === TechCategory.SHIELD && hullComponent.armor > 0) {
+				// if this is a shield with armor, it sounds cooler to make the armor a description
+				// this also makes it clearer that they aren't affected by shield/armor % bonuses like RS
+				descriptions.push(
+					`This shield also contains an armor component which will absorb ${hullComponent.armor} damage points.`
+				);
+			} else if (hullComponent.armor > 0) {
+				stats.push({
+					label: 'Armor Strength',
+					text: hullComponent.armor ? hullComponent.armor.toString() : '0'
+				});
+			}
 
-				if ((category === TechCategory.ARMOR && hullComponent.shield) ?? 0 > 0) {
-					// if this is an armor with a shield, it sounds cooler to make the shield a description
-					descriptions.push(
-						`This armor also acts as part shield which will absorb ${hullComponent.shield} damage points.`
-					);
-				} else if ((hullComponent.shield ?? 0) > 0) {
-					stats.push({
-						label: 'Shield Strength',
-						text: hullComponent.shield ? hullComponent.shield.toString() : ''
-					});
-				}
+			if (category === TechCategory.ARMOR && hullComponent.shield > 0) {
+				// if this is an armor with a shield, it sounds cooler to make the shield a description
+				descriptions.push(
+					`This armor also acts as part shield which will absorb ${hullComponent.shield} damage points.`
+				);
+			} else if (hullComponent.shield > 0) {
+				stats.push({
+					label: 'Shield Strength',
+					text: hullComponent.shield ? hullComponent.shield.toString() : ''
+				});
+			}
 
-				if (hullComponent.power) {
-					stats.push({ label: 'Power', text: `${hullComponent.power}` });
-				}
-				if (hullComponent.range || category === TechCategory.BEAM_WEAPON) {
-					stats.push({ label: 'Range', text: `${hullComponent.range ?? 0}` });
-				}
-				if (hullComponent.initiative) {
-					stats.push({ label: 'Initiative', text: `${hullComponent.initiative}` });
-				}
-				if (hullComponent.accuracy) {
-					stats.push({ label: 'Accuracy', text: `${hullComponent.accuracy}%` });
-				}
-				if (hullComponent.hitsAllTargets) {
-					descriptions.push(`This weapon hits all targets in range each time it is fired.`);
-				}
-				if (hullComponent.gatling) {
-					descriptions.push(
-						`This weapon also makes an excellent mine sweeper, capable of sweeping ${
-							(hullComponent.power ?? 0) * Math.pow(hullComponent.range ?? 0, 4)
-						} mines per year.`
-					);
-				}
-				if (hullComponent.damageShieldsOnly) {
-					descriptions.push(
-						`This weapon will only damage shields. It has no effect on armor and cannot sweep mines.`
-					);
-				}
+			if (hullComponent.power) {
+				stats.push({ label: 'Power', text: `${hullComponent.power}` });
+			}
+			if (hullComponent.range || category === TechCategory.BEAM_WEAPON) {
+				stats.push({ label: 'Range', text: `${hullComponent.range}` });
+			}
+			if (hullComponent.initiative) {
+				stats.push({ label: 'Initiative', text: `${hullComponent.initiative}` });
+			}
+			if (hullComponent.accuracy) {
+				stats.push({ label: 'Accuracy', text: `${hullComponent.accuracy}%` });
+			}
+			if (hullComponent.hitsAllTargets) {
+				descriptions.push(`This weapon hits all targets in range each time it is fired.`);
+			}
+			if (hullComponent.gatling) {
+				descriptions.push(
+					`This weapon also makes an excellent mine sweeper, capable of sweeping ${
+						hullComponent.power * Math.pow(hullComponent.range, 4)
+					} mines per year.`
+				);
+			}
+			if (hullComponent.damageShieldsOnly) {
+				descriptions.push(
+					`This weapon will only damage shields. It has no effect on armor and cannot sweep mines.`
+				);
+			}
 
-				if ((hullComponent.killRate ?? 0) > 0 && !hullComponent.orbitalConstructionModule) {
-					// we have special text for orbital construction modules.
+			if (hullComponent.killRate > 0 && !hullComponent.orbitalConstructionModule) {
+				// we have special text for orbital construction modules.
+				descriptions.push(
+					`This bomb will kill approximately ${hullComponent.killRate}% of a planet's population each year.`
+				);
+				if (hullComponent.minKillRate > 0) {
 					descriptions.push(
-						`This bomb will kill approximately ${hullComponent.killRate}% of a planet's population each year.`
-					);
-					if ((hullComponent.minKillRate ?? 0) > 0) {
-						descriptions.push(
-							`If a planet has no defenses, this bomb is guaranteed to kill at least ${hullComponent.minKillRate} colonists each year.`
-						);
-					}
-					if (!hullComponent.structureDestroyRate) {
-						descriptions.push("This bomb will not damage a planet's mines, factories or defenses.");
-					}
-				}
-
-				if ((hullComponent.miningRate ?? 0) > 0) {
-					descriptions.push(
-						`This module contains robots capable of mining up to ${hullComponent.miningRate}kT of each mineral (depending on concentration) from an uninhabited planet the ship is orbiting. The fleet must have orders set to 'Remote Mining'.`
+						`If a planet has no defenses, this bomb is guaranteed to kill at least ${hullComponent.minKillRate} colonists each year.`
 					);
 				}
+				if (!hullComponent.structureDestroyRate) {
+					descriptions.push("This bomb will not damage a planet's mines, factories or defenses.");
+				}
+			}
 
-				if ((hullComponent.terraformRate ?? 0) > 0) {
-					descriptions.push(
-						`This modified mining robot terraforms inhabited planets by ${hullComponent.terraformRate} per year. It has a positive effect on friendly planets and a negative effect on neutral and enemy planets.
+			if (hullComponent.miningRate > 0) {
+				descriptions.push(
+					`This module contains robots capable of mining up to ${hullComponent.miningRate}kT of each mineral (depending on concentration) from an uninhabited planet the ship is orbiting. The fleet must have orders set to 'Remote Mining'.`
+				);
+			}
+
+			if (hullComponent.terraformRate > 0) {
+				descriptions.push(
+					`This modified mining robot terraforms inhabited planets by ${hullComponent.terraformRate} per year. It has a positive effect on friendly planets and a negative effect on neutral and enemy planets.
 						Terraforming in this manner uses the higher of the fleet owner's and the inhabitant's terraforming capabilities.`
-					);
+				);
 
-					if ((hullComponent.cloakUnits ?? 0) > 0) {
-						descriptions.push(
-							`It also provides ${Math.floor(getCloakPercentForCloakUnits(hullComponent.cloakUnits ?? 0))}% cloaking.`
-						);
-					}
-				}
-
-				if ((hullComponent.structureDestroyRate ?? 0) > 0) {
+				if (hullComponent.cloakUnits > 0) {
 					descriptions.push(
-						`This bomb will destroy approximately ${hullComponent.structureDestroyRate} of a planet's mines, factories, and/or defenses each year (proportional to installation count).`
+						`It also provides ${Math.floor(getCloakPercentForCloakUnits(hullComponent.cloakUnits))}% cloaking.`
 					);
 				}
+			}
 
-				if ((hullComponent.unterraformRate ?? 0) > 0) {
-					descriptions.push(
-						`This bomb does not kill colonists or destroy installations. Instead, it "de-terraforms" planets toward their original state by up to ${hullComponent.unterraformRate}% per variable per bombing run.
+			if (hullComponent.structureDestroyRate > 0) {
+				descriptions.push(
+					`This bomb will destroy approximately ${hullComponent.structureDestroyRate} of a planet's mines, factories, and/or defenses each year (proportional to installation count).`
+				);
+			}
+
+			if (hullComponent.unterraformRate > 0) {
+				descriptions.push(
+					`This bomb does not kill colonists or destroy installations. Instead, it "de-terraforms" planets toward their original state by up to ${hullComponent.unterraformRate}% per variable per bombing run.
 						Planetary defenses have no effect on this bomb.`
+				);
+			}
+
+			if (
+				hullComponent.cloakUnits &&
+				hullComponent.cloakUnits > 0 &&
+				!hullComponent.terraformRate
+			) {
+				if (hullComponent.cloakUnarmedOnly) {
+					descriptions.push(
+						`Cloaks unarmed hulls, reducing the range at which scanners detect it by up to ${getCloakPercentForCloakUnits(
+							hullComponent.cloakUnits
+						).toFixed()}%. Cloak amount is reduced when the fleet contains cargo or other uncloaked ships.`
+					);
+				} else {
+					descriptions.push(
+						`Cloaks any ship, reducing the range at which scanners detect it by up to ${getCloakPercentForCloakUnits(
+							hullComponent.cloakUnits
+						).toFixed()}%. Cloak amount is reduced when the fleet contains cargo or other uncloaked ships.`
 					);
 				}
+			}
 
-				if (
-					hullComponent.cloakUnits &&
-					hullComponent.cloakUnits > 0 &&
-					!hullComponent.terraformRate
-				) {
-					if (hullComponent.cloakUnarmedOnly) {
-						descriptions.push(
-							`Cloaks unarmed hulls, reducing the range at which scanners detect it by up to ${getCloakPercentForCloakUnits(
-								hullComponent.cloakUnits
-							).toFixed()}%. Cloak amount is reduced when the fleet contains cargo or other uncloaked ships.`
-						);
-					} else {
-						descriptions.push(
-							`Cloaks any ship, reducing the range at which scanners detect it by up to ${getCloakPercentForCloakUnits(
-								hullComponent.cloakUnits
-							).toFixed()}%. Cloak amount is reduced when the fleet contains cargo or other uncloaked ships.`
-						);
-					}
-				}
+			if (hullComponent.fuelBonus > 0) {
+				descriptions.push(
+					`This part increases the ship's fuel capacity by ${hullComponent.fuelBonus}mg.`
+				);
+			}
 
-				if ((hullComponent.fuelBonus ?? 0) > 0) {
-					descriptions.push(
-						`This part increases the ship's fuel capacity by ${hullComponent.fuelBonus}mg.`
-					);
-				}
+			if (hullComponent.fuelGeneration > 0) {
+				descriptions.push(
+					`This part generates ${hullComponent.fuelGeneration}mg of fuel each year.`
+				);
+			}
 
-				if ((hullComponent.fuelGeneration ?? 0) > 0) {
-					descriptions.push(
-						`This part generates ${hullComponent.fuelGeneration}mg of fuel each year.`
-					);
-				}
-
-				if (hullComponent.colonizationModule) {
-					descriptions.push(
-						`This module allows a ship to colonize an uninhabited planet. Upon arrival, it (and any other ships in the fleet) will be dismantled into supplies for the colonists.
+			if (hullComponent.colonizationModule) {
+				descriptions.push(
+					`This module allows a ship to colonize an uninhabited planet. Upon arrival, it (and any other ships in the fleet) will be dismantled into supplies for the colonists.
 						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
-					);
-				}
+				);
+			}
 
-				if (hullComponent.orbitalConstructionModule) {
-					descriptions.push(
-						`This module contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it. Upon arrival, it (and any other ships in the fleet) will be dismantled into supplies for the colonists
+			if (hullComponent.orbitalConstructionModule) {
+				descriptions.push(
+					`This module contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it. Upon arrival, it (and any other ships in the fleet) will be dismantled into supplies for the colonists
 						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
-					);
-					if ((hullComponent.minKillRate ?? 0) > 0) {
-						descriptions.push(
-							`This pod also contains viral weapons capable of killing ${hullComponent.minKillRate} enemy colonists per year while in orbit.`
-						);
-					}
-				}
-
-				if ((hullComponent.cargoBonus ?? 0) > 0) {
+				);
+				if (hullComponent.minKillRate > 0) {
 					descriptions.push(
-						`This part increases the ship's cargo capacity by ${hullComponent.cargoBonus}kT.`
+						`This pod also contains viral weapons capable of killing ${hullComponent.minKillRate} enemy colonists per year while in orbit.`
 					);
 				}
+			}
 
-				if (hullComponent.movementBonus && hullComponent.movementBonus > 0) {
-					descriptions.push(
-						`Increases speed in battle by ${hullComponent.movementBonus}
+			if (hullComponent.cargoBonus > 0) {
+				descriptions.push(
+					`This part increases the ship's cargo capacity by ${hullComponent.cargoBonus}kT.`
+				);
+			}
+
+			if (hullComponent.movementBonus && hullComponent.movementBonus > 0) {
+				descriptions.push(
+					`Increases speed in battle by ${hullComponent.movementBonus}
 						${hullComponent.movementBonus === 1 ? 'square' : 'squares'} of movement.`
+				);
+			}
+
+			if (hullComponent.beamDefense && hullComponent.beamDefense > 0) {
+				descriptions.push(
+					`This module decreases damage dealt by opposing beam weapons by ${(
+						hullComponent.beamDefense * 100
+					).toFixed()}% of the current amount.`
+				);
+			}
+
+			if (hullComponent.torpedoBonus > 0 || hullComponent.initiativeBonus > 0) {
+				if (hullComponent.torpedoBonus > 0 && hullComponent.initiativeBonus > 0) {
+					descriptions.push(
+						`This module increases the accuracy of your torpedoes by ${
+							hullComponent.torpedoBonus * 100
+						}% of the current amount and increases your initiative by ${
+							hullComponent.initiativeBonus
+						}. If an enemy ship has jammers this will act to offset their effects.`
+					);
+				} else if (hullComponent.initiativeBonus > 0) {
+					descriptions.push(
+						`This module increases your initiative by ${hullComponent.initiativeBonus}.`
+					);
+				} else if (hullComponent.torpedoBonus > 0) {
+					descriptions.push(
+						`This module increases the accuracy of your torpedoes by ${
+							hullComponent.torpedoBonus * 100
+						}% of the current amount. If an enemy ship has jammers this will act to offset their effects.`
 					);
 				}
+			}
 
-				if (hullComponent.beamDefense && hullComponent.beamDefense > 0) {
-					descriptions.push(
-						`This module decreases damage dealt by opposing beam weapons by ${(
-							hullComponent.beamDefense * 100
-						).toFixed()}% of the current amount.`
-					);
-				}
-
-				if ((hullComponent.torpedoBonus ?? 0) > 0 || (hullComponent.initiativeBonus ?? 0) > 0) {
-					if ((hullComponent.torpedoBonus ?? 0) > 0 && (hullComponent.initiativeBonus ?? 0) > 0) {
-						descriptions.push(
-							`This module increases the accuracy of your torpedoes by ${
-								(hullComponent.torpedoBonus ?? 0) * 100
-							}% of the current amount and increases your initiative by ${
-								hullComponent.initiativeBonus
-							}. If an enemy ship has jammers this will act to offset their effects.`
-						);
-					} else if ((hullComponent.initiativeBonus ?? 0) > 0) {
-						descriptions.push(
-							`This module increases your initiative by ${hullComponent.initiativeBonus}.`
-						);
-					} else if ((hullComponent.torpedoBonus ?? 0) > 0) {
-						descriptions.push(
-							`This module increases the accuracy of your torpedoes by ${
-								(hullComponent.torpedoBonus ?? 0) * 100
-							}% of the current amount. If an enemy ship has jammers this will act to offset their effects.`
-						);
-					}
-				}
-
-				if (hullComponent.torpedoJamming && hullComponent.torpedoJamming > 0) {
-					descriptions.push(
-						`This module has a ${
-							hullComponent.torpedoJamming * 100
-						}% chance of deflecting incoming torpedoes. If an enemy ship has computers this will act to offset their effects.
+			if (hullComponent.torpedoJamming && hullComponent.torpedoJamming > 0) {
+				descriptions.push(
+					`This module has a ${
+						hullComponent.torpedoJamming * 100
+					}% chance of deflecting incoming torpedoes. If an enemy ship has computers this will act to offset their effects.
 						Deflected torpedoes will still reduce shields (if any) by 1/8 the damage value.`
-					);
-				}
+				);
+			}
 
-				if (hullComponent.beamBonus && hullComponent.beamBonus > 0) {
-					descriptions.push(
-						`Increases the damage dealt by all beam weapons on this ship by ${
-							hullComponent.beamBonus * 100
-						}% of the current amount. The final damage multipler cannot exceed 2.55x the weapon's base damage.`
-					);
-				}
+			if (hullComponent.beamBonus && hullComponent.beamBonus > 0) {
+				descriptions.push(
+					`Increases the damage dealt by all beam weapons on this ship by ${
+						hullComponent.beamBonus * 100
+					}% of the current amount. The final damage multipler cannot exceed 2.55x the weapon's base damage.`
+				);
+			}
 
-				if ((hullComponent.reduceMovement ?? 0) > 0) {
-					descriptions.push(
-						`Slows ALL ships in combat (friendly and enemy) by ${hullComponent.reduceMovement} square of movement. This effect does not stack and cannot slow ships below the minimum battle speed.`
-					);
-				}
+			if (hullComponent.reduceMovement > 0) {
+				descriptions.push(
+					`Slows ALL ships in combat (friendly and enemy) by ${hullComponent.reduceMovement} square of movement. This effect does not stack and cannot slow ships below the minimum battle speed.`
+				);
+			}
 
-				if (hullComponent.reduceCloaking) {
-					descriptions.push(
-						`Reduces the effectiveness of other players' cloaks by up to ${rules.tachyonCloakReduction}%. Multiple components will reduce cloaking further, but with diminishing returns.`
-					);
-				}
+			if (hullComponent.reduceCloaking) {
+				descriptions.push(
+					`Reduces the effectiveness of other players' cloaks by up to ${rules.tachyonCloakReduction}%. Multiple components will reduce cloaking further, but with diminishing returns.`
+				);
+			}
 
-				if ((hullComponent.safeRange ?? 0) > 0) {
-					descriptions.push(
-						'Allows fleets without cargo to jump to any other allied planet with a stargate in a single year.'
-					);
-					stats.push({
-						label: 'Safe hull mass',
-						text:
-							hullComponent.safeHullMass == InfiniteGate
-								? 'Unlimited'
-								: `${hullComponent.safeHullMass}kT`
-					});
-					stats.push({
-						label: 'Safe range',
-						text:
-							hullComponent.safeRange == InfiniteGate
-								? 'Unlimited'
-								: `${hullComponent.safeRange} light years`
-					});
+			if (hullComponent.safeRange > 0) {
+				descriptions.push(
+					'Allows fleets without cargo to jump to any other allied planet with a stargate in a single year.'
+				);
+				stats.push({
+					label: 'Safe hull mass',
+					text:
+						hullComponent.safeHullMass == InfiniteGate
+							? 'Unlimited'
+							: `${hullComponent.safeHullMass}kT`
+				});
+				stats.push({
+					label: 'Safe range',
+					text:
+						hullComponent.safeRange == InfiniteGate
+							? 'Unlimited'
+							: `${hullComponent.safeRange} light years`
+				});
 
-					if (hullComponent.maxHullMass != InfiniteGate && hullComponent.maxRange != InfiniteGate) {
-						warnings.push(
-							`Warning: Ships up to ${hullComponent.maxHullMass}kT might be successfully gated up to ${hullComponent.maxRange} l.y. but exceeding the stated limits will cause damage to the fleet.`
-						);
-					} else if (hullComponent.maxHullMass != InfiniteGate) {
-						warnings.push(
-							`Warning: Ships up to ${hullComponent.maxHullMass}kT might be successfully gated but exceeding the stated limits will cause damage to the fleet.`
-						);
-					} else if (hullComponent.maxRange != InfiniteGate) {
-						warnings.push(
-							`Warning: Ships might be successfully gated up to ${hullComponent.maxRange} l.y. but exceeding the stated limits will cause damage to the fleet.`
-						);
-					}
-				}
-
-				if ((hullComponent.packetSpeed ?? 0) > 0) {
-					stats.push({ label: 'Warp', text: `${hullComponent.packetSpeed}` });
-					descriptions.push(
-						'Allows planets to fling mineral packets at other planets to transport minerals or bombard enemies.'
-					);
+				if (hullComponent.maxHullMass != InfiniteGate && hullComponent.maxRange != InfiniteGate) {
 					warnings.push(
-						'Warning: The receiving planet must have a mass driver at least as capable or it will take damage.'
+						`Warning: Ships up to ${hullComponent.maxHullMass}kT might be successfully gated up to ${hullComponent.maxRange} l.y. but exceeding the stated limits will cause damage to the fleet.`
+					);
+				} else if (hullComponent.maxHullMass != InfiniteGate) {
+					warnings.push(
+						`Warning: Ships up to ${hullComponent.maxHullMass}kT might be successfully gated but exceeding the stated limits will cause damage to the fleet.`
+					);
+				} else if (hullComponent.maxRange != InfiniteGate) {
+					warnings.push(
+						`Warning: Ships might be successfully gated up to ${hullComponent.maxRange} l.y. but exceeding the stated limits will cause damage to the fleet.`
+					);
+				}
+			}
+
+			if (hullComponent.packetSpeed > 0) {
+				stats.push({ label: 'Warp', text: `${hullComponent.packetSpeed}` });
+				descriptions.push(
+					'Allows planets to fling mineral packets at other planets to transport minerals or bombard enemies.'
+				);
+				warnings.push(
+					'Warning: The receiving planet must have a mass driver at least as capable or it will take damage.'
+				);
+			}
+
+			if (hullComponent.scanner) {
+				if (hullComponent.scanRange == 0) {
+					// special case for bat scanner
+					descriptions.push(
+						'Enemy fleets cannot be detected by this scanner unless they are at the same position as this ship.'
+					);
+				} else {
+					descriptions.push(
+						`Enemy fleets not orbiting a planet can be detected up to ${hullComponent.scanRange} light years away.`
 					);
 				}
 
-				if (hullComponent.scanner) {
-					if ((hullComponent.scanRange ?? 0) == 0) {
-						// special case for bat scanner
-						descriptions.push(
-							'Enemy fleets cannot be detected by this scanner unless they are at the same position as this ship.'
-						);
+				if (!hullComponent.scanRangePen) {
+					// we have no pen scan, but we are a normal scanner, we can still scan planets we orbit
+					descriptions.push(
+						"This scanner is capable of determining a planet's environment and composition while orbiting it. It will also spot enemy fleets attempting to hide behind planets at the same position as this ship."
+					);
+				}
+
+				if (hullComponent.scanRangePen > 0) {
+					descriptions.push(
+						`This scanner can determine a planet's basic stats from a distance up to ${hullComponent.scanRangePen} light years. The scanner will also spot enemy fleets attempting to hide behind planets within range.`
+					);
+				}
+
+				if (hullComponent.canStealFleetCargo || hullComponent.canStealPlanetCargo) {
+					let target = '';
+					if (hullComponent.canStealFleetCargo && !hullComponent.canStealPlanetCargo) {
+						target = 'fleets';
+					} else if (!hullComponent.canStealFleetCargo && hullComponent.canStealPlanetCargo) {
+						target = 'planets';
 					} else {
-						descriptions.push(
-							`Enemy fleets not orbiting a planet can be detected up to ${hullComponent.scanRange} light years away.`
-						);
+						target = 'fleets and planets';
 					}
-
-					if (!hullComponent.scanRangePen) {
-						// we have no pen scan, but we are a normal scanner, we can still scan planets we orbit
-						descriptions.push(
-							"This scanner is capable of determining a planet's environment and composition while orbiting it. It will also spot enemy fleets attempting to hide behind planets at the same position as this ship."
-						);
-					}
-
-					if ((hullComponent.scanRangePen ?? 0) > 0) {
-						descriptions.push(
-							`This scanner can determine a planet's basic stats from a distance up to ${hullComponent.scanRangePen} light years. The scanner will also spot enemy fleets attempting to hide behind planets within range.`
-						);
-					}
-
-					if (hullComponent.canStealFleetCargo || hullComponent.canStealPlanetCargo) {
-						let target = '';
-						if (hullComponent.canStealFleetCargo && !hullComponent.canStealPlanetCargo) {
-							target = 'fleets';
-						} else if (!hullComponent.canStealFleetCargo && hullComponent.canStealPlanetCargo) {
-							target = 'planets';
-						} else {
-							target = 'fleets and planets';
-						}
-						descriptions.push(
-							`This scanner is also capable of penetrating the defenses of enemy ${target} allowing you to view and steal their cargo.`
-						);
-					}
+					descriptions.push(
+						`This scanner is also capable of penetrating the defenses of enemy ${target} allowing you to view and steal their cargo.`
+					);
 				}
 			}
 		}

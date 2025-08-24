@@ -67,12 +67,12 @@
 	let queueItems: ProductionQueueItem[] = $state([]);
 	let contributesOnlyLeftoverToResearch = $state(false);
 
-	let selectedAvailableItem: ProductionQueueItem | undefined = $state();
-	let selectedAvailableItemCost: Cost | undefined = $state();
+	let selectedAvailableItem = $state<ProductionQueueItem | undefined>();
+	let selectedAvailableItemCost = $state<Cost | undefined>();
 
 	let selectedQueueItemIndex = $state(-1);
-	let selectedQueueItem: ProductionQueueItem | undefined = $state();
-	let selectedQueueItemCost: Cost | undefined = $state();
+	let selectedQueueItem = $state<ProductionQueueItem | undefined>();
+	let selectedQueueItemCost = $state<Cost | undefined>();
 
 	// keep track of the quantity modifier
 	let quantityModifer = $state(1);
@@ -135,9 +135,11 @@
 		// update the reactive variable so the UI updates
 		queueItems = updatedPlanet.planetOrders.productionQueue;
 
-		selectedQueueItem = queueItems[selectedQueueItemIndex];
-		const itemCost = await $player.getItemCost(cs, selectedQueueItem, $universe, planet);
-		selectedQueueItemCost = multiply(itemCost, selectedQueueItem?.quantity);
+		if (selectedQueueItemIndex !== -1) {
+			selectedQueueItem = queueItems[selectedQueueItemIndex];
+			const itemCost = await $player.getItemCost(cs, selectedQueueItem, $universe, planet);
+			selectedQueueItemCost = multiply(itemCost, selectedQueueItem.quantity);
+		}
 
 		for (let i = 0; i < availableItems.length; i++) {
 			const item = availableItems[i];
@@ -194,21 +196,22 @@
 
 	async function addAvailableItem(item?: ProductionQueueItem) {
 		item = item ?? selectedAvailableItem;
-		if (!queueItems || !item) {
+		if (!item) {
 			return;
 		}
 
-		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
-		const { result: maxBuildable } =
-			(await cs.wasmService.getMaxBuildable({ planet: planet, itemType: item.type })) ??
-			0 - amountInQueue;
+		let { result: maxBuildable } = await cs.wasmService.getMaxBuildable({
+			planet: planet,
+			itemType: item.type
+		});
+
 		const quantity = clamp(quantityModifer, 0, maxBuildable);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
 			return;
 		}
 		if (selectedQueueItem) {
-			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
+			if (selectedQueueItem.type == item.type && selectedQueueItem.designNum == item.designNum) {
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item
@@ -229,12 +232,12 @@
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem?.quantity
+					selectedQueueItem.quantity
 				);
 			}
 		} else {
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
-			if (nextItem && nextItem.type === item?.type && nextItem.designNum == item.designNum) {
+			if (nextItem && nextItem.type === item.type && nextItem.designNum == item.designNum) {
 				nextItem.quantity++;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
@@ -243,7 +246,7 @@
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem?.quantity
+					selectedQueueItem.quantity
 				);
 			} else {
 				// prepend a new queue item
@@ -262,7 +265,7 @@
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem?.quantity
+					selectedQueueItem.quantity
 				);
 			}
 		}
@@ -271,21 +274,21 @@
 	}
 
 	async function removeItem() {
-		if (queueItems && selectedQueueItem) {
+		if (selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifer;
 			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
-				queueItems = queueItems?.filter((item) => item != selectedQueueItem);
+				queueItems = queueItems.filter((item) => item != selectedQueueItem);
 				selectedQueueItem =
-					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
+					queueItems[selectedQueueItemIndex > 0 ? selectedQueueItemIndex - 1 : 0];
 				selectedQueueItemCost = await $player.getItemCost(
 					cs,
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem?.quantity
+					selectedQueueItem.quantity
 				);
 
 				selectedQueueItemIndex--;
@@ -295,7 +298,7 @@
 	}
 
 	function itemUp() {
-		if (queueItems && selectedQueueItem && selectedQueueItemIndex > 0) {
+		if (selectedQueueItem && selectedQueueItemIndex > 0) {
 			const swap = queueItems[selectedQueueItemIndex - 1];
 			queueItems[selectedQueueItemIndex - 1] = selectedQueueItem;
 			queueItems[selectedQueueItemIndex] = swap;
@@ -306,7 +309,7 @@
 	}
 
 	function itemDown() {
-		if (queueItems && selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
+		if (selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
 			const swap = queueItems[selectedQueueItemIndex + 1];
 			queueItems[selectedQueueItemIndex + 1] = selectedQueueItem;
 			queueItems[selectedQueueItemIndex] = swap;
@@ -336,42 +339,40 @@
 					})
 				)
 			];
-			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
+			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch;
 			updateQueueEstimates();
 		}
 	}
 
 	async function next() {
-		planet.planetOrders.productionQueue = queueItems ?? [];
+		planet.planetOrders.productionQueue = queueItems;
 		planet.planetOrders.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		await onNext?.();
 		await resetQueue();
 	}
 
 	async function prev() {
-		planet.planetOrders.productionQueue = queueItems ?? [];
+		planet.planetOrders.productionQueue = queueItems;
 		planet.planetOrders.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		await onPrev?.();
 		await resetQueue();
 	}
 
 	function ok() {
-		planet.planetOrders.productionQueue = queueItems ?? [];
+		planet.planetOrders.productionQueue = queueItems;
 		planet.planetOrders.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		onOk?.(planet);
 	}
 	function cancel() {
-		if (planet) {
-			resetQueue();
-			onCancel?.();
-		}
+		resetQueue();
+		onCancel?.();
 	}
 
 	function getCompletionDescription(item: ProductionQueueItem) {
 		const skipped =
 			isAuto(item.type) &&
 			item.queueItemCompletionEstimate?.yearsToBuildOne === Infinite &&
-			item.queueItemCompletionEstimate?.yearsToBuildAll === Infinite;
+			item.queueItemCompletionEstimate.yearsToBuildAll === Infinite;
 		if (skipped) {
 			return 'Skipped';
 		}
@@ -432,8 +433,7 @@
 			$universe,
 			planet
 		);
-		contributesOnlyLeftoverToResearch =
-			planet.planetOrders.contributesOnlyLeftoverToResearch ?? false;
+		contributesOnlyLeftoverToResearch = planet.planetOrders.contributesOnlyLeftoverToResearch;
 		await updateQueueEstimates();
 	}
 
@@ -693,7 +693,7 @@
 										<button
 											type="button"
 											onpointerdown={(e) => onAllocatedTooltip(e, selectedQueueItem?.allocated)}
-											>{(selectedQueueItemPercentComplete * 100)?.toFixed()}%<Icon
+											>{(selectedQueueItemPercentComplete * 100).toFixed()}%<Icon
 												src={QuestionMarkCircle}
 												size="16"
 												class="cursor-help inline-block ml-1"

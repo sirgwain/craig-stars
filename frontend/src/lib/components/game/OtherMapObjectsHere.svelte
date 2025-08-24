@@ -15,14 +15,12 @@
 
 	const { player, universe } = getGameContext();
 
-	type Dictionary<T> = {
-		[index: number]: T;
-	};
+	type Dictionary<T> = Partial<Record<number, T>>;
 
 	type Props = {
 		fleet: CommandedFleet;
 		otherMapObjectsHere: Dictionary<MapObjectLike[]>;
-		target: MapObjectTargetLike;
+		target: MapObjectTargetLike | undefined;
 		position: Vector | undefined;
 		onSelected: (selected: Partial<MapObjectLike>) => void;
 	} & HTMLSelectAttributes;
@@ -32,18 +30,18 @@
 	// true if this mapObject is also our current target
 	function isTarget(mo: MapObjectLike) {
 		if (
-			target.targetType === MapObjectType.FLEET ||
-			target.targetType === MapObjectType.MINEFIELD ||
-			target.targetType === MapObjectType.MINERAL_PACKET
+			target?.targetType === MapObjectType.FLEET ||
+			target?.targetType === MapObjectType.MINEFIELD ||
+			target?.targetType === MapObjectType.MINERAL_PACKET
 		) {
 			// fleets, minefields, and mineral packets are keyed off of player num as well as type/num
 			return (
 				mo.mapObject?.type === target.targetType &&
-				mo.mapObject?.num === target.targetNum &&
-				(mo.mapObject?.playerNum ?? 0) === (target.targetPlayerNum ?? 0)
+				mo.mapObject.num === target.targetNum &&
+				mo.mapObject.playerNum === (target.targetPlayerNum ?? 0)
 			);
 		} else {
-			return mo.mapObject?.type === target.targetType && mo.mapObject?.num === target.targetNum;
+			return mo.mapObject?.type === target?.targetType && mo.mapObject?.num === target?.targetNum;
 		}
 	}
 
@@ -78,7 +76,7 @@
 </script>
 
 <select
-	style={target.targetPlayerNum && target.targetPlayerNum != $player.num
+	style={target?.targetPlayerNum && target.targetPlayerNum != $player.num
 		? `color: ${$universe.getPlayerColor(target.targetPlayerNum)};`
 		: ''}
 	onchange={(e) => onSelectChange(parseInt(e.currentTarget.value))}
@@ -86,7 +84,7 @@
 >
 	<!-- allow for the non target -->
 	<optgroup label="Space">
-		<option selected={target.targetType === MapObjectType.UNSPECIFIED} value={0}
+		<option selected={!target?.targetType} value={0}
 			>{`Space (${position?.x ?? 0}, ${position?.y ?? 0})`}</option
 		>
 	</optgroup>
@@ -130,7 +128,7 @@
 		</optgroup>
 	{/if}
 
-	{#if everythingElse?.length > 0}
+	{#if everythingElse.length > 0}
 		<optgroup label="Other">
 			{#each everythingElse as mo, index (key(mo))}
 				<option

@@ -23,16 +23,14 @@
 	let search = $state('');
 	let filteredDesigns: ShipDesign[] = $derived(
 		designs
-			.sort((a, b) =>
-				a.playerNum != b.playerNum ? a.playerNum - b.playerNum : (a.num ?? 0) - (b.num ?? 0)
-			)
+			.sort((a, b) => (a.playerNum != b.playerNum ? a.playerNum - b.playerNum : a.num - b.num))
 			.filter(
 				(i) =>
 					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 					i.hull.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 					$universe.getPlayerPluralName(i.playerNum).toLowerCase().indexOf(search.toLowerCase()) !=
 						-1
-			) ?? []
+			)
 	);
 
 	type TableShipDesign = ShipDesign & {

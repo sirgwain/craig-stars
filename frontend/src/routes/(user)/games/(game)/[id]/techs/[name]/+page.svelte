@@ -24,7 +24,7 @@
 
 {#if tech}
 	<TechSummary {tech} player={$player} />
-	{#if (hull && tech.tech?.category === TechCategory.SHIP_HULL) || tech.tech?.category === TechCategory.STARBASE_HULL}
+	{#if (tech.tech?.category === TechCategory.SHIP_HULL) || tech.tech?.category === TechCategory.STARBASE_HULL}
 		<h1 class="my-3 text-lg text-center font-semibold">Hull</h1>
 		<div
 			class="card bg-base-200 shadow w-full max-h-fit min-h-fit rounded-sm border-2 border-base-300"

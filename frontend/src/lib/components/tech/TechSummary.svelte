@@ -47,7 +47,7 @@
 	let researchCost = $state(0);
 	let above = $derived(
 		techLike.tech && player?.hasTech(techLike)
-			? levelsAbove(techLike.tech?.requirements?.techLevel, player.techLevels)
+			? levelsAbove(techLike.tech.requirements?.techLevel, player.techLevels)
 			: 0
 	);
 
@@ -65,7 +65,7 @@
 			return;
 		}
 		cs.wasmService
-			.getResearchCost({ techLevel: techLike.tech.requirements?.techLevel })
+			.getResearchCost({ techLevel: techLike.tech.requirements.techLevel })
 			.then((resp) => {
 				researchCost = resp.resources;
 			});
@@ -81,18 +81,16 @@
 			<div class="text-lg font-semibold text-center mb-1 text-secondary">
 				<div class="indicator w-full">
 					{#if player?.hasTech(techLike)}
-						<span class:hidden={!player || above !== 0} class="indicator-item badge badge-accent"
-							>new
-						</span>
+						<span class:hidden={above !== 0} class="indicator-item badge badge-accent">new </span>
 					{/if}
 					<div class="w-full">
 						{#if player}
 							<a
-								href={`/games/${player.gameDbObject.gameId}/techs/${kebabCase(tech.name?.replaceAll("'", ''))}`}
+								href={`/games/${player.gameDbObject.gameId}/techs/${kebabCase(tech.name.replaceAll("'", ''))}`}
 								>{tech.name}</a
 							>
 						{:else}
-							<a href="/techs/{kebabCase(tech.name?.replaceAll("'", ''))}">{tech.name}</a>
+							<a href="/techs/{kebabCase(tech.name.replaceAll("'", ''))}">{tech.name}</a>
 						{/if}
 					</div>
 				</div>
@@ -107,7 +105,7 @@
 						<div
 							class="flex flex-row justify-between gap-1"
 							class:text-error={player?.techLevels &&
-								(player.techLevels.energy ?? 0) < (tech.requirements?.techLevel?.energy ?? 0)}
+								player.techLevels.energy < (tech.requirements?.techLevel?.energy ?? 0)}
 						>
 							<div>Research Cost:</div>
 							<div>{researchCost}</div>
@@ -122,12 +120,12 @@
 						{#if hullComponent}
 							<div class="flex justify-between gap-2">
 								<div>Mass:</div>
-								<div>{hullComponent.mass ?? 0}kT</div>
+								<div>{hullComponent.mass}kT</div>
 							</div>
 						{:else if hull}
 							<div class="flex justify-between gap-2">
 								<div>Mass:</div>
-								<div>{hull.mass ?? 0}kT</div>
+								<div>{hull.mass}kT</div>
 							</div>
 						{/if}
 					</div>

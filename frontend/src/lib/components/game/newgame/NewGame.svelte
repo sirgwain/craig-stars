@@ -105,7 +105,7 @@
 	};
 
 	const addPlayer = () => {
-		const usedColors = new Set<string>(settings.players.map<string>((p) => p.color ?? ''));
+		const usedColors = new Set<string>(settings.players.map<string>((p) => p.color));
 
 		settings.players = [
 			...settings.players,

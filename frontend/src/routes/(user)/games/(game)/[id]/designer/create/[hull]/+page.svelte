@@ -25,7 +25,7 @@
 				gameId: $game.id
 			},
 			playerNum: $player.num,
-			hull: hullName ?? ''
+			hull: hullName
 		});
 
 		const copyParam = page.url.searchParams.get('copy');

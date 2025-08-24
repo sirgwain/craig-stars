@@ -15,7 +15,7 @@
 	} from '$lib/types/cs-proto';
 	import { filterFleet } from '$lib/types/Filter';
 	import { emptyMapObject, type MapObjectLike, type Position } from '$lib/types/MapObject';
-	import { equal } from '$lib/types/Vector';
+	import { emptyVector, equal } from '$lib/types/Vector';
 	import { create } from '@bufbuild/protobuf';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
@@ -225,8 +225,8 @@
 	}
 
 	// translate/zoom the display to a point on the map
-	function translateViewport(position: Position | undefined) {
-		if (!root || !position) {
+	function translateViewport(position: Position) {
+		if (!root) {
 			return;
 		}
 
@@ -242,7 +242,7 @@
 
 	// zoom the viewport to a specific scale
 	function zoomViewport(scaleTo: number) {
-		if (!root || !zoomBehavior) {
+		if (!root) {
 			return;
 		}
 		select(root).call(zoomBehavior.scaleTo, scaleTo);
@@ -272,9 +272,11 @@
 		const fleetWaypoint =
 			found &&
 			$commandedFleet &&
-			$commandedFleet.fleetOrders?.waypoints
+			$commandedFleet.fleetOrders.waypoints
 				.slice(1)
-				.find((wp) => equal(wp.position, found.mapObject?.position));
+				.find((wp) =>
+					equal(wp.position ?? emptyVector(), found.mapObject?.position ?? emptyVector())
+				);
 		waypointHighlighted = !!fleetWaypoint;
 		if (waypointHighlighted) {
 			if (dragAndZoomEnabled) {
@@ -324,9 +326,11 @@
 				const fleetWaypoint =
 					found &&
 					$commandedFleet &&
-					$commandedFleet.fleetOrders?.waypoints
+					$commandedFleet.fleetOrders.waypoints
 						.slice(1)
-						.find((wp) => equal(wp.position, found.mapObject?.position));
+						.find((wp) =>
+							equal(wp.position ?? emptyVector(), found.mapObject?.position ?? emptyVector())
+						);
 
 				if (fleetWaypoint && $selectedWaypoint != fleetWaypoint) {
 					onSelectWaypoint?.({ fleet: $commandedFleet, waypoint: fleetWaypoint });
@@ -367,8 +371,8 @@
 		if ($selectedWaypoint && $currentSelectedWaypointIndex && $commandedFleet) {
 			// don't move the waypoint to any adjacent waypoints
 			if (mo && !positionWaypoint) {
-				const index = $commandedFleet.fleetOrders?.waypoints.findIndex((wp) =>
-					equal(wp.position, mo.mapObject?.position)
+				const index = $commandedFleet.fleetOrders.waypoints.findIndex((wp) =>
+					equal(wp.position ?? emptyVector(), mo.mapObject?.position ?? emptyVector())
 				);
 				if (
 					index == $currentSelectedWaypointIndex - 1 ||
@@ -401,7 +405,7 @@
 	function disableAddWaypointMode(event: MouseEvent) {
 		// ignore clicks on the add-waypoint toolbar button
 		const elem = event.target as Element;
-		if (elem?.id == 'add-waypoint' || elem?.parentElement?.id == 'add-waypoint') {
+		if (elem.id == 'add-waypoint' || elem.parentElement?.id == 'add-waypoint') {
 			return;
 		}
 		if ($settings.addWaypoint) {
@@ -415,7 +419,7 @@
 		if (zooming) {
 			return false;
 		}
-		if (!$commandedFleet?.fleetOrders?.waypoints) {
+		if (!$commandedFleet?.fleetOrders.waypoints) {
 			return false;
 		}
 
@@ -448,19 +452,16 @@
 	// below we handle zooming events by updating a transform
 	onMount(() => {
 		clientRect = rect?.getBoundingClientRect() ?? { width: 100, height: 100 };
-		if (!$zoomTarget) {
-			return;
-		}
 
 		// setup zoom and translate to the zoomTarget
-		translateViewport($zoomTarget.mapObject?.position);
+		translateViewport($zoomTarget?.mapObject?.position ?? create(VectorSchema));
 		enableDragAndZoom();
 
 		// setup asubscriber to draw the target X and move the viewport to a new target
 		// when the zoomTarget changes
 		const unsubscribeZoomTarget = zoomTarget.subscribe((target) => {
 			if (target) {
-				translateViewport(target.mapObject?.position);
+				translateViewport(target.mapObject?.position ?? create(VectorSchema));
 				showTargetLocation();
 			}
 		});
@@ -493,9 +494,7 @@
 	const data = derivedStore([universe, commandedFleet], ([u, f]) => [
 		// add mapobject waypoints
 		...(f?.getWaypointMapObjects(u) || []),
-		...u
-			.getAllFleets()
-			.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
+		...u.getAllFleets().filter((f) => f.orbitingPlanetNum === None),
 		...u.mysteryTraders,
 		...u.salvages,
 		...u.wormholes,

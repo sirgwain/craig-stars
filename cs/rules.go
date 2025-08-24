@@ -141,10 +141,11 @@ const (
 type CometSize string
 
 const (
-	CometSmall  CometSize = "Small"
-	CometMedium CometSize = "Medium"
-	CometLarge  CometSize = "Large"
-	CometHuge   CometSize = "Huge"
+	CometUnspecified CometSize = ""
+	CometSmall       CometSize = "Small"
+	CometMedium      CometSize = "Medium"
+	CometLarge       CometSize = "Large"
+	CometHuge        CometSize = "Huge"
 )
 
 var CometSizes = []CometSize{

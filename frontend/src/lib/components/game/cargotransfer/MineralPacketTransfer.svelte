@@ -17,14 +17,14 @@
 
 	<div class="text-right mr-1 h-8 select-none">Ironium</div>
 	<div class="text-right">
-		{(cargo?.ironium ?? 0) + (transferAmount.ironium ?? 0)}kT
+		{cargo.ironium + transferAmount.ironium}kT
 	</div>
 	<div class="text-right mr-1 h-8 select-none">Boranium</div>
 	<div class="text-right">
-		{(cargo?.boranium ?? 0) + (transferAmount.boranium ?? 0)}kT
+		{cargo.boranium + transferAmount.boranium}kT
 	</div>
 	<div class="text-right mr-1 h-8 select-none">Germanium</div>
 	<div class="text-right">
-		{(cargo?.germanium ?? 0) + (transferAmount.germanium ?? 0)}kT
+		{cargo.germanium + transferAmount.germanium}kT
 	</div>
 </div>

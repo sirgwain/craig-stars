@@ -570,7 +570,7 @@ func (x *PlayerMessage) GetSpec() *PlayerMessageSpec {
 
 type PlayerMessageSpec struct {
 	state               protoimpl.MessageState          `protogen:"open.v1"`
-	Target              *MapObjectTarget                `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	MapObjectTarget     *MapObjectTarget                `protobuf:"bytes,1,opt,name=map_object_target,json=mapObjectTarget,proto3" json:"map_object_target,omitempty"`
 	Amount              int32                           `protobuf:"varint,2,opt,name=amount,proto3" json:"amount,omitempty"`
 	Amount2             int32                           `protobuf:"varint,3,opt,name=amount2,proto3" json:"amount2,omitempty"`
 	Battle              *BattleRecordStats              `protobuf:"bytes,4,opt,name=battle,proto3" json:"battle,omitempty"`
@@ -590,7 +590,7 @@ type PlayerMessageSpec struct {
 	Name                string                          `protobuf:"bytes,18,opt,name=name,proto3" json:"name,omitempty"`
 	NextField           string                          `protobuf:"bytes,19,opt,name=next_field,json=nextField,proto3" json:"next_field,omitempty"`
 	PrevAmount          int32                           `protobuf:"varint,20,opt,name=prev_amount,json=prevAmount,proto3" json:"prev_amount,omitempty"`
-	QueueItemType       string                          `protobuf:"bytes,21,opt,name=queue_item_type,json=queueItemType,proto3" json:"queue_item_type,omitempty"`
+	QueueItemType       QueueItemType                   `protobuf:"varint,21,opt,name=queue_item_type,json=queueItemType,proto3,enum=craig_stars.v1.QueueItemType" json:"queue_item_type,omitempty"`
 	RouteTarget         *MapObjectTarget                `protobuf:"bytes,22,opt,name=route_target,json=routeTarget,proto3" json:"route_target,omitempty"`
 	SourcePlayerNum     int32                           `protobuf:"varint,23,opt,name=source_player_num,json=sourcePlayerNum,proto3" json:"source_player_num,omitempty"`
 	TechGained          string                          `protobuf:"bytes,24,opt,name=tech_gained,json=techGained,proto3" json:"tech_gained,omitempty"`
@@ -629,9 +629,9 @@ func (*PlayerMessageSpec) Descriptor() ([]byte, []int) {
 	return file_craig_stars_v1_message_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *PlayerMessageSpec) GetTarget() *MapObjectTarget {
+func (x *PlayerMessageSpec) GetMapObjectTarget() *MapObjectTarget {
 	if x != nil {
-		return x.Target
+		return x.MapObjectTarget
 	}
 	return nil
 }
@@ -769,11 +769,11 @@ func (x *PlayerMessageSpec) GetPrevAmount() int32 {
 	return 0
 }
 
-func (x *PlayerMessageSpec) GetQueueItemType() string {
+func (x *PlayerMessageSpec) GetQueueItemType() QueueItemType {
 	if x != nil {
 		return x.QueueItemType
 	}
-	return ""
+	return QueueItemType_QUEUE_ITEM_TYPE_UNSPECIFIED
 }
 
 func (x *PlayerMessageSpec) GetRouteTarget() *MapObjectTarget {
@@ -1296,17 +1296,17 @@ var File_craig_stars_v1_message_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1ccraig_stars/v1/message.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/battle.proto\x1a\x1bcraig_stars/v1/common.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\"craig_stars/v1/mineralpacket.proto\x1a\"craig_stars/v1/mysterytrader.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\x1a\x1acraig_stars/v1/rules.proto\"\xed\x01\n" +
+	"\x1ccraig_stars/v1/message.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/battle.proto\x1a\x1bcraig_stars/v1/common.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\"craig_stars/v1/mineralpacket.proto\x1a\"craig_stars/v1/mysterytrader.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1acraig_stars/v1/rules.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\"\xed\x01\n" +
 	"\rPlayerMessage\x12;\n" +
 	"\x06target\x18\x01 \x01(\v2#.craig_stars.v1.PlayerMessageTargetR\x06target\x125\n" +
 	"\x04type\x18\x02 \x01(\x0e2!.craig_stars.v1.PlayerMessageTypeR\x04type\x12\x12\n" +
 	"\x04text\x18\x03 \x01(\tR\x04text\x12\x1d\n" +
 	"\n" +
 	"battle_num\x18\x04 \x01(\x05R\tbattleNum\x125\n" +
-	"\x04spec\x18\x05 \x01(\v2!.craig_stars.v1.PlayerMessageSpecR\x04spec\"\xa8\n" +
+	"\x04spec\x18\x05 \x01(\v2!.craig_stars.v1.PlayerMessageSpecR\x04spec\"\xdb\n" +
 	"\n" +
-	"\x11PlayerMessageSpec\x127\n" +
-	"\x06target\x18\x01 \x01(\v2\x1f.craig_stars.v1.MapObjectTargetR\x06target\x12\x16\n" +
+	"\x11PlayerMessageSpec\x12K\n" +
+	"\x11map_object_target\x18\x01 \x01(\v2\x1f.craig_stars.v1.MapObjectTargetR\x0fmapObjectTarget\x12\x16\n" +
 	"\x06amount\x18\x02 \x01(\x05R\x06amount\x12\x18\n" +
 	"\aamount2\x18\x03 \x01(\x05R\aamount2\x129\n" +
 	"\x06battle\x18\x04 \x01(\v2!.craig_stars.v1.BattleRecordStatsR\x06battle\x127\n" +
@@ -1328,8 +1328,8 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"\n" +
 	"next_field\x18\x13 \x01(\tR\tnextField\x12\x1f\n" +
 	"\vprev_amount\x18\x14 \x01(\x05R\n" +
-	"prevAmount\x12&\n" +
-	"\x0fqueue_item_type\x18\x15 \x01(\tR\rqueueItemType\x12B\n" +
+	"prevAmount\x12E\n" +
+	"\x0fqueue_item_type\x18\x15 \x01(\x0e2\x1d.craig_stars.v1.QueueItemTypeR\rqueueItemType\x12B\n" +
 	"\froute_target\x18\x16 \x01(\v2\x1f.craig_stars.v1.MapObjectTargetR\vrouteTarget\x12*\n" +
 	"\x11source_player_num\x18\x17 \x01(\x05R\x0fsourcePlayerNum\x12\x1f\n" +
 	"\vtech_gained\x18\x18 \x01(\tR\n" +
@@ -1546,19 +1546,20 @@ var file_craig_stars_v1_message_proto_goTypes = []any{
 	(*MinefieldDamage)(nil),                // 16: craig_stars.v1.MinefieldDamage
 	(*Mineral)(nil),                        // 17: craig_stars.v1.Mineral
 	(*MineralPacketDamage)(nil),            // 18: craig_stars.v1.MineralPacketDamage
-	(*Hab)(nil),                            // 19: craig_stars.v1.Hab
-	(CometSize)(0),                         // 20: craig_stars.v1.CometSize
-	(MysteryTraderRewardType)(0),           // 21: craig_stars.v1.MysteryTraderRewardType
-	(*TechLevel)(nil),                      // 22: craig_stars.v1.TechLevel
-	(*ShipDesign)(nil),                     // 23: craig_stars.v1.ShipDesign
-	(ResourceType)(0),                      // 24: craig_stars.v1.ResourceType
-	(*Vector)(nil),                         // 25: craig_stars.v1.Vector
+	(QueueItemType)(0),                     // 19: craig_stars.v1.QueueItemType
+	(*Hab)(nil),                            // 20: craig_stars.v1.Hab
+	(CometSize)(0),                         // 21: craig_stars.v1.CometSize
+	(MysteryTraderRewardType)(0),           // 22: craig_stars.v1.MysteryTraderRewardType
+	(*TechLevel)(nil),                      // 23: craig_stars.v1.TechLevel
+	(*ShipDesign)(nil),                     // 24: craig_stars.v1.ShipDesign
+	(ResourceType)(0),                      // 25: craig_stars.v1.ResourceType
+	(*Vector)(nil),                         // 26: craig_stars.v1.Vector
 }
 var file_craig_stars_v1_message_proto_depIdxs = []int32{
 	9,  // 0: craig_stars.v1.PlayerMessage.target:type_name -> craig_stars.v1.PlayerMessageTarget
 	1,  // 1: craig_stars.v1.PlayerMessage.type:type_name -> craig_stars.v1.PlayerMessageType
 	4,  // 2: craig_stars.v1.PlayerMessage.spec:type_name -> craig_stars.v1.PlayerMessageSpec
-	11, // 3: craig_stars.v1.PlayerMessageSpec.target:type_name -> craig_stars.v1.MapObjectTarget
+	11, // 3: craig_stars.v1.PlayerMessageSpec.map_object_target:type_name -> craig_stars.v1.MapObjectTarget
 	12, // 4: craig_stars.v1.PlayerMessageSpec.battle:type_name -> craig_stars.v1.BattleRecordStats
 	10, // 5: craig_stars.v1.PlayerMessageSpec.bombing:type_name -> craig_stars.v1.BombingResult
 	13, // 6: craig_stars.v1.PlayerMessageSpec.cargo:type_name -> craig_stars.v1.Cargo
@@ -1571,25 +1572,26 @@ var file_craig_stars_v1_message_proto_depIdxs = []int32{
 	17, // 13: craig_stars.v1.PlayerMessageSpec.mineral:type_name -> craig_stars.v1.Mineral
 	18, // 14: craig_stars.v1.PlayerMessageSpec.mineral_packet_damage:type_name -> craig_stars.v1.MineralPacketDamage
 	6,  // 15: craig_stars.v1.PlayerMessageSpec.mystery_trader:type_name -> craig_stars.v1.PlayerMessageSpecMysteryTrader
-	11, // 16: craig_stars.v1.PlayerMessageSpec.route_target:type_name -> craig_stars.v1.MapObjectTarget
-	19, // 17: craig_stars.v1.PlayerMessageSpec.terraform_amount:type_name -> craig_stars.v1.Hab
-	20, // 18: craig_stars.v1.PlayerMessageSpecComet.size:type_name -> craig_stars.v1.CometSize
-	17, // 19: craig_stars.v1.PlayerMessageSpecComet.minerals_added:type_name -> craig_stars.v1.Mineral
-	17, // 20: craig_stars.v1.PlayerMessageSpecComet.mineral_concentration_increased:type_name -> craig_stars.v1.Mineral
-	19, // 21: craig_stars.v1.PlayerMessageSpecComet.hab_changed:type_name -> craig_stars.v1.Hab
-	21, // 22: craig_stars.v1.PlayerMessageSpecMysteryTrader.type:type_name -> craig_stars.v1.MysteryTraderRewardType
-	22, // 23: craig_stars.v1.PlayerMessageSpecMysteryTrader.tech_levels:type_name -> craig_stars.v1.TechLevel
-	23, // 24: craig_stars.v1.PlayerMessageSpecMysteryTrader.ship:type_name -> craig_stars.v1.ShipDesign
-	24, // 25: craig_stars.v1.PlayerMessageSpecCargoTransfer.cargo_type:type_name -> craig_stars.v1.ResourceType
-	2,  // 26: craig_stars.v1.PlayerMessageSpecCargoTransfer.status:type_name -> craig_stars.v1.CargoTransferStatus
-	25, // 27: craig_stars.v1.PlayerMessageTarget.target_position:type_name -> craig_stars.v1.Vector
-	0,  // 28: craig_stars.v1.PlayerMessageTarget.target_type:type_name -> craig_stars.v1.PlayerMessageTargetType
-	19, // 29: craig_stars.v1.BombingResult.unterraform_amount:type_name -> craig_stars.v1.Hab
-	30, // [30:30] is the sub-list for method output_type
-	30, // [30:30] is the sub-list for method input_type
-	30, // [30:30] is the sub-list for extension type_name
-	30, // [30:30] is the sub-list for extension extendee
-	0,  // [0:30] is the sub-list for field type_name
+	19, // 16: craig_stars.v1.PlayerMessageSpec.queue_item_type:type_name -> craig_stars.v1.QueueItemType
+	11, // 17: craig_stars.v1.PlayerMessageSpec.route_target:type_name -> craig_stars.v1.MapObjectTarget
+	20, // 18: craig_stars.v1.PlayerMessageSpec.terraform_amount:type_name -> craig_stars.v1.Hab
+	21, // 19: craig_stars.v1.PlayerMessageSpecComet.size:type_name -> craig_stars.v1.CometSize
+	17, // 20: craig_stars.v1.PlayerMessageSpecComet.minerals_added:type_name -> craig_stars.v1.Mineral
+	17, // 21: craig_stars.v1.PlayerMessageSpecComet.mineral_concentration_increased:type_name -> craig_stars.v1.Mineral
+	20, // 22: craig_stars.v1.PlayerMessageSpecComet.hab_changed:type_name -> craig_stars.v1.Hab
+	22, // 23: craig_stars.v1.PlayerMessageSpecMysteryTrader.type:type_name -> craig_stars.v1.MysteryTraderRewardType
+	23, // 24: craig_stars.v1.PlayerMessageSpecMysteryTrader.tech_levels:type_name -> craig_stars.v1.TechLevel
+	24, // 25: craig_stars.v1.PlayerMessageSpecMysteryTrader.ship:type_name -> craig_stars.v1.ShipDesign
+	25, // 26: craig_stars.v1.PlayerMessageSpecCargoTransfer.cargo_type:type_name -> craig_stars.v1.ResourceType
+	2,  // 27: craig_stars.v1.PlayerMessageSpecCargoTransfer.status:type_name -> craig_stars.v1.CargoTransferStatus
+	26, // 28: craig_stars.v1.PlayerMessageTarget.target_position:type_name -> craig_stars.v1.Vector
+	0,  // 29: craig_stars.v1.PlayerMessageTarget.target_type:type_name -> craig_stars.v1.PlayerMessageTargetType
+	20, // 30: craig_stars.v1.BombingResult.unterraform_amount:type_name -> craig_stars.v1.Hab
+	31, // [31:31] is the sub-list for method output_type
+	31, // [31:31] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_message_proto_init() }
@@ -1602,8 +1604,9 @@ func file_craig_stars_v1_message_proto_init() {
 	file_craig_stars_v1_minefield_proto_init()
 	file_craig_stars_v1_mineralpacket_proto_init()
 	file_craig_stars_v1_mysterytrader_proto_init()
-	file_craig_stars_v1_shipdesign_proto_init()
+	file_craig_stars_v1_planet_proto_init()
 	file_craig_stars_v1_rules_proto_init()
+	file_craig_stars_v1_shipdesign_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

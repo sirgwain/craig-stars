@@ -60,7 +60,7 @@
 	);
 	let filteredGames: GameWithPlayersFlat[] = $derived(
 		games
-			?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
+			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
 			.sort((a, b) => defaultSortBy(a, b, sortKey, sortDescending, columns))
 	);
 	let search = $state('');
@@ -78,7 +78,7 @@
 			const { users } = await adminClient.getUsers({});
 			usersById = new Map(users.map((u) => [u.id, u]));
 			const resp = await adminClient.getAllGames({});
-			games = resp.games?.map((g) => getGameWithPlayersFlat(g));
+			games = resp.games.map((g) => getGameWithPlayersFlat(g));
 		} catch (e) {
 			addError(e as ConnectError);
 		}

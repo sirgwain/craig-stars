@@ -23,7 +23,10 @@ export default ts.config(
 
 		languageOptions: {
 			parserOptions: {
-				parser: ts.parser
+				parser: ts.parser,
+				project: ['./tsconfig.json'],
+				tsconfigRootDir: process.cwd(),
+				extraFileExtensions: ['.svelte']
 			}
 		},
 
@@ -32,12 +35,14 @@ export default ts.config(
 				'error',
 				{ argsIgnorePattern: '^_', caughtErrors: 'all', caughtErrorsIgnorePattern: '^_' }
 			],
+			'@typescript-eslint/no-unnecessary-condition': 'error',
 			'no-undef': 'off'
 		}
 	},
 	{
 		ignores: [
 			'src/lib/wasm/wasm_exec.js',
+			'src/lib/protogen',
 			'src/lib/types/CargoTransferRequest.svelte.ts',
 			'!.env.example',
 			'.DS_Store',

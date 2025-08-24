@@ -55,7 +55,7 @@
 			}
 
 			if (planet.mapObject?.playerNum) {
-				flagColor = $universe.getPlayerColor(planet.mapObject?.playerNum) ?? '#FF0000';
+				flagColor = $universe.getPlayerColor(planet.mapObject.playerNum);
 			}
 		}
 

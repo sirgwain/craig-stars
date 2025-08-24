@@ -41,10 +41,10 @@
 	let field: keyof TechLevelJson = $derived(
 		`${$player.playerOrders.researching}`.toLowerCase() as keyof TechLevelJson
 	);
-	let spent = $derived($player.techLevelsSpent[field] ?? 0);
+	let spent = $derived($player.techLevelsSpent[field] || 0);
 
-	let leftToSpend = $derived((spec.currentResearchCost ?? 0) - spent);
-	let yearsLeft = $derived(Math.ceil(leftToSpend / (spec.resourcesPerYearResearchEstimated ?? 0)));
+	let leftToSpend = $derived(spec.currentResearchCost - spent);
+	let yearsLeft = $derived(Math.ceil(leftToSpend / spec.resourcesPerYearResearchEstimated));
 </script>
 
 <ItemTitle>Research</ItemTitle>
@@ -57,7 +57,7 @@
 			{getLevel($player, $player.playerOrders.researching) + 1}
 		</div>
 		<div class="stat-desc pt-1">
-			{spent ?? 0}/{spec.currentResearchCost} resources
+			{spent}/{spec.currentResearchCost} resources
 			{#if yearsLeft < 100}
 				, {yearsLeft.toFixed()}
 				{Math.floor(yearsLeft) > 1 ? 'years' : 'year'}
@@ -68,7 +68,7 @@
 		<div class="stat-title">Resources Available</div>
 		<div class="stat-figure"><Factory class="w-8 h-8 fill-primary" /></div>
 		<div class="stat-value">
-			{spec.resourcesPerYear ?? 0}
+			{spec.resourcesPerYear}
 		</div>
 	</div>
 </div>
@@ -77,14 +77,14 @@
 		<div class="stat-title">Spent Last Year</div>
 		<div class="stat-figure"><Microscope class="w-8 h-8 fill-primary" /></div>
 		<div class="stat-value">
-			{$player.researchSpentLastYear ?? 0}
+			{$player.researchSpentLastYear}
 		</div>
 	</div>
 	<div class="grow stat place-items-center">
 		<div class="stat-title">Estimated Spending Next Year</div>
 		<div class="stat-figure"><Microscope class="w-8 h-8 fill-warning" /></div>
 		<div class="stat-value">
-			{spec.resourcesPerYearResearchEstimated ?? 0}
+			{spec.resourcesPerYearResearchEstimated}
 		</div>
 	</div>
 </div>

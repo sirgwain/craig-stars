@@ -15,11 +15,11 @@
 	let { plan = $bindable() }: Props = $props();
 
 	// Local runes state for reactive bindings
-	let name: string = $state(plan.name ?? '');
-	let primaryTarget: BattleTarget = $state(plan.primaryTarget ?? BattleTarget.UNSPECIFIED);
-	let secondaryTarget: BattleTarget = $state(plan.secondaryTarget ?? BattleTarget.UNSPECIFIED);
-	let tactic: BattleTactic = $state(plan.tactic ?? BattleTactic.UNSPECIFIED);
-	let attackWho: BattleAttackWho = $state(plan.attackWho ?? BattleAttackWho.UNSPECIFIED);
+	let name: string = $state(plan.name);
+	let primaryTarget: BattleTarget = $state(plan.primaryTarget);
+	let secondaryTarget: BattleTarget = $state(plan.secondaryTarget);
+	let tactic: BattleTactic = $state(plan.tactic);
+	let attackWho: BattleAttackWho = $state(plan.attackWho);
 
 	// Sync local state back to plan
 	$effect(() => {

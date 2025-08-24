@@ -36,14 +36,14 @@
 				<p>
 					<span class="font-semibold">{planet.mapObject?.name}</span> will support a population of
 					up to
-					<span class="font-semibold">{planet.spec?.maxPopulation?.toLocaleString() ?? 0}</span>
+					<span class="font-semibold">{planet.spec?.maxPopulation.toLocaleString() ?? 0}</span>
 					of your colonists.
 				</p>
 			{:else}
 				<p>
 					<span class="font-semibold">{planet.mapObject?.name}</span> has a hostile environment and
 					will only support up to
-					<span class="font-semibold">{planet.spec?.maxPopulation?.toLocaleString() ?? 0}</span>
+					<span class="font-semibold">{planet.spec?.maxPopulation.toLocaleString() ?? 0}</span>
 					of your colonists.
 				</p>
 			{/if}
@@ -78,7 +78,7 @@
 				<p>
 					If you were to colonize <span class="font-semibold">{planet.mapObject?.name}</span>, it
 					would support up to
-					<span class="font-semibold">{planet.spec?.maxPopulation?.toLocaleString()}</span>
+					<span class="font-semibold">{planet.spec?.maxPopulation.toLocaleString()}</span>
 					of your colonists.
 				</p>
 			{:else}
@@ -101,7 +101,7 @@
 				<p>
 					If you were to colonize <span class="font-semibold">{planet.mapObject?.name}</span>, it
 					would support up to
-					<span class="font-semibold">{planet.spec?.maxPopulation?.toLocaleString()}</span>
+					<span class="font-semibold">{planet.spec?.maxPopulation.toLocaleString()}</span>
 					of your colonists.
 				</p>
 			{:else}

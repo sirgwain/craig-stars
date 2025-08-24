@@ -17,14 +17,14 @@
 	onMount(async () => {
 		try {
 			const usersResp = await adminClient.getUsers({});
-			users = usersResp.users ?? [];
+			users = usersResp.users;
 
-			guestUser = usersResp.users?.find((u) => u.id == BigInt(id));
+			guestUser = usersResp.users.find((u) => u.id == BigInt(id));
 
 			// load the games for this user
 			if (guestUser) {
 				const gamesResp = await adminClient.getUserGames({ userId: guestUser.id });
-				games = gamesResp.games ?? [];
+				games = gamesResp.games;
 			}
 		} catch (_err) {
 			// TODO: show error
@@ -52,7 +52,7 @@
 		</div>
 
 		{#if guestUser}
-			<ItemTitle>{guestUser?.username}</ItemTitle>
+			<ItemTitle>{guestUser.username}</ItemTitle>
 
 			<Select
 				values={users
@@ -68,7 +68,7 @@
 				<SectionHeader>Guest User Games</SectionHeader>
 				<ul>
 					{#each games as game (game.game?.id)}
-						<li>{game.game?.name} - {game.players?.length ?? 0} players</li>
+						<li>{game.game?.name} - {game.players.length} players</li>
 					{/each}
 				</ul>
 			{/if}

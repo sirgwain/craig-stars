@@ -36,7 +36,7 @@
 		<div class="h-full relative">
 			{#if !immune}
 				<div
-					style={`left: ${habLowPercent.toFixed()}%; width: ${habWidthPercent?.toFixed()}%`}
+					style={`left: ${habLowPercent.toFixed()}%; width: ${habWidthPercent.toFixed()}%`}
 					class={`absolute h-full ${HabTypeShortString[habType]}-bar`}
 				></div>
 			{/if}
