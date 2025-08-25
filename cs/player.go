@@ -310,7 +310,7 @@ func (p *Player) WithRelations(relations []PlayerRelationship) *Player {
 }
 
 func (p *Player) withSpec(rules *Rules) *Player {
-	p.Spec = ComputePlayerSpec(p, rules, []*Planet{})
+	p.Spec = ComputePlayerSpec(p, rules)
 	return p
 }
 
@@ -523,7 +523,7 @@ func (p *Player) GetSalvageIntel(num int) *Salvage {
 	return nil
 }
 
-func ComputePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSpec {
+func ComputePlayerSpec(player *Player, rules *Rules) PlayerSpec {
 	techs := rules.techs
 	spec := PlayerSpec{
 		PlanetaryScanner: *techs.GetBestPlanetaryScanner(player),

@@ -310,7 +310,7 @@ func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
 	player.Race.PopEfficiency = 9
 	player.Race.FactoryOutput = 11
 	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
-	player.Spec = ComputePlayerSpec(player, &rules, []*Planet{planet})
+	player.Spec = ComputePlayerSpec(player, &rules)
 
 	// add two designs, a colony ship w/fuel mizer and medium freighter w/fuel mizer
 	player.Designs = append(player.Designs, NewShipDesign(player.Num, 1).

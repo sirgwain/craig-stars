@@ -404,7 +404,7 @@ func (g *FullGame) computeSpecs() error {
 	rules := &g.Rules
 	for _, player := range g.Players {
 		player.Race.Spec = ComputeRaceSpec(&player.Race, rules)
-		player.Spec = ComputePlayerSpec(player, rules, g.Planets)
+		player.Spec = ComputePlayerSpec(player, rules)
 
 		for _, design := range player.Designs {
 			if design.OriginalPlayerNum != None {

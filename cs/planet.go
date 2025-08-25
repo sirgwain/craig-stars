@@ -549,6 +549,16 @@ func (p *Planet) GetGrowthAmount(player *Player, maxPopulation int, populationOv
 func ComputePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
+	scanner := player.Spec.PlanetaryScanner
+	if scanner.Name == "" && !race.Spec.InnateScanner {
+		// player spec isn't computed, just look up the player's tech
+		scanner = *rules.techs.GetBestPlanetaryScanner(player)
+	}
+	defense := player.Spec.Defense
+	if defense.Name == "" && race.Spec.CanBuildDefenses {
+		// player spec isn't computed, just look up the player's tech
+		defense = *rules.techs.GetBestDefense(player)
+	}
 
 	// hab/pop
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
@@ -584,8 +594,8 @@ func ComputePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	if race.Spec.CanBuildDefenses {
 		spec.MaxDefenses = 100
-		spec.Defense = player.Spec.Defense.Name
-		spec.computeDefenseCoverage(rules, player.Spec.Defense.DefenseCoverage, planet.Defenses)
+		spec.Defense = defense.Name
+		spec.computeDefenseCoverage(rules, defense.DefenseCoverage, planet.Defenses)
 	}
 
 	if race.Spec.InnateScanner {
@@ -598,7 +608,6 @@ func ComputePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		}
 	} else if planet.Scanner {
 		// normal scanner ranges
-		scanner := player.Spec.PlanetaryScanner
 		spec.Scanner = scanner.Name
 		spec.ScanRange = int(float64(scanner.ScanRange) * player.Race.Spec.ScanRangeFactor)
 		spec.ScanRangePen = scanner.ScanRangePen

@@ -1819,7 +1819,7 @@ func (t *turnGenerator) playerResearch() error {
 		}
 
 		// update player spec for players who gained a level
-		player.Spec = ComputePlayerSpec(player, &t.game.Rules, t.game.Planets)
+		player.Spec = ComputePlayerSpec(player, &t.game.Rules)
 
 		// update design spec
 		for i := range player.Designs {
@@ -2926,7 +2926,7 @@ func (t *turnGenerator) fleetPatrol(player *Player) {
 
 func (t *turnGenerator) scan() error {
 	for _, player := range t.game.Players {
-		player.Spec = ComputePlayerSpec(player, &t.game.Rules, t.game.Planets)
+		player.Spec = ComputePlayerSpec(player, &t.game.Rules)
 
 		scanner := newPlayerScanner(t.game.Universe, t.game.Players, &t.game.Rules, player)
 		if err := scanner.scan(); err != nil {

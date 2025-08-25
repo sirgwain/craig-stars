@@ -278,13 +278,8 @@ func Build_WASM_TinyGo() error {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
 	println("building tinygo wasm")
-	if is_CI() {
-		err = sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
-			"tinygo", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "-no-debug", "wasm/main.go")
-	} else {
-		err = sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
-			"tinygo", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
-	}
+	err = sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
+		"tinygo", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "-no-debug", "wasm/main.go")
 	if err != nil {
 		return err
 	}
