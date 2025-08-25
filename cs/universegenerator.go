@@ -779,6 +779,8 @@ func (ug *universeGenerator) generatePlayerRelations() {
 }
 
 func (ug *universeGenerator) generatePlayerIntel() error {
+	// make sure our universe maps are up to date
+	ug.Universe.buildMaps(ug.Players)
 	for _, player := range ug.Players {
 
 		// discover other players

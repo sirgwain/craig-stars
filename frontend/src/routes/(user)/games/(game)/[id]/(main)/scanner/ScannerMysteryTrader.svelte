@@ -4,13 +4,8 @@
  -->
 <script lang="ts">
 	import { radiansToDegrees } from '$lib/services/Math';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
-	import { getScannerContext } from './Scanner';
 	import type { MysteryTrader } from '$lib/types/cs-proto';
-
-	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
-	const { scale } = getScannerContext();
+	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	// identity or default is rotated 90º, or pointing up and to the right
 	const angleOffset = 225;
@@ -21,26 +16,21 @@
 
 	let { mysteryTrader }: Props = $props();
 
-	let angle = $derived.by(() => {
-		if (!mysteryTrader.heading) {
-			return 0;
-		}
+	function getAngle(mysteryTrader: MysteryTrader): number {
 		return (
-			radiansToDegrees(
-				// Math.atan2(determinant(startHeading, mysterytrader.heading), dot(startHeading, mysterytrader.heading))
-				Math.atan2(mysteryTrader.heading.y, mysteryTrader.heading.x)
-			) + angleOffset
+			radiansToDegrees(Math.atan2(mysteryTrader.heading?.y ?? 0, mysteryTrader.heading?.x ?? 0)) +
+			angleOffset
 		);
-	});
+	}
 
-	let size = $derived(8 / $scale);
+	let size = 8;
 </script>
 
 <!-- ScannerMysteryTrader -->
-<polygon
-	class="fill-mystery-trader"
-	points={`0,0 0,${size} ${size},${size}`}
-	transform={`translate(${$xGet(mysteryTrader.mapObject)} ${$yGet(mysteryTrader.mapObject)}) rotate(${angle}) translate(${-size / 2} ${
-		-size / 2
-	})`}
-/>
+<MapObjectScaler mapObject={mysteryTrader}>
+	<polygon
+		class="fill-mystery-trader"
+		points={`0,0 0,${size} ${size},${size}`}
+		transform={`rotate(${getAngle(mysteryTrader)}) translate(${-size / 2} ${-size / 2})`}
+	/>
+</MapObjectScaler>

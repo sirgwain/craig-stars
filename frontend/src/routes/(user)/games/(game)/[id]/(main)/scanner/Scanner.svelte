@@ -253,7 +253,7 @@
 		const { event, found } = e;
 
 		if (found && event instanceof MouseEvent) {
-			onScannerContextPopup(event, found.mapObject?.position);
+			onScannerContextPopup(event, found.mapObject?.position ?? emptyVector());
 		}
 	}
 

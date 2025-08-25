@@ -5,10 +5,8 @@
 		position: Position;
 	} & PopupProps;
 
-	export function onScannerContextPopup(e: PointerEvent | MouseEvent, position?: Position) {
-		if (position) {
-			showPopup<ScannerContextPopupProps>(e.x, e.y, ScannerContextPopup, { position });
-		}
+	export function onScannerContextPopup(e: PointerEvent | MouseEvent, position: Position) {
+		showPopup<ScannerContextPopupProps>(e.x, e.y, ScannerContextPopup, { position });
 	}
 </script>
 
@@ -55,7 +53,7 @@
 	}
 </script>
 
-<ul class="menu overflow-y-auto px-0.5">
+<ul data-type="popup" data-id="scanner-context-popup" class="menu overflow-y-auto px-0.5">
 	{#if otherMapObjectsHere[MapObjectType.PLANET]}
 		<li class="menu-title w-full">
 			Planet

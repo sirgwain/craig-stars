@@ -208,7 +208,7 @@ var TestGames = []TestGame{
 				},
 			},
 			{
-				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace()},
+				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace().WithPluralName("Rabbitoids")},
 				Designs: []cs.ShipDesign{
 					{
 						Name:  "Teamster",
@@ -258,12 +258,12 @@ var TestGames = []TestGame{
 		},
 		Wormholes: []cs.Wormhole{
 			{
-				MapObject:      cs.MapObject{Position: cs.Vector{X: 20, Y: 0}},
+				MapObject:      cs.MapObject{Position: cs.Vector{X: 10, Y: 10}},
 				Stability:      cs.WormholeStabilityRockSolid,
 				DestinationNum: 2,
 			},
 			{
-				MapObject:      cs.MapObject{Position: cs.Vector{X: 0, Y: 20}},
+				MapObject:      cs.MapObject{Position: cs.Vector{X: 60, Y: 60}},
 				Stability:      cs.WormholeStabilityMostlyStable,
 				DestinationNum: 1,
 			},
