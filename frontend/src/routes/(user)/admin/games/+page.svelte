@@ -14,7 +14,8 @@
 	const columns: TableColumn<GameWithPlayersFlat>[] = [
 		{
 			key: 'id',
-			title: 'Num'
+			title: 'Num',
+			sortBy: (a, b) => Number(a.id - b.id)
 		},
 		{
 			key: 'name',

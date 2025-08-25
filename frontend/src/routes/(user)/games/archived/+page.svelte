@@ -64,7 +64,7 @@
 		games
 			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
 			.map<TableGame>((r) => r as TableGame)
-			.sort((a, b) => defaultSortBy(a, b, sortKey, descending))
+			.sort((a, b) => defaultSortBy(a, b, sortKey, descending, columns))
 	);
 	let descending = $state(true);
 

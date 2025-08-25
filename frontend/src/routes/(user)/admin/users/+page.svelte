@@ -6,7 +6,7 @@
 	import { addError } from '$lib/services/Errors';
 	import { UserRole, UserSchema, type User } from '$lib/types/cs-proto';
 	import { enumToString } from '$lib/types/Enums';
-	import { timestampToString } from '$lib/types/Timestamp';
+	import { compare, timestampToString } from '$lib/types/Timestamp';
 	import { clone } from '@bufbuild/protobuf';
 	import type { ConnectError } from '@connectrpc/connect';
 	import { onMount } from 'svelte';
@@ -24,7 +24,8 @@
 		},
 		{
 			key: 'lastLogin',
-			title: 'Last Login'
+			title: 'Last Login',
+			sortBy: (a, b) => compare(a.lastLogin, b.lastLogin, 'low')
 		},
 		{
 			key: 'role',
@@ -32,7 +33,8 @@
 		},
 		{
 			key: 'createdAt',
-			title: 'Created'
+			title: 'Created',
+			sortBy: (a, b) => compare(a.createdAt, b.createdAt)
 		}
 	];
 
@@ -47,7 +49,7 @@
 	let filteredUsers: UserWithNum[] = $derived(
 		users
 			.map((u, i) => Object.assign(clone(UserSchema, u), { num: i + 1 }))
-			.sort((a, b) => defaultSortBy(a, b, sortKey, sortDescending))
+			.sort((a, b) => defaultSortBy(a, b, sortKey, sortDescending, columns))
 			.filter((i) => i.username.toLowerCase().indexOf(search.toLowerCase()) != -1)
 	);
 
@@ -104,10 +106,10 @@
 						>{/if}
 				{:else if column.key == 'role'}
 					{enumToString(UserRole, row.role)}
+				{:else if column.key == 'lastLogin' && cell}
+					{timestampToString(row.lastLogin)}
 				{:else if column.key == 'createdAt'}
 					{timestampToString(row.createdAt)}
-				{:else if column.key == 'lastLogin' && cell}
-					{timestampToString(row.updatedAt)}
 				{:else}
 					{cell}
 				{/if}

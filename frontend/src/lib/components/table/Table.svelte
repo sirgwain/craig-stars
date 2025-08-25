@@ -34,6 +34,8 @@
 
 		if (typeof aField === 'number' && typeof bField === 'number')
 			return (aField as number) - (bField as number);
+		if (typeof aField === 'bigint' && typeof bField === 'bigint')
+			return Number((aField as bigint) - (bField as bigint));
 		if (typeof aField === 'boolean' && typeof bField === 'boolean')
 			return aField === bField ? 0 : aField ? -1 : 1;
 
