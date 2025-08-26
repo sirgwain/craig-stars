@@ -280,106 +280,6 @@ func (q *Queries) DeletePlayer(ctx context.Context, id int64) (int64, error) {
 	return result.RowsAffected()
 }
 
-const DeleteTransientFleets = `-- name: DeleteTransientFleets :execrows
-DELETE FROM fleets
-WHERE
-    game_id = ?
-    AND intel_player_num = ?
-`
-
-type DeleteTransientFleetsParams struct {
-	GameID         int64
-	IntelPlayerNum int64
-}
-
-func (q *Queries) DeleteTransientFleets(ctx context.Context, arg DeleteTransientFleetsParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, DeleteTransientFleets, arg.GameID, arg.IntelPlayerNum)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
-const DeleteTransientMinefields = `-- name: DeleteTransientMinefields :execrows
-DELETE FROM minefields
-WHERE
-    game_id = ?
-    AND intel_player_num = ?
-`
-
-type DeleteTransientMinefieldsParams struct {
-	GameID         int64
-	IntelPlayerNum int64
-}
-
-func (q *Queries) DeleteTransientMinefields(ctx context.Context, arg DeleteTransientMinefieldsParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, DeleteTransientMinefields, arg.GameID, arg.IntelPlayerNum)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
-const DeleteTransientMineralPackets = `-- name: DeleteTransientMineralPackets :execrows
-DELETE FROM mineral_packets
-WHERE
-    game_id = ?
-    AND intel_player_num = ?
-`
-
-type DeleteTransientMineralPacketsParams struct {
-	GameID         int64
-	IntelPlayerNum int64
-}
-
-func (q *Queries) DeleteTransientMineralPackets(ctx context.Context, arg DeleteTransientMineralPacketsParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, DeleteTransientMineralPackets, arg.GameID, arg.IntelPlayerNum)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
-const DeleteTransientMysteryTraders = `-- name: DeleteTransientMysteryTraders :execrows
-DELETE FROM mystery_traders
-WHERE
-    game_id = ?
-    AND intel_player_num = ?
-`
-
-type DeleteTransientMysteryTradersParams struct {
-	GameID         int64
-	IntelPlayerNum int64
-}
-
-func (q *Queries) DeleteTransientMysteryTraders(ctx context.Context, arg DeleteTransientMysteryTradersParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, DeleteTransientMysteryTraders, arg.GameID, arg.IntelPlayerNum)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
-const DeleteTransientSalvages = `-- name: DeleteTransientSalvages :execrows
-DELETE FROM salvages
-WHERE
-    game_id = ?
-    AND intel_player_num = ?
-`
-
-type DeleteTransientSalvagesParams struct {
-	GameID         int64
-	IntelPlayerNum int64
-}
-
-func (q *Queries) DeleteTransientSalvages(ctx context.Context, arg DeleteTransientSalvagesParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, DeleteTransientSalvages, arg.GameID, arg.IntelPlayerNum)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
 const GetLightPlayerForGame = `-- name: GetLightPlayerForGame :one
 SELECT
     id,
@@ -619,7 +519,7 @@ func (q *Queries) GetPlayer(ctx context.Context, id int64) (Player, error) {
 const GetPlayerForGame = `-- name: GetPlayerForGame :many
 SELECT
     p.id, p.created_at, p.updated_at, p.game_id, p.user_id, p.name, p.num, p.ready, p.ai_controlled, p.submitted_turn, p.color, p.default_hull_set, p.tech_levels_energy, p.tech_levels_weapons, p.tech_levels_propulsion, p.tech_levels_construction, p.tech_levels_electronics, p.tech_levels_biotechnology, p.tech_levels_spent_energy, p.tech_levels_spent_weapons, p.tech_levels_spent_propulsion, p.tech_levels_spent_construction, p.tech_levels_spent_electronics, p.tech_levels_spent_biotechnology, p.research_amount, p.research_spent_last_year, p.next_research_field, p.researching, p.battle_plans, p.production_plans, p.transport_plans, p.relations, p.cargo_transfers, p.messages, p.battle_records, p.player_intels, p.score_intels, p.planet_intels, p.fleet_intels, p.ship_design_intels, p.mineral_packet_intels, p.minefield_intels, p.wormhole_intels, p.mystery_trader_intels, p.salvage_intels, p.race, p.stats, p.score_history, p.achieved_victory_conditions, p.victor, p.guest, p.ai_difficulty, p.acquired_techs, p.archived,
-    d.id, d.created_at, d.updated_at, d.game_id, d.intel_player_num, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
+    d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
 FROM
     players p
     LEFT JOIN ship_designs d ON p.game_id = d.game_id
@@ -642,7 +542,6 @@ type GetPlayerForGameRow struct {
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
 	GameID            sql.NullInt64
-	IntelPlayerNum    sql.NullInt64
 	Num               sql.NullInt64
 	PlayerNum         sql.NullInt64
 	Name              sql.NullString
@@ -725,7 +624,6 @@ func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGamePara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
-			&i.IntelPlayerNum,
 			&i.Num,
 			&i.PlayerNum,
 			&i.Name,
@@ -1175,7 +1073,7 @@ func (q *Queries) GetPlayersStatusForGame(ctx context.Context, gameID int64) ([]
 const GetPlayersWithDesignsForGame = `-- name: GetPlayersWithDesignsForGame :many
 SELECT
     p.id, p.created_at, p.updated_at, p.game_id, p.user_id, p.name, p.num, p.ready, p.ai_controlled, p.submitted_turn, p.color, p.default_hull_set, p.tech_levels_energy, p.tech_levels_weapons, p.tech_levels_propulsion, p.tech_levels_construction, p.tech_levels_electronics, p.tech_levels_biotechnology, p.tech_levels_spent_energy, p.tech_levels_spent_weapons, p.tech_levels_spent_propulsion, p.tech_levels_spent_construction, p.tech_levels_spent_electronics, p.tech_levels_spent_biotechnology, p.research_amount, p.research_spent_last_year, p.next_research_field, p.researching, p.battle_plans, p.production_plans, p.transport_plans, p.relations, p.cargo_transfers, p.messages, p.battle_records, p.player_intels, p.score_intels, p.planet_intels, p.fleet_intels, p.ship_design_intels, p.mineral_packet_intels, p.minefield_intels, p.wormhole_intels, p.mystery_trader_intels, p.salvage_intels, p.race, p.stats, p.score_history, p.achieved_victory_conditions, p.victor, p.guest, p.ai_difficulty, p.acquired_techs, p.archived,
-    d.id, d.created_at, d.updated_at, d.game_id, d.intel_player_num, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
+    d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
 FROM
     players p
     LEFT JOIN ship_designs d ON p.game_id = d.game_id
@@ -1193,7 +1091,6 @@ type GetPlayersWithDesignsForGameRow struct {
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
 	GameID            sql.NullInt64
-	IntelPlayerNum    sql.NullInt64
 	Num               sql.NullInt64
 	PlayerNum         sql.NullInt64
 	Name              sql.NullString
@@ -1276,7 +1173,6 @@ func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameID int64
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
-			&i.IntelPlayerNum,
 			&i.Num,
 			&i.PlayerNum,
 			&i.Name,

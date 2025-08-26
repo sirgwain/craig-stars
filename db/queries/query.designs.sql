@@ -48,7 +48,6 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
-        intel_player_num,
         num,
         player_num,
         original_player_num,
@@ -78,7 +77,6 @@ VALUES
         ?,
         ?,
         ?,
-        ?,
         ?
     );
 
@@ -87,7 +85,6 @@ UPDATE ship_designs
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
-    intel_player_num = ?,
     num = ?,
     player_num = ?,
     original_player_num = ?,

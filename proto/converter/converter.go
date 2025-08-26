@@ -599,10 +599,9 @@ func CSGameDBObjectToGameDBObject(source cs.GameDBObject) *craig_starsv1.GameDBO
 		return nil
 	}
 	return &craig_starsv1.GameDBObject{
-		Id:             source.ID,
-		GameId:         source.GameID,
-		IntelPlayerNum: int32(source.IntelPlayerNum),
-		CreatedAt:      TimeToTimestamp(source.CreatedAt),
-		UpdatedAt:      TimeToTimestamp(source.UpdatedAt),
+		Id:        source.ID,
+		GameId:    source.GameID,
+		CreatedAt: TimeToTimestamp(source.CreatedAt),
+		UpdatedAt: TimeToTimestamp(source.UpdatedAt),
 	}
 }

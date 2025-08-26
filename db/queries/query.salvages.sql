@@ -51,7 +51,6 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
-        intel_player_num,
         report_age,
         x,
         y,
@@ -77,7 +76,6 @@ VALUES
         ?,
         ?,
         ?,
-        ?,
         ?
     );
 
@@ -86,7 +84,6 @@ UPDATE salvages
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
-    intel_player_num = ?,
     report_age = ?,
     x = ?,
     y = ?,

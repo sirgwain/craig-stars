@@ -468,33 +468,3 @@ WHERE
 DELETE FROM players
 WHERE
     id = ?;
-
--- name: DeleteTransientFleets :execrows
-DELETE FROM fleets
-WHERE
-    game_id = ?
-    AND intel_player_num = ?;
-
--- name: DeleteTransientMinefields :execrows
-DELETE FROM minefields
-WHERE
-    game_id = ?
-    AND intel_player_num = ?;
-
--- name: DeleteTransientSalvages :execrows
-DELETE FROM salvages
-WHERE
-    game_id = ?
-    AND intel_player_num = ?;
-
--- name: DeleteTransientMineralPackets :execrows
-DELETE FROM mineral_packets
-WHERE
-    game_id = ?
-    AND intel_player_num = ?;
-
--- name: DeleteTransientMysteryTraders :execrows
-DELETE FROM mystery_traders
-WHERE
-    game_id = ?
-    AND intel_player_num = ?;

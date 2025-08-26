@@ -183,9 +183,8 @@ message DBObject {
 message GameDBObject {
   int64 id = 1;
   int64 game_id = 2;
-  int32 intel_player_num = 3;
-  google.protobuf.Timestamp created_at = 4;
-  google.protobuf.Timestamp updated_at = 5;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
 }
 
 message MapObject {

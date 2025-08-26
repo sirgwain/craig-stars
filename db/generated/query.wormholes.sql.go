@@ -16,7 +16,6 @@ INSERT INTO
     wormholes (
         created_at,
         updated_at,
-        intel_player_num,
         report_age,
         game_id,
         x,
@@ -43,13 +42,11 @@ VALUES
         ?,
         ?,
         ?,
-        ?,
         ?
     )
 `
 
 type CreateWormholeParams struct {
-	IntelPlayerNum   int64
 	ReportAge        int64
 	GameID           int64
 	X                float64
@@ -65,7 +62,6 @@ type CreateWormholeParams struct {
 
 func (q *Queries) CreateWormhole(ctx context.Context, arg CreateWormholeParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, CreateWormhole,
-		arg.IntelPlayerNum,
 		arg.ReportAge,
 		arg.GameID,
 		arg.X,
@@ -100,7 +96,7 @@ func (q *Queries) DeleteWormhole(ctx context.Context, id int64) (int64, error) {
 
 const GetWormhole = `-- name: GetWormhole :one
 SELECT
-    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
 FROM
     wormholes
 WHERE
@@ -116,7 +112,6 @@ func (q *Queries) GetWormhole(ctx context.Context, id int64) (Wormhole, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
-		&i.IntelPlayerNum,
 		&i.ReportAge,
 		&i.X,
 		&i.Y,
@@ -133,7 +128,7 @@ func (q *Queries) GetWormhole(ctx context.Context, id int64) (Wormhole, error) {
 
 const GetWormholeByNum = `-- name: GetWormholeByNum :one
 SELECT
-    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
 FROM
     wormholes
 WHERE
@@ -154,7 +149,6 @@ func (q *Queries) GetWormholeByNum(ctx context.Context, arg GetWormholeByNumPara
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
-		&i.IntelPlayerNum,
 		&i.ReportAge,
 		&i.X,
 		&i.Y,
@@ -171,7 +165,7 @@ func (q *Queries) GetWormholeByNum(ctx context.Context, arg GetWormholeByNumPara
 
 const GetWormholes = `-- name: GetWormholes :many
 SELECT
-    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
 FROM
     wormholes
 `
@@ -190,7 +184,6 @@ func (q *Queries) GetWormholes(ctx context.Context) ([]Wormhole, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
-			&i.IntelPlayerNum,
 			&i.ReportAge,
 			&i.X,
 			&i.Y,
@@ -217,7 +210,7 @@ func (q *Queries) GetWormholes(ctx context.Context) ([]Wormhole, error) {
 
 const GetWormholesForGame = `-- name: GetWormholesForGame :many
 SELECT
-    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
 FROM
     wormholes
 WHERE
@@ -240,7 +233,6 @@ func (q *Queries) GetWormholesForGame(ctx context.Context, gameID int64) ([]Worm
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
-			&i.IntelPlayerNum,
 			&i.ReportAge,
 			&i.X,
 			&i.Y,
@@ -270,7 +262,6 @@ UPDATE wormholes
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
-    intel_player_num = ?,
     report_age = ?,
     x = ?,
     y = ?,
@@ -287,7 +278,6 @@ WHERE
 
 type UpdateWormholeParams struct {
 	GameID           int64
-	IntelPlayerNum   int64
 	ReportAge        int64
 	X                float64
 	Y                float64
@@ -304,7 +294,6 @@ type UpdateWormholeParams struct {
 func (q *Queries) UpdateWormhole(ctx context.Context, arg UpdateWormholeParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, UpdateWormhole,
 		arg.GameID,
-		arg.IntelPlayerNum,
 		arg.ReportAge,
 		arg.X,
 		arg.Y,

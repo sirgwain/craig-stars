@@ -365,7 +365,7 @@ func (m *GameDBObject) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= size
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x22
 	}
 	if m.CreatedAt != nil {
 		size, err := (*timestamppb.Timestamp)(m.CreatedAt).MarshalToSizedBufferVT(dAtA[:i])
@@ -375,12 +375,7 @@ func (m *GameDBObject) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= size
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
 		i--
-		dAtA[i] = 0x22
-	}
-	if m.IntelPlayerNum != 0 {
-		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.IntelPlayerNum))
-		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x1a
 	}
 	if m.GameId != 0 {
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.GameId))
@@ -795,9 +790,6 @@ func (m *GameDBObject) SizeVT() (n int) {
 	}
 	if m.GameId != 0 {
 		n += 1 + protohelpers.SizeOfVarint(uint64(m.GameId))
-	}
-	if m.IntelPlayerNum != 0 {
-		n += 1 + protohelpers.SizeOfVarint(uint64(m.IntelPlayerNum))
 	}
 	if m.CreatedAt != nil {
 		l = (*timestamppb.Timestamp)(m.CreatedAt).SizeVT()
@@ -1675,25 +1667,6 @@ func (m *GameDBObject) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IntelPlayerNum", wireType)
-			}
-			m.IntelPlayerNum = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protohelpers.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.IntelPlayerNum |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CreatedAt", wireType)
 			}
@@ -1729,7 +1702,7 @@ func (m *GameDBObject) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 5:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UpdatedAt", wireType)
 			}

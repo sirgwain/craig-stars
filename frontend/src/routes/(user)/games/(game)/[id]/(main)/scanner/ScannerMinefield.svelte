@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Minefield } from '$lib/types/cs-proto';
-	import { key } from '$lib/types/MapObject';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 

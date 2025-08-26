@@ -1273,14 +1273,13 @@ func (x *DBObject) GetUpdatedAt() *timestamppb.Timestamp {
 }
 
 type GameDBObject struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	GameId         int64                  `protobuf:"varint,2,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
-	IntelPlayerNum int32                  `protobuf:"varint,3,opt,name=intel_player_num,json=intelPlayerNum,proto3" json:"intel_player_num,omitempty"`
-	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	GameId        int64                  `protobuf:"varint,2,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GameDBObject) Reset() {
@@ -1323,13 +1322,6 @@ func (x *GameDBObject) GetId() int64 {
 func (x *GameDBObject) GetGameId() int64 {
 	if x != nil {
 		return x.GameId
-	}
-	return 0
-}
-
-func (x *GameDBObject) GetIntelPlayerNum() int32 {
-	if x != nil {
-		return x.IntelPlayerNum
 	}
 	return 0
 }
@@ -1683,15 +1675,14 @@ const file_craig_stars_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xd7\x01\n" +
+	"updated_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xad\x01\n" +
 	"\fGameDBObject\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
-	"\agame_id\x18\x02 \x01(\x03R\x06gameId\x12(\n" +
-	"\x10intel_player_num\x18\x03 \x01(\x05R\x0eintelPlayerNum\x129\n" +
+	"\agame_id\x18\x02 \x01(\x03R\x06gameId\x129\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xc8\x02\n" +
+	"updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xc8\x02\n" +
 	"\tMapObject\x121\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x1d.craig_stars.v1.MapObjectTypeR\x04type\x122\n" +
 	"\bposition\x18\x02 \x01(\v2\x16.craig_stars.v1.VectorR\bposition\x12\x10\n" +

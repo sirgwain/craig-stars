@@ -15,7 +15,6 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
-        intel_player_num,
         report_age,
         x,
         y,
@@ -41,30 +40,27 @@ VALUES
         ?,
         ?,
         ?,
-        ?,
         ?
     )
 `
 
 type CreateSalvageParams struct {
-	GameID         int64
-	IntelPlayerNum int64
-	ReportAge      int64
-	X              float64
-	Y              float64
-	Name           string
-	Num            int64
-	PlayerNum      int64
-	Tags           *Tags
-	Ironium        int64
-	Boranium       int64
-	Germanium      int64
+	GameID    int64
+	ReportAge int64
+	X         float64
+	Y         float64
+	Name      string
+	Num       int64
+	PlayerNum int64
+	Tags      *Tags
+	Ironium   int64
+	Boranium  int64
+	Germanium int64
 }
 
 func (q *Queries) CreateSalvage(ctx context.Context, arg CreateSalvageParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, CreateSalvage,
 		arg.GameID,
-		arg.IntelPlayerNum,
 		arg.ReportAge,
 		arg.X,
 		arg.Y,
@@ -98,7 +94,7 @@ func (q *Queries) DeleteSalvage(ctx context.Context, id int64) (int64, error) {
 
 const GetSalvage = `-- name: GetSalvage :one
 SELECT
-    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
 FROM
     salvages
 WHERE
@@ -114,7 +110,6 @@ func (q *Queries) GetSalvage(ctx context.Context, id int64) (Salvage, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
-		&i.IntelPlayerNum,
 		&i.ReportAge,
 		&i.X,
 		&i.Y,
@@ -131,7 +126,7 @@ func (q *Queries) GetSalvage(ctx context.Context, id int64) (Salvage, error) {
 
 const GetSalvageByNum = `-- name: GetSalvageByNum :one
 SELECT
-    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
 FROM
     salvages
 WHERE
@@ -152,7 +147,6 @@ func (q *Queries) GetSalvageByNum(ctx context.Context, arg GetSalvageByNumParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
-		&i.IntelPlayerNum,
 		&i.ReportAge,
 		&i.X,
 		&i.Y,
@@ -169,7 +163,7 @@ func (q *Queries) GetSalvageByNum(ctx context.Context, arg GetSalvageByNumParams
 
 const GetSalvages = `-- name: GetSalvages :many
 SELECT
-    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
 FROM
     salvages
 `
@@ -188,7 +182,6 @@ func (q *Queries) GetSalvages(ctx context.Context) ([]Salvage, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
-			&i.IntelPlayerNum,
 			&i.ReportAge,
 			&i.X,
 			&i.Y,
@@ -215,7 +208,7 @@ func (q *Queries) GetSalvages(ctx context.Context) ([]Salvage, error) {
 
 const GetSalvagesForGame = `-- name: GetSalvagesForGame :many
 SELECT
-    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
 FROM
     salvages
 WHERE
@@ -238,7 +231,6 @@ func (q *Queries) GetSalvagesForGame(ctx context.Context, gameID int64) ([]Salva
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
-			&i.IntelPlayerNum,
 			&i.ReportAge,
 			&i.X,
 			&i.Y,
@@ -265,7 +257,7 @@ func (q *Queries) GetSalvagesForGame(ctx context.Context, gameID int64) ([]Salva
 
 const GetSalvagesForPlayer = `-- name: GetSalvagesForPlayer :many
 SELECT
-    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, ironium, boranium, germanium, tags
 FROM
     salvages
 WHERE
@@ -294,7 +286,6 @@ func (q *Queries) GetSalvagesForPlayer(ctx context.Context, arg GetSalvagesForPl
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
-			&i.IntelPlayerNum,
 			&i.ReportAge,
 			&i.X,
 			&i.Y,
@@ -324,7 +315,6 @@ UPDATE salvages
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
-    intel_player_num = ?,
     report_age = ?,
     x = ?,
     y = ?,
@@ -340,25 +330,23 @@ WHERE
 `
 
 type UpdateSalvageParams struct {
-	GameID         int64
-	IntelPlayerNum int64
-	ReportAge      int64
-	X              float64
-	Y              float64
-	Name           string
-	Num            int64
-	PlayerNum      int64
-	Tags           *Tags
-	Ironium        int64
-	Boranium       int64
-	Germanium      int64
-	ID             int64
+	GameID    int64
+	ReportAge int64
+	X         float64
+	Y         float64
+	Name      string
+	Num       int64
+	PlayerNum int64
+	Tags      *Tags
+	Ironium   int64
+	Boranium  int64
+	Germanium int64
+	ID        int64
 }
 
 func (q *Queries) UpdateSalvage(ctx context.Context, arg UpdateSalvageParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, UpdateSalvage,
 		arg.GameID,
-		arg.IntelPlayerNum,
 		arg.ReportAge,
 		arg.X,
 		arg.Y,

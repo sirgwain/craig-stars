@@ -3504,7 +3504,6 @@ func (c *ProtoConverter) pCraig_starsv1GameDBObjectToCsGameDBObject(source *v1.G
 		var csGameDBObject2 cs.GameDBObject
 		csGameDBObject2.ID = (*source).Id
 		csGameDBObject2.GameID = (*source).GameId
-		csGameDBObject2.IntelPlayerNum = Int32ToInt((*source).IntelPlayerNum)
 		csGameDBObject2.CreatedAt = TimestampToTime((*source).CreatedAt)
 		csGameDBObject2.UpdatedAt = TimestampToTime((*source).UpdatedAt)
 		csGameDBObject = csGameDBObject2

@@ -16,11 +16,10 @@ type DBObject struct {
 
 // A GameObject is a database object that is associated with a game.
 type GameDBObject struct {
-	ID             int64     `json:"id,omitempty"`
-	GameID         int64     `json:"gameId,omitempty"`
-	IntelPlayerNum int       `json:"intelPlayerNum,omitempty"`
-	CreatedAt      time.Time `json:"createdAt,omitempty"`
-	UpdatedAt      time.Time `json:"updatedAt,omitempty"`
+	ID        int64     `json:"id,omitempty"`
+	GameID    int64     `json:"gameId,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 }
 
 // Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum
