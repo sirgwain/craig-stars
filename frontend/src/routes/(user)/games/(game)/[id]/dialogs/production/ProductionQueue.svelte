@@ -281,17 +281,27 @@
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
 				queueItems = queueItems.filter((item) => item != selectedQueueItem);
-				selectedQueueItem =
-					queueItems[selectedQueueItemIndex > 0 ? selectedQueueItemIndex - 1 : 0];
-				selectedQueueItemCost = await $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem.quantity
-				);
-
-				selectedQueueItemIndex--;
+				if (queueItems.length > 0) {
+					if (selectedQueueItemIndex > 0 && selectedQueueItemIndex < queueItems.length - 1) {
+						selectedQueueItem = queueItems[selectedQueueItemIndex - 1];
+					} else if (selectedQueueItemIndex >= queueItems.length) {
+						selectedQueueItem = queueItems[queueItems.length - 1];
+						selectedQueueItemIndex = queueItems.length - 1;
+					} else {
+						selectedQueueItem = queueItems[0];
+					}
+					selectedQueueItemCost = await $player.getItemCost(
+						cs,
+						selectedQueueItem,
+						$universe,
+						planet,
+						selectedQueueItem.quantity
+					);
+				} else {
+					// no items left, clear
+					selectedQueueItemIndex = -1;
+					selectedQueueItem = undefined;
+				}
 			}
 			updateQueueEstimates();
 		}
