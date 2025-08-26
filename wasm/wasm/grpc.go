@@ -5,8 +5,6 @@ package wasm
 import (
 	"context"
 	"syscall/js"
-
-	"github.com/rs/zerolog/log"
 )
 
 // HandleGRPCCall handles grpc calls through the wasm transport
@@ -20,8 +18,8 @@ func HandleGRPCCall(args []js.Value) any {
 		reqBytes := make([]byte, input.Get("byteLength").Int())
 		js.CopyBytesToGo(reqBytes, input)
 
-		if log.Debug().Enabled() {
-			log.Debug().Msgf("calling %s", method)
+		if debug {
+			println(method)
 		}
 		resBytes, err := serviceHandler.Call(context.Background(), method, reqBytes)
 
