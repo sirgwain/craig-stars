@@ -9,8 +9,8 @@ import (
 )
 
 type Wormhole struct {
-	GameDBObject     `tstype:",extends"`
-	MapObject        `tstype:",extends"`
+	GameDBObject
+	MapObject
 	DestinationNum   int               `json:"destinationNum,omitempty"`
 	Stability        WormholeStability `json:"stability,omitempty"`
 	YearsAtStability int               `json:"yearsAtStability,omitempty"`

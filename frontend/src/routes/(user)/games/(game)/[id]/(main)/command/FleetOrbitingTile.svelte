@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/cs';
+	import { None } from '$lib/types/Consts';
 	import { canTransferCargo, type CommandedFleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
 	import CommandTile from './CommandTile.svelte';
@@ -34,7 +34,7 @@
 </script>
 
 {#if fleet}
-	<CommandTile title={planet ? `Orbiting ${planet.name}` : 'In Deep Space'}>
+	<CommandTile title={planet ? `Orbiting ${planet.mapObject?.name}` : 'In Deep Space'}>
 		<div class="flex justify-between my-1 btn-group">
 			<button
 				onclick={gotoTarget}

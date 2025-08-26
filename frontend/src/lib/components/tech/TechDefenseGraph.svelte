@@ -1,7 +1,6 @@
 <script lang="ts">
+	import type { TechDefense } from '$lib/types/cs-proto';
 	import { getDefenseCoverage, getSmartDefenseCoverage } from '$lib/types/Tech';
-
-	import type { TechDefense } from '$lib/types/cs';
 	import { scaleOrdinal } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
 	import AxisX from '../graph/AxisX.html.svelte';
@@ -31,17 +30,15 @@
 			Standard: [],
 			Smart: []
 		};
-		if (defense) {
-			for (let i = 0; i <= 100; i += 100 / (numTicks - 1)) {
-				data['Standard'].push({
-					defenses: i,
-					coverage: getDefenseCoverage(defense, i) * 100
-				});
-				data['Smart'].push({
-					defenses: i,
-					coverage: getSmartDefenseCoverage(defense, i) * 100
-				});
-			}
+		for (let i = 0; i <= 100; i += 100 / (numTicks - 1)) {
+			data['Standard'].push({
+				defenses: i,
+				coverage: getDefenseCoverage(defense, i) * 100
+			});
+			data['Smart'].push({
+				defenses: i,
+				coverage: getSmartDefenseCoverage(defense, i) * 100
+			});
 		}
 
 		return data;

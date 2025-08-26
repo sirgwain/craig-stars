@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PlayerMessage } from '$lib/types/cs';
+	import type { PlayerMessage } from '$lib/types/cs-proto';
 
 	type Props = {
 		message: PlayerMessage;
@@ -8,9 +8,9 @@
 	let { message }: Props = $props();
 </script>
 
-{#if message.spec.amount == 1}
-	One of your ships in {message.targetName} was destroyed when its engines over-reacted trying to achieve
-	Warp 10.
+{#if message.spec?.amount == 1}
+	One of your ships in {message.target?.targetName} was destroyed when its engines over-reacted trying
+	to achieve Warp 10.
 {:else}
-	{message.spec.amount} of your ships in {message.targetName} were destroyed due to engine strain.
+	{message.spec?.amount} of your ships in {message.target?.targetName} were destroyed due to engine strain.
 {/if}

@@ -3,42 +3,33 @@
 	import { page } from '$app/state';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
-	import { GameService } from '$lib/services/GameService';
-	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
+	import { gameClient } from '$lib/services/connect';
+	import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '$lib/types/Game';
 	import { humanoid } from '$lib/types/Race';
-	import { RoleGuest, type GameWithPlayers } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
+	import { UserRole } from '$lib/types/cs-proto';
 
-	let game: GameWithPlayers | undefined = $state();
+	let game: GameWithPlayersFlat | undefined = $state();
 	let race = $state(humanoid());
 	let name = $state($me.username);
 
 	onMount(async () => {
-		game = await GameService.loadGameByHash(page.params.hash);
+		const resp = await gameClient.getGameByInviteHash({ hash: page.params.hash });
+		if (resp.game) {
+			game = getGameWithPlayersFlat(resp.game);
+		}
 	});
 
 	const onSubmit = async () => {
 		if (game) {
-			const data = JSON.stringify({ race, name });
-
-			const response = await fetch(`/api/games/${game.id}/join`, {
-				method: 'POST',
-				headers: {
-					accept: 'application/json'
-				},
-				body: data
-			});
-
-			if (!response.ok) {
-				await Service.throwError(response);
-			}
+			await gameClient.joinGame({ gameId: game.id, name, race });
 			goto(`/games/${game.id}`);
 		}
 	};
 
-	let valid = $derived(!!(game && (game.openPlayerSlots ?? 0) > 0));
+	let valid = $derived(!!(game && game.openPlayerSlots > 0));
 </script>
 
 <ItemTitle>Join Private Game</ItemTitle>
@@ -54,7 +45,7 @@
 			onSubmit();
 		}}
 	>
-		{#if $me.role === RoleGuest}
+		{#if $me.role === UserRole.GUEST}
 			<label class="label" for="name">Name</label>
 			<input name="name" bind:value={name} class="input input-bordered" />
 		{/if}
@@ -62,7 +53,7 @@
 			<PlayerChooser
 				raceUpdated={(updated, raceValid) => {
 					race = updated;
-					valid = raceValid && !!(game && (game.openPlayerSlots ?? 0) > 0);
+					valid = raceValid && !!(game && game.openPlayerSlots > 0);
 				}}
 			/>
 		</fieldset>

@@ -44,13 +44,11 @@
 			tokens.filter((t) => !(t.ranAway || (t.destroyedPhase && phase > t.destroyedPhase))).length >
 				0
 		) {
-			tokenIndex = tokenIndex % (tokens?.length ?? 0);
+			tokenIndex = tokenIndex % tokens.length;
 			const token = tokens[tokenIndex];
-			if (token) {
-				const design = designFinder.getDesign(token.playerNum, token.designNum);
-				if (design) {
-					return getHullIcon(design);
-				}
+			const design = designFinder.getDesign(token.playerNum, token.designNum);
+			if (design) {
+				return getHullIcon(design);
 			}
 		}
 		return '';
@@ -83,10 +81,8 @@
 			class="w-full h-full cursor-pointer"
 			aria-label="Selects the token on the board"
 			onclick={() => {
-				if (tokens) {
-					const newTokenIndex = selected ? (tokenIndex + 1) % (tokens?.length ?? 0) : tokenIndex;
-					onSelected?.(tokens[newTokenIndex]);
-				}
+				const newTokenIndex = selected ? (tokenIndex + 1) % tokens.length : tokenIndex;
+				onSelected?.(tokens[newTokenIndex]);
 			}}
 		></button>
 	{/if}

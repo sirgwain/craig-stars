@@ -1,5 +1,4 @@
-import { WaypointTaskNone } from './cs';
-import type { AnyFleet } from '$lib/services/Universe';
+import { WaypointTask, type Fleet } from './cs-proto';
 import type { CommandedPlayer } from './Player';
 
 export type FilterOptions = {
@@ -28,7 +27,7 @@ export const ShipClasses = {
 
 export function filterFleet(
 	player: CommandedPlayer,
-	fleet: AnyFleet,
+	fleet: Fleet,
 	options: FilterOptions
 ): boolean {
 	return (
@@ -40,7 +39,7 @@ export function filterFleet(
 }
 
 // This shows only your fleets that have no movement orders, and any active enemy ships (so you can match one with the other, if you wish).
-export function filterIdleFleet(fleet: AnyFleet, enabled: boolean): boolean {
+export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 	if (!enabled) {
 		// no filter, show all fleets
 		return true;
@@ -48,10 +47,9 @@ export function filterIdleFleet(fleet: AnyFleet, enabled: boolean): boolean {
 
 	// show our fleets that are idle
 	if (
-		'waypoints' in fleet &&
-		fleet.waypoints &&
-		fleet.waypoints.length == 1 &&
-		fleet.waypoints[0].task == WaypointTaskNone
+		fleet.fleetOrders?.waypoints &&
+		fleet.fleetOrders?.waypoints.length == 1 &&
+		fleet.fleetOrders?.waypoints[0].task == WaypointTask.UNSPECIFIED
 	) {
 		return true;
 	}
@@ -67,13 +65,13 @@ export function filterIdleFleet(fleet: AnyFleet, enabled: boolean): boolean {
 
 export function filterMyDesigns(
 	player: CommandedPlayer,
-	fleet: AnyFleet,
+	fleet: Fleet,
 	enabled: boolean,
 	// TODO: add suport for showDesigns
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	showDesigns: string[]
 ): boolean {
-	if (!enabled || fleet.playerNum !== player.num) {
+	if (!enabled || fleet.mapObject?.playerNum !== player.num) {
 		// no filter or not my fleet, show it (it may be filtered by a different function)
 		return true;
 	}
@@ -83,13 +81,13 @@ export function filterMyDesigns(
 
 export function filterEnemyDesigns(
 	player: CommandedPlayer,
-	fleet: AnyFleet,
+	fleet: Fleet,
 	enabled: boolean,
 	// TODO: add suport for showShipClasses
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	showShipClasses: ShipClass[]
 ): boolean {
-	if (!enabled || !player.isEnemy(fleet.playerNum)) {
+	if (!enabled || !player.isEnemy(fleet.mapObject?.playerNum ?? 0)) {
 		// no filter or not an enemy fleet, show it (it may be filtered by a different function)
 		return true;
 	}
@@ -99,13 +97,17 @@ export function filterEnemyDesigns(
 
 export function filterAllyDesigns(
 	player: CommandedPlayer,
-	fleet: AnyFleet,
+	fleet: Fleet,
 	enabled: boolean,
 	// TODO: add suport for showShipClasses
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	showShipClasses: ShipClass[]
 ): boolean {
-	if (!enabled || player.num == fleet.playerNum || !player.isFriend(fleet.playerNum)) {
+	if (
+		!enabled ||
+		player.num == fleet.mapObject?.playerNum ||
+		!player.isFriend(fleet.mapObject?.playerNum)
+	) {
 		// no filter or not a friendly fleet, show it (it may be filtered by a different function)
 		return true;
 	}

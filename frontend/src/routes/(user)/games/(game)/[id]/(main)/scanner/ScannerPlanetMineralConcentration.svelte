@@ -1,13 +1,14 @@
 <script lang="ts">
+	import type { Planet } from '$lib/types/cs-proto';
 	import { clamp } from '$lib/services/Math';
-	import { ReportAgeUnexplored, type PlanetIntel } from '$lib/types/cs';
+	import { ReportAgeUnexplored } from '$lib/types/Consts';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
 	let max = 100; // 100% concentration
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: Planet;
 	};
 
 	let { planet }: Props = $props();
@@ -41,7 +42,7 @@
 </script>
 
 <ScannerPlanetNormal {planet} />
-{#if planet.reportAge !== ReportAgeUnexplored}
+{#if planet.mapObject?.reportAge !== ReportAgeUnexplored}
 	<MapObjectScaler mapObject={planet}>
 		<rect
 			class="ironium-bar"

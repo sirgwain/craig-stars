@@ -11,7 +11,7 @@ import (
 // during universe generation, and they can add new designs in the UI.
 // Deleting a design deletes all fleets associated with it.
 type ShipDesign struct {
-	GameDBObject      `tstype:",extends"`
+	GameDBObject
 	Num               int               `json:"num,omitempty"`
 	PlayerNum         int               `json:"playerNum"`
 	OriginalPlayerNum int               `json:"originalPlayerNum"`
@@ -393,7 +393,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			// TODO: Add support for multiple engine "slots"
 			// (all would have to share the same engine type)
 			if hullSlot.Type == HullSlotTypeEngine {
-				engine := rules.techs.GetEngine(slot.HullComponent)
+				engine := rules.techs.GetHullComponent(slot.HullComponent)
 				spec.Engine = engine.Engine
 				spec.NumEngines = slot.Quantity
 			}

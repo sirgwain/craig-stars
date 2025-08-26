@@ -17,16 +17,19 @@
 	{/snippet}
 </Breadcrumb>
 <ul class="px-1">
-	{#each $techs.hulls as hull (hull.name)}
-		{#if $player && canLearnTech($game.player, hull) && hasRequiredLevels($player.techLevels, hull.requirements)}
+	{#each $techs.hulls as hull (hull.tech?.name)}
+		{#if canLearnTech($player, hull) && hasRequiredLevels($player.techLevels, hull.tech?.requirements?.techLevel)}
 			<li>
-				<a class="cs-link" href={`/games/${$game.id}/designer/create/${kebabCase(hull.name)}`}>
+				<a
+					class="cs-link"
+					href={`/games/${$game.id}/designer/create/${kebabCase(hull.tech?.name)}`}
+				>
 					<div class="flex flex-row place-items-center">
 						<div class="mr-2 mb-2 border border-secondary bg-black p-1">
 							<TechAvatar tech={hull} />
 						</div>
 						<div>
-							{hull.name}
+							{hull.tech?.name}
 						</div>
 					</div>
 				</a>

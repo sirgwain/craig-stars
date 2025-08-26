@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { addError } from '$lib/services/Errors';
 	import type {
 		BattlePlanChangedEvent,
 		CargoTransferDialogEvent,
@@ -17,15 +18,16 @@
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absoluteSize } from '$lib/types/CargoTransferRequest.svelte';
+	import { MapObjectType, type WaypointDest } from '$lib/types/cs-proto';
 	import {
-		MapObjectTypeNone,
-		MapObjectTypePlanet,
-		None,
-		type MapObject,
-		type WaypointDest
-	} from '$lib/types/cs';
-	import { commandable, equal as mapObjectEqual, ownedBy } from '$lib/types/MapObject';
-	import { equal } from '$lib/types/Vector';
+		commandable,
+		equal as mapObjectEqual,
+		ownedBy,
+		type MapObjectLike
+	} from '$lib/types/MapObject';
+	import { None } from '$lib/types/Consts';
+	import { emptyVector, equal } from '$lib/types/Vector';
+	import type { ConnectError } from '@connectrpc/connect';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 	import CargoTranfserDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
@@ -141,8 +143,8 @@
 		const wp = e.waypoint;
 		selectWaypoint(wp);
 
-		if (wp.targetType && wp.targetNum) {
-			const mo = $universe.getMapObject(wp);
+		if (wp.mapObjectTarget?.targetType && wp.mapObjectTarget.targetNum) {
+			const mo = $universe.getMapObject(wp.mapObjectTarget);
 			if (mo) {
 				selectMapObject(mo);
 			}
@@ -150,7 +152,7 @@
 	}
 
 	async function onChangeWaypoint(e: ChangeWaypointEvent) {
-		e.fleet.waypoints[e.waypointIndex] = e.waypoint;
+		e.fleet.fleetOrders.waypoints[e.waypointIndex] = e.waypoint;
 		updateFleetOrders(e.fleet);
 	}
 
@@ -190,8 +192,12 @@
 		// close the dialog
 		showCargoTransferDialog = false;
 
-		if (e && absoluteSize(e.transferAmount) > 0) {
-			await transferCargo(e.src, e.dest, e.transferAmount);
+		if (absoluteSize(e.transferAmount) > 0) {
+			try {
+				await transferCargo(e.src, e.dest, e.transferAmount);
+			} catch (err) {
+				addError(err as ConnectError);
+			}
 		}
 	}
 
@@ -224,13 +230,18 @@
 	}
 
 	async function onSplitFleet(e: SplitFleetEvent) {
-		await split(e.src, e.dest, e.srcTokens, e.destTokens, e.transferAmount);
+		try {
+			await split(e.src, e.dest, e.srcTokens, e.destTokens, e.transferAmount);
+		} catch (err) {
+			addError(err as ConnectError);
+			throw err;
+		}
 
 		// close the dialog
 		showSplitFleetDialog = false;
 	}
 
-	function selectSearchResult(mo: MapObject | undefined) {
+	function selectSearchResult(mo: MapObjectLike | undefined) {
 		if (mo) {
 			if (ownedBy(mo, $player.num)) {
 				commandMapObject(mo);
@@ -243,20 +254,28 @@
 
 	// onSelectMapObject cycles through commanding MapObjects at a location, and then
 	// selecting non-commandable mapobjects
-	function onSelectMapObject(mo: MapObject) {
-		if (!$selectedMapObject || !equal($selectedMapObject.position, mo.position)) {
+	function onSelectMapObject(mo: MapObjectLike) {
+		if (
+			!$selectedMapObject ||
+			!equal(
+				$selectedMapObject.mapObject?.position ?? emptyVector(),
+				mo.mapObject?.position ?? emptyVector()
+			)
+		) {
 			// nothing selected, or nothing selected at this location yet, select this object
 			selectMapObject(mo);
 			return;
 		}
 
 		// get all the mapobjects here we want to cycle, starting with commandable map objects
-		const commandables = $universe.getCommandableMapObjectsByPosition(mo.position);
+		const commandables = $universe.getCommandableMapObjectsByPosition(
+			mo.mapObject?.position ?? emptyVector()
+		);
 		const selectables = $universe
-			.getMapObjectsByPosition(mo.position)
+			.getMapObjectsByPosition(mo.mapObject?.position ?? emptyVector())
 			.filter((mo) => !commandable($player.num, mo));
-		let commandedIndex = commandables.findIndex((mo) => mapObjectEqual(mo, $commandedMapObject));
-		let selectedIndex = selectables.findIndex((mo) => mapObjectEqual(mo, $selectedMapObject));
+		let commandedIndex = commandables.findIndex((mo) => mapObjectEqual($commandedMapObject, mo));
+		let selectedIndex = selectables.findIndex((mo) => mapObjectEqual($selectedMapObject, mo));
 
 		if (commandedIndex < commandables.length - 1) {
 			// we either havne't commanded anything yet (commandedIndex=-1) or there is a commandable object to cycle to
@@ -285,45 +304,45 @@
 		}
 	}
 
-	function onSetPacketDest(mo: MapObject) {
-		if (mo.type != MapObjectTypePlanet) {
+	function onSetPacketDest(mo: MapObjectLike) {
+		if (mo.mapObject?.type !== MapObjectType.PLANET) {
 			return;
 		} else {
 			$settings.setPacketDest = false;
 			// something went wrong, can't set dest on a planet without a massdriver
-			if (!$commandedPlanet?.spec.hasMassDriver) {
+			if (!$commandedPlanet?.spec.planetStarbaseSpec?.hasMassDriver) {
 				return;
 			}
 
 			if (mapObjectEqual(mo, $commandedPlanet)) {
 				// clear dest
-				$commandedPlanet.packetTargetNum = None;
+				$commandedPlanet.planetOrders.packetTargetNum = None;
 			} else {
-				$commandedPlanet.packetTargetNum = mo.num;
+				$commandedPlanet.planetOrders.packetTargetNum = mo.mapObject.num;
 			}
 
 			updatePlanetOrders($commandedPlanet);
 		}
 	}
 
-	function onSetRouteDest(mo: MapObject) {
+	function onSetRouteDest(mo: MapObjectLike) {
 		if (!$commandedPlanet) {
 			return;
 		}
-		if (mo.type != MapObjectTypePlanet) {
+		if (mo.mapObject?.type !== MapObjectType.PLANET) {
 			return;
 		} else {
 			$settings.setRouteDest = false;
 
 			if (mapObjectEqual(mo, $commandedPlanet)) {
 				// clear dest
-				$commandedPlanet.routeTargetNum = None;
-				$commandedPlanet.routeTargetPlayerNum = None;
-				$commandedPlanet.routeTargetType = MapObjectTypeNone;
+				$commandedPlanet.planetOrders.routeTargetNum = None;
+				$commandedPlanet.planetOrders.routeTargetPlayerNum = None;
+				$commandedPlanet.planetOrders.routeTargetType = MapObjectType.UNSPECIFIED;
 			} else {
-				$commandedPlanet.routeTargetNum = mo.num;
-				$commandedPlanet.routeTargetPlayerNum = mo.playerNum;
-				$commandedPlanet.routeTargetType = mo.type;
+				$commandedPlanet.planetOrders.routeTargetNum = mo.mapObject.num;
+				$commandedPlanet.planetOrders.routeTargetPlayerNum = mo.mapObject.playerNum;
+				$commandedPlanet.planetOrders.routeTargetType = mo.mapObject.type;
 			}
 
 			updatePlanetOrders($commandedPlanet);

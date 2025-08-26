@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import type { Waypoint } from '$lib/types/cs-proto';
 	import type {
 		BattlePlanChangedProps,
 		ShowMergeFleetsDialogProps,
@@ -7,12 +8,12 @@
 		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { Infinite } from '$lib/types/cs';
+	import { Infinite } from '$lib/types/Consts';
 	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
-	import { type Waypoint } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
+	import { emptyVector } from '$lib/types/Vector';
 
-	const { player, universe } = getGameContext();
+	const { commandedFleet, player, universe } = getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;
@@ -32,16 +33,13 @@
 	}: Props = $props();
 
 	function split() {
-		if (!onShowSplitFleetDialog) {
+		if (!onShowSplitFleetDialog || !$commandedFleet) {
 			return;
 		}
-		onShowSplitFleetDialog({ src: fleet });
+		onShowSplitFleetDialog({ src: $commandedFleet });
 	}
 
 	function splitAll() {
-		if (!onSplitAll) {
-			return;
-		}
 		onSplitAll({ fleet });
 	}
 
@@ -51,17 +49,19 @@
 		}
 		onShowMergeFleetDialog({
 			fleet,
-			otherFleetsHere: $universe.getMyFleetsByPosition(fleet).filter((f) => f.num !== fleet.num)
+			otherFleetsHere: $universe
+				.getMyFleetsByPosition(fleet.mapObject.position ?? emptyVector())
+				.filter((f) => f.mapObject?.num !== fleet.mapObject.num)
 		});
 	}
 
 	function updateBattlePlan(battlePlanNum: number) {
-		fleet.battlePlanNum = battlePlanNum;
+		fleet.fleetOrders.battlePlanNum = battlePlanNum;
 		onBattlePlanChanged?.({ fleet, battlePlanNum });
 	}
 </script>
 
-{#if fleet.waypoints && selectedWaypoint}
+{#if selectedWaypoint}
 	<CommandTile title="Fleet Composition">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">
@@ -74,7 +74,7 @@
 								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))}
 						>
 							<div class="flex flex-row justify-between relative">
-								{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
+								{#if token.damage > 0 && token.quantityDamaged > 0}
 									<div
 										style={`width: ${getDamagePercentForToken(
 											token,
@@ -101,10 +101,10 @@
 				<select
 					class="select select-outline select-secondary select-sm text-sm"
 					name="battlePlan"
-					value={fleet.battlePlanNum}
+					value={fleet.fleetOrders.battlePlanNum}
 					onchange={(e) => updateBattlePlan(parseInt(e.currentTarget.value))}
 				>
-					{#each $player.battlePlans as battlePlan (battlePlan.num)}
+					{#each $player.playerPlans.battlePlans as battlePlan (battlePlan.num)}
 						<option value={battlePlan.num}>{battlePlan.name}</option>
 					{/each}
 				</select>
@@ -113,16 +113,20 @@
 		<div class="flex justify-between my-1">
 			<div class="text-tile-item-title">Est Range:</div>
 			<div>
-				{fleet.spec.estimatedRange
-					? fleet.spec.estimatedRange === Infinite
+				{fleet.spec.shipDesignSpec?.estimatedRange
+					? fleet.spec.shipDesignSpec.estimatedRange === Infinite
 						? 'Infinite'
-						: `${fleet.spec.estimatedRange} l.y.`
+						: `${fleet.spec.shipDesignSpec.estimatedRange} l.y.`
 					: '--'}
 			</div>
 		</div>
 		<div class="flex justify-between my-1">
 			<div class="text-tile-item-title">Percent Cloaked</div>
-			<div>{fleet.spec.cloakPercent ? fleet.spec.cloakPercent + '%' : 'none'}</div>
+			<div>
+				{fleet.spec.shipDesignSpec?.cloakPercent
+					? fleet.spec.shipDesignSpec.cloakPercent + '%'
+					: 'none'}
+			</div>
 		</div>
 		<div class="flex justify-between">
 			<button onclick={split} class="btn btn-outline btn-sm normal-case btn-secondary">Split</button

@@ -3,6 +3,8 @@
 	import { CSError, errors } from '$lib/services/Errors';
 	import { FullGame } from '$lib/services/FullGame';
 	import { gameKey, getGameContext } from '$lib/services/GameContext';
+	import { Universe } from '$lib/services/Universe';
+	import { CommandedPlayer } from '$lib/types/Player';
 	import { hasContext } from 'svelte';
 	import { fade } from 'svelte/transition';
 
@@ -42,7 +44,7 @@
 								$errors = [];
 								if ($game && $game.id && resetContext) {
 									// reload the game
-									resetContext(new FullGame());
+									resetContext(new FullGame(), new CommandedPlayer(), new Universe());
 									goto(`/games/${$game.id}`);
 								} else {
 									goto('/');

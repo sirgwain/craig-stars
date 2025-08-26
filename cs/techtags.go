@@ -7,7 +7,7 @@ package cs
 type TechTag string
 
 const (
-	TechTagNone               TechTag = "None"
+	TechTagNone               TechTag = ""
 	TechTagArmor              TechTag = "Armor"
 	TechTagBeamCapacitor      TechTag = "BeamCapacitor"
 	TechTagBeamDeflector      TechTag = "BeamDeflector"

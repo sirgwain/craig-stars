@@ -31,6 +31,7 @@ type MapObject struct {
 	PlayerNum int           `json:"playerNum"`
 	Name      string        `json:"name"`
 	Tags      Tags          `json:"tags,omitzero"`
+	ReportAge int           `json:"reportAge,omitempty"`
 	Delete    bool          `json:"-"`
 }
 
@@ -53,6 +54,10 @@ const (
 
 func (mo MapObject) String() string {
 	return fmt.Sprintf("MapObject: %s", mo.Name)
+}
+
+func (mo MapObject) GetPosition() Vector {
+	return mo.Position
 }
 
 // Owned reports whether this MapObject is owned by a player (playerNum != 0)

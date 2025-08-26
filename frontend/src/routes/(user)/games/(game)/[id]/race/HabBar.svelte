@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Grav, Rad, Temp, type HabType } from '$lib/types/cs';
+	import { Grav, Rad, Temp, type HabType } from '$lib/types/Hab';
 	import { getHabValueString, habTypeString } from '$lib/types/Hab';
 
 	type Props = {

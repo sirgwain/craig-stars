@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { techs } from '$lib/services/Stores';
-	import type { ShipDesignSlot, TechHull, TechHullSlot } from '$lib/types/cs';
+	import type { ShipDesignSlot, TechHull, TechHullSlot } from '$lib/types/cs-proto';
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
@@ -29,7 +29,7 @@
 		shipDesignSlots = $bindable([]),
 		highlightedSlots = [],
 		highlightedClass = '',
-		cargoCapacity = hull.cargoCapacity ?? 0,
+		cargoCapacity = hull.cargoCapacity,
 		showTooltips = true,
 		onSlotClicked: onSlotClicked
 	}: Props = $props();
@@ -76,12 +76,12 @@
 		<div
 			class="absolute"
 			style={`left: ${
-				slot.position.x * componentSize + (containerWidth / 2 - componentSize / 2)
-			}px; top: ${slot.position.y * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
+				(slot.position?.x ?? 0) * componentSize + (containerWidth / 2 - componentSize / 2)
+			}px; top: ${(slot.position?.y ?? 0) * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
 			role="link"
 			tabindex="-1"
 			oncontextmenu={(e) =>
-				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))}
+				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot.hullComponent))}
 		>
 			<HullComponent
 				{shipDesignSlot}

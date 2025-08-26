@@ -28,7 +28,7 @@ func NewCleaner() Cleaner {
 // cleanup design intels owned by the player
 func (c *cleanup) RemovePlayerDesignIntels(game *FullGame) {
 	for _, player := range game.Players {
-		designIntels := make([]ShipDesignIntel, 0, len(player.ShipDesignIntels))
+		designIntels := make([]*ShipDesign, 0, len(player.ShipDesignIntels))
 		for _, design := range player.ShipDesignIntels {
 			if design.PlayerNum != player.Num {
 				designIntels = append(designIntels, design)

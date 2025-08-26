@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -367,7 +369,7 @@ func Test_bomber_bombPlanet(t *testing.T) {
 			b := &bomber{
 				rules: &rules,
 			}
-			tt.args.planet.Spec = computePlanetSpec(&rules, planetOwner, tt.args.planet)
+			tt.args.planet.Spec = ComputePlanetSpec(&rules, planetOwner, tt.args.planet)
 			b.bombPlanet(tt.args.planet, planetOwner, tt.args.enemyBombers, pg)
 
 			got := want{

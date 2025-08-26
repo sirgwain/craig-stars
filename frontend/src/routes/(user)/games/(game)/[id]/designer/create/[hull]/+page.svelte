@@ -3,48 +3,49 @@
 	import { page } from '$app/state';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
+	import { GameDBObjectSchema } from '$lib/types/cs-proto';
+	import { ShipDesignSchema, type ShipDesign } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import type { ShipDesign, ShipDesignSpec } from '$lib/types/cs';
+	import { clone, create } from '@bufbuild/protobuf';
 	import { onMount } from 'svelte';
 
-	const { game, player, createDesign } = getGameContext();
+	const { game, universe, player, createDesign } = getGameContext();
 	let hullName = page.params.hull;
 
 	let hull = $derived($techs.getHull(hullName));
 
-	let design: ShipDesign = $state({
-		name: '',
-		gameId: $game.id,
-		playerNum: $player.num ?? 0,
-		originalPlayerNum: 0,
-		version: 0,
-		hull: hullName ?? '',
-		hullSetNumber: 0,
-		slots: [],
-		spec: {} as ShipDesignSpec
-	});
+	let design: ShipDesign | undefined = $state();
 
 	let error = $state('');
 
 	onMount(() => {
+		design = create(ShipDesignSchema, {
+			gameDbObject: {
+				gameId: $game.id
+			},
+			playerNum: $player.num,
+			hull: hullName
+		});
+
 		const copyParam = page.url.searchParams.get('copy');
 		if (copyParam) {
-			const copyDesign = $game.universe.getMyDesign(parseInt(copyParam));
+			const copyDesign = $universe.getMyDesign(parseInt(copyParam));
 			if (copyDesign) {
-				design.slots = copyDesign?.slots.map((s) => Object.assign({}, s));
-				design.spec = Object.assign({}, copyDesign.spec);
-				design.hullSetNumber = copyDesign.hullSetNumber;
-				design.version = copyDesign.version + 1;
-				design.name = copyDesign.name;
+				design = clone(ShipDesignSchema, copyDesign);
+				design.gameDbObject = create(GameDBObjectSchema);
+				design.version++;
 			}
 		}
 	});
 
 	async function save() {
+		if (!design) {
+			return;
+		}
 		error = '';
 		try {
-			const { valid, reason } = $game.validateDesign(design);
+			const { valid, reason } = $universe.validateDesign(design);
 			if (valid) {
 				const created = await createDesign(design);
 				goto(`/games/${$game.id}/designer/${created.num}`);
@@ -61,7 +62,7 @@
 	{#snippet crumbs()}
 		<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
 		<li><a class="cs-link" href={`/games/${$game.id}/designer/create`}>Choose Hull</a></li>
-		<li>{design.name == '' ? 'new' : design.name}</li>
+		<li>{design?.name == '' ? 'new' : design?.name}</li>
 	{/snippet}
 	{#snippet end()}
 		<div class="flex justify-end mb-1">
@@ -69,6 +70,6 @@
 		</div>
 	{/snippet}
 </Breadcrumb>
-{#if hull && $game}
+{#if hull && design}
 	<ShipDesigner bind:design {hull} onSave={save} {error} />
 {/if}

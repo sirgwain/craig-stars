@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MapObjectTypeFleet, ReportAgeUnexplored, type PlanetIntel } from '$lib/types/cs';
+	import { ReportAgeUnexplored } from '$lib/types/Consts';
+	import type { Fleet, Planet } from '$lib/types/cs-proto';
+	import { MapObjectType } from '$lib/types/cs-proto';
 	import { filterFleet } from '$lib/types/Filter';
-	import type { AnyFleet } from '$lib/services/Universe';
 	import { owned } from '$lib/types/MapObject';
+	import { emptyVector } from '$lib/types/Vector';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
@@ -12,15 +14,15 @@
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: Planet;
 		commanded?: boolean;
 	};
 
 	let { planet, commanded = false }: Props = $props();
 
-	let hasStarbase = planet.spec?.hasStarbase;
-	let hasMassDriver = planet.spec?.hasMassDriver;
-	let hasStargate = planet.spec?.hasStargate;
+	let hasStarbase = !!planet.spec?.planetStarbaseSpec?.hasStarbase;
+	let hasMassDriver = !!planet.spec?.planetStarbaseSpec?.hasMassDriver;
+	let hasStargate = !!planet.spec?.planetStarbaseSpec?.hasStargate;
 
 	let radius = $derived(owned(planet) ? (commanded ? 6 : 3) : commanded ? 4 : 2);
 	let strokeWidth = $derived(commanded ? 1 : 0.5);
@@ -33,9 +35,9 @@
 
 	let orbitingFleets = $derived(
 		$universe
-			.getMapObjectsByPosition(planet)
-			.filter((mo) => mo.type === MapObjectTypeFleet)
-			.filter((f) => filterFleet($player, f as AnyFleet, $settings))
+			.getMapObjectsByPosition(planet.mapObject?.position ?? emptyVector())
+			.filter((mo) => mo.mapObject?.type === MapObjectType.FLEET)
+			.filter((f) => filterFleet($player, f as Fleet, $settings))
 	);
 
 	// setup props for planet circle
@@ -44,11 +46,14 @@
 		let color = '#999999';
 		let strokeColor = '#999999';
 
-		if (planet.playerNum === $player.num) {
+		if (planet.mapObject?.playerNum === $player.num) {
 			color = '#00FF00';
-		} else if (planet.playerNum) {
-			color = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
-		} else if (planet.reportAge !== ReportAgeUnexplored && !planet.playerNum) {
+		} else if (planet.mapObject?.playerNum) {
+			color = $universe.getPlayerColor(planet.mapObject.playerNum);
+		} else if (
+			planet.mapObject?.reportAge !== ReportAgeUnexplored &&
+			!planet.mapObject?.playerNum
+		) {
 			color = '#FFF';
 		}
 
@@ -64,7 +69,7 @@
 	// setup props for the ring
 	let ringProps = $derived.by(() => {
 		// if anything is orbiting our planet, put a ring on it
-		if (orbitingFleets?.length > 0) {
+		if (orbitingFleets.length > 0) {
 			const { enemies, friends } = getEnemiesAndFriends(orbitingFleets, $player);
 
 			let ringColor = 'stroke-orbit';
@@ -97,8 +102,8 @@
 	<circle {...circleProps} />
 	{#if hasStarbase}
 		<rect
-			class:starbase={planet.spec?.dockCapacity}
-			class:starbase-fort={!planet.spec?.dockCapacity}
+			class:starbase={planet.spec?.planetStarbaseSpec?.dockCapacity}
+			class:starbase-fort={!planet.spec?.planetStarbaseSpec?.dockCapacity}
 			width={starbaseWidth}
 			height={starbaseWidth}
 			rx={0.5}

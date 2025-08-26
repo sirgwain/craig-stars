@@ -2,12 +2,12 @@
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
-	import type { Tech } from '$lib/types/cs';
+	import type { TechLike } from '$lib/types/Tech';
 	import TechTooltip from './TechTooltip.svelte';
 
 	export function onTechTooltip(
 		e: PointerEvent | MouseEvent,
-		tech: Tech | undefined,
+		tech: TechLike | undefined,
 		showResearchCost = false
 	) {
 		e.preventDefault();
@@ -17,7 +17,7 @@
 	}
 
 	export type TechTooltipProps = {
-		tech: Tech;
+		tech: TechLike;
 		showResearchCost?: boolean;
 	};
 </script>

@@ -6,8 +6,8 @@ import (
 
 // The mystery trader travels through space and gives a boon to any player that gives it a fleet full of minerals
 type MysteryTrader struct {
-	GameDBObject    `tstype:",extends"`
-	MapObject       `tstype:",extends"`
+	GameDBObject
+	MapObject
 	WarpSpeed       int                     `json:"warpSpeed,omitempty"`
 	Destination     Vector                  `json:"destination"`
 	RequestedBoon   int                     `json:"requestedBoon,omitempty"`
@@ -16,12 +16,6 @@ type MysteryTrader struct {
 	PlayersRewarded map[int]bool            `json:"playersRewarded,omitzero"`
 	Spec            MysteryTraderSpec       `json:"spec,omitzero"`
 }
-
-// MysteryTraderSpec is currently empty. If we update it, remove this eslint line for the type
-//
-//tygo:emit
-var _ = "// eslint-disable-next-line @typescript-eslint/no-empty-object-type"
-
 type MysteryTraderSpec struct {
 }
 
@@ -173,7 +167,7 @@ type MysteryTraderReward struct {
 	Type       MysteryTraderRewardType `json:"type"`
 	TechLevels TechLevel               `json:"techLevels"`
 	Tech       string                  `json:"tech,omitempty"`
-	Ship       ShipDesign              `json:"ship,omitempty"`
+	Ship       *ShipDesign             `json:"ship,omitempty"`
 	ShipCount  int                     `json:"shipCount,omitempty"`
 }
 
@@ -484,7 +478,7 @@ func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Pl
 			ship, count := getRandomLifeboat(rules.random, game.Year-rules.StartingYear)
 			return MysteryTraderReward{
 				Type:      MysteryTraderRewardLifeboat,
-				Ship:      ship,
+				Ship:      &ship,
 				ShipCount: count,
 			}
 		}
@@ -628,18 +622,16 @@ var HushABoom = TechHullComponent{Tech: NewTechWithOrigin("Hush-a-Boom", NewCost
 	HullSlotType:         HullSlotTypeBomb,
 }
 
-var EnigmaPulsar = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTechWithOrigin("Enigma Pulsar", NewCost(12, 15, 11, 40), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 7, Propulsion: 13, Construction: 5, Electronics: 9}}, 205, TechCategoryEngine, OriginMysteryTrader, TechTagCloak, TechTagEngine, TechTagManeuveringJet),
-		Mass:          20,
-		HullSlotType:  HullSlotTypeEngine,
-		MovementBonus: .5,
-		CloakUnits:    20,
-	},
+var EnigmaPulsar = TechHullComponent{Tech: NewTechWithOrigin("Enigma Pulsar", NewCost(12, 15, 11, 40), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 7, Propulsion: 13, Construction: 5, Electronics: 9}}, 205, TechCategoryEngine, OriginMysteryTrader, TechTagCloak, TechTagEngine, TechTagManeuveringJet),
+	Mass:          20,
+	HullSlotType:  HullSlotTypeEngine,
+	MovementBonus: .5,
+	CloakUnits:    20,
 	Engine: Engine{
 		IdealSpeed:   10,
 		FreeSpeed:    1,
 		MaxSafeSpeed: 10,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			0,

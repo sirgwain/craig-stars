@@ -1,7 +1,7 @@
 <script lang="ts">
+	import type { ProductionPlan } from '$lib/types/cs-proto';
 	import type { DesignFinder } from '$lib/services/Universe';
 	import { getQueueItemShortName } from '$lib/types/Planet';
-	import type { ProductionPlan, ProductionQueueItem } from '$lib/types/cs';
 	import { isAuto } from '$lib/types/QueueItemType';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -17,7 +17,7 @@
 	let { designFinder, plan, href, showDelete = true, onDelete }: Props = $props();
 
 	const deletePlan = async (plan: ProductionPlan) => {
-		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
+		if (confirm(`Are you sure you want to delete ${plan.name}?`)) {
 			onDelete?.(plan);
 		}
 	};
@@ -40,7 +40,7 @@
 					<li class="pl-1">
 						<div class="flex flex-row justify-between" class:italic={isAuto(queueItem.type)}>
 							<div>
-								{getQueueItemShortName(queueItem as ProductionQueueItem, designFinder)}
+								{getQueueItemShortName(queueItem, designFinder)}
 							</div>
 							<div>
 								{queueItem.quantity}

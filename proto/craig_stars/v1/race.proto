@@ -1,0 +1,205 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+
+message Race {
+  int64 id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
+  int64 user_id = 4;
+  string name = 5;
+  string plural_name = 6;
+  SpendLeftoverPointsOn spend_leftover_points_on = 7;
+  Prt prt = 8;
+  int32 lrts = 9;
+  Hab hab_low = 10;
+  Hab hab_high = 11;
+  int32 growth_rate = 12;
+  int32 pop_efficiency = 13;
+  int32 factory_output = 14;
+  int32 factory_cost = 15;
+  int32 num_factories = 16;
+  bool factories_cost_less = 17;
+  bool immune_grav = 18;
+  bool immune_temp = 19;
+  bool immune_rad = 20;
+  int32 mine_output = 21;
+  int32 mine_cost = 22;
+  int32 num_mines = 23;
+  ResearchCost research_cost = 24;
+  bool techs_start_high = 25;
+  // RaceSpec spec = 26;
+}
+
+// Primary Race Trait
+enum Prt {
+  PRT_UNSPECIFIED = 0;
+  PRT_HE = 1; // Hyper Expansion
+  PRT_SS = 2; // Super Stealth
+  PRT_WM = 3; // Warmonger
+  PRT_CA = 4; // Claim Adjuster
+  PRT_IS = 5; // Inner Strength
+  PRT_SD = 6; // Space Demolition
+  PRT_PP = 7; // Packet Physics
+  PRT_IT = 8; // Interstellar Traveler
+  PRT_AR = 9; // Alternate Reality
+  PRT_JOAT = 10; // Jack of All Trades
+}
+
+// How to spend leftover race points
+enum SpendLeftoverPointsOn {
+  SPEND_LEFTOVER_POINTS_ON_UNSPECIFIED = 0;
+  SPEND_LEFTOVER_POINTS_ON_SURFACE_MINERALS = 1;
+  SPEND_LEFTOVER_POINTS_ON_MINERAL_CONCENTRATIONS = 2;
+  SPEND_LEFTOVER_POINTS_ON_MINES = 3;
+  SPEND_LEFTOVER_POINTS_ON_FACTORIES = 4;
+  SPEND_LEFTOVER_POINTS_ON_DEFENSES = 5;
+}
+
+// Research cost levels
+enum ResearchCostLevel {
+  RESEARCH_COST_LEVEL_UNSPECIFIED = 0;
+  RESEARCH_COST_LEVEL_EXTRA = 1;
+  RESEARCH_COST_LEVEL_STANDARD = 2;
+  RESEARCH_COST_LEVEL_LESS = 3;
+}
+
+message RaceSpec {
+  MiniaturizationSpec miniaturization_spec = 1;
+  ScannerSpec scanner_spec = 2;
+  Hab hab_center = 3;
+  map<int32, Cost> costs = 4;
+  TechLevel starting_tech_levels = 5;
+  repeated StartingPlanet starting_planets = 6;
+  map<int32, double> tech_cost_offset = 7;
+  int32 minerals_per_single_mineral_packet = 8;
+  int32 minerals_per_mixed_mineral_packet = 9;
+  int32 packet_resource_cost = 10;
+  double packet_mineral_cost_factor = 11;
+  double packet_receiver_factor = 12;
+  double packet_decay_factor = 13;
+  int32 packet_over_safe_warp_penalty = 14;
+  bool packet_built_in_scanner = 15;
+  bool detect_packet_destination_starbases = 16;
+  bool detect_all_packets = 17;
+  double packet_terraform_chance = 18;
+  double packet_permaform_chance = 19;
+  int32 packet_perma_terraform_size_unit = 20;
+  bool can_gate_cargo = 21;
+  bool can_detect_stargate_planets = 22;
+  bool ships_vanish_in_void = 23;
+  int32 techs_cost_extra_level = 24;
+  FreighterGrowth freighter_growth = 25;
+  double growth_factor = 26;
+  double max_population_offset = 27;
+  int32 built_in_cloak_units = 28;
+  StealsResearch steals_research = 29;
+  bool free_cargo_cloaking = 30;
+  bool minefields_are_scanners = 31;
+  double minefield_rate_move_factor = 32;
+  int32 minefield_safe_warp_bonus = 33;
+  double minefield_min_decay_factor = 34;
+  double minefield_base_decay_rate = 35;
+  double minefield_planet_decay_rate = 36;
+  double minefield_max_decay_rate = 37;
+  bool can_detonate_minefields = 38;
+  double minefield_detonate_decay_rate = 39;
+  bool discover_design_on_scan = 40;
+  bool can_remote_mine_own_planets = 41;
+  double invasion_attack_bonus = 42;
+  double invasion_defend_bonus = 43;
+  double movement_bonus = 44;
+  bool instaforming = 45;
+  double permaform_chance = 46;
+  int32 permaform_population = 47;
+  double repair_factor = 48;
+  double starbase_repair_factor = 49;
+  bool innate_mining = 50;
+  double innate_mines_factor = 51;
+  bool innate_resources = 52;
+  bool innate_scanner = 53;
+  double innate_scanner_factor = 54;
+  bool can_build_defenses = 55;
+  bool lives_on_starbases = 56;
+  int32 min_hab_floor = 57;
+  double fuel_efficiency_offset = 58;
+  int32 mineral_alchemy_cost_offset = 59;
+  double scrap_mineral_offset = 60;
+  double scrap_mineral_offset_starbase = 61;
+  double scrap_resources_offset = 62;
+  double scrap_resources_offset_starbase = 63;
+  double starting_population_factor = 64;
+  int32 starbase_built_in_cloak_units = 65;
+  double starbase_cost_factor = 66;
+  double research_factor = 67;
+  double research_splash_damage = 68;
+  double armor_strength_factor = 69;
+  double shield_strength_factor = 70;
+  double shield_regeneration_rate = 71;
+  double engine_failure_rate = 72;
+  int32 engine_reliable_speed = 73;
+}
+
+message MiniaturizationSpec {
+  double new_tech_cost_factor = 1;
+  double miniaturization_max = 2;
+  double miniaturization_per_level = 3;
+}
+
+message BuiltInScanner {
+  TechLevel normal_multi = 1;
+  TechLevel pen_multi = 2;
+}
+
+message ScannerSpec {
+  BuiltInScanner built_in_scanner = 1;
+  bool no_advanced_scanners = 2;
+  double scan_range_factor = 3;
+}
+
+message StartingFleet {
+  string name = 1;
+  string hull_name = 2;
+  uint32 hull_set_number = 3;
+  string purpose = 4;
+}
+
+message StartingPlanet {
+  int32 population = 1;
+  int32 mines = 2;
+  int32 factories = 3;
+  int32 defenses = 4;
+  double hab_penalty_factor = 5;
+  bool has_stargate = 6;
+  bool has_mass_driver = 7;
+  string starbase_design_name = 8;
+  string starbase_hull = 9;
+  repeated StartingFleet starting_fleets = 10;
+  bool homeworld = 11;
+}
+
+message StealsResearch {
+  double energy = 1;
+  double weapons = 2;
+  double propulsion = 3;
+  double construction = 4;
+  double electronics = 5;
+  double biotechnology = 6;
+}
+
+message FreighterGrowth {
+  bool absolute = 1;
+  double growth_factor = 2;
+}
+
+message ResearchCost {
+  ResearchCostLevel energy = 1;
+  ResearchCostLevel weapons = 2;
+  ResearchCostLevel propulsion = 3;
+  ResearchCostLevel construction = 4;
+  ResearchCostLevel electronics = 5;
+  ResearchCostLevel biotechnology = 6;
+}

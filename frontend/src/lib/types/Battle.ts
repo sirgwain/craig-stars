@@ -1,59 +1,26 @@
 import type { DesignFinder, Universe } from '$lib/services/Universe';
-import { flatten, groupBy, get as pluck, sumBy } from 'lodash-es';
-import type { BattleAttackWho, BattleTactic, BattleTarget, MapObject, Vector } from './cs';
 import {
-	BattleAttackWhoEnemies,
-	BattleAttackWhoEnemiesAndNeutrals,
-	BattleAttackWhoEveryone,
-	BattleTacticDisengage,
-	BattleTacticDisengageIfChallenged,
-	BattleTacticMaximizeDamage,
-	BattleTacticMaximizeDamageRatio,
-	BattleTacticMaximizeNetDamage,
-	BattleTacticMinimizeDamageToSelf,
-	BattleTargetAny,
-	BattleTargetArmedShips,
-	BattleTargetBombersFreighters,
-	BattleTargetFreighters,
-	BattleTargetFuelTransports,
-	BattleTargetNone,
-	BattleTargetStarbase,
-	BattleTargetUnarmedShips,
-	TokenActionMove,
-	TokenActionRanAway,
+	BattleRecordSchema,
+	BattleRecordStatsSchema,
+	BattleRecordTokenActionSchema,
+	BattleRecordTokenActionType,
+	BattleRecordTokenSchema,
+	type ActionsPerRound,
 	type BattleRecord,
 	type BattleRecordDestroyedToken,
 	type BattleRecordStats,
 	type BattleRecordToken,
-	type BattleRecordTokenAction
-} from './cs';
+	type BattleRecordTokenAction,
+	type BattleRecordTokenActionJson,
+	type BattleRecordTokenJson,
+	type Vector
+} from '$lib/types/cs-proto';
+import { create, merge, toJson, type UnknownField } from '@bufbuild/protobuf';
+import { flatten, groupBy, get as pluck, sortBy, sumBy } from 'lodash-es';
+
+import type { MapObjectLike } from './MapObject';
 import type { CommandedPlayer } from './Player';
-
-export const BattleTargets: BattleTarget[] = [
-	BattleTargetNone,
-	BattleTargetAny,
-	BattleTargetStarbase,
-	BattleTargetArmedShips,
-	BattleTargetBombersFreighters,
-	BattleTargetUnarmedShips,
-	BattleTargetFuelTransports,
-	BattleTargetFreighters
-] as const;
-
-export const BattleTactics: BattleTactic[] = [
-	BattleTacticDisengage,
-	BattleTacticDisengageIfChallenged,
-	BattleTacticMinimizeDamageToSelf,
-	BattleTacticMaximizeNetDamage,
-	BattleTacticMaximizeDamageRatio,
-	BattleTacticMaximizeDamage
-] as const;
-
-export const BattleAttackWhos: BattleAttackWho[] = [
-	BattleAttackWhoEnemies,
-	BattleAttackWhoEnemiesAndNeutrals,
-	BattleAttackWhoEveryone
-] as const;
+import { emptyVector } from './Vector';
 
 export type BattleRecordDetails = {
 	// whether the player was present at this battle
@@ -72,7 +39,7 @@ export type BattleRecordDetails = {
 
 // a phase token is a token combined with a position
 export type PhaseToken = {
-	action?: BattleRecordTokenAction;
+	action?: BattleRecordTokenActionJson;
 	ranAway?: boolean;
 	destroyedPhase?: number;
 	target?: boolean;
@@ -80,38 +47,43 @@ export type PhaseToken = {
 	quantity: number;
 	quantityDamaged: number;
 	damage: number;
-} & BattleRecordToken &
-	Vector;
+} & BattleRecordTokenJson & { x: number; y: number };
 
 type TokensByLocation = Record<string, PhaseToken[]>;
 
 export class Battle implements BattleRecord {
+	$typeName: 'craig_stars.v1.BattleRecord';
+	$unknown?: UnknownField[] | undefined;
+
 	constructor(
 		public num: number,
-		public position: Vector,
+		public position: Vector | undefined,
 		designFinder: DesignFinder,
 		record?: BattleRecord
 	) {
-		Object.assign(this, record);
-		this.totalPhases = sumBy(this.actionsPerRound, (a) => a.length);
+		this.$typeName = 'craig_stars.v1.BattleRecord';
+		if (record) {
+			merge(BattleRecordSchema, this, record);
+		}
+		this.tokens = sortBy(record?.tokens, 'num');
+		this.totalPhases = sumBy(this.actionsPerRound, (a) => a.actions.length);
 		this.totalRounds = this.actionsPerRound.length;
 		this.buildPhaseTokensForBattle(designFinder);
-		this.tokens.sort((a, b) => a.num - b.num);
-		this.actions = flatten(this.actionsPerRound);
+		this.actions = flatten(this.actionsPerRound.map((apr) => apr.actions));
 	}
 
 	destroyedTokens: BattleRecordDestroyedToken[] = [];
-	stats: BattleRecordStats = {
+	stats: BattleRecordStats = create(BattleRecordStatsSchema, {
 		numPlayers: 0,
 		numShipsByPlayer: {},
 		shipsDestroyedByPlayer: {},
 		damageTakenByPlayer: {},
 		cargoLostByPlayer: {}
-	};
+	});
 
-	planetNum?: number | undefined;
+	planetNum = 0;
 	tokens: BattleRecordToken[] = [];
-	actionsPerRound: BattleRecordTokenAction[][] = [];
+	actionsPerRound: ActionsPerRound[] = [];
 	actions: BattleRecordTokenAction[] = [];
 	totalPhases: number;
 	totalRounds: number;
@@ -149,7 +121,7 @@ export class Battle implements BattleRecord {
 		return this.getActionToken(phase)?.action;
 	}
 
-	getTokenForPhase(num: number, phase: number) {
+	getTokenForPhase(num: number | undefined, phase: number) {
 		return this.tokensByPhase[phase].find((t) => t.num == num);
 	}
 
@@ -162,12 +134,12 @@ export class Battle implements BattleRecord {
 
 		// starting token configuration
 		let tokens: PhaseToken[] = this.tokens.map((t) => ({
-			...t,
+			...toJson(BattleRecordTokenSchema, t),
 			quantity: t.startingQuantity,
 			quantityDamaged: t.startingQuantityDamaged ?? 0,
 			damage: t.startingDamage ?? 0,
-			x: t.position.x,
-			y: t.position.y,
+			x: t.position?.x ?? 0,
+			y: t.position?.y ?? 0,
 			stackShields:
 				(designFinder.getDesign(t.playerNum, t.designNum)?.spec?.shields ?? 0) * t.startingQuantity
 		}));
@@ -180,9 +152,9 @@ export class Battle implements BattleRecord {
 		let phase = 1;
 		for (let round = 1; round < this.actionsPerRound.length; round++) {
 			const roundActions = this.actionsPerRound[round];
-			for (let actionIndex = 0; actionIndex < roundActions.length; actionIndex++, phase++) {
+			for (let actionIndex = 0; actionIndex < roundActions.actions.length; actionIndex++, phase++) {
 				// find the action for this phase
-				const action = roundActions[actionIndex];
+				const action = roundActions.actions[actionIndex];
 				const phaseTokens = tokens.map((t) => {
 					// clone each token for this phase
 					const phaseToken = structuredClone(t);
@@ -190,11 +162,11 @@ export class Battle implements BattleRecord {
 
 					// if this token is being acted upon, update it
 					if (phaseToken.num == action.tokenNum) {
-						phaseToken.action = action;
-						if (action.type == TokenActionMove) {
+						phaseToken.action = toJson(BattleRecordTokenActionSchema, action);
+						if (action.type == BattleRecordTokenActionType.MOVE) {
 							phaseToken.x = action.to?.x ?? phaseToken.x;
 							phaseToken.y = action.to?.y ?? phaseToken.y;
-						} else if (action.type == TokenActionRanAway) {
+						} else if (action.type == BattleRecordTokenActionType.RAN_AWAY) {
 							phaseToken.ranAway = true;
 						}
 					} else {
@@ -218,6 +190,7 @@ export class Battle implements BattleRecord {
 					}
 					return phaseToken;
 				});
+
 				// keep track of our progress
 				tokens = phaseTokens;
 				this.tokensByPhase.push(tokens);
@@ -229,7 +202,10 @@ export class Battle implements BattleRecord {
 	}
 }
 
-export const getTokenLocationKey = (x: number, y: number): string => `${x}-${y}`;
+export const getTokenLocationKey = (
+	x: number | 'NaN' | 'Infinity' | '-Infinity' | undefined,
+	y: number | 'NaN' | 'Infinity' | '-Infinity' | undefined
+): string => `${x ?? 0}-${y ?? 0}`;
 
 // get details about this battle for messages or the battle report
 export function getBattleRecordDetails(
@@ -263,7 +239,7 @@ export function getBattleRecordDetails(
 }
 
 export function getNumShips(record: BattleRecord): number {
-	return Object.values(record.stats.numShipsByPlayer ?? {}).reduce((count, num) => count + num, 0);
+	return Object.values(record.stats?.numShipsByPlayer ?? {}).reduce((count, num) => count + num, 0);
 }
 
 export function getOurShips(record: BattleRecord, allies: Set<number>): number {
@@ -329,12 +305,15 @@ export function battlesSortBy(
 }
 
 // get a target for the scanner so we can "goto" a battle and select this mapobject
-export function getScannerTarget(battle: BattleRecord, universe: Universe): MapObject | undefined {
+export function getScannerTarget(
+	battle: BattleRecord,
+	universe: Universe
+): MapObjectLike | undefined {
 	if (battle.planetNum) {
 		return universe.getPlanet(battle.planetNum);
 	} else {
-		const myMapObjectsAtPosition = universe.getMyMapObjectsByPosition(battle.position);
-		const mapObjectsAtPosition = universe.getMapObjectsByPosition(battle.position);
+		const myMapObjectsAtPosition = universe.getMyMapObjectsByPosition(battle.position ?? emptyVector());
+		const mapObjectsAtPosition = universe.getMapObjectsByPosition(battle.position ?? emptyVector());
 
 		if (myMapObjectsAtPosition?.length > 0) {
 			return myMapObjectsAtPosition[0];

@@ -84,6 +84,41 @@ func Copy_Wasm_Exec() error {
 	return nil
 }
 
+// Copy wasm_exec.js from tinygo to the frontend wasm folder
+// This copies the "wasm_exec.js" file from GOROOT/lib/wasm into
+// frontend/src/lib/wasm, creating the folder if not already present.
+// cp $(tinygo env TINYGOROOT)/targets/wasm_exec.js
+func Copy_Wasm_Exec_TinyGo() error {
+	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
+		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
+	}
+
+	// Find TINYGOROOT
+	goroot, err := sh.Output("tinygo", "env", "TINYGOROOT")
+	if err != nil {
+		return err
+	}
+	goroot = strings.ReplaceAll(goroot, "\\", "/") // replace backslashes on windows
+
+	// Check if wasm executable exists or not.
+	// Go 1.24 moved wasm_exec.js from misc/wasm to lib/wasm,
+	// but we require go 1.24 anyways to run our tool deps so it shouldn't matter.
+	if _, err := os.Stat(goroot + "/targets/wasm_exec.js"); errors.Is(err, os.ErrNotExist) {
+		// file doesn't exist
+		return mg.Fatalf(1, "executable was not found inside TINYGOROOT: %v", goroot)
+	} else if err != nil {
+		// some other random error
+		return mg.Fatalf(1, "error during os.Stat(): \n%w", err)
+	}
+
+	// file exists
+	path := goroot + "/targets/wasm_exec.js"
+	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js", path); err != nil {
+		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)
+	}
+	return nil
+}
+
 // Tidy up go.mod (equivalent to "go mod tidy -v")
 func Tidy() error {
 	return sh.RunV("go", "mod", "tidy", "-v")
@@ -96,26 +131,23 @@ func Generate() error {
 		return err
 	}
 
+	fmt.Println("running buf gen ./...")
+	if err := sh.RunV("go", "tool", "buf", "generate"); err != nil {
+		return err
+	}
+
 	fmt.Println("running go generate ./...")
 	if err := sh.RunV("go", "generate", "./..."); err != nil {
 		return err
 	}
 
-	fmt.Println("running tygo generate")
-	if err := sh.RunV("go", "tool", "github.com/gzuidhof/tygo", "generate"); err != nil {
-		return err
-	}
-
-	// format generated tygo file on non-CI runs
-	if !is_CI() {
-		fmt.Println("running prettier on tygo generated file")
-		cmd := exec.Command("npx", "prettier", "--write", "./src/lib/types/cs.ts")
-		cmd.Dir = "./frontend"
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			return mg.Fatalf(1, "error during npx prettier --write: \n%w", err)
-		}
+	fmt.Println("running npm generate ./...")
+	cmd := exec.Command("npm", "run", "generate")
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return mg.Fatalf(1, "error during npm run generate: %w", err)
 	}
 
 	fmt.Println("generating techs.json")
@@ -134,6 +166,17 @@ func Generate() error {
 	}
 	if err := os.WriteFile("frontend/src/lib/ssr/rules.json", []byte(rules2json), 0644); err != nil {
 		return mg.Fatalf(1, "error during os.WriteFile for rules.json: \n%w", err)
+	}
+
+	if !is_CI() {
+		fmt.Println("formatting generated json")
+		cmd := exec.Command("npx", "prettier", "--ignore-unknown", "--write", "src/lib/ssr")
+		cmd.Dir = "./frontend"
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return mg.Fatalf(1, "error during npm run generate: %w", err)
+		}
 	}
 
 	return nil
@@ -194,22 +237,54 @@ func build_backend(buildArgs ...string) error {
 	args = append(args, buildArgs...)
 	args = append(args, "-o", "dist/"+binary_name, "main.go")
 
+	println("building backend")
 	if err := sh.RunV("go", args...); err != nil {
-		// "go", "build", buildArgs..., "-o", "dist/craig-stars", "main.go"
 		return err
 	}
 
-	mg.Deps(Build_WASM)
+	// use tinygo for real builds
+	if is_CI() {
+		mg.Deps(Build_WASM_TinyGo)
+	} else {
+		mg.Deps(Build_WASM)
+	}
 	return nil
 }
 
 // Build Web-Assembly binary into frontend.
 func Build_WASM() error {
-	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
+	var err error
+	if err = os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
-	return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
-		"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
+	println("building wasm")
+	if is_CI() {
+		err = sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
+			"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "-ldflags", "-s -w", "wasm/main.go")
+	} else {
+		err = sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
+			"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
+	}
+	if err != nil {
+		return err
+	}
+	return Copy_Wasm_Exec()
+}
+
+// Build tinygo Web-Assembly binary into frontend.
+func Build_WASM_TinyGo() error {
+	var err error
+	if err = os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
+		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
+	}
+	println("building tinygo wasm")
+	err = sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
+		"tinygo", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "-no-debug", "wasm/main.go")
+	if err != nil {
+		return err
+	}
+
+	return Copy_Wasm_Exec_TinyGo()
 }
 
 // Launch both backend and frontend servers simultaneously.

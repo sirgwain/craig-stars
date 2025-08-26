@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -53,9 +55,9 @@ func Test_victory_checkForVictorExceedsSecondPlaceScore(t *testing.T) {
 	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
 	player3.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
-	player1.PlayerIntels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2, player3})
-	player2.PlayerIntels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player1, player2, player3})
-	player3.PlayerIntels.PlayerIntels = player3.defaultPlayerIntels([]*Player{player1, player2, player3})
+	player1.Intels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2, player3})
+	player2.Intels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player1, player2, player3})
+	player3.Intels.PlayerIntels = player3.defaultPlayerIntels([]*Player{player1, player2, player3})
 
 	// we own one planet and one fleet
 	player1.ScoreHistory = []PlayerScore{{

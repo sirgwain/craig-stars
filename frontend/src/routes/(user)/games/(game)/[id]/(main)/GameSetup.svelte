@@ -3,106 +3,127 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import GameSettingsEditor from '$lib/components/game/newgame/GameSettingsEditor.svelte';
+	import { GameSettingsSchema, type GameSettings } from '$lib/types/cs-proto';
+	import type { Player } from '$lib/types/cs-proto';
+	import { PlayerType } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { GameService } from '$lib/services/GameService';
-	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
-	import type { GameSettings, Player } from '$lib/types/cs';
+	import { gameClient, playerClient } from '$lib/services/connect';
+	import { create } from '@bufbuild/protobuf';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, onMount } from 'svelte';
 	import RaceView from '../race/RaceView.svelte';
 	import GuestLink from './GuestLink.svelte';
+	import { addError } from '$lib/services/Errors';
+	import type { ConnectError } from '@connectrpc/connect';
 
-	const { game, loadStatus, startPollingStatus, stopPollingStatus, updateGame } = getGameContext();
+	const { game, cs, loadStatus, startPollingStatus, stopPollingStatus, updateGame } =
+		getGameContext();
 
-	let settings: GameSettings = $state({
-		name: $game.name,
-		public: $game.public,
-		quickStartTurns: $game.quickStartTurns,
-		size: $game.size,
-		area: $game.area,
-		density: $game.density,
-		playerPositions: $game.playerPositions,
-		randomEvents: $game.randomEvents,
-		computerPlayersFormAlliances: $game.computerPlayersFormAlliances,
-		publicPlayerScores: $game.publicPlayerScores,
-		maxMinerals: $game.maxMinerals,
-		startMode: $game.startMode,
-		year: $game.year,
-		victoryConditions: $game.victoryConditions,
-		players: []
-	});
+	let settings: GameSettings = $state(
+		create(GameSettingsSchema, {
+			name: $game.name,
+			public: $game.public,
+			quickStartTurns: $game.quickStartTurns,
+			size: $game.size,
+			density: $game.density,
+			playerPositions: $game.playerPositions,
+			randomEvents: $game.randomEvents,
+			computerPlayersFormAlliances: $game.computerPlayersFormAlliances,
+			publicPlayerScores: $game.publicPlayerScores,
+			maxMinerals: $game.maxMinerals,
+			startMode: $game.startMode,
+			victoryConditions: $game.victoryConditions,
+			players: []
+		})
+	);
 
 	async function onLeave() {
-		const response = await fetch(`/api/games/${$game.id}/leave`, {
-			method: 'POST',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-
-		if (response.ok) {
+		try {
+			await gameClient.leaveGame({ gameId: $game.id });
 			goto(`/games`);
-		} else {
-			const resolvedResponse = await response?.json();
-			error = resolvedResponse.error;
-			console.error(error);
+		} catch (e) {
+			addError(e as ConnectError);
 		}
 	}
 
 	async function onUpdateGame() {
-		const result = await GameService.updateSettings($game.id, settings);
-		updateGame(result);
+		try {
+			const resp = await gameClient.updateGame({ gameId: $game.id, settings });
+			if (!resp.game) {
+				return;
+			}
+
+			updateGame(resp.game);
+		} catch (e) {
+			addError(e as ConnectError);
+		}
 	}
 
-	async function onAddOpenSlot() {
-		const result = await GameService.addOpenPlayerSlot($game.id);
-		updateGame(result);
-	}
-
-	async function onAddGuestPlayer() {
-		const result = await GameService.addGuestPlayer($game.id);
-		updateGame(result);
-	}
-
-	async function onAddAIPlayer() {
-		const result = await GameService.addAIPlayer($game.id);
-		updateGame(result);
+	async function onAddPlayer(playerType: PlayerType) {
+		try {
+			const resp = await gameClient.addPlayer({ gameId: $game.id, playerType });
+			if (!resp.game) {
+				return;
+			}
+			updateGame(resp.game);
+		} catch (e) {
+			addError(e as ConnectError);
+		}
 	}
 
 	async function onDeletePlayer(playerNum: number) {
-		const result = await GameService.deletePlayer($game.id, playerNum);
-		updateGame(result);
+		try {
+			const resp = await gameClient.deletePlayerSlot({ gameId: $game.id, playerNum: playerNum });
+			if (!resp.game) {
+				return;
+			}
+			updateGame(resp.game);
+		} catch (e) {
+			addError(e as ConnectError);
+		}
 	}
 
 	async function onKickPlayer(playerNum: number) {
-		const result = await GameService.kickPlayer($game.id, playerNum);
-		updateGame(result);
+		try {
+			const resp = await gameClient.kickPlayer({ gameId: $game.id, playerNum: playerNum });
+			if (!resp.game) {
+				return;
+			}
+			updateGame(resp.game);
+		} catch (e) {
+			addError(e as ConnectError);
+		}
 	}
 
 	async function onStartGame() {
-		const response = await fetch(`/api/games/${$game.id}/start-game`, {
-			method: 'POST',
-			headers: {
-				accept: 'application/json'
-			}
-		});
+		try {
+			stopPollingStatus();
+			await gameClient.startGame({ gameId: $game.id });
 
-		if (!response.ok) {
-			await Service.throwError(response);
+			// force an update so the game reloads
+			await loadStatus();
+			goto(`/games/${$game.id}`);
+		} catch (e) {
+			addError(e as ConnectError);
 		}
-		// force an update so the game reloads
-		await loadStatus();
-		goto(`/games/${$game.id}`);
 	}
-	let error = '';
+	// let error = '';
 
 	let player: Player | undefined = $state();
 
 	onMount(async () => {
-		player = await GameService.loadFullPlayer($game.id);
-		startPollingStatus();
+		try {
+			const resp = await playerClient.getPlayer({ gameId: $game.id });
+			if (!resp.player) {
+				return;
+			}
+			player = resp.player;
+			startPollingStatus();
+		} catch (e) {
+			addError(e as ConnectError);
+		}
 	});
 
 	onDestroy(stopPollingStatus);
@@ -116,7 +137,7 @@
 	<ItemTitle>{$game.name}</ItemTitle>
 
 	<div>
-		Welcome, {myPlayer?.name}. You are playing as the {player?.race.pluralName}.
+		Welcome, {myPlayer?.name}. You are playing as the {player?.race?.pluralName}.
 	</div>
 	<form class="mt-2">
 		<div class="flex flex-col justify-center gap-2 place-items-center">
@@ -201,11 +222,16 @@
 						onUpdateGame();
 					}}>Update Game</button
 				>
-				<button type="button" class="btn btn-secondary" onclick={onAddAIPlayer}>Add AI</button>
-				<button type="button" class="btn btn-secondary" onclick={onAddOpenSlot}
+				<button type="button" class="btn btn-secondary" onclick={() => onAddPlayer(PlayerType.AI)}
+					>Add AI</button
+				>
+				<button type="button" class="btn btn-secondary" onclick={() => onAddPlayer(PlayerType.OPEN)}
 					>Add Open Slot</button
 				>
-				<button type="button" class="btn btn-secondary" onclick={onAddGuestPlayer}>Add Guest</button
+				<button
+					type="button"
+					class="btn btn-secondary"
+					onclick={() => onAddPlayer(PlayerType.GUEST)}>Add Guest</button
 				>
 				<button
 					disabled={$game.players.findIndex((p) => !p.ready) != -1}
@@ -219,8 +245,8 @@
 		</div>
 	</form>
 
-	{#if player}
+	{#if player?.race}
 		<ItemTitle>Your Race - {player.race.pluralName}</ItemTitle>
-		<RaceView race={player.race} />
+		<RaceView wasmClient={cs.wasmService} race={player.race} />
 	{/if}
 </div>

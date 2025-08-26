@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { TechHullComponent } from '$lib/types/cs';
-	import type { Tech } from '$lib/types/cs';
-	import { startCase } from 'lodash-es';
+	import { TechCategory, type TechHullComponent } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
+	import type { TechLike } from '$lib/types/Tech';
 	import { onMount } from 'svelte';
 
 	type Props = {
-		tech: Tech;
+		tech: TechLike;
 	};
 
 	let { tech }: Props = $props();
@@ -15,14 +15,13 @@
 	onMount(() => {
 		if ('hullSlotType' in tech) {
 			const hullComponent = tech as TechHullComponent;
-			if (hullComponent) {
-				if (hullComponent.radiating) {
-					warnings.push(
-						`This ${startCase(
-							hullComponent.category
-						).toLowerCase()} creates powerful waves of radiation and will kill some of your colonists if the midpoint of your race's Radiation band isn't at least 85mR.`
-					);
-				}
+			if (hullComponent.radiating) {
+				warnings.push(
+					`This ${enumToString(
+						TechCategory,
+						hullComponent.tech?.category ?? TechCategory.UNSPECIFIED
+					).toLowerCase()} creates powerful waves of radiation and will kill some of your colonists if the midpoint of your race's Radiation band isn't at least 85mR.`
+				);
 			}
 		}
 		warnings = warnings;

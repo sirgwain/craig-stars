@@ -1,12 +1,6 @@
 <script lang="ts">
-	import {
-		ResearchCostExtra,
-		ResearchCostLess,
-		ResearchCostStandard,
-		type ResearchCostLevel,
-		type TechField
-	} from '$lib/types/cs';
-	import { startCase } from 'lodash-es';
+	import { ResearchCostLevel, TechField } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
 
 	type Props = {
 		field: TechField;
@@ -19,14 +13,14 @@
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full md:w-auto">
 	<div class="card-body p-3 gap-0">
 		<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
-			{startCase(field)} Research
+			{enumToString(TechField, field)} Research
 		</h2>
 		<div>
 			<label class="label cursor-pointer justify-start">
 				<input
 					type="radio"
-					name={`${field}ResearchCost`}
-					value={ResearchCostExtra}
+					name={`${enumToString(TechField, field)}ResearchCost`}
+					value={ResearchCostLevel.EXTRA}
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>
@@ -35,8 +29,8 @@
 			<label class="label cursor-pointer justify-start">
 				<input
 					type="radio"
-					name={`${field}ResearchCost`}
-					value={ResearchCostStandard}
+					name={`${enumToString(TechField, field)}ResearchCost`}
+					value={ResearchCostLevel.STANDARD}
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>
@@ -45,8 +39,8 @@
 			<label class="label cursor-pointer justify-start">
 				<input
 					type="radio"
-					name={`${field}ResearchCost`}
-					value={ResearchCostLess}
+					name={`${enumToString(TechField, field)}ResearchCost`}
+					value={ResearchCostLevel.LESS}
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>

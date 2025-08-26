@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/tech.proto";
+
+// TechService exposes read-only tech endpoints equivalent to REST techs.go.
+service TechService {
+  // GetTechs returns the full tech store (StaticTechStore).
+  rpc GetTechs(GetTechsRequest) returns (GetTechsResponse);
+
+  // GetTech returns a single tech by name.
+  rpc GetTech(GetTechRequest) returns (GetTechResponse);
+}
+
+message GetTechsRequest {}
+
+message GetTechsResponse {
+  repeated TechPlanetaryScanner planetary_scanners = 1;
+  repeated TechTerraform terraforms = 2;
+  repeated TechDefense defenses = 3;
+  repeated TechPlanetary planetaries = 4;
+  repeated TechHullComponent hull_components = 5;
+  repeated TechHull hulls = 6;
+}
+
+message GetTechRequest {
+  string name = 1;
+}
+
+message GetTechResponse {
+  // When not found, server returns NOT_FOUND error (no empty result).
+  oneof tech {
+    TechPlanetaryScanner tech_planetary_scanner = 1;
+    TechTerraform tech_terraform = 2;
+    TechDefense tech_defense = 3;
+    TechPlanetary tech_planetary = 4;
+    TechHullComponent tech_hull_component = 5;
+    TechHull tech_hull = 6;
+  }
+}

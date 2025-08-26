@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { clickOutside } from '$lib/clickOutside';
 	import type { OnCancel, OnOk } from '$lib/services/Events';
-	import { type MapObject } from '$lib/types/cs';
+	import type { MapObjectLike } from '$lib/types/MapObject';
 	import SearchResults from './SearchResults.svelte';
 
 	type Props = {
 		show?: boolean;
-		onOk: OnOk<MapObject | undefined>;
+		onOk: OnOk<MapObjectLike | undefined>;
 		onCancel: OnCancel;
 	};
 

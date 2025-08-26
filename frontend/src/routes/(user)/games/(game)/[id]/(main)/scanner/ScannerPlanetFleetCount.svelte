@@ -1,34 +1,36 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import type { Fleet, Planet } from '$lib/types/cs-proto';
+	import { MapObjectType } from '$lib/types/cs-proto';
 	import { filterFleet } from '$lib/types/Filter';
-	import type { AnyFleet } from '$lib/services/Universe';
-	import { MapObjectTypeFleet, type PlanetIntel } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import { getEnemiesAndFriends, getScannerContext } from './Scanner';
+	import { emptyVector } from '$lib/types/Vector';
 
 	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 	const { player, universe, settings } = getGameContext();
 	const { scale } = getScannerContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: Planet;
 		yOffset: number;
 	};
 
 	let { planet, yOffset }: Props = $props();
 
 	let orbitingFleets = $derived(
-		$universe.getMapObjectsByPosition(planet).filter((mo) => mo.type === MapObjectTypeFleet)
+		$universe
+			.getMapObjectsByPosition(planet.mapObject?.position ?? emptyVector())
+			.filter((mo) => mo.mapObject?.type === MapObjectType.FLEET)
 	);
 
 	let orbitingTokens = $derived(
 		orbitingFleets
-			.map((of) => of as AnyFleet)
-			.filter((f: AnyFleet) => filterFleet($player, f, $settings))
+			.map((of) => of as Fleet)
+			.filter((f: Fleet) => filterFleet($player, f, $settings))
 			.reduce(
-				(count, f) =>
-					count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
+				(count, f) => count + f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0),
 				0
 			)
 	);
@@ -48,7 +50,9 @@
 
 {#if $settings.showFleetTokenCounts && orbitingTokens}
 	<!-- translate the group to the location of the fleet so when we scale the text it is around the center-->
-	<g transform={`translate(${$xGet(planet)} ${$yGet(planet) + yOffset + 20 / $scale})`}>
+	<g
+		transform={`translate(${$xGet(planet.mapObject)} ${$yGet(planet.mapObject) + yOffset + 20 / $scale})`}
+	>
 		<text transform={`scale(${1 / $scale})`} text-anchor="middle" class={textColor}
 			>{orbitingTokens}</text
 		>

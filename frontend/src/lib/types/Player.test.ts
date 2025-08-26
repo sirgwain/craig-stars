@@ -1,207 +1,115 @@
-import techjson from '$lib/ssr/techs.json';
+import {
+	MinefieldType,
+	Prt,
+	TechCategory,
+	TechHullComponentSchema,
+	TechLevelSchema,
+	TechOrigin,
+	type TechHullComponent
+} from '$lib/types/cs-proto';
+import { create } from '@bufbuild/protobuf';
 import { describe, expect, it } from 'vitest';
 import { CommandedPlayer, canLearnTech } from './Player';
-import type { ShipDesign, ShipDesignSpec } from './cs';
-import {
-	IFE,
-	IS,
-	SD,
-	TechCategoryBomb,
-	TechCategoryElectrical,
-	TechCategoryEngine,
-	TechCategoryMineLayer,
-	type TechEngine,
-	type TechHullComponent,
-	type TechStore
-} from './cs';
+import { IFE } from './Race';
 
-const fuelMizer: TechEngine = {
-	name: 'Fuel Mizer',
-	cost: {
-		ironium: 8,
-		resources: 11
+const fuelMizer: TechHullComponent = create(TechHullComponentSchema, {
+	tech: {
+		name: 'Fuel Mizer',
+		cost: {
+			ironium: 8,
+			resources: 11
+		},
+		requirements: {
+			techLevel: {
+				propulsion: 2
+			},
+			lrtsRequired: 1
+		},
+		ranking: 30,
+		category: TechCategory.ENGINE
 	},
-	requirements: {
-		propulsion: 2,
-		lrtsRequired: 1
-	},
-	ranking: 30,
-	category: TechCategoryEngine,
 	hullSlotType: 2,
 	mass: 6,
 	idealSpeed: 6,
 	freeSpeed: 4,
 	maxSafeSpeed: 9,
 	fuelUsage: [0, 0, 0, 0, 0, 35, 120, 175, 235, 360, 420]
-};
+});
 
-const speedTrap20: TechHullComponent = {
-	name: 'Speed Trap 20',
-	cost: {
-		ironium: 30,
-		germanium: 12,
-		resources: 60
+const speedTrap20: TechHullComponent = create(TechHullComponentSchema, {
+	tech: {
+		name: 'Speed Trap 20',
+		cost: {
+			ironium: 30,
+			germanium: 12,
+			resources: 60
+		},
+		requirements: {
+			techLevel: {
+				propulsion: 2,
+				biotechnology: 2
+			},
+			prtsRequired: [Prt.SD, Prt.IS]
+		},
+		ranking: 70,
+		category: TechCategory.MINE_LAYER
 	},
-	requirements: {
-		propulsion: 2,
-		biotechnology: 2,
-		prtsRequired: [SD, IS]
-	},
-	ranking: 70,
-	category: TechCategoryMineLayer,
 	hullSlotType: 8192,
 	mass: 100,
-	minefieldType: 'SpeedBump',
+	minefieldType: MinefieldType.SPEED_BUMP,
 	mineLayingRate: 20
-};
+});
 
-const smartBomb: TechHullComponent = {
-	name: 'Smart Bomb',
-	cost: {
-		ironium: 1,
-		boranium: 22,
-		resources: 27
+const smartBomb: TechHullComponent = create(TechHullComponentSchema, {
+	tech: {
+		name: 'Smart Bomb',
+		cost: {
+			ironium: 1,
+			boranium: 22,
+			resources: 27
+		},
+		requirements: {
+			techLevel: {
+				weapons: 5,
+				biotechnology: 7
+			},
+			prtsDenied: [Prt.IS]
+		},
+		ranking: 90,
+		category: TechCategory.BOMB
 	},
-	requirements: {
-		weapons: 5,
-		biotechnology: 7,
-		prtsDenied: [IS]
-	},
-	ranking: 90,
-	category: TechCategoryBomb,
 	hullSlotType: 16,
 	mass: 50,
 	killRate: 1.3,
 	smart: true
-};
+});
 
-const multiFunctionPod: TechHullComponent = {
-	name: 'Multi-Function Pod',
-	cost: {
-		ironium: 5,
-		germanium: 5,
-		resources: 15
+const multiFunctionPod: TechHullComponent = create(TechHullComponentSchema, {
+	tech: {
+		name: 'Multi-Function Pod',
+		cost: {
+			ironium: 5,
+			germanium: 5,
+			resources: 15
+		},
+		requirements: {
+			techLevel: {
+				energy: 11,
+				propulsion: 11,
+				electronics: 11
+			},
+			acquirable: true
+		},
+		ranking: 35,
+		category: TechCategory.ELECTRICAL,
+		origin: TechOrigin.MYSTERY_TRADER
 	},
-	requirements: {
-		energy: 11,
-		propulsion: 11,
-		electronics: 11,
-		acquirable: true
-	},
-	ranking: 35,
-	category: TechCategoryElectrical,
-	origin: 'MysteryTrader',
 	hullSlotType: 64,
 	mass: 2,
 	cloakUnits: 60,
 	torpedoJamming: 0.1,
 	movementBonus: 1
-};
-
-export const baseStationDesign: ShipDesign = {
-	num: 1,
-	playerNum: 1,
-	gameId: 1,
-	originalPlayerNum: 0,
-	version: 0,
-	name: 'Base Station',
-	hull: 'Space Station',
-	hullSetNumber: 0,
-	slots: [],
-	spec: {
-		hullType: 'Starbase',
-		cost: {
-			ironium: 92,
-			boranium: 61,
-			germanium: 190,
-			resources: 456
-		},
-		techLevel: {},
-		armor: 500,
-		scanRange: -1,
-		scanRangePen: -1,
-		repairBonus: 0.15,
-		initiative: 14,
-		starbase: true,
-		spaceDock: -1,
-		cloakPercentFullCargo: -4611686018427388000,
-		maxPopulation: 1000000
-	} as ShipDesignSpec
-};
-
-export const orbitalFort2Design: ShipDesign = {
-	id: 2006,
-	gameId: 60,
-	num: 20,
-	playerNum: 1,
-	originalPlayerNum: 0,
-	name: 'Orbital Fort II',
-	version: 0,
-	hull: 'Orbital Fort',
-	hullSetNumber: 0,
-	slots: [
-		{
-			hullComponent: 'Beta Torpedo',
-			hullSlotIndex: 2,
-			quantity: 12
-		},
-		{
-			hullComponent: 'Beta Torpedo',
-			hullSlotIndex: 4,
-			quantity: 12
-		},
-		{
-			hullComponent: 'Wolverine Diffuse Shield',
-			hullSlotIndex: 3,
-			quantity: 12
-		},
-		{
-			hullComponent: 'Organic Armor',
-			hullSlotIndex: 5,
-			quantity: 12
-		}
-	],
-	spec: {
-		hullType: 'OrbitalFort',
-		cost: {
-			ironium: 463,
-			boranium: 144,
-			germanium: 230,
-			resources: 493
-		},
-		techLevel: {
-			energy: 6,
-			weapons: 5,
-			propulsion: 1,
-			biotechnology: 7
-		},
-		mass: 792,
-		armor: 2200,
-		scanRange: -1,
-		scanRangePen: -1,
-		repairBonus: 0.03,
-		initiative: 10,
-		powerRating: 288,
-		shields: 720,
-		starbase: true,
-		hasWeapons: true,
-		weaponSlots: [
-			{
-				hullComponent: 'Beta Torpedo',
-				hullSlotIndex: 2,
-				quantity: 12
-			},
-			{
-				hullComponent: 'Beta Torpedo',
-				hullSlotIndex: 4,
-				quantity: 12
-			}
-		],
-		maxPopulation: 250000
-	}
-};
-
-const techStore = techjson as unknown as TechStore;
+});
 
 describe('player test', () => {
 	it('checks tech requirements', () => {
@@ -218,15 +126,15 @@ describe('player test', () => {
 		expect(canLearnTech(player, fuelMizer)).toBe(true);
 
 		// IS can learn speed trap
-		player.race.prt = IS;
+		player.race.prt = Prt.IS;
 		expect(canLearnTech(player, speedTrap20)).toBe(true);
 
 		// IS cannot learn smart bomb
-		player.race.prt = IS;
+		player.race.prt = Prt.IS;
 		expect(canLearnTech(player, smartBomb)).toBe(false);
 
 		// SD can learn speed trap
-		player.race.prt = SD;
+		player.race.prt = Prt.SD;
 		expect(canLearnTech(player, speedTrap20)).toBe(true);
 	});
 
@@ -240,27 +148,10 @@ describe('player test', () => {
 		expect(player.hasTech(fuelMizer)).toBe(true);
 
 		// player doesn't have MT tech until acquired
-		player.techLevels = { energy: 11, propulsion: 11, electronics: 11 };
+		player.techLevels = create(TechLevelSchema, { energy: 11, propulsion: 11, electronics: 11 });
 		expect(player.hasTech(multiFunctionPod)).toBe(false);
 
-		player.acquiredTechs[multiFunctionPod.name] = true;
+		player.acquiredTechs[multiFunctionPod?.tech?.name ?? ''] = true;
 		expect(player.hasTech(multiFunctionPod)).toBe(true);
-	});
-
-	it('getTerraformAbility', () => {
-		const player = new CommandedPlayer();
-
-		expect(player.getTerraformAbility(techStore)).toEqual({ grav: 0, temp: 0, rad: 0 });
-
-		// get some tech
-		player.techLevels = {
-			energy: 3,
-			weapons: 3,
-			propulsion: 3,
-			construction: 3,
-			electronics: 3,
-			biotechnology: 3
-		};
-		expect(player.getTerraformAbility(techStore)).toEqual({ grav: 3, temp: 3, rad: 3 });
 	});
 });

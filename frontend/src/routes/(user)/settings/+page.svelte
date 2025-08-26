@@ -2,62 +2,47 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import UserAvatar from '$lib/components/UserAvatar.svelte';
+	import { userClient } from '$lib/services/connect';
+	import { addError } from '$lib/services/Errors';
 	import { notify } from '$lib/services/Notifications';
-	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
-	import { UserService } from '$lib/services/UserService';
-	import type { User } from '$lib/types/cs';
+	import type { User } from '$lib/types/cs-proto';
+	import { ConnectError } from '@connectrpc/connect';
 	import { onMount } from 'svelte';
 
 	let user: User | undefined = $state();
 	let changedWebhook = $state(false);
 
 	onMount(async () => {
-		user = await UserService.get($me?.id);
+		const resp = await userClient.getUser({ userId: $me.id });
+		user = resp.user;
 	});
 
 	const onSubmit = async () => {
-		if (!$me) {
-			return;
-		}
-		const body = JSON.stringify({
-			userSettings: {
-				discordWebhookUrl: user?.discordWebhookUrl
-			}
-		});
-		const response = await fetch(`/api/users/${$me?.id}`, {
-			method: 'PUT',
-			headers: {
-				accept: 'application/json'
-			},
-			body
-		});
+		try {
+			await userClient.updateUserSettings({
+				userSettings: {
+					discordWebhookUrl: user?.discordWebhookUrl
+				}
+			});
 
-		if (!response.ok) {
-			await Service.throwError(response);
+			notify(`Saved ${user?.username} settings`);
+			changedWebhook = false;
+		} catch (err) {
+			addError(err as ConnectError);
 		}
-
-		notify(`Saved ${user?.username} settings`);
-		changedWebhook = false;
 	};
 
 	const testWebhook = async () => {
-		if (!user || !user?.discordWebhookUrl) {
+		if (!user || !user.discordWebhookUrl) {
 			return;
 		}
 
-		const response = await fetch(`/api/users/${user.id}/test-discord-webhook`, {
-			method: 'POST',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-
-		if (!response.ok) {
-			await Service.throwError(response);
+		try {
+			await userClient.testDiscordWebhook({});
+		} catch (err) {
+			addError(err as ConnectError);
 		}
-
-		notify(`Sent discord test`);
 	};
 </script>
 

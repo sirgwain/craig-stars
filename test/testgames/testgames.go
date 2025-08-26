@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package testgames
 
 import (
@@ -40,6 +42,7 @@ var TestGames = []TestGame{
 				}},
 				Fleets: []cs.Fleet{
 					{
+						Fuel:              300,
 						BaseName:          "Long Range Scout",
 						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
 						OrbitingPlanetNum: 1,
@@ -56,6 +59,102 @@ var TestGames = []TestGame{
 			MineralConcentration: cs.NewMineral(100, 100, 100),
 			Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
 		}},
+	},
+	{
+		Name: "Scout Test",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{{
+					Name:  "Long Range Scout",
+					Hull:  cs.Scout.Name,
+					Slots: longRangeScoutSlots,
+				}},
+				Fleets: []cs.Fleet{
+					{
+						Fuel:              300,
+						BaseName:          "Long Range Scout",
+						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						OrbitingPlanetNum: 1,
+					},
+				},
+			},
+		},
+		Planets: []cs.Planet{
+			{
+				MapObject: cs.MapObject{
+					Name:      "Planet 1",
+					PlayerNum: 1,
+				},
+				Hab:                  cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+				MineralConcentration: cs.NewMineral(100, 100, 100),
+				Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
+				Homeworld:            true,
+			},
+			{
+				MapObject: cs.MapObject{
+					Name:     "Planet 2",
+					Position: cs.Vector{X: 0, Y: 49}, // warp 7, one year
+				},
+				Hab:                  cs.Hab{Grav: 25, Temp: 25, Rad: 25},
+				MineralConcentration: cs.NewMineral(100, 100, 100),
+				Cargo:                cs.Cargo{},
+			},
+		},
+	},
+	{
+		Name: "Colonizer Test",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Santa Maria",
+						Hull:  cs.ColonyShip.Name,
+						Slots: santaMariaSlots,
+					},
+					{
+						Name:  "Long Range Scout",
+						Hull:  cs.Scout.Name,
+						Slots: longRangeScoutSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						Fuel:              200,
+						BaseName:          "Santa Maria",
+						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						OrbitingPlanetNum: 1,
+					},
+					// scout for scanning
+					{
+						Fuel:              300,
+						BaseName:          "Long Range Scout",
+						Tokens:            []cs.ShipToken{{DesignNum: 2, Quantity: 1}},
+						OrbitingPlanetNum: 1,
+					},
+				},
+			},
+		},
+		Planets: []cs.Planet{
+			{
+				MapObject: cs.MapObject{
+					Name:      "Planet 1",
+					PlayerNum: 1,
+				},
+				Hab:                  cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+				MineralConcentration: cs.NewMineral(100, 100, 100),
+				Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
+				Homeworld:            true,
+			},
+			{
+				MapObject: cs.MapObject{
+					Name:     "Planet 2",
+					Position: cs.Vector{X: 0, Y: 25},
+				},
+				Hab:                  cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+				MineralConcentration: cs.NewMineral(100, 100, 100),
+				Cargo:                cs.Cargo{},
+			},
+		},
 	},
 	{
 		Name: "Kitchen Sink",
@@ -77,12 +176,14 @@ var TestGames = []TestGame{
 					{
 						BaseName:          "Long Range Scout",
 						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Fuel:              300,
 						OrbitingPlanetNum: 1,
 					},
 					{
 						MapObject: cs.MapObject{Position: cs.Vector{X: 0, Y: 50}},
 						BaseName:  "Teamster",
 						Tokens:    []cs.ShipToken{{DesignNum: 2, Quantity: 2}},
+						Fuel:      900,
 					},
 				},
 				MineralPackets: []cs.MineralPacket{
@@ -107,7 +208,7 @@ var TestGames = []TestGame{
 				},
 			},
 			{
-				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace()},
+				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace().WithPluralName("Rabbitoids")},
 				Designs: []cs.ShipDesign{
 					{
 						Name:  "Teamster",
@@ -157,12 +258,12 @@ var TestGames = []TestGame{
 		},
 		Wormholes: []cs.Wormhole{
 			{
-				MapObject:      cs.MapObject{Position: cs.Vector{X: 20, Y: 0}},
+				MapObject:      cs.MapObject{Position: cs.Vector{X: 10, Y: 10}},
 				Stability:      cs.WormholeStabilityRockSolid,
 				DestinationNum: 2,
 			},
 			{
-				MapObject:      cs.MapObject{Position: cs.Vector{X: 0, Y: 20}},
+				MapObject:      cs.MapObject{Position: cs.Vector{X: 60, Y: 60}},
 				Stability:      cs.WormholeStabilityMostlyStable,
 				DestinationNum: 1,
 			},
@@ -620,9 +721,17 @@ func createTestGame(tg TestGame) *cs.FullGame {
 	for i, p := range tg.Players {
 		if p.Player == nil {
 			p.Player = &cs.Player{
-				UserID:     1,
-				Race:       *cs.NewRace(),
-				TechLevels: cs.TechLevel{Energy: 3, Weapons: 3, Propulsion: 3, Construction: 3, Electronics: 3, Biotechnology: 3},
+				UserID:        1,
+				Race:          *cs.NewRace(),
+				TechLevels:    cs.TechLevel{Energy: 3, Weapons: 3, Propulsion: 3, Construction: 3, Electronics: 3, Biotechnology: 3},
+				Stats:         &cs.PlayerStats{},
+				AcquiredTechs: map[string]bool{},
+				PlayerOrders: cs.PlayerOrders{
+					Researching:       cs.Energy,
+					ResearchAmount:    15,
+					NextResearchField: cs.NextResearchFieldSameField,
+					CargoTransfers:    cs.CargoTransfers{},
+				},
 			}
 		}
 		player := addPlayer(game, p.WithNum(i+1))

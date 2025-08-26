@@ -1,38 +1,36 @@
 <script lang="ts">
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
-	import type { DesignFinder } from '$lib/services/Universe';
 	import {
-		QueueItemTypeAutoDefenses,
-		QueueItemTypeAutoFactories,
-		QueueItemTypeAutoMaxTerraform,
-		QueueItemTypeAutoMineralAlchemy,
-		QueueItemTypeAutoMines,
-		QueueItemTypeAutoMinTerraform,
-		type ProductionQueueItem
-	} from '$lib/types/cs';
-	import { fromQueueItemType, getQueueItemShortName } from '$lib/types/Planet';
+		ProductionPlanItemSchema,
+		QueueItemType,
+		type ProductionPlanItem
+	} from '$lib/types/cs-proto';
+	import type { DesignFinder } from '$lib/services/Universe';
+	import { getQueueItemShortName } from '$lib/types/Planet';
 	import { isAuto } from '$lib/types/QueueItemType';
+	import { create } from '@bufbuild/protobuf';
 	import ProductionItemsButtons from './ProductionItemsButtons.svelte';
+	import { planItemFromQueueItemType } from '$lib/types/Player';
 
 	type Props = {
 		designFinder: DesignFinder;
 		// default to auto tasks
-		availableItems?: ProductionQueueItem[];
-		queueItems?: ProductionQueueItem[];
-		queueItemDescription?: (item: ProductionQueueItem, designFinder: DesignFinder) => string;
-		onAvailableItemSelected?: (item: ProductionQueueItem) => void;
-		onQueueItemSelected?: (item: ProductionQueueItem | undefined) => void;
+		availableItems?: ProductionPlanItem[];
+		queueItems?: ProductionPlanItem[];
+		queueItemDescription?: (item: ProductionPlanItem, designFinder: DesignFinder) => string;
+		onAvailableItemSelected?: (item: ProductionPlanItem) => void;
+		onQueueItemSelected?: (item: ProductionPlanItem | undefined) => void;
 	};
 
 	let {
 		designFinder,
 		availableItems = [
-			fromQueueItemType(QueueItemTypeAutoFactories),
-			fromQueueItemType(QueueItemTypeAutoMines),
-			fromQueueItemType(QueueItemTypeAutoDefenses),
-			fromQueueItemType(QueueItemTypeAutoMineralAlchemy),
-			fromQueueItemType(QueueItemTypeAutoMaxTerraform),
-			fromQueueItemType(QueueItemTypeAutoMinTerraform)
+			planItemFromQueueItemType(QueueItemType.AUTO_FACTORIES),
+			planItemFromQueueItemType(QueueItemType.AUTO_MINES),
+			planItemFromQueueItemType(QueueItemType.AUTO_DEFENSES),
+			planItemFromQueueItemType(QueueItemType.AUTO_MINERAL_ALCHEMY),
+			planItemFromQueueItemType(QueueItemType.AUTO_MAX_TERRAFORM),
+			planItemFromQueueItemType(QueueItemType.AUTO_MIN_TERRAFORM)
 		],
 		queueItems = $bindable([]),
 		queueItemDescription = getQueueItemShortName,
@@ -42,56 +40,64 @@
 
 	let quantityModifier = $state(1);
 
-	let selectedAvailableItem: ProductionQueueItem | undefined = $state();
+	let selectedAvailableItem: ProductionPlanItem | undefined = $state();
 	let selectedAvailableItemIndex = $state(-1);
 
 	let selectedQueueItemIndex = $state(-1);
-	let selectedQueueItem: ProductionQueueItem | undefined;
+	let selectedQueueItem: ProductionPlanItem | undefined;
 
-	function availableItemSelected(index: number, item: ProductionQueueItem) {
+	function availableItemSelected(index: number, item: ProductionPlanItem) {
 		selectedAvailableItemIndex = index;
 		selectedAvailableItem = item;
 		onAvailableItemSelected?.(selectedAvailableItem);
 	}
 
-	function queueItemClicked(index: number, item?: ProductionQueueItem) {
+	function queueItemClicked(index: number, item?: ProductionPlanItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
 		onQueueItemSelected?.(selectedQueueItem);
 	}
 
-	function addAvailableItem(item?: ProductionQueueItem) {
+	function addAvailableItem(item?: ProductionPlanItem) {
 		item = item ?? selectedAvailableItem;
-		if (!queueItems || !item) {
+		if (!item) {
 			return;
 		}
 
 		const quantity = quantityModifier;
 		if (selectedQueueItem) {
-			if (
-				selectedQueueItem.type === item?.type &&
-				selectedQueueItem.designNum === item?.designNum
-			) {
+			if (selectedQueueItem.type === item.type && selectedQueueItem.designNum === item.designNum) {
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item
-				queueItems.splice(selectedQueueItemIndex + 1, 0, {
-					type: item.type,
-					quantity,
-					designNum: item.designNum
-				});
+				queueItems.splice(
+					selectedQueueItemIndex + 1,
+					0,
+					create(ProductionPlanItemSchema, {
+						type: item.type,
+						quantity,
+						designNum: item.designNum
+					})
+				);
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 			}
 		} else {
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
-			if (nextItem && nextItem.type === item?.type && nextItem.designNum == item.designNum) {
+			if (nextItem && nextItem.type === item.type && nextItem.designNum == item.designNum) {
 				nextItem.quantity++;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
 			} else {
 				// prepend a new queue item
-				queueItems = [{ type: item.type, designNum: item.designNum, quantity }, ...queueItems];
+				queueItems = [
+					create(ProductionPlanItemSchema, {
+						type: item.type,
+						designNum: item.designNum,
+						quantity
+					}),
+					...queueItems
+				];
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 			}
@@ -102,12 +108,12 @@
 	}
 
 	function removeItem() {
-		if (queueItems && selectedQueueItem) {
+		if (selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifier;
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
-				queueItems = queueItems?.filter((item) => item != selectedQueueItem);
+				queueItems = queueItems.filter((item) => item != selectedQueueItem);
 				selectedQueueItem =
 					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
 				selectedQueueItemIndex--;
@@ -116,7 +122,7 @@
 	}
 
 	function itemUp() {
-		if (queueItems && selectedQueueItem && selectedQueueItemIndex > 0) {
+		if (selectedQueueItem && selectedQueueItemIndex > 0) {
 			const swap = queueItems[selectedQueueItemIndex - 1];
 			queueItems[selectedQueueItemIndex - 1] = selectedQueueItem;
 			queueItems[selectedQueueItemIndex] = swap;
@@ -126,7 +132,7 @@
 	}
 
 	function itemDown() {
-		if (queueItems && selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
+		if (selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
 			const swap = queueItems[selectedQueueItemIndex + 1];
 			queueItems[selectedQueueItemIndex + 1] = selectedQueueItem;
 			queueItems[selectedQueueItemIndex] = swap;

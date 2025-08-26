@@ -1,8 +1,6 @@
 <script lang="ts">
-	import type { User } from '$lib/types/cs';
-
 	type Props = {
-		user: Partial<User>;
+		user: { discordAvatar?: string; discordId?: string; username?: string };
 	};
 
 	let { user }: Props = $props();

@@ -9,9 +9,9 @@ import (
 // Players also start the game knowing all planet names and locations.
 // I suppose these should have been named Stars, since they represent a star system, ah well..
 type Planet struct {
-	GameDBObject         `tstype:",extends"`
-	MapObject            `tstype:",extends"`
-	PlanetOrders         `tstype:",extends"`
+	GameDBObject
+	MapObject
+	PlanetOrders
 	Hab                  Hab        `json:"hab"`
 	BaseHab              Hab        `json:"baseHab"`
 	TerraformedAmount    Hab        `json:"terraformedAmount,omitzero"`
@@ -42,7 +42,7 @@ type PlanetOrders struct {
 }
 
 type PlanetSpec struct {
-	PlanetStarbaseSpec                        `tstype:",extends"`
+	PlanetStarbaseSpec
 	CanTerraform                              bool    `json:"canTerraform,omitempty"`
 	Defense                                   string  `json:"defense,omitempty"`
 	DefenseCoverage                           float64 `json:"defenseCoverage,omitempty"`
@@ -546,9 +546,19 @@ func (p *Planet) GetGrowthAmount(player *Player, maxPopulation int, populationOv
 }
 
 // compute a planet's PlanetSpec.
-func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec {
+func ComputePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
+	scanner := player.Spec.PlanetaryScanner
+	if scanner.Name == "" && !race.Spec.InnateScanner {
+		// player spec isn't computed, just look up the player's tech
+		scanner = *rules.techs.GetBestPlanetaryScanner(player)
+	}
+	defense := player.Spec.Defense
+	if defense.Name == "" && race.Spec.CanBuildDefenses {
+		// player spec isn't computed, just look up the player's tech
+		defense = *rules.techs.GetBestDefense(player)
+	}
 
 	// hab/pop
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
@@ -584,8 +594,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	if race.Spec.CanBuildDefenses {
 		spec.MaxDefenses = 100
-		spec.Defense = player.Spec.Defense.Name
-		spec.computeDefenseCoverage(rules, player.Spec.Defense.DefenseCoverage, planet.Defenses)
+		spec.Defense = defense.Name
+		spec.computeDefenseCoverage(rules, defense.DefenseCoverage, planet.Defenses)
 	}
 
 	if race.Spec.InnateScanner {
@@ -598,7 +608,6 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		}
 	} else if planet.Scanner {
 		// normal scanner ranges
-		scanner := player.Spec.PlanetaryScanner
 		spec.Scanner = scanner.Name
 		spec.ScanRange = int(float64(scanner.ScanRange) * player.Race.Spec.ScanRangeFactor)
 		spec.ScanRangePen = scanner.ScanRangePen

@@ -53,6 +53,7 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
+        report_age,
         x,
         y,
         name,
@@ -61,8 +62,7 @@ INSERT INTO
         tags,
         minefield_type,
         num_mines,
-        detonate,
-        spec
+        detonate
     )
 VALUES
     (
@@ -86,6 +86,7 @@ UPDATE minefields
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
+    report_age = ?,
     x = ?,
     y = ?,
     name = ?,
@@ -94,8 +95,7 @@ SET
     tags = ?,
     minefield_type = ?,
     num_mines = ?,
-    detonate = ?,
-    spec = ?
+    detonate = ?
 WHERE
     id = ?;
 

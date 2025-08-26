@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/score.proto";
+
+message PlayerIntel {
+  string name = 1;
+  int32 num = 2;
+  string color = 3;
+  bool seen = 4;
+  string race_name = 5;
+  string race_plural_name = 6;
+}
+
+message ScoreIntel {
+  repeated PlayerScore score_history = 1;
+}

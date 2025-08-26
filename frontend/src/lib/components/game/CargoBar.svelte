@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cargoPercent, totalCargo } from '$lib/types/Cargo';
-	import { type Cargo } from '$lib/types/cs';
+	import { cargoPercent, emptyCargo, totalCargo } from '$lib/types/Cargo';
+	import type { Cargo } from '$lib/types/cs-proto';
 
 	type Props = {
 		value?: Cargo;
@@ -10,12 +10,7 @@
 	};
 
 	let {
-		value = {
-			ironium: 0,
-			boranium: 0,
-			germanium: 0,
-			colonists: 0
-		},
+		value = emptyCargo(),
 		capacity = 0,
 		canTransferCargo = false,
 		onPointerDown: onPointerDown
@@ -32,22 +27,22 @@
 	<div
 		class="font-semibold text-sm text-center align-middle text-white mix-blend-difference w-full bg-blend-difference absolute"
 	>
-		{totalCargo(value)} of {capacity ?? 0}kT
+		{totalCargo(value)} of {capacity}kT
 	</div>
 	<div
-		style={`left: 0%; width: ${percent.ironium?.toFixed()}%`}
+		style={`left: 0%; width: ${percent.ironium.toFixed()}%`}
 		class="ironium-bar h-full inline-block"
 	></div>
 	<div
-		style={`width: ${percent.boranium?.toFixed()}%`}
+		style={`width: ${percent.boranium.toFixed()}%`}
 		class="boranium-bar h-full inline-block"
 	></div>
 	<div
-		style={`width: ${percent.germanium?.toFixed()}%`}
+		style={`width: ${percent.germanium.toFixed()}%`}
 		class="germanium-bar h-full inline-block"
 	></div>
 	<div
-		style={`width: ${percent.colonists?.toFixed()}%`}
+		style={`width: ${percent.colonists.toFixed()}%`}
 		class="colonists-bar h-full inline-block"
 	></div>
 </div>

@@ -21,13 +21,16 @@
 </script>
 
 <!-- Names -->
-{#each $universe.planetIntels as planet (planet.num)}
+{#each $universe.planetIntels as planet (planet.mapObject?.num)}
 	{#if $highlightedMapObject == planet || $selectedMapObject == planet || $objectScale >= 5}
 		<div
 			class="absolute w-32 text-center ml-[-4rem] mt-2 pointer-events-none z-10 text-white"
-			style={fillStyle(transform.applyX($xGet(planet)), transform.applyY($yGet(planet)))}
+			style={fillStyle(
+				transform.applyX($xGet(planet.mapObject)),
+				transform.applyY($yGet(planet.mapObject))
+			)}
 		>
-			<span class="select-none">{planet.name}</span>
+			<span class="select-none">{planet.mapObject?.name}</span>
 		</div>
 	{/if}
 {/each}

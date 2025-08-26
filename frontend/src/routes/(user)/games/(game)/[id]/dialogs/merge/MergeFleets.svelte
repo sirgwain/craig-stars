@@ -1,7 +1,7 @@
 <script lang="ts">
+	import type { Fleet } from '$lib/types/cs-proto';
 	import type { MergeFleetsEvent, OnCancel, OnOk } from '$lib/services/Events';
 	import { type CommandedFleet } from '$lib/types/Fleet';
-	import { type Fleet } from '$lib/types/cs';
 	import { getMapObjectName, key } from '$lib/types/MapObject';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
@@ -35,7 +35,7 @@
 
 	function ok() {
 		// TODO: otherFleetsHere[i] is sometimes undefined
-		const fleetNums = selectedFleetIndexes.map((i) => otherFleetsHere[i].num);
+		const fleetNums = selectedFleetIndexes.map((i) => otherFleetsHere[i].mapObject?.num ?? 0);
 		if (fleetNums.length > 0) {
 			onOk?.({ fleet, fleetNums });
 		}
@@ -67,7 +67,7 @@
 		<div class="border border-secondary bg-base-300 min-w-fit max-h-[26rem] h-full overflow-y-auto">
 			<ul class="w-full p-1">
 				{#each otherFleetsHere as otherFleet, index (key(otherFleet))}
-					{#if otherFleet.num != fleet.num}
+					{#if otherFleet.mapObject?.num !== fleet.mapObject.num}
 						<li
 							bind:this={fleetRefs[index]}
 							class="pl-1"

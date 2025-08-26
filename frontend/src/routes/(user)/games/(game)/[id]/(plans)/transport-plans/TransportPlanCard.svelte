@@ -1,10 +1,5 @@
 <script lang="ts">
-	import type { TransportPlan } from '$lib/types/cs';
-	import {
-		TransportActionFillPercent,
-		TransportActionNone,
-		TransportActionWaitForPercent
-	} from '$lib/types/cs';
+	import { WaypointTaskTransportAction, type TransportPlan } from '$lib/types/cs-proto';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import TransportActionDescription from './TransportActionDescription.svelte';
@@ -19,17 +14,22 @@
 	let { plan, href, showDelete = true, onDelete }: Props = $props();
 
 	const deletePlan = async (plan: TransportPlan) => {
-		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
+		if (confirm(`Are you sure you want to delete ${plan.name}?`)) {
 			onDelete?.(plan);
 		}
 	};
 
 	const isEmpty = (plan: TransportPlan) =>
-		(plan.tasks?.fuel.action ?? TransportActionNone) == TransportActionNone &&
-		(plan.tasks?.ironium.action ?? TransportActionNone) == TransportActionNone &&
-		(plan.tasks?.boranium.action ?? TransportActionNone) == TransportActionNone &&
-		(plan.tasks?.germanium.action ?? TransportActionNone) == TransportActionNone &&
-		(plan.tasks?.colonists.action ?? TransportActionNone) == TransportActionNone;
+		(plan.tasks?.fuel?.action ?? WaypointTaskTransportAction.UNSPECIFIED) ==
+			WaypointTaskTransportAction.UNSPECIFIED &&
+		(plan.tasks?.ironium?.action ?? WaypointTaskTransportAction.UNSPECIFIED) ==
+			WaypointTaskTransportAction.UNSPECIFIED &&
+		(plan.tasks?.boranium?.action ?? WaypointTaskTransportAction.UNSPECIFIED) ==
+			WaypointTaskTransportAction.UNSPECIFIED &&
+		(plan.tasks?.germanium?.action ?? WaypointTaskTransportAction.UNSPECIFIED) ==
+			WaypointTaskTransportAction.UNSPECIFIED &&
+		(plan.tasks?.colonists?.action ?? WaypointTaskTransportAction.UNSPECIFIED) ==
+			WaypointTaskTransportAction.UNSPECIFIED;
 </script>
 
 <div
@@ -51,51 +51,55 @@
 				</div>
 			{:else}
 				<TransportActionDescription
-					action={plan.tasks?.fuel.action}
-					amount={plan.tasks?.fuel.amount}
+					action={plan.tasks?.fuel?.action}
+					amount={plan.tasks?.fuel?.amount}
 					units="mg"
 					title="Fuel"
 					titleTextClass="text-fuel"
 				/>
 				<TransportActionDescription
-					action={plan.tasks?.ironium.action}
-					amount={plan.tasks?.ironium.amount}
-					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
-						plan.tasks?.ironium.action ?? TransportActionNone
-					) != -1
+					action={plan.tasks?.ironium?.action}
+					amount={plan.tasks?.ironium?.amount}
+					units={[
+						WaypointTaskTransportAction.WAIT_FOR_PERCENT,
+						WaypointTaskTransportAction.FILL_PERCENT
+					].indexOf(plan.tasks?.ironium?.action ?? WaypointTaskTransportAction.UNSPECIFIED) != -1
 						? '%'
 						: 'kT'}
 					title="Ironium"
 					titleTextClass="text-ironium"
 				/>
 				<TransportActionDescription
-					action={plan.tasks?.boranium.action}
-					amount={plan.tasks?.boranium.amount}
-					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
-						plan.tasks?.boranium.action ?? TransportActionNone
-					) != -1
+					action={plan.tasks?.boranium?.action}
+					amount={plan.tasks?.boranium?.amount}
+					units={[
+						WaypointTaskTransportAction.WAIT_FOR_PERCENT,
+						WaypointTaskTransportAction.FILL_PERCENT
+					].indexOf(plan.tasks?.boranium?.action ?? WaypointTaskTransportAction.UNSPECIFIED) != -1
 						? '%'
 						: 'kT'}
 					title="Boranium"
 					titleTextClass="text-boranium"
 				/>
 				<TransportActionDescription
-					action={plan.tasks?.germanium.action}
-					amount={plan.tasks?.germanium.amount}
-					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
-						plan.tasks?.germanium.action ?? TransportActionNone
-					) != -1
+					action={plan.tasks?.germanium?.action}
+					amount={plan.tasks?.germanium?.amount}
+					units={[
+						WaypointTaskTransportAction.WAIT_FOR_PERCENT,
+						WaypointTaskTransportAction.FILL_PERCENT
+					].indexOf(plan.tasks?.germanium?.action ?? WaypointTaskTransportAction.UNSPECIFIED) != -1
 						? '%'
 						: 'kT'}
 					title="Germanium"
 					titleTextClass="text-germanium"
 				/>
 				<TransportActionDescription
-					action={plan.tasks?.colonists.action}
-					amount={plan.tasks?.colonists.amount}
-					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
-						plan.tasks?.colonists.action ?? TransportActionNone
-					) != -1
+					action={plan.tasks?.colonists?.action}
+					amount={plan.tasks?.colonists?.amount}
+					units={[
+						WaypointTaskTransportAction.WAIT_FOR_PERCENT,
+						WaypointTaskTransportAction.FILL_PERCENT
+					].indexOf(plan.tasks?.colonists?.action ?? WaypointTaskTransportAction.UNSPECIFIED) != -1
 						? '%'
 						: '00'}
 					title="Colonists"

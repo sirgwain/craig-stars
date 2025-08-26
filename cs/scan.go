@@ -48,7 +48,7 @@ type playerScanner struct {
 }
 
 func newPlayerScanner(universe *Universe, players []*Player, rules *Rules, player *Player) playerScanner {
-	return playerScanner{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), player.discoverer}
+	return playerScanner{universe, rules, player, players, make(map[int]bool, len(player.Intels.PlayerIntels)), player.discoverer}
 }
 
 // scan planets, fleets, etc for a player
@@ -282,7 +282,7 @@ func (scan *playerScanner) scanWormholes(scanners []scanner) {
 		}
 	}
 
-	intels := make([]WormholeIntel, len(scan.player.WormholeIntels))
+	intels := make([]*Wormhole, len(scan.player.WormholeIntels))
 	copy(intels, scan.player.WormholeIntels)
 	for _, intel := range intels {
 		for _, scanner := range scanners {
@@ -371,7 +371,7 @@ func (scan *playerScanner) scanMinefields(scanners []scanner) {
 				cloakFactor = 1
 			}
 
-			distanceToEdge := max(0, scanner.Position.DistanceTo(minefield.Position)-minefield.Spec.Radius)
+			distanceToEdge := max(0, scanner.Position.DistanceTo(minefield.Position)-minefield.Radius())
 			scannerRange := float64(scanner.Range) * cloakFactor
 			// we only care about regular scanners for wormholes
 			if scannerRange >= distanceToEdge {
@@ -460,7 +460,7 @@ func (scan *playerScanner) discoverAllies() error {
 
 		// discover our ally and anyone they know about
 		scan.discoveredPlayers[player.Num] = true
-		for _, otherPlayer := range player.PlayerIntels.PlayerIntels {
+		for _, otherPlayer := range player.Intels.PlayerIntels {
 			if otherPlayer.Seen {
 				scan.discoveredPlayers[otherPlayer.Num] = true
 			}
@@ -544,7 +544,7 @@ func (scan *playerScanner) getScanners() []scanner {
 			if minefield.PlayerNum == scan.player.Num {
 				scanner := scanner{
 					Position:             minefield.Position,
-					Range:                int(minefield.Spec.Radius),
+					Range:                int(minefield.Radius()),
 					CloakReductionFactor: 1,
 				}
 				// use the fleet scanner if it's better

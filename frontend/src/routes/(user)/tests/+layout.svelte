@@ -11,7 +11,7 @@
 	let title = $derived(getContext<string>('title'));
 
 	$effect(() => {
-		title = getContext('title') ?? page.route.id?.replace('tests/', '') ?? '';
+		title = getContext('title') || page.route.id?.replace('tests/', '') || '';
 	});
 </script>
 

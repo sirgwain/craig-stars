@@ -41,17 +41,17 @@
 		onValueChanged: onValueChanged
 	}: Props = $props();
 
-	let percent = $derived(max > 0 ? ((value ?? 0) / max) * 100 : 0);
+	let percent = $derived(max > 0 ? (value / max) * 100 : 0);
 	let color = $derived.by(() => {
 		let color = defaultColor;
 
-		if (useStargate && (value ?? 0) >= stargateSpeed) {
+		if (useStargate && value >= stargateSpeed) {
 			color = stargateColor;
-		} else if (isPacket && (value ?? 0) < warnSpeed) {
+		} else if (isPacket && value < warnSpeed) {
 			color = packetColor;
-		} else if ((value ?? 0) >= dangerSpeed) {
+		} else if (value >= dangerSpeed) {
 			color = dangerColor;
-		} else if ((value ?? 0) >= warnSpeed) {
+		} else if (value >= warnSpeed) {
 			color = warnColor;
 		}
 		return color;
@@ -95,7 +95,7 @@
 		}
 		return (
 			(e.targetTouches[0].clientX - ref.getBoundingClientRect().left) /
-			ref.getBoundingClientRect()?.width
+			ref.getBoundingClientRect().width
 		);
 	}
 
@@ -148,7 +148,7 @@
 	>
 		{#if useStargate && value === stargateSpeed}
 			Use Stargate
-		{:else if value === 0 || value == undefined}
+		{:else if value === 0}
 			{warp0Text}
 		{:else}
 			Warp {value}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -44,7 +43,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 
 	var err error
 	for _, player := range ug.Players {
-		player.Race.Spec = computeRaceSpec(&player.Race, &ug.Rules)
+		player.Race.Spec = ComputeRaceSpec(&player.Race, &ug.Rules)
 		player.discoverer = newDiscovererWithAllies(ug.log, player, ug.Players)
 	}
 
@@ -63,7 +62,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 	}
 
 	for _, player := range ug.Players {
-		player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+		player.Spec = ComputePlayerSpec(player, &ug.Rules)
 
 		// compute tech levels
 		for _, design := range player.Designs {
@@ -77,7 +76,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 	for _, planet := range ug.Universe.Planets {
 		if planet.Owned() {
 			player := ug.Players[planet.PlayerNum-1]
-			planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
+			planet.Spec = ComputePlanetSpec(&ug.Rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 				return fmt.Errorf("planet %s failed to populate queue design: %w", planet, err)
 			}
@@ -95,7 +94,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 
 	// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
 	for _, player := range ug.Players {
-		player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+		player.Spec = ComputePlayerSpec(player, &ug.Rules)
 	}
 
 	// do one scan run
@@ -110,7 +109,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	ug.log.Debug().Msgf("%s: Generating universe", ug.Size)
 
 	for _, player := range ug.Players {
-		player.Race.Spec = computeRaceSpec(&player.Race, &ug.Rules)
+		player.Race.Spec = ComputeRaceSpec(&player.Race, &ug.Rules)
 		player.discoverer = newDiscovererWithAllies(ug.log, player, ug.Players)
 	}
 
@@ -155,13 +154,13 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 		ug.computeSpecs()
 	} else {
 		for _, player := range ug.Players {
-			player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+			player.Spec = ComputePlayerSpec(player, &ug.Rules)
 		}
 
 		for _, planet := range ug.Universe.Planets {
 			if planet.Owned() {
 				player := ug.Players[planet.PlayerNum-1]
-				planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
+				planet.Spec = ComputePlanetSpec(&ug.Rules, player, planet)
 				if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 					return nil, fmt.Errorf("planet %s failed to populate queue design: %w", planet, err)
 				}
@@ -174,7 +173,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 
 	// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
 	for _, player := range ug.Players {
-		player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+		player.Spec = ComputePlayerSpec(player, &ug.Rules)
 	}
 
 	// do one scan run
@@ -314,11 +313,11 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 	var err error
 	techStore := ug.Rules.techs
 	for _, player := range ug.Players {
-		designNames := mapset.NewSet[string]()
+		designNames := map[string]bool{}
 		num := 1
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
-				if designNames.Contains(startingFleet.Name) {
+				if designNames[startingFleet.Name] {
 					// only create one design per name, i.e. Scout, Armed Probe
 					// multiple starting fleets will use the same design
 					continue
@@ -333,7 +332,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 					return fmt.Errorf("DesignShip returned error %w", err)
 				}
 				player.Designs = append(player.Designs, design)
-				designNames.Add(design.Name)
+				designNames[design.Name] = true
 				num++
 			}
 		}
@@ -780,11 +779,13 @@ func (ug *universeGenerator) generatePlayerRelations() {
 }
 
 func (ug *universeGenerator) generatePlayerIntel() error {
+	// make sure our universe maps are up to date
+	ug.Universe.buildMaps(ug.Players)
 	for _, player := range ug.Players {
 
 		// discover other players
-		player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(ug.Players)
-		player.PlayerIntels.ScoreIntels = make([]ScoreIntel, len(ug.Players))
+		player.Intels.PlayerIntels = player.defaultPlayerIntels(ug.Players)
+		player.Intels.ScoreIntels = make([]ScoreIntel, len(ug.Players))
 
 		// do initial scans
 		scanner := newPlayerScanner(ug.Universe, ug.Players, &ug.Rules, player)

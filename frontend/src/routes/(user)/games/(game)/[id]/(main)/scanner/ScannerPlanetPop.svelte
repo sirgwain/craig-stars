@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { population } from '$lib/types/Cargo';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { PlanetIntel } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
+	import type { Planet } from '$lib/types/cs-proto';
 
 	const { universe } = getGameContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: Planet;
 	};
 
 	let { planet }: Props = $props();
@@ -20,7 +20,7 @@
 	const minArea = Math.PI * minRadius * minRadius;
 
 	let planetProps = $derived.by(() => {
-		const pop = population(planet.cargo) ?? 0;
+		const pop = population(planet.cargo);
 		if (pop <= 0) {
 			return {
 				radius: 0,
@@ -36,8 +36,8 @@
 		let radius = Math.sqrt(Math.max((pop / 1_300_000) * fullyPopulatedArea, minArea) / Math.PI);
 		let strokeWidth = pop / 1_300_000;
 
-		if (planet.playerNum) {
-			color = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
+		if (planet.mapObject?.playerNum) {
+			color = $universe.getPlayerColor(planet.mapObject.playerNum);
 		}
 
 		// setup the properties of our planet circle

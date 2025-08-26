@@ -10,13 +10,13 @@ import (
 // how the game mechanics work. These are designed to be unique per game, if desired. Currently for testing, all
 // games just use the default rule set.
 type Rules struct {
-	CostRules                          `tstype:",extends"`
-	BattleRules                        `tstype:",extends"`
-	UniverseGenerationRules            `tstype:",extends"`
-	ID                                 int64                               `json:"id"`
-	CreatedAt                          time.Time                           `json:"createdAt"`
-	UpdatedAt                          time.Time                           `json:"updatedAt"`
-	GameID                             int64                               `json:"gameId"`
+	CostRules
+	BattleRules
+	UniverseGenerationRules
+	ID                                 int64                               `json:"id,omitempty"`
+	CreatedAt                          time.Time                           `json:"createdAt,omitempty"`
+	UpdatedAt                          time.Time                           `json:"updatedAt,omitempty"`
+	GameID                             int64                               `json:"gameId,omitempty"`
 	AcquirablePartTradeChanceBase      float64                             `json:"acquirablePartTradeChanceBase"`
 	AcquirablePartTradeItemMax         int                                 `json:"acquirablePartTradeItemMax"`
 	CometStatsBySize                   map[CometSize]CometStats            `json:"cometStatsBySize"`
@@ -43,11 +43,11 @@ type Rules struct {
 	PRTSpecs                           map[PRT]PRTSpec                     `json:"prtSpecs"`
 	RaceStartingPoints                 int                                 `json:"raceStartingPoints"` // TODO: Change this into a "handicap" system with bonuses/penalties per PRT/LRT
 	RadiatingImmune                    int                                 `json:"radiatingImmune"`
-	RandomArtifactResearchBonusRange   [2]int                              `json:"randomArtifactResearchBonusRange"`
+	RandomArtifactResearchBonusRange   []int                               `json:"randomArtifactResearchBonusRange"`
 	RandomCometMinYear                 int                                 `json:"randomCometMinYear"`
 	RandomCometMinYearPlayerWorld      int                                 `json:"randomCometMinYearPlayerWorld"`
 	RandomEventChances                 map[RandomEvent]float64             `json:"randomEventChances"`
-	RandomMineralDepositBonusRange     [2]int                              `json:"randomMineralDepositBonusRange"`
+	RandomMineralDepositBonusRange     []int                               `json:"randomMineralDepositBonusRange"`
 	RemoteMiningMineOutput             int                                 `json:"remoteMiningMineOutput"`
 	RepairRates                        map[RepairRate]float64              `json:"repairRates"`
 	SalvageDecayMin                    int                                 `json:"salvageDecayMin"`
@@ -62,7 +62,7 @@ type Rules struct {
 	StargateMaxRangeFactor             int                                 `json:"stargateMaxRangeFactor"`
 	TachyonCloakReduction              float64                             `json:"tachyonCloakReduction"`
 	TachyonMaxCloakReduction           float64                             `json:"tachyonMaxCloakReduction"`
-	TechsID                            int64                               `json:"techsId"`
+	TechsID                            int64                               `json:"techsId,omitempty"`
 	TechTradeChance                    float64                             `json:"techTradeChance"`
 	TorpedoSplashDamage                float64                             `json:"torpedoSplashDamage"`
 	WormholeCloak                      int                                 `json:"wormholeCloak"`
@@ -106,8 +106,8 @@ type CostRules struct {
 
 // A slightly fancier map[bool]float64 that can be serialized to JSON
 type JammerCap struct {
-	Ship     float64
-	Starbase float64
+	Ship     float64 `json:"ship,omitempty"`
+	Starbase float64 `json:"starbase,omitempty"`
 }
 
 func (jc JammerCap) Get(starbase bool) float64 {
@@ -141,10 +141,11 @@ const (
 type CometSize string
 
 const (
-	CometSmall  CometSize = "Small"
-	CometMedium CometSize = "Medium"
-	CometLarge  CometSize = "Large"
-	CometHuge   CometSize = "Huge"
+	CometUnspecified CometSize = ""
+	CometSmall       CometSize = "Small"
+	CometMedium      CometSize = "Medium"
+	CometLarge       CometSize = "Large"
+	CometHuge        CometSize = "Huge"
 )
 
 var CometSizes = []CometSize{
@@ -173,7 +174,7 @@ type CometStats struct {
 type RepairRate string
 
 const (
-	RepairRateNone              RepairRate = "None"
+	RepairRateNone              RepairRate = ""
 	RepairRateMoving            RepairRate = "Moving"
 	RepairRateStopped           RepairRate = "Stopped"
 	RepairRateOrbiting          RepairRate = "Orbiting"
@@ -426,8 +427,8 @@ func NewRulesWithSeed(seed int64) Rules {
 				PopKilledPercent:         .85,
 			},
 		},
-		RandomMineralDepositBonusRange:   [2]int{20, 50},
-		RandomArtifactResearchBonusRange: [2]int{120, 400},
+		RandomMineralDepositBonusRange:   []int{20, 50},
+		RandomArtifactResearchBonusRange: []int{120, 400},
 		MysteryTraderRules: MysteryTraderRules{
 			// ChanceSpawn:      []int{1}, // force it
 			ChanceSpawn:           []int{7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2}, // randomly pick a random chance to spawn an MT. It's not the same every turn

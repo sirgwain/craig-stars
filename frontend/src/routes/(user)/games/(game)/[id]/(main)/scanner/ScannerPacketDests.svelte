@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/cs';
+	import { None } from '$lib/types/Consts';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
@@ -8,21 +8,25 @@
 	const { xGet, yGet, xScale } = getContext<LayerCake>('LayerCake');
 
 	let planets = $derived(
-		$universe.planets.filter((planet) => planet.packetTargetNum && planet.packetTargetNum != None)
+		$universe.planets.filter(
+			(planet) =>
+				planet.planetOrders?.packetTargetNum && planet.planetOrders.packetTargetNum != None
+		)
 	);
 
 	let lines = $derived(
 		planets.map((planet) => {
 			// get the target, if it's empty, just point to our planet position (which will render an empty line)
 			// it should not be empty...
-			const target = $universe.getPlanet(planet.packetTargetNum ?? None);
+			const target = $universe.getPlanet(planet.planetOrders?.packetTargetNum ?? None);
 			const coords = [
-				{ position: planet.position },
-				{ position: target?.position ?? planet.position }
+				{ position: planet.mapObject?.position },
+				{ position: target?.mapObject?.position ?? planet.mapObject?.position }
 			];
 
-			const strokeWidth = planet.num === $commandedPlanet?.num ? 1.5 : 1;
-			const dist = (planet.packetSpeed ?? 0) * (planet.packetSpeed ?? 0);
+			const strokeWidth = planet.mapObject?.num === $commandedPlanet?.mapObject.num ? 1.5 : 1;
+			const dist =
+				(planet.planetOrders?.packetSpeed ?? 0) * (planet.planetOrders?.packetSpeed ?? 0);
 
 			return {
 				path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),

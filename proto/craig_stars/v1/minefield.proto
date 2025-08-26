@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+
+enum MinefieldType {
+  MINEFIELD_TYPE_UNSPECIFIED = 0;
+  MINEFIELD_TYPE_STANDARD = 1;
+  MINEFIELD_TYPE_HEAVY = 2;
+  MINEFIELD_TYPE_SPEED_BUMP = 3;
+}
+
+message Minefield {
+  GameDBObject game_db_object = 1;
+  MapObject map_object = 2;
+  MinefieldOrders minefield_orders = 3;
+  MinefieldType minefield_type = 4;
+  int32 num_mines = 5;
+}
+
+message MinefieldOrders {
+  bool detonate = 1;
+}
+
+message MinefieldSpec {
+  double radius = 1;
+  int32 decay_rate = 2;
+  bool can_detonate = 3;
+}
+
+message MinefieldStats {
+  int32 min_damage_per_fleet_rs = 1;
+  int32 damage_per_engine_rs = 2;
+  int32 max_speed = 3;
+  double chance_of_hit = 4;
+  int32 min_damage_per_fleet = 5;
+  int32 damage_per_engine = 6;
+  double sweep_factor = 7;
+  int32 min_decay = 8;
+  bool can_detonate = 9;
+}
+
+message MinefieldDamage {
+  int32 damage = 1;
+  int32 ships_destroyed = 2;
+  bool fleet_destroyed = 3;
+}

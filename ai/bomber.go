@@ -8,7 +8,7 @@ import (
 
 func (ai *aiPlayer) bomb() error {
 	// catalogue all explored planets owned by our enemies
-	bombablePlanets := map[int]cs.PlanetIntel{}
+	bombablePlanets := map[int]*cs.Planet{}
 	for _, planet := range ai.Player.PlanetIntels {
 		if ai.IsEnemy(planet.PlayerNum) {
 			bombablePlanets[planet.Num] = planet
@@ -93,8 +93,8 @@ func (ai *aiPlayer) bomb() error {
 }
 
 // get the planet with the best distance to hab ratio
-func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]cs.PlanetIntel) *cs.PlanetIntel {
-	var best *cs.PlanetIntel = nil
+func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]*cs.Planet) *cs.Planet {
+	var best *cs.Planet = nil
 
 	// lowest weight wins
 	bestWeight := 0.0
@@ -128,7 +128,7 @@ func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]cs.Plan
 
 		if weight > bestWeight {
 			bestWeight = weight
-			best = &intel
+			best = intel
 		}
 	}
 

@@ -1,14 +1,17 @@
+import type { ConnectError } from '@connectrpc/connect';
 import { get, writable } from 'svelte/store';
 
 export type ErrorResponse = { status?: string; error: string };
 
 export const errors = writable<CSError[]>([]);
 
-export function addError(err: CSError | string | undefined) {
+export function addError(err: CSError | ConnectError | string | undefined) {
 	if (err) {
 		const errs = get(errors);
 		if (typeof err === 'string') {
 			errors.update(() => [...errs, new CSError(undefined, err, 0)]);
+		} else if ('details' in err) {
+			errors.update(() => [...errs, new CSError(undefined, err.message, err.code)]);
 		} else {
 			errors.update(() => [...errs, err]);
 		}

@@ -49,7 +49,7 @@
 	});
 </script>
 
-{#if src?.spec}
+{#if src.spec}
 	<div
 		class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300"
 	>

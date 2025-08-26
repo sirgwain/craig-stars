@@ -1,13 +1,14 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import type { Cargo } from '$lib/types/cs';
+	import { CargoSchema, type Cargo } from '$lib/types/cs-proto';
+	import { create } from '@bufbuild/protobuf';
 
-	const cargo1: Cargo = {
+	const cargo1: Cargo = create(CargoSchema, {
 		ironium: 1,
 		boranium: 2,
 		germanium: 3,
 		colonists: 4
-	};
+	});
 </script>
 
 <h1 class="text-xl">Cargo 1</h1>

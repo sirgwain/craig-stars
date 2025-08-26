@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -438,7 +440,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			planet.setPopulation(tt.args.population)
 			planet.Mines = tt.args.mines
 			planet.Factories = tt.args.factories
-			planet.Spec = computePlanetSpec(&rules, player, planet)
+			planet.Spec = ComputePlanetSpec(&rules, player, planet)
 			planet.ProductionQueue = tt.args.items
 
 			got, gotLeftover, err := e.GetProductionWithEstimates(&rules, player, *planet)

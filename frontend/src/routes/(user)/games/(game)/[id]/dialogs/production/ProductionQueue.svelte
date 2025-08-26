@@ -14,15 +14,21 @@
 	import { onAllocatedTooltip } from '$lib/components/game/tooltips/AllocatedTooltip.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
+	import type { CostJson as Cost } from '$lib/types/cs-proto';
+	import {
+		ProductionQueueItemSchema,
+		QueueItemCompletionEstimateSchema,
+		type ProductionQueueItem
+	} from '$lib/types/cs-proto';
+	import { type ProductionPlan } from '$lib/types/cs-proto';
 	import { addError, CSError } from '$lib/services/Errors';
 	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { divide, multiply } from '$lib/types/Cost';
-	import type { ProductionPlan, ProductionQueueItem } from '$lib/types/cs';
-	import { Infinite, type Cost } from '$lib/types/cs';
 	import { CommandedPlanet } from '$lib/types/Planet';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
+	import { clone, create } from '@bufbuild/protobuf';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -36,6 +42,7 @@
 	import { clamp } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
+	import { Infinite } from '$lib/types/Consts';
 
 	// used to load the Genesis Device tech
 	const GenesisDevice = 'Genesis Device';
@@ -52,31 +59,48 @@
 
 	let { planet, onOk, onCancel, onNext, onPrev }: Props = $props();
 
+	let updatedPlanet = $derived(new CommandedPlanet(planet));
+
 	let availableItems: ProductionQueueItem[] = $state([]);
 	let availableShipDesigns: ProductionQueueItem[] = $state([]);
 	let availableStarbaseDesigns: ProductionQueueItem[] = $state([]);
 	let queueItems: ProductionQueueItem[] = $state([]);
 	let contributesOnlyLeftoverToResearch = $state(false);
 
-	let selectedAvailableItem: ProductionQueueItem | undefined = $state();
-	let selectedAvailableItemCost: Cost | undefined = $state();
+	let selectedAvailableItem = $state<ProductionQueueItem | undefined>();
+	let selectedAvailableItemCost = $state<Cost | undefined>();
 
 	let selectedQueueItemIndex = $state(-1);
-	let selectedQueueItem: ProductionQueueItem | undefined = $state();
-	let selectedQueueItemCost: Cost | undefined = $state();
+	let selectedQueueItem = $state<ProductionQueueItem | undefined>();
+	let selectedQueueItemCost = $state<Cost | undefined>();
 
 	// keep track of the quantity modifier
 	let quantityModifer = $state(1);
 
-	function availableItemSelected(type: ProductionQueueItem) {
+	let selectedQueueItemPercentComplete = $state(0);
+	$effect(() => {
+		if (!selectedQueueItem) {
+			return;
+		}
+		getPercentComplete(selectedQueueItem).then(
+			(result) => (selectedQueueItemPercentComplete = result)
+		);
+	});
+
+	async function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
-		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
+		selectedAvailableItemCost = await $player.getItemCost(
+			cs,
+			selectedAvailableItem,
+			$universe,
+			planet
+		);
 	}
 
-	function onQueueItemClicked(index: number, item?: ProductionQueueItem) {
+	async function onQueueItemClicked(index: number, item?: ProductionQueueItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
-		selectedQueueItemCost = $player.getItemCost(
+		selectedQueueItemCost = await $player.getItemCost(
 			cs,
 			selectedQueueItem,
 			$universe,
@@ -90,38 +114,39 @@
 		updateQueueEstimates();
 	};
 
-	function updateQueueEstimates() {
+	async function updateQueueEstimates() {
 		// get updated production queue estimates
-		updatedPlanet.productionQueue = [...queueItems];
-		updatedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		const planetWithEstimates = cs.estimateProduction(updatedPlanet);
-		if (!planetWithEstimates?.productionQueue) {
+		updatedPlanet.planetOrders.productionQueue = [...queueItems];
+		updatedPlanet.planetOrders.contributesOnlyLeftoverToResearch =
+			contributesOnlyLeftoverToResearch;
+		const { planet: planetWithEstimates } = await cs.wasmService.estimateProduction({
+			planet: updatedPlanet
+		});
+		if (!planetWithEstimates?.planetOrders?.productionQueue) {
 			addError(new CSError(undefined, 'unable to estimate production', 0));
 			return;
 		}
 
 		for (let i = 0; i < queueItems.length; i++) {
-			const estimate = planetWithEstimates.productionQueue[i];
-			Object.assign(queueItems[i], {
-				yearsToBuildOne: estimate.yearsToBuildOne,
-				yearsToBuildAll: estimate.yearsToBuildAll,
-				yearsToSkipAuto: estimate.yearsToSkipAuto
-			});
+			const estimate = planetWithEstimates.planetOrders.productionQueue[i];
+			queueItems[i].queueItemCompletionEstimate = estimate.queueItemCompletionEstimate;
 		}
 
 		// update the reactive variable so the UI updates
-		queueItems = updatedPlanet.productionQueue;
+		queueItems = updatedPlanet.planetOrders.productionQueue;
 
-		selectedQueueItem = queueItems[selectedQueueItemIndex];
-		selectedQueueItemCost = multiply(
-			$player.getItemCost(cs, selectedQueueItem, $universe, planet),
-			selectedQueueItem?.quantity
-		);
+		if (selectedQueueItemIndex !== -1) {
+			selectedQueueItem = queueItems[selectedQueueItemIndex];
+			const itemCost = await $player.getItemCost(cs, selectedQueueItem, $universe, planet);
+			selectedQueueItemCost = multiply(itemCost, selectedQueueItem.quantity);
+		}
 
 		for (let i = 0; i < availableItems.length; i++) {
 			const item = availableItems[i];
-			if (!item.yearsToBuildOne) {
-				item.yearsToBuildOne = updatedPlanet.getYearsToBuildOne(item, cs);
+			if (!item.queueItemCompletionEstimate?.yearsToBuildOne) {
+				item.queueItemCompletionEstimate = create(QueueItemCompletionEstimateSchema, {
+					yearsToBuildOne: await updatedPlanet.getYearsToBuildOne(item, cs)
+				});
 			}
 			if (selectedAvailableItem == item) {
 				selectedAvailableItem = item;
@@ -131,8 +156,10 @@
 
 		for (let i = 0; i < availableShipDesigns.length; i++) {
 			const item = availableShipDesigns[i];
-			if (!item.yearsToBuildOne) {
-				item.yearsToBuildOne = updatedPlanet.getYearsToBuildOne(item, cs);
+			if (!item.queueItemCompletionEstimate?.yearsToBuildOne) {
+				item.queueItemCompletionEstimate = create(QueueItemCompletionEstimateSchema, {
+					yearsToBuildOne: await updatedPlanet.getYearsToBuildOne(item, cs)
+				});
 			}
 			if (selectedAvailableItem == item) {
 				selectedAvailableItem = item;
@@ -142,8 +169,10 @@
 
 		for (let i = 0; i < availableStarbaseDesigns.length; i++) {
 			const item = availableStarbaseDesigns[i];
-			if (!item.yearsToBuildOne) {
-				item.yearsToBuildOne = updatedPlanet.getYearsToBuildOne(item, cs);
+			if (!item.queueItemCompletionEstimate?.yearsToBuildOne) {
+				item.queueItemCompletionEstimate = create(QueueItemCompletionEstimateSchema, {
+					yearsToBuildOne: await updatedPlanet.getYearsToBuildOne(item, cs)
+				});
 			}
 
 			if (selectedAvailableItem == item) {
@@ -153,83 +182,90 @@
 		availableStarbaseDesigns = [...availableStarbaseDesigns];
 	}
 
-	function getPercentComplete(item: ProductionQueueItem): number {
+	async function getPercentComplete(item: ProductionQueueItem): Promise<number> {
 		if ((item.allocated?.resources ?? 0) === 0) {
 			return 0;
 		}
 
-		const costOfOne = $player.getItemCost(cs, item, $universe, planet, 1);
+		const costOfOne = await $player.getItemCost(cs, item, $universe, planet, 1);
 		const percent = divide(item.allocated ?? {}, costOfOne);
 
 		// if we are mineral or resource constrained, report the percent complete based on the lowest.
 		return percent;
 	}
 
-	function addAvailableItem(item?: ProductionQueueItem) {
+	async function addAvailableItem(item?: ProductionQueueItem) {
 		item = item ?? selectedAvailableItem;
-		if (!queueItems || !item) {
+		if (!item) {
 			return;
 		}
 
-		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
-		const maxBuildable = cs.maxBuildable(planet, item.type) ?? 0 - amountInQueue;
+		let { result: maxBuildable } = await cs.wasmService.getMaxBuildable({
+			planet: planet,
+			itemType: item.type
+		});
+
 		const quantity = clamp(quantityModifer, 0, maxBuildable);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
 			return;
 		}
 		if (selectedQueueItem) {
-			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
+			if (selectedQueueItem.type == item.type && selectedQueueItem.designNum == item.designNum) {
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item
 
-				queueItems.splice(selectedQueueItemIndex + 1, 0, {
-					type: item.type,
-					quantity,
-					designNum: item.designNum
-				});
+				queueItems.splice(
+					selectedQueueItemIndex + 1,
+					0,
+					create(ProductionQueueItemSchema, {
+						type: item.type,
+						quantity,
+						designNum: item.designNum
+					})
+				);
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = $player.getItemCost(
+				selectedQueueItemCost = await $player.getItemCost(
 					cs,
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem?.quantity
+					selectedQueueItem.quantity
 				);
 			}
 		} else {
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
-			if (nextItem && nextItem.type === item?.type && nextItem.designNum == item.designNum) {
+			if (nextItem && nextItem.type === item.type && nextItem.designNum == item.designNum) {
 				nextItem.quantity++;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
-				selectedQueueItemCost = $player.getItemCost(
+				selectedQueueItemCost = await $player.getItemCost(
 					cs,
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem?.quantity
+					selectedQueueItem.quantity
 				);
 			} else {
 				// prepend a new queue item
 				queueItems = [
-					{
+					create(ProductionQueueItemSchema, {
 						type: item.type,
 						designNum: item.designNum,
 						quantity
-					},
+					}),
 					...queueItems
 				];
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = $player.getItemCost(
+				selectedQueueItemCost = await $player.getItemCost(
 					cs,
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem?.quantity
+					selectedQueueItem.quantity
 				);
 			}
 		}
@@ -237,32 +273,42 @@
 		updateQueueEstimates();
 	}
 
-	function removeItem() {
-		if (queueItems && selectedQueueItem) {
+	async function removeItem() {
+		if (selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifer;
 			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
-				queueItems = queueItems?.filter((item) => item != selectedQueueItem);
-				selectedQueueItem =
-					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
-				selectedQueueItemCost = $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem?.quantity
-				);
-
-				selectedQueueItemIndex--;
+				queueItems = queueItems.filter((item) => item != selectedQueueItem);
+				if (queueItems.length > 0) {
+					if (selectedQueueItemIndex > 0 && selectedQueueItemIndex < queueItems.length - 1) {
+						selectedQueueItem = queueItems[selectedQueueItemIndex - 1];
+					} else if (selectedQueueItemIndex >= queueItems.length) {
+						selectedQueueItem = queueItems[queueItems.length - 1];
+						selectedQueueItemIndex = queueItems.length - 1;
+					} else {
+						selectedQueueItem = queueItems[0];
+					}
+					selectedQueueItemCost = await $player.getItemCost(
+						cs,
+						selectedQueueItem,
+						$universe,
+						planet,
+						selectedQueueItem.quantity
+					);
+				} else {
+					// no items left, clear
+					selectedQueueItemIndex = -1;
+					selectedQueueItem = undefined;
+				}
 			}
 			updateQueueEstimates();
 		}
 	}
 
 	function itemUp() {
-		if (queueItems && selectedQueueItem && selectedQueueItemIndex > 0) {
+		if (selectedQueueItem && selectedQueueItemIndex > 0) {
 			const swap = queueItems[selectedQueueItemIndex - 1];
 			queueItems[selectedQueueItemIndex - 1] = selectedQueueItem;
 			queueItems[selectedQueueItemIndex] = swap;
@@ -273,7 +319,7 @@
 	}
 
 	function itemDown() {
-		if (queueItems && selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
+		if (selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
 			const swap = queueItems[selectedQueueItemIndex + 1];
 			queueItems[selectedQueueItemIndex + 1] = selectedQueueItem;
 			queueItems[selectedQueueItemIndex] = swap;
@@ -295,50 +341,56 @@
 			const concreteItems = queueItems.filter((i) => !isAuto(i.type));
 			queueItems = [
 				...concreteItems,
-				...plan.items.map((item) => ({
-					...item
-				}))
+				...plan.items.map((item) =>
+					create(ProductionQueueItemSchema, {
+						type: item.type,
+						quantity: item.quantity,
+						designNum: item.designNum
+					})
+				)
 			];
-			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
+			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch;
 			updateQueueEstimates();
 		}
 	}
 
 	async function next() {
-		planet.productionQueue = queueItems ?? [];
-		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+		planet.planetOrders.productionQueue = queueItems;
+		planet.planetOrders.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		await onNext?.();
-		resetQueue();
+		await resetQueue();
 	}
 
 	async function prev() {
-		planet.productionQueue = queueItems ?? [];
-		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+		planet.planetOrders.productionQueue = queueItems;
+		planet.planetOrders.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		await onPrev?.();
-		resetQueue();
+		await resetQueue();
 	}
 
 	function ok() {
-		planet.productionQueue = queueItems ?? [];
-		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+		planet.planetOrders.productionQueue = queueItems;
+		planet.planetOrders.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		onOk?.(planet);
 	}
 	function cancel() {
-		if (planet) {
-			resetQueue();
-			onCancel?.();
-		}
+		resetQueue();
+		onCancel?.();
 	}
 
 	function getCompletionDescription(item: ProductionQueueItem) {
 		const skipped =
-			isAuto(item.type) && item.yearsToBuildOne == Infinite && item.yearsToBuildAll == Infinite;
+			isAuto(item.type) &&
+			item.queueItemCompletionEstimate?.yearsToBuildOne === Infinite &&
+			item.queueItemCompletionEstimate.yearsToBuildAll === Infinite;
 		if (skipped) {
 			return 'Skipped';
 		}
 
-		const yearsToBuildOne = item.yearsToBuildOne ?? 1;
-		const yearsToBuildAll = isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll;
+		const yearsToBuildOne = item.queueItemCompletionEstimate?.yearsToBuildOne ?? 1;
+		const yearsToBuildAll = isAuto(item.type)
+			? item.queueItemCompletionEstimate?.yearsToSkipAuto
+			: item.queueItemCompletionEstimate?.yearsToBuildAll;
 		if (yearsToBuildOne === yearsToBuildAll) {
 			if (yearsToBuildAll == 1) {
 				return '1 year';
@@ -364,37 +416,16 @@
 		return `${yearsToBuildOne} years`;
 	}
 
-	onMount(() => {
-		const originalScope = hotkeys.getScope();
-		const scope = 'production';
-		const syncNext = asyncToVoidWrapper(next);
-		const syncPrev = asyncToVoidWrapper(prev);
-		hotkeys('Esc', cancel);
-		hotkeys('Enter', ok);
-		hotkeys('n', scope, syncNext);
-		hotkeys('p', scope, syncPrev);
-		hotkeys.setScope(scope);
-
-		resetQueue();
-
-		return () => {
-			hotkeys.unbind('Esc', cancel);
-			hotkeys.unbind('Enter', ok);
-			hotkeys.unbind('n', scope, syncNext);
-			hotkeys.unbind('p', scope, syncPrev);
-			hotkeys.deleteScope(scope);
-			hotkeys.setScope(originalScope);
-		};
-	});
-
-	function resetQueue() {
-		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
-		queueItems = [...planet.productionQueue.map((item) => ({ ...item }) as ProductionQueueItem)];
+	async function resetQueue() {
+		contributesOnlyLeftoverToResearch = planet.planetOrders.contributesOnlyLeftoverToResearch;
+		queueItems = [
+			...planet.planetOrders.productionQueue.map((item) => clone(ProductionQueueItemSchema, item))
+		];
 		const genesisDevice = $techs.getTech(GenesisDevice);
 		availableItems = planet.getAvailableProductionQueueItems(
-			$player.race.spec?.innateMining,
-			$player.race.spec?.innateResources,
-			$player.race.spec?.livesOnStarbases,
+			$player.race.spec.innateMining,
+			$player.race.spec.innateResources,
+			$player.race.spec.livesOnStarbases,
 			genesisDevice && $player.hasTech(genesisDevice)
 		);
 		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns($universe.designs);
@@ -406,19 +437,42 @@
 		} else if (availableItems.length > 0) {
 			selectedAvailableItem = availableItems[0];
 		}
-		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
-		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
-		updateQueueEstimates();
+		selectedAvailableItemCost = await $player.getItemCost(
+			cs,
+			selectedAvailableItem,
+			$universe,
+			planet
+		);
+		contributesOnlyLeftoverToResearch = planet.planetOrders.contributesOnlyLeftoverToResearch;
+		await updateQueueEstimates();
 	}
 
-	let selectedQueueItemPercentComplete = $derived(
-		selectedQueueItem ? getPercentComplete(selectedQueueItem) : 0
-	);
-	let updatedPlanet = $derived(Object.assign(new CommandedPlanet(), planet));
+	onMount(() => {
+		const originalScope = hotkeys.getScope();
+		const scope = 'production';
+		const syncNext = asyncToVoidWrapper(next);
+		const syncPrev = asyncToVoidWrapper(prev);
+		hotkeys('Esc', scope, cancel);
+		hotkeys('Enter', scope, ok);
+		hotkeys('n', scope, syncNext);
+		hotkeys('p', scope, syncPrev);
+		hotkeys.setScope(scope);
+
+		resetQueue();
+
+		return () => {
+			hotkeys.unbind('Esc', scope, cancel);
+			hotkeys.unbind('Enter', scope, ok);
+			hotkeys.unbind('n', scope, syncNext);
+			hotkeys.unbind('p', scope, syncPrev);
+			hotkeys.deleteScope(scope);
+			hotkeys.setScope(originalScope);
+		};
+	});
 </script>
 
 <div class="flex flex-col h-full bg-base-200 shadow rounded-sm border-2 border-base-300 text-base">
-	<div class="text-center"><h2 class="text-lg">{planet.name}</h2></div>
+	<div class="text-center"><h2 class="text-lg">{planet.mapObject.name}</h2></div>
 	<div class="flex-col h-full w-full">
 		<div class="flex flex-col h-full w-full">
 			<div class="flex flex-row h-full w-full grid-cols-3">
@@ -430,6 +484,8 @@
 									Ships
 								</li>
 								{#each availableShipDesigns as item (item.designNum)}
+									{@const estimate =
+										item.queueItemCompletionEstimate ?? create(QueueItemCompletionEstimateSchema)}
 									<li>
 										<button
 											type="button"
@@ -439,9 +495,9 @@
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
-											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
-											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
+											class:text-queue-item-this-year={estimate.yearsToBuildOne == 1}
+											class:text-queue-item-next-year={estimate.yearsToBuildOne == 2}
+											class:text-queue-item-never={estimate.yearsToBuildOne == Infinite}
 											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
@@ -456,6 +512,8 @@
 									Starbases
 								</li>
 								{#each availableStarbaseDesigns as item (item.designNum)}
+									{@const estimate =
+										item.queueItemCompletionEstimate ?? create(QueueItemCompletionEstimateSchema)}
 									<li>
 										<button
 											type="button"
@@ -465,9 +523,9 @@
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
-											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
-											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
+											class:text-queue-item-this-year={estimate.yearsToBuildOne == 1}
+											class:text-queue-item-next-year={estimate.yearsToBuildOne == 2}
+											class:text-queue-item-never={estimate.yearsToBuildOne == Infinite}
 											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
@@ -518,7 +576,7 @@
 									{/if}
 								</h3>
 								<CostComponent cost={selectedAvailableItemCost} />
-								{#if selectedAvailableItem.yearsToBuildOne}
+								{#if selectedAvailableItem.queueItemCompletionEstimate?.yearsToBuildOne}
 									Completion {getCompletionDescription(selectedAvailableItem)}
 								{/if}
 							{/if}
@@ -577,13 +635,15 @@
 							onchange={(e) => {
 								e.preventDefault();
 								applyPlan(
-									$player.productionPlans.find((p) => p.num == parseInt(e.currentTarget.value))
+									$player.playerPlans.productionPlans.find(
+										(p) => p.num == parseInt(e.currentTarget.value)
+									)
 								);
 								e.currentTarget.value = '0';
 							}}
 						>
 							<option value={0}>Apply Plan</option>
-							{#each $player.productionPlans as plan (plan.num)}
+							{#each $player.playerPlans.productionPlans as plan (plan.num)}
 								<option value={plan.num}>{plan.name}</option>
 							{/each}
 						</select>
@@ -643,7 +703,7 @@
 										<button
 											type="button"
 											onpointerdown={(e) => onAllocatedTooltip(e, selectedQueueItem?.allocated)}
-											>{(selectedQueueItemPercentComplete * 100)?.toFixed()}%<Icon
+											>{(selectedQueueItemPercentComplete * 100).toFixed()}%<Icon
 												src={QuestionMarkCircle}
 												size="16"
 												class="cursor-help inline-block ml-1"

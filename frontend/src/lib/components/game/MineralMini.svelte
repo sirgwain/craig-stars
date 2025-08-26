@@ -1,18 +1,17 @@
 <script lang="ts">
-	import type { AnyPlanet } from '$lib/services/Universe';
-	import type { Mineral } from '$lib/types/cs';
 	import MineralTooltip, {
 		type MineralTooltipProps
 	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
 	import { showTooltip } from '$lib/services/Stores';
+	import type { MineralJson, Planet } from '$lib/types/cs-proto';
 
 	type Props = {
-		mineral: Mineral | undefined;
-		planet?: AnyPlanet;
+		mineral: MineralJson | undefined;
+		planet?: Planet;
 		showUnits?: boolean;
 	};
 
-	function onIroniumTooltip(e: PointerEvent, planet: AnyPlanet) {
+	function onIroniumTooltip(e: PointerEvent, planet: Planet) {
 		e.preventDefault();
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
 			mineralType: 'Ironium',
@@ -22,7 +21,7 @@
 			homeworld: !!planet.homeworld
 		});
 	}
-	function onBoraniumTooltip(e: PointerEvent, planet: AnyPlanet) {
+	function onBoraniumTooltip(e: PointerEvent, planet: Planet) {
 		e.preventDefault();
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
 			mineralType: 'Boranium',
@@ -32,7 +31,7 @@
 			homeworld: !!planet.homeworld
 		});
 	}
-	function onGermaniumTooltip(e: PointerEvent, planet: AnyPlanet) {
+	function onGermaniumTooltip(e: PointerEvent, planet: Planet) {
 		e.preventDefault();
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
 			mineralType: 'Germanium',

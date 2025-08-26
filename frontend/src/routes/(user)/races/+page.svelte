@@ -2,12 +2,14 @@
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { addError, CSError } from '$lib/services/Errors';
-	import { RaceService } from '$lib/services/RaceService';
-	import type { Race } from '$lib/types/cs';
+	import { raceClient } from '$lib/services/connect';
+	import { addError } from '$lib/services/Errors';
+	import { type Race } from '$lib/types/cs-proto';
+	import { getLabelForPRT } from '$lib/types/Race';
+	import { timestampToString } from '$lib/types/Timestamp';
+	import type { ConnectError } from '@connectrpc/connect';
 	import { XCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
 
 	type TableRace = Race & { action?: never };
@@ -40,16 +42,17 @@
 
 	async function removeItem(item: Race) {
 		if (item.id && confirm(`Are you sure you want to delete ${item.name}`)) {
-			await RaceService.delete(item);
+			await raceClient.deleteRace({ raceId: item.id });
 			races = races.filter((b) => b.id != item.id);
 		}
 	}
 
 	onMount(async () => {
 		try {
-			races = await RaceService.load();
+			const resp = await raceClient.getRaces({});
+			races = resp.races;
 		} catch (e) {
-			addError(e as CSError);
+			addError(e as ConnectError);
 		}
 	});
 </script>
@@ -78,9 +81,11 @@
 			<span>
 				{#if column.key == 'pluralName'}
 					<a class="cs-link text-2xl" href="/races/{row.id}">{cell}</a>
+				{:else if column.key == 'prt'}
+					{getLabelForPRT(row.prt)}
 				{:else if column.key == 'createdAt'}
 					{#if row.createdAt}
-						{format(parseJSON(row.createdAt), 'E, MMM do yyyy hh:mm aaa')}
+						{timestampToString(row.createdAt)}
 					{/if}
 				{:else if column.key == 'action'}
 					<button

@@ -2,29 +2,33 @@
 	import { goto } from '$app/navigation';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { CSError, addError } from '$lib/services/Errors';
+	import { addError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { notify } from '$lib/services/Notifications';
-	import type { BattlePlan } from '$lib/types/cs';
 	import {
-		BattleAttackWhoEnemiesAndNeutrals,
-		BattleTacticMaximizeDamageRatio,
-		BattleTargetAny,
-		BattleTargetArmedShips
-	} from '$lib/types/cs';
+		BattleAttackWho,
+		BattlePlanSchema,
+		BattleTactic,
+		BattleTarget,
+		type BattlePlan
+	} from '$lib/types/cs-proto';
+	import { create } from '@bufbuild/protobuf';
+	import type { ConnectError } from '@connectrpc/connect';
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
 
 	const { game, player, createBattlePlan } = getGameContext();
 
-	let plan: BattlePlan = $state({
-		num: 0,
-		name: '',
-		primaryTarget: BattleTargetArmedShips,
-		secondaryTarget: BattleTargetAny,
-		tactic: BattleTacticMaximizeDamageRatio,
-		attackWho: BattleAttackWhoEnemiesAndNeutrals,
-		dumpCargo: false
-	});
+	let plan: BattlePlan = $state(
+		create(BattlePlanSchema, {
+			num: 0,
+			name: '',
+			primaryTarget: BattleTarget.ARMED_SHIPS,
+			secondaryTarget: BattleTarget.ANY,
+			tactic: BattleTactic.MAXIMIZE_DAMAGE_RATIO,
+			attackWho: BattleAttackWho.ENEMIES_AND_NEUTRALS,
+			dumpCargo: false
+		})
+	);
 
 	let error = $state('');
 
@@ -32,16 +36,14 @@
 		error = '';
 
 		try {
-			if (plan && $game) {
-				// save to server
-				await createBattlePlan(plan);
-				notify(`Saved ${plan.name}`);
-				goto(
-					`/games/${$game.id}/battle-plans/${$player.battlePlans[$player.battlePlans.length - 1].num}`
-				);
-			}
+			// save to server
+			await createBattlePlan(plan);
+			notify(`Saved ${plan.name}`);
+			goto(
+				`/games/${$game.id}/battle-plans/${$player.playerPlans.battlePlans[$player.playerPlans.battlePlans.length - 1].num}`
+			);
 		} catch (e) {
-			addError(e as CSError);
+			addError(e as ConnectError);
 		}
 	};
 </script>
@@ -55,7 +57,7 @@
 	<Breadcrumb>
 		{#snippet crumbs()}
 			<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
-			<li>{plan?.name ?? '<unknown>'}</li>
+			<li>{plan.name}</li>
 		{/snippet}
 		{#snippet end()}
 			<div class="flex justify-end mb-1">

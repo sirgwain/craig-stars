@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -264,7 +266,7 @@ func Test_computeRaceSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := computeRaceSpec(tt.race, &rules)
+			got := ComputeRaceSpec(tt.race, &rules)
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}

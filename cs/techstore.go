@@ -15,7 +15,6 @@ const InfiniteGate = math.MaxInt32
 // The TechStore contains all techs in the game. Eventually these will be user modifiable and
 // referenced per game, but for now all games use the StaticTechStore, which contains the default Stars! techs.
 type TechStore struct {
-	Engines                  []TechEngine           `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner `json:"planetaryScanners"`
 	Terraforms               []TechTerraform        `json:"terraforms"`
 	Defenses                 []TechDefense          `json:"defenses"`
@@ -29,12 +28,10 @@ type TechStore struct {
 	hullComponentsBySlot     map[HullSlotType][]*TechHullComponent
 	hullsByName              map[string]*TechHull
 	hullsByType              map[TechHullType][]*TechHull
-	enginesByName            map[string]*TechEngine
 }
 
 // simple static tech store
 var StaticTechStore = TechStore{
-	Engines:           TechEngines(),
 	PlanetaryScanners: TechPlanetaryScanners(),
 	Terraforms:        TechTerraforms(),
 	Defenses:          TechDefenses(),
@@ -49,7 +46,6 @@ func init() {
 
 type TechFinder interface {
 	GetTech(name string) interface{}
-	GetEngine(name string) *TechEngine
 	GetHull(name string) *TechHull
 	GetHullComponent(name string) *TechHullComponent
 	GetHullsByType(techHullType TechHullType) []*TechHull
@@ -58,8 +54,8 @@ type TechFinder interface {
 	GetBestPlanetaryScanner(player *Player) *TechPlanetaryScanner
 	GetBestDefense(player *Player) *TechDefense
 	GetBestTerraform(player *Player, terraformHabType TerraformHabType) *TechTerraform
-	GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) *TechEngine
-	GetBestBattleEngine(player *Player, hull *TechHull, qty int) *TechEngine
+	GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) *TechHullComponent
+	GetBestBattleEngine(player *Player, hull *TechHull, qty int) *TechHullComponent
 }
 
 func NewTechStore() TechFinder {
@@ -76,17 +72,16 @@ func (store *TechStore) transformName(name string) string {
 }
 
 func (store *TechStore) Init() {
-	store.techs = make([]*Tech, 0, len(store.Engines)+
+	store.techs = make([]*Tech, 0,
 		len(store.PlanetaryScanners)+
-		len(store.Terraforms)+
-		len(store.Defenses)+
-		len(store.Planetaries)+
-		len(store.HullComponents)+
-		len(store.Hulls))
+			len(store.Terraforms)+
+			len(store.Defenses)+
+			len(store.Planetaries)+
+			len(store.HullComponents)+
+			len(store.Hulls))
 	store.techsByName = make(map[string]interface{}, len(store.techs))
 	store.hullsByName = make(map[string]*TechHull, len(store.Hulls))
-	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
-	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
+	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.HullComponents))
 	store.hullComponentsByCategory = make(map[TechCategory][]TechHullComponent, len(TechCategories))
 	store.hullComponentsBySlot = make(map[HullSlotType][]*TechHullComponent, len(BasicHullSlotTypes))
 
@@ -107,17 +102,6 @@ func (store *TechStore) Init() {
 		hullsByType = append(hullsByType, tech)
 
 		store.hullsByType[tech.Type] = hullsByType
-	}
-
-	for i := range store.Engines {
-		tech := &store.Engines[i]
-		name := store.transformName(tech.Name)
-		store.techs = append(store.techs, &tech.Tech)
-		store.techsByName[name] = tech
-		store.enginesByName[name] = tech
-		store.hullComponentsByName[name] = &tech.TechHullComponent
-		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], tech.TechHullComponent)
-		store.hullComponentsBySlot[tech.HullSlotType] = append(store.hullComponentsBySlot[tech.HullSlotType], &tech.TechHullComponent)
 	}
 
 	for i := range store.HullComponents {
@@ -173,11 +157,6 @@ func (store *TechStore) Init() {
 // get tech from name
 func (store *TechStore) GetTech(name string) (tech interface{}) {
 	return store.techsByName[store.transformName(name)]
-}
-
-// get engine from name
-func (store *TechStore) GetEngine(name string) (engine *TechEngine) {
-	return store.enginesByName[store.transformName(name)]
 }
 
 // get hull from name
@@ -289,50 +268,58 @@ func (store *TechStore) GetBestTerraform(player *Player, terraformHabType Terraf
 }
 
 // get a player's best regular engine for normal ship use
-func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) (bestTech *TechEngine) {
-	for _, engine := range store.Engines {
+func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) (bestTech *TechHullComponent) {
+	for _, hc := range store.HullComponents {
+		if hc.Engine.IdealSpeed == 0 {
+			// not engine
+			continue
+		}
 		// if we don't have this tech
 		// or it's not allowed on our hull (like the Settler's Delight on normal ships), skip it
-		if !player.HasTech(&engine.Tech) ||
-			(len(engine.Requirements.HullsAllowed) > 0 && !slices.Contains(engine.Requirements.HullsAllowed, hull.Name)) ||
-			(len(engine.Requirements.HullsDenied) > 0 && slices.Contains(engine.Requirements.HullsDenied, hull.Name)) ||
+		if !player.HasTech(&hc.Tech) ||
+			(len(hc.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Requirements.HullsAllowed, hull.Name)) ||
+			(len(hc.Requirements.HullsDenied) > 0 && slices.Contains(hc.Requirements.HullsDenied, hull.Name)) ||
 			// colony ships don't want radiating engines if we would lose colonists from it
 			// TODO: Rework this after Radiating field rework
 			(purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) &&
-				engine.Radiating && !(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85) {
+				hc.Radiating && !(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85) {
 			continue
 		}
 
-		if bestTech == nil || engine.Ranking > bestTech.Ranking {
-			bestTech = &engine
+		if bestTech == nil || hc.Ranking > bestTech.Ranking {
+			bestTech = &hc
 		}
 	}
 	return bestTech
 }
 
 // get a player's best battle engine for warships
-func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull, qty int) (bestTech *TechEngine) {
-	for _, engine := range store.Engines {
+func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull, qty int) (bestTech *TechHullComponent) {
+	for _, hc := range store.HullComponents {
+		if hc.Engine.IdealSpeed == 0 {
+			// not engine
+			continue
+		}
 		// if this engine is not allowed on our hull (like the Settler's Delight on normal ships) skip it
-		if !player.HasTech(&engine.Tech) ||
-			(len(engine.Requirements.HullsAllowed) > 0 && !slices.Contains(engine.Requirements.HullsAllowed, hull.Name)) ||
-			(len(engine.Requirements.HullsDenied) > 0 && slices.Contains(engine.Requirements.HullsDenied, hull.Name)) {
+		if !player.HasTech(&hc.Tech) ||
+			(len(hc.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Requirements.HullsAllowed, hull.Name)) ||
+			(len(hc.Requirements.HullsDenied) > 0 && slices.Contains(hc.Requirements.HullsDenied, hull.Name)) {
 			continue
 		}
 
 		// nil bestPart means first part automatically wins
 		if bestTech == nil {
-			bestTech = &engine
+			bestTech = &hc
 			continue
 		}
 
 		// if engine has higher ideal speed than the current selected part, use it
 		// ties are broken by the part's ranking (which leans towards cost & fuel efficiency)
-		engineSpeed := float64(engine.IdealSpeed-2) + engine.MovementBonus*float64(qty)
+		engineSpeed := float64(hc.IdealSpeed-2) + hc.MovementBonus*float64(qty)
 		bestSpeed := float64(bestTech.IdealSpeed-2) + bestTech.MovementBonus*float64(qty)
 		if engineSpeed > bestSpeed ||
-			(engineSpeed == bestSpeed && engine.TechHullComponent.Ranking > bestTech.TechHullComponent.Ranking) {
-			bestTech = &engine
+			(engineSpeed == bestSpeed && hc.Ranking > bestTech.Ranking) {
+			bestTech = &hc
 		}
 	}
 	return bestTech
@@ -340,17 +327,15 @@ func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull, qty 
 
 // TechEngines
 
-var SettlersDelight = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Settler's Delight", NewCost(1, 0, 1, 2), TechRequirements{PRTsRequired: []PRT{HE}, HullsAllowed: []string{MiniColonyShip.Name}}, 69, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
-		Mass:         2,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var SettlersDelight = TechHullComponent{Tech: NewTech("Settler's Delight", NewCost(1, 0, 1, 2), TechRequirements{PRTsRequired: []PRT{HE}, HullsAllowed: []string{MiniColonyShip.Name}}, 69, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
+	Mass:         2,
+	HullSlotType: HullSlotTypeEngine,
 	// better than Radram, AD8 and Mizer (mainly due to sheer cheapness)
 	Engine: Engine{
 		IdealSpeed:   6,
 		FreeSpeed:    6,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			0,
@@ -366,16 +351,14 @@ var SettlersDelight = TechEngine{
 	},
 }
 
-var QuickJump5 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Quick Jump 5", NewCost(3, 0, 1, 3), TechRequirements{}, 10, TechCategoryEngine, TechTagEngine),
-		Mass:         4,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var QuickJump5 = TechHullComponent{Tech: NewTech("Quick Jump 5", NewCost(3, 0, 1, 3), TechRequirements{}, 10, TechCategoryEngine, TechTagEngine),
+	Mass:         4,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   5,
 		FreeSpeed:    1,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,    // 0
 			0,    // 1
 			25,   // 2
@@ -391,16 +374,14 @@ var QuickJump5 = TechEngine{
 	},
 }
 
-var LongHump6 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Long Hump 6", NewCost(5, 0, 1, 6), TechRequirements{TechLevel: TechLevel{Propulsion: 3}}, 30, TechCategoryEngine, TechTagEngine),
-		Mass:         9,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var LongHump6 = TechHullComponent{Tech: NewTech("Long Hump 6", NewCost(5, 0, 1, 6), TechRequirements{TechLevel: TechLevel{Propulsion: 3}}, 30, TechCategoryEngine, TechTagEngine),
+	Mass:         9,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   6,
 		FreeSpeed:    1,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,    // 0
 			0,    // 1
 			20,   // 2
@@ -416,18 +397,16 @@ var LongHump6 = TechEngine{
 	},
 }
 
-var FuelMizer = TechEngine{
-	TechHullComponent: TechHullComponent{
-		Tech:         NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 65, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
-		Mass:         6,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var FuelMizer = TechHullComponent{
+	Tech:         NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 65, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
+	Mass:         6,
+	HullSlotType: HullSlotTypeEngine,
 	// higher rating than Radram & AD8; beaten out by TGD & prop 8/9 scoops
 	Engine: Engine{
 		IdealSpeed:   6,
 		FreeSpeed:    4,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,   // 0
 			0,   // 1
 			0,   // 2
@@ -443,16 +422,14 @@ var FuelMizer = TechEngine{
 	},
 }
 
-var DaddyLongLegs7 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Daddy Long Legs 7", NewCost(11, 0, 3, 12), TechRequirements{TechLevel: TechLevel{Propulsion: 5}}, 50, TechCategoryEngine, TechTagEngine),
-		Mass:         13,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var DaddyLongLegs7 = TechHullComponent{Tech: NewTech("Daddy Long Legs 7", NewCost(11, 0, 3, 12), TechRequirements{TechLevel: TechLevel{Propulsion: 5}}, 50, TechCategoryEngine, TechTagEngine),
+	Mass:         13,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   7,
 		FreeSpeed:    1,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,   // 0
 			0,   // 1
 			20,  // 2
@@ -468,16 +445,14 @@ var DaddyLongLegs7 = TechEngine{
 	},
 }
 
-var AlphaDrive8 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Alpha Drive 8", NewCost(16, 0, 3, 28), TechRequirements{TechLevel: TechLevel{Propulsion: 7}}, 60, TechCategoryEngine, TechTagEngine),
-		Mass:         17,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var AlphaDrive8 = TechHullComponent{Tech: NewTech("Alpha Drive 8", NewCost(16, 0, 3, 28), TechRequirements{TechLevel: TechLevel{Propulsion: 7}}, 60, TechCategoryEngine, TechTagEngine),
+	Mass:         17,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   8,
 		FreeSpeed:    1,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			15,
@@ -493,16 +468,14 @@ var AlphaDrive8 = TechEngine{
 	},
 }
 
-var TransGalacticDrive = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Drive", NewCost(20, 20, 9, 50), TechRequirements{TechLevel: TechLevel{Propulsion: 9}}, 70, TechCategoryEngine, TechTagEngine),
-		Mass:         25,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var TransGalacticDrive = TechHullComponent{Tech: NewTech("Trans-Galactic Drive", NewCost(20, 20, 9, 50), TechRequirements{TechLevel: TechLevel{Propulsion: 9}}, 70, TechCategoryEngine, TechTagEngine),
+	Mass:         25,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   9,
 		FreeSpeed:    1,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			15,
@@ -518,16 +491,14 @@ var TransGalacticDrive = TechEngine{
 	},
 }
 
-var Interspace10 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Interspace-10", NewCost(18, 25, 10, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 11}, LRTsRequired: NRSE}, 80, TechCategoryEngine, TechTagEngine),
-		Mass:         25,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var Interspace10 = TechHullComponent{Tech: NewTech("Interspace-10", NewCost(18, 25, 10, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 11}, LRTsRequired: NRSE}, 80, TechCategoryEngine, TechTagEngine),
+	Mass:         25,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   10,
 		FreeSpeed:    1,
 		MaxSafeSpeed: 10,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			10,
@@ -543,16 +514,14 @@ var Interspace10 = TechEngine{
 	},
 }
 
-var TransStar10 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Star 10", NewCost(3, 0, 3, 10), TechRequirements{TechLevel: TechLevel{Propulsion: 23}}, 130, TechCategoryEngine, TechTagEngine),
-		Mass:         5,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var TransStar10 = TechHullComponent{Tech: NewTech("Trans-Star 10", NewCost(3, 0, 3, 10), TechRequirements{TechLevel: TechLevel{Propulsion: 23}}, 130, TechCategoryEngine, TechTagEngine),
+	Mass:         5,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   10,
 		FreeSpeed:    1,
 		MaxSafeSpeed: 10,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			5,
@@ -568,16 +537,14 @@ var TransStar10 = TechEngine{
 	},
 }
 
-var RadiatingHydroRamScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Radiating Hydro-Ram Scoop", NewCost(3, 2, 9, 8), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 6}, LRTsDenied: NRSE}, 61, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
-		Mass:         10,
-		HullSlotType: HullSlotTypeEngine, Radiating: true,
-	},
+var RadiatingHydroRamScoop = TechHullComponent{Tech: NewTech("Radiating Hydro-Ram Scoop", NewCost(3, 2, 9, 8), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 6}, LRTsDenied: NRSE}, 61, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
+	Mass:         10,
+	HullSlotType: HullSlotTypeEngine, Radiating: true,
 	Engine: Engine{
 		IdealSpeed:   6,
 		FreeSpeed:    6,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			0,
@@ -593,16 +560,14 @@ var RadiatingHydroRamScoop = TechEngine{
 	},
 }
 
-var SubGalacticFuelScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Sub-Galactic Fuel Scoop", NewCost(4, 4, 7, 12), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 8}, LRTsDenied: NRSE}, 90, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
-		Mass:         20,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var SubGalacticFuelScoop = TechHullComponent{Tech: NewTech("Sub-Galactic Fuel Scoop", NewCost(4, 4, 7, 12), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 8}, LRTsDenied: NRSE}, 90, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
+	Mass:         20,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   7,
 		FreeSpeed:    5,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			0,
@@ -618,16 +583,14 @@ var SubGalacticFuelScoop = TechEngine{
 	},
 }
 
-var TransGalacticFuelScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Fuel Scoop", NewCost(5, 4, 12, 18), TechRequirements{TechLevel: TechLevel{Energy: 3, Propulsion: 9}, LRTsDenied: NRSE}, 100, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
-		Mass:         19,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var TransGalacticFuelScoop = TechHullComponent{Tech: NewTech("Trans-Galactic Fuel Scoop", NewCost(5, 4, 12, 18), TechRequirements{TechLevel: TechLevel{Energy: 3, Propulsion: 9}, LRTsDenied: NRSE}, 100, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
+	Mass:         19,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   8,
 		FreeSpeed:    6,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			0,
@@ -643,16 +606,14 @@ var TransGalacticFuelScoop = TechEngine{
 	},
 }
 
-var TransGalacticSuperScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Super Scoop", NewCost(6, 4, 16, 24), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 12}, LRTsDenied: NRSE}, 130, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
-		Mass:         18,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var TransGalacticSuperScoop = TechHullComponent{Tech: NewTech("Trans-Galactic Super Scoop", NewCost(6, 4, 16, 24), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 12}, LRTsDenied: NRSE}, 130, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
+	Mass:         18,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   9,
 		FreeSpeed:    7,
 		MaxSafeSpeed: 9,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			0,
@@ -668,16 +629,14 @@ var TransGalacticSuperScoop = TechEngine{
 	},
 }
 
-var TransGalacticMizerScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Mizer Scoop", NewCost(5, 2, 13, 11), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 16}, LRTsDenied: NRSE}, 140, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
-		Mass:         11,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var TransGalacticMizerScoop = TechHullComponent{Tech: NewTech("Trans-Galactic Mizer Scoop", NewCost(5, 2, 13, 11), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 16}, LRTsDenied: NRSE}, 140, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
+	Mass:         11,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   10,
 		FreeSpeed:    8,
 		MaxSafeSpeed: 10,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			0,
@@ -693,16 +652,14 @@ var TransGalacticMizerScoop = TechEngine{
 	},
 }
 
-var GalaxyScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Galaxy Scoop", NewCost(4, 2, 9, 12), TechRequirements{TechLevel: TechLevel{Energy: 5, Propulsion: 20}, LRTsRequired: IFE, LRTsDenied: NRSE}, 150, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
-		Mass:         8,
-		HullSlotType: HullSlotTypeEngine,
-	},
+var GalaxyScoop = TechHullComponent{Tech: NewTech("Galaxy Scoop", NewCost(4, 2, 9, 12), TechRequirements{TechLevel: TechLevel{Energy: 5, Propulsion: 20}, LRTsRequired: IFE, LRTsDenied: NRSE}, 150, TechCategoryEngine, TechTagEngine, TechTagRamscoop),
+	Mass:         8,
+	HullSlotType: HullSlotTypeEngine,
 	Engine: Engine{
 		IdealSpeed:   10,
 		FreeSpeed:    9,
 		MaxSafeSpeed: 10,
-		FuelUsage: [11]int{
+		FuelUsage: []int{
 			0,
 			0,
 			0,
@@ -822,71 +779,71 @@ var RadiationTerraform15 = TechTerraform{Tech: NewTech("Radiation Terraform ±15
 
 // TechPlanetaryScanners
 
-var Viewer50 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Viewer 50", NewCost(10, 10, 70, 100), TechRequirements{PRTsDenied: []PRT{AR}}, 0, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner)},
+var Viewer50 = TechPlanetaryScanner{Tech: NewTech("Viewer 50", NewCost(10, 10, 70, 100), TechRequirements{PRTsDenied: []PRT{AR}}, 0, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner),
 	ScanRange:    50,
 	ScanRangePen: 0,
 }
 
-var Viewer90 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Viewer 90", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 1}, PRTsDenied: []PRT{AR}}, 1, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner)},
+var Viewer90 = TechPlanetaryScanner{Tech: NewTech("Viewer 90", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 1}, PRTsDenied: []PRT{AR}}, 1, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner),
 	ScanRange:    90,
 	ScanRangePen: 0,
 }
 
-var Scoper150 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Scoper 150", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 3}, PRTsDenied: []PRT{AR}}, 30, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner)},
+var Scoper150 = TechPlanetaryScanner{Tech: NewTech("Scoper 150", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 3}, PRTsDenied: []PRT{AR}}, 30, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner),
 	ScanRange:    150,
 	ScanRangePen: 0,
 }
 
-var Scoper220 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Scoper 220", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 6}, PRTsDenied: []PRT{AR}}, 40, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner)},
+var Scoper220 = TechPlanetaryScanner{Tech: NewTech("Scoper 220", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 6}, PRTsDenied: []PRT{AR}}, 40, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner),
 	ScanRange:    220,
 	ScanRangePen: 0,
 }
 
-var Scoper280 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Scoper 280", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 8}, PRTsDenied: []PRT{AR}}, 50, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner)},
+var Scoper280 = TechPlanetaryScanner{Tech: NewTech("Scoper 280", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 8}, PRTsDenied: []PRT{AR}}, 50, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner),
 	ScanRange:    280,
 	ScanRangePen: 0,
 }
 
-var Snooper320X = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Snooper 320X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 10, Biotechnology: 3}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 60, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner)},
+var Snooper320X = TechPlanetaryScanner{Tech: NewTech("Snooper 320X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 10, Biotechnology: 3}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 60, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner),
 	ScanRange:    320,
 	ScanRangePen: 160,
 }
 
-var Snooper400X = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Snooper 400X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 13, Biotechnology: 6}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 70, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner)},
+var Snooper400X = TechPlanetaryScanner{Tech: NewTech("Snooper 400X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 13, Biotechnology: 6}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 70, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner),
 	ScanRange:    400,
 	ScanRangePen: 200,
 }
 
-var Snooper500X = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Snooper 500X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 16, Biotechnology: 7}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 80, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner)},
+var Snooper500X = TechPlanetaryScanner{Tech: NewTech("Snooper 500X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 16, Biotechnology: 7}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 80, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner),
 	ScanRange:    500,
 	ScanRangePen: 250,
 }
 
-var Snooper620X = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Snooper 620X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 23, Biotechnology: 9}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 90, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner)},
+var Snooper620X = TechPlanetaryScanner{Tech: NewTech("Snooper 620X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 23, Biotechnology: 9}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 90, TechCategoryPlanetaryScanner, TechTagPlanetaryScanner),
 	ScanRange:    620,
 	ScanRangePen: 310,
 }
 
 // TechDefenses
 
-var SDI = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("SDI", NewCost(5, 5, 5, 15), TechRequirements{PRTsDenied: []PRT{AR}}, 0, TechCategoryPlanetaryDefense, TechTagDefense)},
-	Defense: Defense{DefenseCoverage: .99},
+var SDI = TechDefense{Tech: NewTech("SDI", NewCost(5, 5, 5, 15), TechRequirements{PRTsDenied: []PRT{AR}}, 0, TechCategoryPlanetaryDefense, TechTagDefense),
+	DefenseCoverage: .99,
 }
 
-var MissileBattery = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("Missile Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 5}, PRTsDenied: []PRT{AR}}, 10, TechCategoryPlanetaryDefense, TechTagDefense)},
-	Defense: Defense{DefenseCoverage: 1.99},
+var MissileBattery = TechDefense{Tech: NewTech("Missile Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 5}, PRTsDenied: []PRT{AR}}, 10, TechCategoryPlanetaryDefense, TechTagDefense),
+	DefenseCoverage: 1.99,
 }
 
-var LaserBattery = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("Laser Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 10}, PRTsDenied: []PRT{AR}}, 20, TechCategoryPlanetaryDefense, TechTagDefense)},
-	Defense: Defense{DefenseCoverage: 2.39},
+var LaserBattery = TechDefense{Tech: NewTech("Laser Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 10}, PRTsDenied: []PRT{AR}}, 20, TechCategoryPlanetaryDefense, TechTagDefense),
+	DefenseCoverage: 2.39,
 }
 
-var PlanetaryShield = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("Planetary Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 16}, PRTsDenied: []PRT{AR}}, 30, TechCategoryPlanetaryDefense, TechTagDefense)},
-	Defense: Defense{DefenseCoverage: 2.99},
+var PlanetaryShield = TechDefense{Tech: NewTech("Planetary Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 16}, PRTsDenied: []PRT{AR}}, 30, TechCategoryPlanetaryDefense, TechTagDefense),
+	DefenseCoverage: 2.99,
 }
 
-var NeutronShield = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("Neutron Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 23}, PRTsDenied: []PRT{AR}}, 40, TechCategoryPlanetaryDefense, TechTagDefense)},
-	Defense: Defense{DefenseCoverage: 3.79},
+var NeutronShield = TechDefense{Tech: NewTech("Neutron Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 23}, PRTsDenied: []PRT{AR}}, 40, TechCategoryPlanetaryDefense, TechTagDefense),
+	DefenseCoverage: 3.79,
 }
 
 // TechHullComponents
@@ -2705,27 +2662,6 @@ var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750),
 	},
 }
 
-func TechEngines() []TechEngine {
-	return []TechEngine{
-		SettlersDelight,
-		QuickJump5,
-		FuelMizer,
-		LongHump6,
-		DaddyLongLegs7,
-		AlphaDrive8,
-		TransGalacticDrive,
-		Interspace10,
-		EnigmaPulsar,
-		TransStar10,
-		RadiatingHydroRamScoop,
-		SubGalacticFuelScoop,
-		TransGalacticFuelScoop,
-		TransGalacticSuperScoop,
-		TransGalacticMizerScoop,
-		GalaxyScoop,
-	}
-}
-
 func TechTerraforms() []TechTerraform {
 	return []TechTerraform{
 		TotalTerraform3,
@@ -2826,6 +2762,22 @@ func TechHulls() []TechHull {
 func TechHullComponents() []TechHullComponent {
 
 	return []TechHullComponent{
+		SettlersDelight,
+		QuickJump5,
+		FuelMizer,
+		LongHump6,
+		DaddyLongLegs7,
+		AlphaDrive8,
+		TransGalacticDrive,
+		Interspace10,
+		EnigmaPulsar,
+		TransStar10,
+		RadiatingHydroRamScoop,
+		SubGalacticFuelScoop,
+		TransGalacticFuelScoop,
+		TransGalacticSuperScoop,
+		TransGalacticMizerScoop,
+		GalaxyScoop,
 		Stargate100_250,
 		StargateAny_300,
 		Stargate150_600,

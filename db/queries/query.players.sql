@@ -1,6 +1,48 @@
 --
 -- Players
 --
+-- name: GetPlayer :one
+SELECT
+    *
+FROM
+    players
+WHERE
+    id = ?;
+
+-- name: GetPlayerForGame :many
+SELECT
+    sqlc.embed(p),
+    d.*
+FROM
+    players p
+    LEFT JOIN ship_designs d ON p.game_id = d.game_id
+    AND p.num = d.player_num
+WHERE
+    p.game_id = ?
+    AND p.num = ?
+ORDER BY
+    d.num;
+
+-- name: GetPlayerIntel :one
+SELECT
+    score_history,
+    battle_records,
+    player_intels,
+    score_intels,
+    planet_intels,
+    fleet_intels,
+    ship_design_intels,
+    mineral_packet_intels,
+    minefield_intels,
+    wormhole_intels,
+    mystery_trader_intels,
+    salvage_intels
+FROM
+    players p
+WHERE
+    p.game_id = ?
+    AND p.num = ?;
+
 -- name: GetPlayers :many
 SELECT
     *
@@ -39,34 +81,6 @@ ORDER BY
     p.num,
     d.num;
 
--- name: GetPlayerForGame :many
-SELECT
-    sqlc.embed(p),
-    d.*
-FROM
-    players p
-    LEFT JOIN ship_designs d ON p.game_id = d.game_id
-    AND p.num = d.player_num
-WHERE
-    p.game_id = ?
-    AND p.num = ?
-ORDER BY
-    d.num;
-
--- name: GetPlayerForGameAndUser :many
-SELECT
-    sqlc.embed(p),
-    d.*
-FROM
-    players p
-    LEFT JOIN ship_designs d ON p.game_id = d.game_id
-    AND p.num = d.player_num
-WHERE
-    p.game_id = ?
-    AND p.user_id = ?
-ORDER BY
-    d.num;
-
 -- name: GetPlayersStatusForGame :many
 SELECT
     id,
@@ -89,14 +103,6 @@ WHERE
 ORDER BY
     num;
 
--- name: GetPlayer :one
-SELECT
-    *
-FROM
-    players
-WHERE
-    id = ?;
-
 -- name: GetLightPlayerForGame :one
 SELECT
     id,
@@ -108,12 +114,9 @@ SELECT
     num,
     ready,
     ai_controlled,
-    ai_difficulty,
-    guest,
     submitted_turn,
     color,
     default_hull_set,
-    race,
     tech_levels_energy,
     tech_levels_weapons,
     tech_levels_propulsion,
@@ -126,22 +129,25 @@ SELECT
     tech_levels_spent_construction,
     tech_levels_spent_electronics,
     tech_levels_spent_biotechnology,
-    research_spent_last_year,
     research_amount,
+    research_spent_last_year,
     next_research_field,
     researching,
-    cargo_transfers,
     battle_plans,
     production_plans,
     transport_plans,
     relations,
+    cargo_transfers,
+    messages,
+    race,
     stats,
     score_history,
-    acquired_techs,
     achieved_victory_conditions,
     victor,
-    archived,
-    spec
+    guest,
+    ai_difficulty,
+    acquired_techs,
+    archived
 FROM
     players
 WHERE
@@ -218,7 +224,6 @@ INSERT INTO
         score_history,
         achieved_victory_conditions,
         victor,
-        spec,
         guest,
         ai_difficulty,
         acquired_techs,
@@ -228,7 +233,6 @@ VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
-        ?,
         ?,
         ?,
         ?,
@@ -297,8 +301,7 @@ SET
     default_hull_set = ?,
     research_amount = ?,
     next_research_field = ?,
-    researching = ?,
-    spec = ?
+    researching = ?
 WHERE
     id = ?;
 
@@ -315,8 +318,7 @@ SET
     battle_plans = ?,
     production_plans = ?,
     transport_plans = ?,
-    relations = ?,
-    spec = ?
+    relations = ?
 WHERE
     id = ?;
 
@@ -361,14 +363,6 @@ SET
     battle_plans = ?,
     production_plans = ?,
     transport_plans = ?
-WHERE
-    id = ?;
-
--- name: UpdatePlayerSpec :execrows
-UPDATE players
-SET
-    updated_at = CURRENT_TIMESTAMP,
-    spec = ?
 WHERE
     id = ?;
 
@@ -463,7 +457,6 @@ SET
     score_history = ?,
     achieved_victory_conditions = ?,
     victor = ?,
-    spec = ?,
     guest = ?,
     ai_difficulty = ?,
     acquired_techs = ?,

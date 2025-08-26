@@ -1,127 +1,94 @@
 {
-	"defenseCost": {
-		"ironium": 5,
-		"boranium": 5,
-		"germanium": 5,
-		"resources": 15
+	"costRules": {
+		"defenseCost": {
+			"ironium": 5,
+			"boranium": 5,
+			"germanium": 5,
+			"resources": 15
+		},
+		"factoryCostGermanium": 4,
+		"mineralAlchemyCost": 100,
+		"planetaryScannerCost": {
+			"ironium": 10,
+			"boranium": 10,
+			"germanium": 70,
+			"resources": 100
+		},
+		"starbaseComponentCostReduction": 0.5,
+		"starbaseHullRefundFactor": 0.5,
+		"terraformCost": {
+			"resources": 100
+		},
+		"techBaseCost": [
+			0, 50, 80, 130, 210, 340, 550, 890, 1440, 2330, 3770, 6100, 9870, 13850, 18040, 22440, 27050,
+			31870, 36900, 42140, 47590, 53250, 59120, 65200, 71490, 77990, 84700
+		]
 	},
-	"factoryCostGermanium": 4,
-	"mineralAlchemyCost": 100,
-	"planetaryScannerCost": {
-		"ironium": 10,
-		"boranium": 10,
-		"germanium": 70,
-		"resources": 100
+	"battleRules": {
+		"beamRangeDropoff": 0.1,
+		"beamBonusCap": 2.55,
+		"jammerCap": {
+			"ship": 0.95,
+			"starbase": 1
+		},
+		"jammerMulti": {
+			"ship": 1,
+			"starbase": 0.75
+		},
+		"movementMin": 2,
+		"movementMax": 10,
+		"movesToRunAway": 7,
+		"numBattleRounds": 16,
+		"torpedoSplashDamage": 0.125
 	},
-	"starbaseComponentCostReduction": 0.5,
-	"starbaseHullRefundFactor": 0.5,
-	"terraformCost": {
-		"resources": 100
+	"universeGenerationRules": {
+		"habDropoffRange": {
+			"grav": 9,
+			"temp": 9
+		},
+		"highRadMineralConcentrationBonusThreshold": 90,
+		"limitMineralConcentration": 30,
+		"maxExtraWorldDistance": 180,
+		"maxHab": 99,
+		"maxMineralConcentration": 200,
+		"maxStartingMineralConcentration": 121,
+		"maxStartingMineralSurface": 1000,
+		"minExtraPlanetMineralConcentration": 30,
+		"minExtraWorldDistance": 130,
+		"minHab": 1,
+		"minHomeworldMineralConcentration": 30,
+		"minMineralConcentration": 1,
+		"minStartingMineralConcentration": 1,
+		"minStartingMineralSurface": 300,
+		"raceLeftoverPointsPerItem": {
+			"1": 10,
+			"2": 2,
+			"3": 2,
+			"4": 5,
+			"5": 10
+		},
+		"startingYear": 2400,
+		"wormholeMinPlanetDistance": 30
 	},
-	"techBaseCost": [
-		0,
-		50,
-		80,
-		130,
-		210,
-		340,
-		550,
-		890,
-		1440,
-		2330,
-		3770,
-		6100,
-		9870,
-		13850,
-		18040,
-		22440,
-		27050,
-		31870,
-		36900,
-		42140,
-		47590,
-		53250,
-		59120,
-		65200,
-		71490,
-		77990,
-		84700
-	],
-	"beamRangeDropoff": 0.1,
-	"beamBonusCap": 2.55,
-	"jammerCap": {
-		"Ship": 0.95,
-		"Starbase": 1
-	},
-	"jammerMulti": {
-		"Ship": 1,
-		"Starbase": 0.75
-	},
-	"movementMin": 2,
-	"movementMax": 10,
-	"movesToRunAway": 7,
-	"numBattleRounds": 16,
-	"habDropoffRange": {
-		"grav": 9,
-		"temp": 9
-	},
-	"highRadMineralConcentrationBonusThreshold": 90,
-	"limitMineralConcentration": 30,
-	"maxExtraWorldDistance": 180,
-	"maxHab": 99,
-	"maxMineralConcentration": 200,
-	"maxStartingMineralConcentration": 121,
-	"maxStartingMineralSurface": 1000,
-	"minExtraPlanetMineralConcentration": 30,
-	"minExtraWorldDistance": 130,
-	"minHab": 1,
-	"minHomeworldMineralConcentration": 30,
-	"minMineralConcentration": 1,
-	"minStartingMineralConcentration": 1,
-	"minStartingMineralSurface": 300,
-	"raceLeftoverPointsPerItem": {
-		"Defenses": 10,
-		"Factories": 5,
-		"MineralConcentrations": 2,
-		"Mines": 2,
-		"SurfaceMinerals": 10
-	},
-	"startingYear": 2400,
-	"wormholeMinPlanetDistance": 30,
-	"id": 0,
 	"createdAt": "0001-01-01T00:00:00Z",
 	"updatedAt": "0001-01-01T00:00:00Z",
-	"gameId": 0,
 	"acquirablePartTradeChanceBase": 0.005,
 	"acquirablePartTradeItemMax": 25,
 	"cometStatsBySize": {
-		"Huge": {
-			"allMinerals": 50,
-			"allRandomMinerals": 250,
-			"bonusMinerals": 3000,
-			"bonusRandomMinerals": 17000,
-			"bonusMinConcentration": 65,
-			"bonusRandomConcentration": 65,
-			"bonusAffectsMinerals": 3,
-			"minTerraform": 6,
-			"randomTerraform": 6,
-			"affectsHabs": 3,
-			"popKilledPercent": 0.85
-		},
-		"Large": {
+		"1": {
 			"allMinerals": 50,
 			"allRandomMinerals": 250,
 			"bonusMinerals": 3000,
 			"bonusRandomMinerals": 17000,
 			"bonusMinConcentration": 50,
 			"bonusRandomConcentration": 50,
-			"bonusAffectsMinerals": 3,
+			"bonusAffectsMinerals": 1,
 			"minTerraform": 3,
 			"randomTerraform": 3,
-			"affectsHabs": 3,
-			"popKilledPercent": 0.65
+			"affectsHabs": 1,
+			"popKilledPercent": 0.25
 		},
-		"Medium": {
+		"2": {
 			"allMinerals": 50,
 			"allRandomMinerals": 250,
 			"bonusMinerals": 3000,
@@ -134,18 +101,31 @@
 			"affectsHabs": 2,
 			"popKilledPercent": 0.45
 		},
-		"Small": {
+		"3": {
 			"allMinerals": 50,
 			"allRandomMinerals": 250,
 			"bonusMinerals": 3000,
 			"bonusRandomMinerals": 17000,
 			"bonusMinConcentration": 50,
 			"bonusRandomConcentration": 50,
-			"bonusAffectsMinerals": 1,
+			"bonusAffectsMinerals": 3,
 			"minTerraform": 3,
 			"randomTerraform": 3,
-			"affectsHabs": 1,
-			"popKilledPercent": 0.25
+			"affectsHabs": 3,
+			"popKilledPercent": 0.65
+		},
+		"4": {
+			"allMinerals": 50,
+			"allRandomMinerals": 250,
+			"bonusMinerals": 3000,
+			"bonusRandomMinerals": 17000,
+			"bonusMinConcentration": 65,
+			"bonusRandomConcentration": 65,
+			"bonusAffectsMinerals": 3,
+			"minTerraform": 6,
+			"randomTerraform": 6,
+			"affectsHabs": 3,
+			"popKilledPercent": 0.85
 		}
 	},
 	"fleetSafeSpeedExplosionChance": 0.1,
@@ -157,37 +137,10 @@
 			},
 			"fuelEfficiencyOffset": -0.15
 		},
-		"1024": {
-			"newTechCostFactorOffset": 1,
-			"miniaturizationMax": 0.05,
-			"miniaturizationPerLevel": 0.01
-		},
-		"128": {
-			"maxPopulationOffset": 0.1
-		},
-		"16": {
-			"researchFactorOffset": -0.5,
-			"researchSplashDamage": 0.15
-		},
 		"2": {
 			"techCostOffset": {
-				"Terraforming": -0.3
+				"30": -0.3
 			}
-		},
-		"2048": {
-			"shieldStrengthFactorOffset": 0.4,
-			"shieldRegenerationRateOffset": 0.1,
-			"armorStrengthFactorOffset": -0.5
-		},
-		"256": {
-			"noAdvancedScanners": true,
-			"scanRangeFactorOffset": 1
-		},
-		"32": {
-			"scrapMineralOffset": 0.11666666666666667,
-			"scrapMineralOffsetStarbase": 0.1,
-			"scrapResourcesOffset": 0.35,
-			"scrapResourcesOffsetStarbase": 0.7
 		},
 		"4": {
 			"startingFleets": [
@@ -203,23 +156,50 @@
 				}
 			]
 		},
-		"4096": {
-			"mineralAlchemyCostOffset": -75
+		"8": {
+			"starbaseBuiltInCloakUnits": 40,
+			"starbaseCostFactor": 0.8
+		},
+		"16": {
+			"researchFactorOffset": -0.5,
+			"researchSplashDamage": 0.15
+		},
+		"32": {
+			"scrapMineralOffset": 0.11666666666666667,
+			"scrapMineralOffsetStarbase": 0.1,
+			"scrapResourcesOffset": 0.35,
+			"scrapResourcesOffsetStarbase": 0.7
+		},
+		"64": {},
+		"128": {
+			"maxPopulationOffset": 0.1
+		},
+		"256": {
+			"noAdvancedScanners": true,
+			"scanRangeFactorOffset": 1
 		},
 		"512": {
 			"startingPopulationFactorDelta": -0.3
 		},
-		"64": {},
-		"8": {
-			"starbaseBuiltInCloakUnits": 40,
-			"starbaseCostFactor": 0.8
+		"1024": {
+			"newTechCostFactorOffset": 1,
+			"miniaturizationMax": 0.05,
+			"miniaturizationPerLevel": 0.01
+		},
+		"2048": {
+			"shieldStrengthFactorOffset": 0.4,
+			"shieldRegenerationRateOffset": 0.1,
+			"armorStrengthFactorOffset": -0.5
+		},
+		"4096": {
+			"mineralAlchemyCostOffset": -75
 		},
 		"8192": {
 			"startingTechLevels": {
 				"propulsion": 1
 			},
 			"techCostOffset": {
-				"Engine": -0.5
+				"11": -0.5
 			},
 			"engineFailureRateOffset": 0.1,
 			"engineReliableSpeed": 6
@@ -230,31 +210,9 @@
 	"maxTechLevel": 26,
 	"minefieldCloak": 75,
 	"minefieldStatsByType": {
-		"Heavy": {
-			"minDamagePerFleetRS": 2500,
-			"damagePerEngineRS": 600,
-			"maxSpeed": 6,
-			"chanceOfHit": 0.01,
-			"minDamagePerFleet": 2000,
-			"damagePerEngine": 500,
-			"sweepFactor": 1,
-			"minDecay": 10,
-			"canDetonate": false
-		},
-		"SpeedBump": {
-			"minDamagePerFleetRS": 0,
-			"damagePerEngineRS": 0,
-			"maxSpeed": 5,
-			"chanceOfHit": 0.035,
-			"minDamagePerFleet": 0,
-			"damagePerEngine": 0,
-			"sweepFactor": 0.333333343,
-			"minDecay": 0,
-			"canDetonate": false
-		},
-		"Standard": {
-			"minDamagePerFleetRS": 600,
-			"damagePerEngineRS": 125,
+		"1": {
+			"minDamagePerFleetRs": 600,
+			"damagePerEngineRs": 125,
 			"maxSpeed": 4,
 			"chanceOfHit": 0.003,
 			"minDamagePerFleet": 500,
@@ -262,24 +220,27 @@
 			"sweepFactor": 1,
 			"minDecay": 10,
 			"canDetonate": true
+		},
+		"2": {
+			"minDamagePerFleetRs": 2500,
+			"damagePerEngineRs": 600,
+			"maxSpeed": 6,
+			"chanceOfHit": 0.01,
+			"minDamagePerFleet": 2000,
+			"damagePerEngine": 500,
+			"sweepFactor": 1,
+			"minDecay": 10
+		},
+		"3": {
+			"maxSpeed": 5,
+			"chanceOfHit": 0.035,
+			"sweepFactor": 0.333333343
 		}
 	},
 	"mineralDecayFactor": 1500000,
 	"minHabFloor": 5,
 	"mysteryTraderRules": {
-		"chanceSpawn": [
-			7,
-			7,
-			7,
-			7,
-			7,
-			7,
-			7,
-			4,
-			4,
-			3,
-			2
-		],
+		"chanceSpawn": [7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2],
 		"chanceMaxTechGetsPart": 5,
 		"chanceCourseChange": 20,
 		"chanceSpeedUpOnly": 3,
@@ -460,10 +421,73 @@
 	"populationOvercrowdResourceMax": 1,
 	"populationScannerError": 0.2,
 	"prtSpecs": {
-		"AR": {
+		"1": {
+			"pointCost": 66,
+			"startingPlanets": [
+				{
+					"population": 25000,
+					"mines": 10,
+					"factories": 10,
+					"defenses": 10,
+					"starbaseDesignName": "Starbase",
+					"starbaseHull": "Space Station",
+					"startingFleets": [
+						{
+							"name": "Long Range Scout",
+							"hullName": "Scout",
+							"purpose": "Scout"
+						},
+						{
+							"name": "Spore Cloud",
+							"hullName": "Mini-Colony Ship",
+							"purpose": "Colonizer"
+						},
+						{
+							"name": "Spore Cloud",
+							"hullName": "Mini-Colony Ship",
+							"purpose": "Colonizer"
+						},
+						{
+							"name": "Spore Cloud",
+							"hullName": "Mini-Colony Ship",
+							"purpose": "Colonizer"
+						}
+					],
+					"homeworld": true
+				}
+			],
+			"mineralsPerSingleMineralPacket": 100,
+			"mineralsPerMixedMineralPacket": 40,
+			"packetResourceCost": 10,
+			"packetMineralCostFactor": 1.1,
+			"packetReceiverFactor": 1,
+			"packetDecayFactor": 1,
+			"packetPermaTerraformSizeUnit": 100,
+			"shipsVanishInVoid": true,
+			"builtInScanner": {},
+			"techsCostExtraLevel": 3,
+			"freighterGrowth": {},
+			"growthFactor": 2,
+			"maxPopulationOffset": -0.5,
+			"stealsResearch": {},
+			"minefieldMinDecayFactor": 1,
+			"minefieldBaseDecayRate": 0.02,
+			"minefieldPlanetDecayRate": 0.04,
+			"minefieldMaxDecayRate": 0.5,
+			"minefieldDetonateDecayRate": 0.25,
+			"invasionAttackBonus": 1.1,
+			"invasionDefendBonus": 1,
+			"repairFactor": 1,
+			"starbaseRepairFactor": 1,
+			"starbaseCostFactor": 1,
+			"innateMinesFactor": 1,
+			"innateScannerFactor": 1,
+			"canBuildDefenses": true
+		},
+		"2": {
 			"pointCost": 66,
 			"startingTechLevels": {
-				"energy": 1
+				"electronics": 5
 			},
 			"startingPlanets": [
 				{
@@ -496,32 +520,107 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
-			"freighterGrowth": {
-				"absolute": true,
-				"rate": -0.03
-			},
+			"freighterGrowth": {},
 			"growthFactor": 1,
+			"builtInCloakUnits": 300,
+			"stealsResearch": {
+				"energy": 0.5,
+				"weapons": 0.5,
+				"propulsion": 0.5,
+				"construction": 0.5,
+				"electronics": 0.5,
+				"biotechnology": 0.5
+			},
+			"freeCargoCloaking": true,
+			"minefieldSafeWarpBonus": 1,
 			"minefieldMinDecayFactor": 1,
 			"minefieldBaseDecayRate": 0.02,
 			"minefieldPlanetDecayRate": 0.04,
 			"minefieldMaxDecayRate": 0.5,
 			"minefieldDetonateDecayRate": 0.25,
-			"canRemoteMineOwnPlanets": true,
 			"invasionAttackBonus": 1.1,
 			"invasionDefendBonus": 1,
 			"repairFactor": 1,
 			"starbaseRepairFactor": 1,
-			"starbaseCostFactor": 0.8,
-			"innateMining": true,
-			"innateMinesFactor": 0.1,
-			"innateResources": true,
-			"innateScanner": true,
-			"innateScannerFactor": 0.1,
-			"livesOnStarbases": true,
-			"minHabFloor": 25
+			"starbaseCostFactor": 1,
+			"innateMinesFactor": 1,
+			"innateScannerFactor": 1,
+			"canBuildDefenses": true
 		},
-		"CA": {
+		"3": {
+			"pointCost": 66,
+			"startingTechLevels": {
+				"energy": 1,
+				"weapons": 6,
+				"propulsion": 1
+			},
+			"startingPlanets": [
+				{
+					"population": 25000,
+					"mines": 10,
+					"factories": 10,
+					"defenses": 10,
+					"starbaseDesignName": "Starbase",
+					"starbaseHull": "Space Station",
+					"startingFleets": [
+						{
+							"name": "Santa Maria",
+							"hullName": "Colony Ship",
+							"purpose": "Colonizer"
+						},
+						{
+							"name": "Armed Probe",
+							"hullName": "Scout",
+							"hullSetNumber": 1,
+							"purpose": "FighterScout"
+						},
+						{
+							"name": "Gadfly",
+							"hullName": "Mini Bomber",
+							"hullSetNumber": 1,
+							"purpose": "Bomber"
+						}
+					],
+					"homeworld": true
+				}
+			],
+			"techCostOffset": {
+				"4": -0.25,
+				"5": -0.25,
+				"31": -0.25
+			},
+			"mineralsPerSingleMineralPacket": 100,
+			"mineralsPerMixedMineralPacket": 40,
+			"packetResourceCost": 10,
+			"packetMineralCostFactor": 1.1,
+			"packetReceiverFactor": 1,
+			"packetDecayFactor": 1,
+			"packetPermaTerraformSizeUnit": 100,
+			"shipsVanishInVoid": true,
+			"builtInScanner": {},
+			"techsCostExtraLevel": 3,
+			"freighterGrowth": {},
+			"growthFactor": 1,
+			"stealsResearch": {},
+			"minefieldMinDecayFactor": 1,
+			"minefieldBaseDecayRate": 0.02,
+			"minefieldPlanetDecayRate": 0.04,
+			"minefieldMaxDecayRate": 0.5,
+			"minefieldDetonateDecayRate": 0.25,
+			"discoverDesignOnScan": true,
+			"invasionAttackBonus": 1.65,
+			"invasionDefendBonus": 1,
+			"movementBonus": 2,
+			"repairFactor": 1,
+			"starbaseRepairFactor": 1,
+			"starbaseCostFactor": 1,
+			"innateMinesFactor": 1,
+			"innateScannerFactor": 1,
+			"canBuildDefenses": true
+		},
+		"4": {
 			"pointCost": 66,
 			"startingTechLevels": {
 				"energy": 1,
@@ -567,8 +666,11 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
+			"freighterGrowth": {},
 			"growthFactor": 1,
+			"stealsResearch": {},
 			"minefieldMinDecayFactor": 1,
 			"minefieldBaseDecayRate": 0.02,
 			"minefieldPlanetDecayRate": 0.04,
@@ -586,67 +688,7 @@
 			"innateScannerFactor": 1,
 			"canBuildDefenses": true
 		},
-		"HE": {
-			"pointCost": 66,
-			"startingPlanets": [
-				{
-					"population": 25000,
-					"mines": 10,
-					"factories": 10,
-					"defenses": 10,
-					"starbaseDesignName": "Starbase",
-					"starbaseHull": "Space Station",
-					"startingFleets": [
-						{
-							"name": "Long Range Scout",
-							"hullName": "Scout",
-							"purpose": "Scout"
-						},
-						{
-							"name": "Spore Cloud",
-							"hullName": "Mini-Colony Ship",
-							"purpose": "Colonizer"
-						},
-						{
-							"name": "Spore Cloud",
-							"hullName": "Mini-Colony Ship",
-							"purpose": "Colonizer"
-						},
-						{
-							"name": "Spore Cloud",
-							"hullName": "Mini-Colony Ship",
-							"purpose": "Colonizer"
-						}
-					],
-					"homeworld": true
-				}
-			],
-			"mineralsPerSingleMineralPacket": 100,
-			"mineralsPerMixedMineralPacket": 40,
-			"packetResourceCost": 10,
-			"packetMineralCostFactor": 1.1,
-			"packetReceiverFactor": 1,
-			"packetDecayFactor": 1,
-			"packetPermaTerraformSizeUnit": 100,
-			"shipsVanishInVoid": true,
-			"techsCostExtraLevel": 3,
-			"growthFactor": 2,
-			"maxPopulationOffset": -0.5,
-			"minefieldMinDecayFactor": 1,
-			"minefieldBaseDecayRate": 0.02,
-			"minefieldPlanetDecayRate": 0.04,
-			"minefieldMaxDecayRate": 0.5,
-			"minefieldDetonateDecayRate": 0.25,
-			"invasionAttackBonus": 1.1,
-			"invasionDefendBonus": 1,
-			"repairFactor": 1,
-			"starbaseRepairFactor": 1,
-			"starbaseCostFactor": 1,
-			"innateMinesFactor": 1,
-			"innateScannerFactor": 1,
-			"canBuildDefenses": true
-		},
-		"IS": {
+		"5": {
 			"pointCost": 66,
 			"startingPlanets": [
 				{
@@ -672,10 +714,10 @@
 				}
 			],
 			"techCostOffset": {
-				"BeamWeapon": 0.25,
-				"Bomb": 0.25,
-				"Defense": -0.4,
-				"Torpedo": 0.25
+				"4": 0.25,
+				"5": 0.25,
+				"10": -0.4,
+				"31": 0.25
 			},
 			"mineralsPerSingleMineralPacket": 100,
 			"mineralsPerMixedMineralPacket": 40,
@@ -685,11 +727,13 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {
-				"rate": 0.5
+				"growthFactor": 0.5
 			},
 			"growthFactor": 1,
+			"stealsResearch": {},
 			"minefieldMinDecayFactor": 1,
 			"minefieldBaseDecayRate": 0.02,
 			"minefieldPlanetDecayRate": 0.04,
@@ -704,7 +748,154 @@
 			"innateScannerFactor": 1,
 			"canBuildDefenses": true
 		},
-		"IT": {
+		"6": {
+			"pointCost": 66,
+			"startingTechLevels": {
+				"propulsion": 2,
+				"biotechnology": 2
+			},
+			"startingPlanets": [
+				{
+					"population": 25000,
+					"mines": 10,
+					"factories": 10,
+					"defenses": 10,
+					"starbaseDesignName": "Starbase",
+					"starbaseHull": "Space Station",
+					"startingFleets": [
+						{
+							"name": "Long Range Scout",
+							"hullName": "Scout",
+							"purpose": "Scout"
+						},
+						{
+							"name": "Santa Maria",
+							"hullName": "Colony Ship",
+							"purpose": "Colonizer"
+						},
+						{
+							"name": "Little Hen",
+							"hullName": "Mini Mine Layer",
+							"purpose": "DamageMineLayer"
+						},
+						{
+							"name": "Speed Turtle",
+							"hullName": "Mini Mine Layer",
+							"purpose": "SpeedMineLayer"
+						}
+					],
+					"homeworld": true
+				}
+			],
+			"mineralsPerSingleMineralPacket": 100,
+			"mineralsPerMixedMineralPacket": 40,
+			"packetResourceCost": 10,
+			"packetMineralCostFactor": 1.1,
+			"packetReceiverFactor": 1,
+			"packetDecayFactor": 1,
+			"packetPermaTerraformSizeUnit": 100,
+			"shipsVanishInVoid": true,
+			"builtInScanner": {},
+			"techsCostExtraLevel": 3,
+			"freighterGrowth": {},
+			"growthFactor": 1,
+			"stealsResearch": {},
+			"minefieldsAreScanners": true,
+			"minefieldRateMoveFactor": 0.5,
+			"minefieldSafeWarpBonus": 2,
+			"minefieldMinDecayFactor": 0.25,
+			"minefieldBaseDecayRate": 0.02,
+			"minefieldPlanetDecayRate": 0.04,
+			"minefieldMaxDecayRate": 0.5,
+			"canDetonateMinefields": true,
+			"minefieldDetonateDecayRate": 0.25,
+			"invasionAttackBonus": 1.1,
+			"invasionDefendBonus": 1,
+			"repairFactor": 1,
+			"starbaseRepairFactor": 1,
+			"starbaseCostFactor": 1,
+			"innateMinesFactor": 1,
+			"innateScannerFactor": 1,
+			"canBuildDefenses": true
+		},
+		"7": {
+			"pointCost": 66,
+			"startingTechLevels": {
+				"energy": 4
+			},
+			"startingPlanets": [
+				{
+					"population": 20000,
+					"mines": 10,
+					"factories": 10,
+					"defenses": 10,
+					"hasMassDriver": true,
+					"starbaseDesignName": "Starbase",
+					"starbaseHull": "Space Station",
+					"startingFleets": [
+						{
+							"name": "Long Range Scout",
+							"hullName": "Scout",
+							"purpose": "Scout"
+						},
+						{
+							"name": "Santa Maria",
+							"hullName": "Colony Ship",
+							"purpose": "Colonizer"
+						}
+					],
+					"homeworld": true
+				},
+				{
+					"population": 10000,
+					"mines": 10,
+					"factories": 4,
+					"habPenaltyFactor": 1,
+					"hasMassDriver": true,
+					"starbaseDesignName": "Accelerator Platform",
+					"starbaseHull": "Orbital Fort",
+					"startingFleets": [
+						{
+							"name": "Long Range Scout",
+							"hullName": "Scout",
+							"purpose": "Scout"
+						}
+					]
+				}
+			],
+			"mineralsPerSingleMineralPacket": 70,
+			"mineralsPerMixedMineralPacket": 25,
+			"packetResourceCost": 5,
+			"packetMineralCostFactor": 1,
+			"packetReceiverFactor": 1,
+			"packetDecayFactor": 0.5,
+			"packetBuiltInScanner": true,
+			"detectPacketDestinationStarbases": true,
+			"detectAllPackets": true,
+			"packetTerraformChance": 0.5,
+			"packetPermaformChance": 0.001,
+			"packetPermaTerraformSizeUnit": 100,
+			"shipsVanishInVoid": true,
+			"builtInScanner": {},
+			"techsCostExtraLevel": 3,
+			"freighterGrowth": {},
+			"growthFactor": 1,
+			"stealsResearch": {},
+			"minefieldMinDecayFactor": 1,
+			"minefieldBaseDecayRate": 0.02,
+			"minefieldPlanetDecayRate": 0.04,
+			"minefieldMaxDecayRate": 0.5,
+			"minefieldDetonateDecayRate": 0.25,
+			"invasionAttackBonus": 1.1,
+			"invasionDefendBonus": 1,
+			"repairFactor": 1,
+			"starbaseRepairFactor": 1,
+			"starbaseCostFactor": 1,
+			"innateMinesFactor": 1,
+			"innateScannerFactor": 1,
+			"canBuildDefenses": true
+		},
+		"8": {
 			"pointCost": 66,
 			"startingTechLevels": {
 				"propulsion": 5,
@@ -761,7 +952,7 @@
 				}
 			],
 			"techCostOffset": {
-				"Stargate": -0.25
+				"28": -0.25
 			},
 			"mineralsPerSingleMineralPacket": 100,
 			"mineralsPerMixedMineralPacket": 40,
@@ -773,8 +964,11 @@
 			"packetPermaTerraformSizeUnit": 100,
 			"canGateCargo": true,
 			"canDetectStargatePlanets": true,
+			"builtInScanner": {},
 			"techsCostExtraLevel": 3,
+			"freighterGrowth": {},
 			"growthFactor": 1,
+			"stealsResearch": {},
 			"minefieldMinDecayFactor": 1,
 			"minefieldBaseDecayRate": 0.02,
 			"minefieldPlanetDecayRate": 0.04,
@@ -789,7 +983,70 @@
 			"innateScannerFactor": 1,
 			"canBuildDefenses": true
 		},
-		"JoaT": {
+		"9": {
+			"pointCost": 66,
+			"startingTechLevels": {
+				"energy": 1
+			},
+			"startingPlanets": [
+				{
+					"population": 25000,
+					"mines": 10,
+					"factories": 10,
+					"defenses": 10,
+					"starbaseDesignName": "Starbase",
+					"starbaseHull": "Space Station",
+					"startingFleets": [
+						{
+							"name": "Long Range Scout",
+							"hullName": "Scout",
+							"purpose": "Scout"
+						},
+						{
+							"name": "Santa Maria",
+							"hullName": "Colony Ship",
+							"purpose": "Colonizer"
+						}
+					],
+					"homeworld": true
+				}
+			],
+			"mineralsPerSingleMineralPacket": 100,
+			"mineralsPerMixedMineralPacket": 40,
+			"packetResourceCost": 10,
+			"packetMineralCostFactor": 1.1,
+			"packetReceiverFactor": 1,
+			"packetDecayFactor": 1,
+			"packetPermaTerraformSizeUnit": 100,
+			"shipsVanishInVoid": true,
+			"builtInScanner": {},
+			"techsCostExtraLevel": 3,
+			"freighterGrowth": {
+				"absolute": true,
+				"growthFactor": -0.03
+			},
+			"growthFactor": 1,
+			"stealsResearch": {},
+			"minefieldMinDecayFactor": 1,
+			"minefieldBaseDecayRate": 0.02,
+			"minefieldPlanetDecayRate": 0.04,
+			"minefieldMaxDecayRate": 0.5,
+			"minefieldDetonateDecayRate": 0.25,
+			"canRemoteMineOwnPlanets": true,
+			"invasionAttackBonus": 1.1,
+			"invasionDefendBonus": 1,
+			"repairFactor": 1,
+			"starbaseRepairFactor": 1,
+			"starbaseCostFactor": 0.8,
+			"innateMining": true,
+			"innateMinesFactor": 0.1,
+			"innateResources": true,
+			"innateScanner": true,
+			"innateScannerFactor": 0.1,
+			"livesOnStarbases": true,
+			"minHabFloor": 25
+		},
+		"10": {
 			"pointCost": 66,
 			"startingTechLevels": {
 				"energy": 3,
@@ -860,8 +1117,10 @@
 				}
 			},
 			"techsCostExtraLevel": 4,
+			"freighterGrowth": {},
 			"growthFactor": 1,
 			"maxPopulationOffset": 0.2,
+			"stealsResearch": {},
 			"minefieldMinDecayFactor": 1,
 			"minefieldBaseDecayRate": 0.02,
 			"minefieldPlanetDecayRate": 0.04,
@@ -869,278 +1128,6 @@
 			"minefieldDetonateDecayRate": 0.25,
 			"invasionAttackBonus": 1.1,
 			"invasionDefendBonus": 1,
-			"repairFactor": 1,
-			"starbaseRepairFactor": 1,
-			"starbaseCostFactor": 1,
-			"innateMinesFactor": 1,
-			"innateScannerFactor": 1,
-			"canBuildDefenses": true
-		},
-		"PP": {
-			"pointCost": 66,
-			"startingTechLevels": {
-				"energy": 4
-			},
-			"startingPlanets": [
-				{
-					"population": 20000,
-					"mines": 10,
-					"factories": 10,
-					"defenses": 10,
-					"hasMassDriver": true,
-					"starbaseDesignName": "Starbase",
-					"starbaseHull": "Space Station",
-					"startingFleets": [
-						{
-							"name": "Long Range Scout",
-							"hullName": "Scout",
-							"purpose": "Scout"
-						},
-						{
-							"name": "Santa Maria",
-							"hullName": "Colony Ship",
-							"purpose": "Colonizer"
-						}
-					],
-					"homeworld": true
-				},
-				{
-					"population": 10000,
-					"mines": 10,
-					"factories": 4,
-					"habPenaltyFactor": 1,
-					"hasMassDriver": true,
-					"starbaseDesignName": "Accelerator Platform",
-					"starbaseHull": "Orbital Fort",
-					"startingFleets": [
-						{
-							"name": "Long Range Scout",
-							"hullName": "Scout",
-							"purpose": "Scout"
-						}
-					]
-				}
-			],
-			"mineralsPerSingleMineralPacket": 70,
-			"mineralsPerMixedMineralPacket": 25,
-			"packetResourceCost": 5,
-			"packetMineralCostFactor": 1,
-			"packetReceiverFactor": 1,
-			"packetDecayFactor": 0.5,
-			"packetBuiltInScanner": true,
-			"detectPacketDestinationStarbases": true,
-			"detectAllPackets": true,
-			"packetTerraformChance": 0.5,
-			"packetPermaformChance": 0.001,
-			"packetPermaTerraformSizeUnit": 100,
-			"shipsVanishInVoid": true,
-			"techsCostExtraLevel": 3,
-			"growthFactor": 1,
-			"minefieldMinDecayFactor": 1,
-			"minefieldBaseDecayRate": 0.02,
-			"minefieldPlanetDecayRate": 0.04,
-			"minefieldMaxDecayRate": 0.5,
-			"minefieldDetonateDecayRate": 0.25,
-			"invasionAttackBonus": 1.1,
-			"invasionDefendBonus": 1,
-			"repairFactor": 1,
-			"starbaseRepairFactor": 1,
-			"starbaseCostFactor": 1,
-			"innateMinesFactor": 1,
-			"innateScannerFactor": 1,
-			"canBuildDefenses": true
-		},
-		"SD": {
-			"pointCost": 66,
-			"startingTechLevels": {
-				"propulsion": 2,
-				"biotechnology": 2
-			},
-			"startingPlanets": [
-				{
-					"population": 25000,
-					"mines": 10,
-					"factories": 10,
-					"defenses": 10,
-					"starbaseDesignName": "Starbase",
-					"starbaseHull": "Space Station",
-					"startingFleets": [
-						{
-							"name": "Long Range Scout",
-							"hullName": "Scout",
-							"purpose": "Scout"
-						},
-						{
-							"name": "Santa Maria",
-							"hullName": "Colony Ship",
-							"purpose": "Colonizer"
-						},
-						{
-							"name": "Little Hen",
-							"hullName": "Mini Mine Layer",
-							"purpose": "DamageMineLayer"
-						},
-						{
-							"name": "Speed Turtle",
-							"hullName": "Mini Mine Layer",
-							"purpose": "SpeedMineLayer"
-						}
-					],
-					"homeworld": true
-				}
-			],
-			"mineralsPerSingleMineralPacket": 100,
-			"mineralsPerMixedMineralPacket": 40,
-			"packetResourceCost": 10,
-			"packetMineralCostFactor": 1.1,
-			"packetReceiverFactor": 1,
-			"packetDecayFactor": 1,
-			"packetPermaTerraformSizeUnit": 100,
-			"shipsVanishInVoid": true,
-			"techsCostExtraLevel": 3,
-			"growthFactor": 1,
-			"minefieldsAreScanners": true,
-			"minefieldRateMoveFactor": 0.5,
-			"minefieldSafeWarpBonus": 2,
-			"minefieldMinDecayFactor": 0.25,
-			"minefieldBaseDecayRate": 0.02,
-			"minefieldPlanetDecayRate": 0.04,
-			"minefieldMaxDecayRate": 0.5,
-			"canDetonateMinefields": true,
-			"minefieldDetonateDecayRate": 0.25,
-			"invasionAttackBonus": 1.1,
-			"invasionDefendBonus": 1,
-			"repairFactor": 1,
-			"starbaseRepairFactor": 1,
-			"starbaseCostFactor": 1,
-			"innateMinesFactor": 1,
-			"innateScannerFactor": 1,
-			"canBuildDefenses": true
-		},
-		"SS": {
-			"pointCost": 66,
-			"startingTechLevels": {
-				"electronics": 5
-			},
-			"startingPlanets": [
-				{
-					"population": 25000,
-					"mines": 10,
-					"factories": 10,
-					"defenses": 10,
-					"starbaseDesignName": "Starbase",
-					"starbaseHull": "Space Station",
-					"startingFleets": [
-						{
-							"name": "Long Range Scout",
-							"hullName": "Scout",
-							"purpose": "Scout"
-						},
-						{
-							"name": "Santa Maria",
-							"hullName": "Colony Ship",
-							"purpose": "Colonizer"
-						}
-					],
-					"homeworld": true
-				}
-			],
-			"mineralsPerSingleMineralPacket": 100,
-			"mineralsPerMixedMineralPacket": 40,
-			"packetResourceCost": 10,
-			"packetMineralCostFactor": 1.1,
-			"packetReceiverFactor": 1,
-			"packetDecayFactor": 1,
-			"packetPermaTerraformSizeUnit": 100,
-			"shipsVanishInVoid": true,
-			"techsCostExtraLevel": 3,
-			"growthFactor": 1,
-			"builtInCloakUnits": 300,
-			"stealsResearch": {
-				"energy": 0.5,
-				"weapons": 0.5,
-				"propulsion": 0.5,
-				"construction": 0.5,
-				"electronics": 0.5,
-				"biotechnology": 0.5
-			},
-			"freeCargoCloaking": true,
-			"minefieldSafeWarpBonus": 1,
-			"minefieldMinDecayFactor": 1,
-			"minefieldBaseDecayRate": 0.02,
-			"minefieldPlanetDecayRate": 0.04,
-			"minefieldMaxDecayRate": 0.5,
-			"minefieldDetonateDecayRate": 0.25,
-			"invasionAttackBonus": 1.1,
-			"invasionDefendBonus": 1,
-			"repairFactor": 1,
-			"starbaseRepairFactor": 1,
-			"starbaseCostFactor": 1,
-			"innateMinesFactor": 1,
-			"innateScannerFactor": 1,
-			"canBuildDefenses": true
-		},
-		"WM": {
-			"pointCost": 66,
-			"startingTechLevels": {
-				"energy": 1,
-				"weapons": 6,
-				"propulsion": 1
-			},
-			"startingPlanets": [
-				{
-					"population": 25000,
-					"mines": 10,
-					"factories": 10,
-					"defenses": 10,
-					"starbaseDesignName": "Starbase",
-					"starbaseHull": "Space Station",
-					"startingFleets": [
-						{
-							"name": "Santa Maria",
-							"hullName": "Colony Ship",
-							"purpose": "Colonizer"
-						},
-						{
-							"name": "Armed Probe",
-							"hullName": "Scout",
-							"hullSetNumber": 1,
-							"purpose": "FighterScout"
-						},
-						{
-							"name": "Gadfly",
-							"hullName": "Mini Bomber",
-							"hullSetNumber": 1,
-							"purpose": "Bomber"
-						}
-					],
-					"homeworld": true
-				}
-			],
-			"techCostOffset": {
-				"BeamWeapon": -0.25,
-				"Bomb": -0.25,
-				"Torpedo": -0.25
-			},
-			"mineralsPerSingleMineralPacket": 100,
-			"mineralsPerMixedMineralPacket": 40,
-			"packetResourceCost": 10,
-			"packetMineralCostFactor": 1.1,
-			"packetReceiverFactor": 1,
-			"packetDecayFactor": 1,
-			"packetPermaTerraformSizeUnit": 100,
-			"shipsVanishInVoid": true,
-			"techsCostExtraLevel": 3,
-			"growthFactor": 1,
-			"minefieldMinDecayFactor": 1,
-			"minefieldBaseDecayRate": 0.02,
-			"minefieldPlanetDecayRate": 0.04,
-			"minefieldMaxDecayRate": 0.5,
-			"minefieldDetonateDecayRate": 0.25,
-			"discoverDesignOnScan": true,
-			"invasionAttackBonus": 1.65,
-			"invasionDefendBonus": 1,
-			"movementBonus": 2,
 			"repairFactor": 1,
 			"starbaseRepairFactor": 1,
 			"starbaseCostFactor": 1,
@@ -1151,93 +1138,83 @@
 	},
 	"raceStartingPoints": 1650,
 	"radiatingImmune": 85,
-	"randomArtifactResearchBonusRange": [
-		120,
-		400
-	],
+	"randomArtifactResearchBonusRange": [120, 400],
 	"randomCometMinYear": 10,
 	"randomCometMinYearPlayerWorld": 20,
 	"randomEventChances": {
-		"AncientArtifact": 0.3333333333333333,
-		"Comet": 0.05,
-		"MineralDeposit": 0.05,
-		"PlanetaryChange": 0.05
+		"1": 0.05,
+		"2": 0.05,
+		"3": 0.05,
+		"4": 0.3333333333333333
 	},
-	"randomMineralDepositBonusRange": [
-		20,
-		50
-	],
+	"randomMineralDepositBonusRange": [20, 50],
 	"remoteMiningMineOutput": 10,
 	"repairRates": {
-		"Moving": 0.01,
-		"None": 0,
-		"Orbiting": 0.03,
-		"OrbitingOwnPlanet": 0.05,
-		"Starbase": 0.1,
-		"Stopped": 0.02
+		"0": 0,
+		"1": 0.01,
+		"2": 0.02,
+		"3": 0.03,
+		"4": 0.05,
+		"5": 0.1
 	},
 	"salvageDecayMin": 10,
 	"salvageDecayRate": 0.1,
 	"salvageFromBattleFactor": 0.3,
 	"scrapColonizeAmount": 0.75,
 	"scrapMineralAmount": 0.333333343,
-	"scrapResourceAmount": 0,
 	"showPublicScoresAfterYears": 20,
 	"smartDefenseCoverageFactor": 0.5,
 	"stargateMaxHullMassFactor": 5,
 	"stargateMaxRangeFactor": 5,
 	"tachyonCloakReduction": 0.05,
 	"tachyonMaxCloakReduction": 0.81,
-	"techsId": 0,
 	"techTradeChance": 0.5,
-	"torpedoSplashDamage": 0,
 	"wormholeCloak": 75,
 	"wormholePairsForSize": {
-		"Huge": 6,
-		"HugeWide": 6,
-		"Large": 5,
-		"LargeWide": 5,
-		"Medium": 4,
-		"MediumWide": 4,
-		"Small": 3,
-		"SmallWide": 3,
-		"Tiny": 1,
-		"TinyWide": 1
+		"1": 1,
+		"2": 1,
+		"3": 3,
+		"4": 3,
+		"5": 4,
+		"6": 4,
+		"7": 5,
+		"8": 5,
+		"9": 6,
+		"10": 6
 	},
 	"wormholeStatsByStability": {
-		"Average": {
-			"yearsToDegrade": 5,
-			"chanceToJump": 0.04,
-			"jiggleDistance": 10
-		},
-		"ExtremelyVolatile": {
-			"yearsToDegrade": -1,
-			"chanceToJump": 0.04,
-			"jiggleDistance": 10
-		},
-		"MostlyStable": {
-			"yearsToDegrade": 5,
-			"chanceToJump": 0.02,
-			"jiggleDistance": 10
-		},
-		"RockSolid": {
+		"1": {
 			"yearsToDegrade": 10,
-			"chanceToJump": 0,
 			"jiggleDistance": 10
 		},
-		"SlightlyVolatile": {
-			"yearsToDegrade": 5,
-			"chanceToJump": 0.03,
-			"jiggleDistance": 10
-		},
-		"Stable": {
+		"2": {
 			"yearsToDegrade": 5,
 			"chanceToJump": 0.005,
 			"jiggleDistance": 10
 		},
-		"Volatile": {
+		"3": {
+			"yearsToDegrade": 5,
+			"chanceToJump": 0.02,
+			"jiggleDistance": 10
+		},
+		"4": {
+			"yearsToDegrade": 5,
+			"chanceToJump": 0.04,
+			"jiggleDistance": 10
+		},
+		"5": {
+			"yearsToDegrade": 5,
+			"chanceToJump": 0.03,
+			"jiggleDistance": 10
+		},
+		"6": {
 			"yearsToDegrade": 5,
 			"chanceToJump": 0.06,
+			"jiggleDistance": 10
+		},
+		"7": {
+			"yearsToDegrade": -1,
+			"chanceToJump": 0.04,
 			"jiggleDistance": 10
 		}
 	}

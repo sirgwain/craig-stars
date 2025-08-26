@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/fleet.proto";
+
+enum BattleRecordTokenActionType {
+  BATTLE_RECORD_TOKEN_ACTION_TYPE_UNSPECIFIED = 0;
+  BATTLE_RECORD_TOKEN_ACTION_TYPE_BEAM_FIRE = 1;
+  BATTLE_RECORD_TOKEN_ACTION_TYPE_TORPEDO_FIRE = 2;
+  BATTLE_RECORD_TOKEN_ACTION_TYPE_MOVE = 3;
+  BATTLE_RECORD_TOKEN_ACTION_TYPE_RAN_AWAY = 4;
+}
+
+// Common types
+message BattleVector {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message BattleRecord {
+  int32 num = 1;
+  int32 planet_num = 2;
+  Vector position = 3;
+  repeated BattleRecordToken tokens = 4;
+  repeated ActionsPerRound actions_per_round = 5;
+  repeated BattleRecordDestroyedToken destroyed_tokens = 6;
+  BattleRecordStats stats = 7;
+}
+
+message ActionsPerRound {
+  repeated BattleRecordTokenAction actions = 1;
+}
+
+message BattleRecordStats {
+  int32 num_players = 1;
+  map<int32, int32> num_ships_by_player = 2;
+  map<int32, int32> ships_destroyed_by_player = 3;
+  map<int32, int32> damage_taken_by_player = 4;
+  map<int32, Cargo> cargo_lost_by_player = 5;
+}
+
+message BattleRecordToken {
+  int32 num = 1;
+  int32 player_num = 2;
+  int32 design_num = 3;
+  BattleVector position = 4;
+  int32 initiative = 5;
+  int32 mass = 6;
+  int32 armor = 7;
+  int32 stack_shields = 8;
+  int32 movement = 9;
+  int32 starting_quantity = 10;
+  int32 starting_quantity_damaged = 11;
+  int32 starting_damage = 12;
+  BattleTactic tactic = 13;
+  BattleTarget primary_target = 14;
+  BattleTarget secondary_target = 15;
+  BattleAttackWho attack_who = 16;
+}
+
+message BattleRecordDestroyedToken {
+  int32 num = 1;
+  int32 player_num = 2;
+  int32 design_num = 3;
+  int32 quantity = 4;
+}
+
+message BattleRecordTokenAction {
+  BattleRecordTokenActionType type = 1;
+  int32 token_num = 2;
+  int32 round = 3;
+  BattleVector from = 4;
+  BattleVector to = 5;
+  int32 slot = 6;
+  int32 target_num = 7;
+  ShipToken target = 8;
+  int32 tokens_destroyed = 9;
+  int32 damage_done_shields = 10;
+  int32 damage_done_armor = 11;
+  int32 torpedo_hits = 12;
+  int32 torpedo_misses = 13;
+}

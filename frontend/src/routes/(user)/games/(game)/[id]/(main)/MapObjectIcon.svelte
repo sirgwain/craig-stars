@@ -1,22 +1,16 @@
 <script lang="ts">
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyPlanet } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
-	import {
-		MinefieldTypeHeavy,
-		MinefieldTypeSpeedBump,
-		MinefieldTypeStandard,
-		type MapObject
-	} from '$lib/types/cs';
-	import { getUnderlyingMapObject } from '$lib/types/MapObject';
+	import { MinefieldType, type Planet } from '$lib/types/cs-proto';
+	import { getUnderlyingMapObject, type MapObjectLike } from '$lib/types/MapObject';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	const { universe } = getGameContext();
 
 	type Props = {
-		mapObject: MapObject | undefined;
+		mapObject: MapObjectLike | undefined;
 	};
 
 	let { mapObject }: Props = $props();
@@ -28,11 +22,12 @@
 	let design = $derived.by(() => {
 		if (fleet?.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
-			return $universe.getDesign(fleet.playerNum, designNum);
+			return $universe.getDesign(fleet.mapObject?.playerNum ?? 0, designNum);
 		}
 	});
 
-	const icon = (planet: AnyPlanet) => (planet ? `planet-${(planet.num - 1) % 26}` : '');
+	const icon = (planet: Planet) =>
+		planet.mapObject?.num ? `planet-${(planet.mapObject.num - 1) % 26}` : '';
 </script>
 
 {#if planet}
@@ -45,9 +40,9 @@
 	<div class="avatar mr-2">
 		<div
 			class="border-2 border-neutral p-2 bg-black"
-			style={`border-color: ${$universe.getPlayerColor(fleet.playerNum)};`}
+			style={`border-color: ${$universe.getPlayerColor(fleet.mapObject?.playerNum)};`}
 		>
-			{#if fleet.tokens && fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
+			{#if fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
 				<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 			{/if}
 
@@ -77,9 +72,9 @@
 	<div class="avatar">
 		<div class="mapobject-avatar-wrapper">
 			<div
-				class:standard-minefield={minefield.minefieldType === MinefieldTypeStandard}
-				class:heavy-minefield={minefield.minefieldType === MinefieldTypeHeavy}
-				class:speed-bump-minefield={minefield.minefieldType === MinefieldTypeSpeedBump}
+				class:standard-minefield={minefield.minefieldType === MinefieldType.STANDARD}
+				class:heavy-minefield={minefield.minefieldType === MinefieldType.HEAVY}
+				class:speed-bump-minefield={minefield.minefieldType === MinefieldType.SPEED_BUMP}
 				class="mapobject-avatar"
 			></div>
 		</div>

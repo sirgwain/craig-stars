@@ -1,4 +1,5 @@
 import { apiErrorsFailTest, expect, test } from './setup';
+import { CreateShipDesignResponseJson } from '../src/lib/protogen/craig_stars/v1/shipdesignservice_pb';
 
 test('ship designer - create', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
@@ -6,6 +7,7 @@ test('ship designer - create', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Ship Designer' }).click();
+	await page.waitForURL(`/games/${id}/designer`);
 
 	await page.getByRole('link', { name: 'Create' }).click();
 	await page.getByRole('link', { name: 'Small Freighter' }).click();
@@ -46,7 +48,7 @@ test('ship designer - create', async ({ newGamePage }) => {
 	// start waiting for post response
 	const response = page.waitForResponse(
 		(response) =>
-			response.url().includes(`/api/games/${id}/designs`) &&
+			response.url().includes(`/api/grpc/craig_stars.v1.ShipDesignService`) &&
 			response.request().method() === 'POST' &&
 			response.status() === 200,
 		{ timeout: 10000 }
@@ -56,8 +58,11 @@ test('ship designer - create', async ({ newGamePage }) => {
 	await page.getByRole('button', { name: 'Save' }).click();
 
 	// grab the response when it fires
-	const { num } = await (await response).json();
+	const { design } = (await (await response).json()) as CreateShipDesignResponseJson;
+	if (!design?.num) {
+		throw new Error('failed to create ship design');
+	}
 
 	// should route to designer page
-	await page.waitForURL(`/games/${id}/designer/${num}`);
+	await page.waitForURL(`/games/${id}/designer/${design.num}`);
 });

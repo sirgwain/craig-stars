@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/rules.proto";
+
+service RulesService {
+  rpc GetRules(GetRulesRequest) returns (GetRulesResponse);
+}
+
+message GetRulesRequest {}
+
+message GetRulesResponse {
+  Rules rules = 1;
+}

@@ -1,27 +1,16 @@
-import {
-	MysteryTraderRewardArmor,
-	MysteryTraderRewardBeamWeapon,
-	MysteryTraderRewardBomb,
-	MysteryTraderRewardElectrical,
-	MysteryTraderRewardEngine,
-	MysteryTraderRewardMechanical,
-	MysteryTraderRewardMineRobot,
-	MysteryTraderRewardShield,
-	MysteryTraderRewardTorpedo,
-	type MysteryTraderRewardType
-} from './cs';
+import { MysteryTraderRewardType } from './cs-proto';
 
 export function isHullComponent(type: MysteryTraderRewardType): boolean {
 	switch (type) {
-		case MysteryTraderRewardEngine:
-		case MysteryTraderRewardBomb:
-		case MysteryTraderRewardArmor:
-		case MysteryTraderRewardShield:
-		case MysteryTraderRewardElectrical:
-		case MysteryTraderRewardMechanical:
-		case MysteryTraderRewardTorpedo:
-		case MysteryTraderRewardMineRobot:
-		case MysteryTraderRewardBeamWeapon:
+		case MysteryTraderRewardType.ENGINE:
+		case MysteryTraderRewardType.BOMB:
+		case MysteryTraderRewardType.ARMOR:
+		case MysteryTraderRewardType.SHIELD:
+		case MysteryTraderRewardType.ELECTRICAL:
+		case MysteryTraderRewardType.MECHANICAL:
+		case MysteryTraderRewardType.TORPEDO:
+		case MysteryTraderRewardType.MINE_ROBOT:
+		case MysteryTraderRewardType.BEAM_WEAPON:
 			return true;
 	}
 	return false;

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { techs } from '$lib/services/Stores';
-	import type { ShipDesign } from '$lib/types/cs';
-	import { None } from '$lib/types/cs';
+	import { None } from '$lib/types/Consts';
 	import { QuestionMarkCircle, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import TechAvatar from '../tech/TechAvatar.svelte';
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
+	import type { ShipDesign } from '$lib/types/cs-proto';
 
 	type Props = {
 		design: ShipDesign;
@@ -19,7 +19,7 @@
 	let { design, href, copyhref, onDelete }: Props = $props();
 
 	async function deleteDesign(design: ShipDesign) {
-		if (design.num != undefined && confirm(`Are you sure you want to delete ${design.name}?`)) {
+		if (confirm(`Are you sure you want to delete ${design.name}?`)) {
 			onDelete?.(design);
 		}
 	}
@@ -52,7 +52,7 @@
 		</h2>
 		<div class="flex flex-col sm:flex-row justify-between">
 			<div class="mr-2">
-				<Cost cost={design.spec.cost} />
+				<Cost cost={design.spec?.cost} />
 			</div>
 			<DesignStats spec={design.spec} />
 		</div>
@@ -61,12 +61,12 @@
 				{#if design.originalPlayerNum == None}
 					<div
 						class="tooltip"
-						data-tip={`${design.spec.numInstances ?? 0} remaining of ${
-							design.spec.numBuilt ?? 0
+						data-tip={`${design.spec?.numInstances ?? 0} remaining of ${
+							design.spec?.numBuilt ?? 0
 						} built`}
 					>
 						<span class="btn rounded-lg border border-secondary normal-case">
-							{design.spec.numInstances ?? 0} of {design.spec.numBuilt ?? 0}
+							{design.spec?.numInstances ?? 0} of {design.spec?.numBuilt ?? 0}
 						</span>
 					</div>
 				{/if}

@@ -17,7 +17,7 @@
 	let filteredBattles = $derived(
 		$universe
 			.getBattles($settings.sortBattlesKey, $settings.sortBattlesDescending, $player)
-			.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? []
+			.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1)
 	);
 
 	const columns: TableColumn<BattleRecordDetails>[] = [

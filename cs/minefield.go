@@ -32,12 +32,11 @@ func (t MinefieldType) CanDetonate() bool {
 }
 
 type Minefield struct {
-	GameDBObject    `tstype:",extends"`
-	MapObject       `tstype:",extends"`
-	MinefieldOrders `tstype:",extends"`
-	MinefieldType   MinefieldType `json:"minefieldType"`
-	NumMines        int           `json:"numMines"`
-	Spec            MinefieldSpec `json:"spec"`
+	GameDBObject
+	MapObject
+	MinefieldOrders
+	MinefieldType MinefieldType `json:"minefieldType"`
+	NumMines      int           `json:"numMines"`
 }
 
 type MinefieldOrders struct {
@@ -73,11 +72,11 @@ func (mf *Minefield) Radius() float64 {
 	return math.Sqrt(float64(mf.NumMines))
 }
 
-func computeMinefieldSpec(rules *Rules, player *Player, minefield *Minefield, numPlanets int) MinefieldSpec {
+func ComputeMinefieldSpec(rules *Rules, player *Player, minefield *Minefield, numPlanets int) MinefieldSpec {
 	spec := MinefieldSpec{}
 	spec.Radius = minefield.Radius()
 	spec.DecayRate = minefield.getDecayRate(rules, player, numPlanets)
-	spec.CanDetonate = minefield.MinefieldType.CanDetonate()
+	spec.CanDetonate = player.Race.Spec.CanDetonateMinefields && minefield.MinefieldType.CanDetonate()
 
 	return spec
 }
@@ -266,7 +265,7 @@ func checkForMinefieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 			// this is not our minefield, and we are going fast, check if we intersect.
 			from := fleet.Position
 			to := (dest.Position.Subtract(fleet.Position).Normalized()).Scale(distance).Add(from)
-			collision := segmentIntersectsCircle(from, to, minefield.Position, minefield.Spec.Radius)
+			collision := segmentIntersectsCircle(from, to, minefield.Position, minefield.Radius())
 			if collision == -1 {
 				// miss! phew, that was close!
 				continue
@@ -276,7 +275,7 @@ func checkForMinefieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 				// figure out what that is in lightYears
 				// if we are travelling 32 light years and 3/4 of it is through the minefield, we need to check
 				// for collision 24 times
-				lightYearsInField := int(min(float64(minefield.Spec.Radius), math.Ceil(float64((1-collision)*distance))))
+				lightYearsInField := int(min(float64(minefield.Radius()), math.Ceil(float64((1-collision)*distance))))
 				lightYearsBeforeField := collision * distance
 
 				// Each type of minefield has a chance to hit based on how fast

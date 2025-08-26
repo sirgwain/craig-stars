@@ -1,274 +1,125 @@
-import type { HabType, LRT, PRT, Race } from './cs';
 import {
-	AR,
-	ARM,
-	BET,
-	CA,
-	CE,
-	GR,
-	Grav,
-	HE,
-	IFE,
-	IS,
-	ISB,
-	IT,
-	JoaT,
-	LRTNone,
-	LSP,
-	MA,
-	NAS,
-	NRSE,
-	OBRM,
-	PP,
-	QueueItemTypeAutoDefenses,
-	QueueItemTypeAutoFactories,
-	QueueItemTypeAutoMaxTerraform,
-	QueueItemTypeAutoMineralAlchemy,
-	QueueItemTypeAutoMineralPacket,
-	QueueItemTypeAutoMines,
-	QueueItemTypeAutoMinTerraform,
-	QueueItemTypeBoraniumMineralPacket,
-	QueueItemTypeDefenses,
-	QueueItemTypeFactory,
-	QueueItemTypeGenesisDevice,
-	QueueItemTypeGermaniumMineralPacket,
-	QueueItemTypeIroniumMineralPacket,
-	QueueItemTypeMine,
-	QueueItemTypeMineralAlchemy,
-	QueueItemTypeMixedMineralPacket,
-	QueueItemTypePlanetaryScanner,
-	QueueItemTypeTerraformEnvironment,
-	Rad,
-	ResearchCostStandard,
-	RS,
-	SD,
-	SpendLeftoverPointsOnSurfaceMinerals,
-	SS,
-	Temp,
-	TT,
-	UR,
-	WM,
-	type Hab
-} from './cs';
+	Prt,
+	RaceSchema,
+	ResearchCostLevel,
+	SpendLeftoverPointsOn,
+	type Race
+} from '$lib/types/cs-proto';
+import { create } from '@bufbuild/protobuf';
+import { Grav, Rad, Temp, type HabType } from './Hab';
+
+export type LRT = number;
+/**
+ * No LRT; only used for tech requirements
+ */
+export const LRTNone = 0;
+/**
+ * Improved Fuel Efficiency
+ */
+export const IFE: LRT = 1 << (1 - 1);
+/**
+ * Total Terraforming
+ */
+export const TT: LRT = 1 << (2 - 1);
+/**
+ * Advanced Remote Mining
+ */
+export const ARM: LRT = 1 << (3 - 1);
+/**
+ * Improved Starbases
+ */
+export const ISB: LRT = 1 << (4 - 1);
+/**
+ * Generalized Research
+ */
+export const GR: LRT = 1 << (5 - 1);
+/**
+ * Ultimate Recycling
+ */
+export const UR: LRT = 1 << (6 - 1);
+/**
+ * No Ramscoop Engines
+ */
+export const NRSE: LRT = 1 << (7 - 1);
+/**
+ * Only Basic Remote Mining
+ */
+export const OBRM: LRT = 1 << (8 - 1);
+/**
+ * No Advanced Scanners
+ */
+export const NAS: LRT = 1 << (9 - 1);
+/**
+ * Low Starting Population
+ */
+export const LSP: LRT = 1 << (10 - 1);
+/**
+ * Bleeding Edge Technology
+ */
+export const BET: LRT = 1 << (11 - 1);
+/**
+ * Regenerating Shields
+ */
+export const RS: LRT = 1 << (12 - 1);
+/**
+ * Mineral Alchemy
+ */
+export const MA: LRT = 1 << (13 - 1);
+/**
+ * Cheap Engines
+ */
+export const CE: LRT = 1 << (14 - 1);
 
 export const lrts = [IFE, TT, ARM, ISB, GR, UR, NRSE, OBRM, NAS, LSP, BET, RS, MA, CE] as const;
 
-export const humanoid = (): Race => ({
-	name: 'Humanoid',
-	pluralName: 'Humanoids',
-	spendLeftoverPointsOn: SpendLeftoverPointsOnSurfaceMinerals,
-	prt: JoaT,
-	lrts: LRTNone,
-	habLow: { grav: 15, temp: 15, rad: 15 },
-	habHigh: { grav: 85, temp: 85, rad: 85 },
-	growthRate: 15,
-	popEfficiency: 10,
-	factoryOutput: 10,
-	factoryCost: 10,
-	numFactories: 10,
-	mineOutput: 10,
-	mineCost: 5,
-	numMines: 10,
-	researchCost: {
-		energy: ResearchCostStandard,
-		weapons: ResearchCostStandard,
-		propulsion: ResearchCostStandard,
-		construction: ResearchCostStandard,
-		electronics: ResearchCostStandard,
-		biotechnology: ResearchCostStandard
-	},
-	spec: {
-		newTechCostFactor: 1,
-		miniaturizationMax: 0.75,
-		miniaturizationPerLevel: 0.04,
-		scanRangeFactor: 1,
-		builtInScanner: { normalMulti: {}, penMulti: {} },
-		habCenter: {
-			grav: 50,
-			temp: 50,
-			rad: 50
-		},
-		costs: {
-			[QueueItemTypeAutoDefenses]: {
-				ironium: 5,
-				boranium: 5,
-				germanium: 5,
-				resources: 15
-			},
-			[QueueItemTypeAutoFactories]: {
-				germanium: 4,
-				resources: 10
-			},
-			[QueueItemTypeAutoMaxTerraform]: {
-				resources: 100
-			},
-			[QueueItemTypeAutoMinTerraform]: {
-				resources: 100
-			},
-			[QueueItemTypeAutoMineralAlchemy]: {
-				resources: 100
-			},
-			[QueueItemTypeAutoMineralPacket]: {
-				ironium: 40,
-				boranium: 40,
-				germanium: 40,
-				resources: 10
-			},
-			[QueueItemTypeAutoMines]: {
-				resources: 5
-			},
-			[QueueItemTypeBoraniumMineralPacket]: {
-				boranium: 100,
-				resources: 10
-			},
-			[QueueItemTypeDefenses]: {
-				ironium: 5,
-				boranium: 5,
-				germanium: 5,
-				resources: 15
-			},
-			[QueueItemTypeFactory]: {
-				germanium: 4,
-				resources: 10
-			},
-			[QueueItemTypeGermaniumMineralPacket]: {
-				germanium: 100,
-				resources: 10
-			},
-			[QueueItemTypeIroniumMineralPacket]: {
-				ironium: 100,
-				resources: 10
-			},
-			[QueueItemTypeMine]: {
-				resources: 5
-			},
-			[QueueItemTypeMineralAlchemy]: {
-				resources: 100
-			},
-			[QueueItemTypeMixedMineralPacket]: {
-				ironium: 40,
-				boranium: 40,
-				germanium: 40,
-				resources: 10
-			},
-			[QueueItemTypePlanetaryScanner]: {
-				ironium: 10,
-				boranium: 10,
-				germanium: 70,
-				resources: 100
-			},
-			[QueueItemTypeGenesisDevice]: {
-				ironium: 0,
-				boranium: 0,
-				germanium: 0,
-				resources: 5000
-			},
-			[QueueItemTypeTerraformEnvironment]: {
-				resources: 100
-			}
-		},
-		startingTechLevels: {
-			energy: 3,
-			weapons: 3,
-			propulsion: 3,
-			construction: 3,
-			electronics: 3,
-			biotechnology: 3
-		},
-		startingPlanets: [
-			{
-				population: 25000,
-				starbaseDesignName: 'Starbase',
-				starbaseHull: 'Space Station',
-				startingFleets: [
-					{
-						name: 'Long Range Scout',
-						hullName: 'Scout',
-						purpose: 'Scout'
-					},
-					{
-						name: 'Santa Maria',
-						hullName: 'Colony Ship',
-						purpose: 'Colonizer'
-					},
-					{
-						name: 'Teamster',
-						hullName: 'Medium Freighter',
-						purpose: 'Freighter'
-					},
-					{
-						name: 'Cotton Picker',
-						hullName: 'Mini-Miner',
-						purpose: 'Miner'
-					},
-					{
-						name: 'Armed Probe',
-						hullName: 'Scout',
-						hullSetNumber: 1,
-						purpose: 'FighterScout'
-					},
-					{
-						name: 'Stalwart Defender',
-						hullName: 'Destroyer',
-						purpose: 'Fighter'
-					}
-				]
-			}
-		],
-		techCostOffset: {},
-		mineralsPerSingleMineralPacket: 100,
-		mineralsPerMixedMineralPacket: 40,
-		packetResourceCost: 10,
-		packetMineralCostFactor: 1,
-		packetReceiverFactor: 1,
-		packetDecayFactor: 1,
-		packetPermaTerraformSizeUnit: 100,
-		shipsVanishInVoid: true,
-		techsCostExtraLevel: 4,
-		growthFactor: 1,
-		maxPopulationOffset: 0.2,
-		stealsResearch: {},
-		minefieldMinDecayFactor: 1,
-		minefieldBaseDecayRate: 0.02,
-		minefieldPlanetDecayRate: 0.04,
-		minefieldMaxDecayRate: 0.5,
-		minefieldDetonateDecayRate: 0.25,
-		invasionAttackBonus: 1.1,
-		invasionDefendBonus: 1,
-		repairFactor: 1,
-		starbaseRepairFactor: 1,
-		innateScannerFactor: 1,
-		canBuildDefenses: true,
-		startingPopulationFactor: 1,
-		starbaseCostFactor: 1,
-		researchFactor: 1,
-		armorStrengthFactor: 1,
-		shieldStrengthFactor: 1,
-		engineReliableSpeed: 10
-	}
-});
+export const humanoid = (): Race =>
+	create(RaceSchema, {
+		name: 'Humanoid',
+		pluralName: 'Humanoids',
+		spendLeftoverPointsOn: SpendLeftoverPointsOn.SURFACE_MINERALS,
+		prt: Prt.JOAT,
+		lrts: LRTNone,
+		habLow: { grav: 15, temp: 15, rad: 15 },
+		habHigh: { grav: 85, temp: 85, rad: 85 },
+		growthRate: 15,
+		popEfficiency: 10,
+		factoryOutput: 10,
+		factoryCost: 10,
+		numFactories: 10,
+		mineOutput: 10,
+		mineCost: 5,
+		numMines: 10,
+		researchCost: {
+			energy: ResearchCostLevel.STANDARD,
+			weapons: ResearchCostLevel.STANDARD,
+			propulsion: ResearchCostLevel.STANDARD,
+			construction: ResearchCostLevel.STANDARD,
+			electronics: ResearchCostLevel.STANDARD,
+			biotechnology: ResearchCostLevel.STANDARD
+		}
+	});
 
-export const getLabelForPRT = (prt: PRT): string => {
+export const getLabelForPRT = (prt: Prt): string => {
 	switch (prt) {
-		case HE:
+		case Prt.HE:
 			return 'Hyper Expansion';
-		case SS:
+		case Prt.SS:
 			return 'Super Stealth';
-		case WM:
+		case Prt.WM:
 			return 'Warmonger';
-		case CA:
+		case Prt.CA:
 			return 'Claim Adjuster';
-		case IS:
+		case Prt.IS:
 			return 'Inner Strength';
-		case SD:
+		case Prt.SD:
 			return 'Space Demolition';
-		case PP:
+		case Prt.PP:
 			return 'Packet Physics';
-		case IT:
+		case Prt.IT:
 			return 'Interstellar Traveler';
-		case AR:
+		case Prt.AR:
 			return 'Alternate Reality';
-		case JoaT:
+		case Prt.JOAT:
 			return 'Jack of All Trades';
 		default:
 			return toString();
@@ -310,96 +161,11 @@ export const getLabelForLRT = (lrt: LRT): string => {
 	}
 };
 
-// Get the habitability of this race for a given planet's hab value
-export function getPlanetHabitability(race: Race, hab: Hab): number {
-	let planetValuePoints = 0;
-	let redValue = 0;
-	let ideality = 10000;
-
-	const habValues: [number, number, number] = [hab.grav ?? 0, hab.temp ?? 0, hab.rad ?? 0];
-	const habCenters: [number, number, number] = [
-		race.spec?.habCenter?.grav ?? 0,
-		race.spec?.habCenter?.temp ?? 0,
-		race.spec?.habCenter?.rad ?? 0
-	];
-	const habLows: [number, number, number] = [
-		race.habLow.grav ?? 0,
-		race.habLow.temp ?? 0,
-		race.habLow.rad ?? 0
-	];
-	const habHighs: [number, number, number] = [
-		race.habHigh.grav ?? 0,
-		race.habHigh.temp ?? 0,
-		race.habHigh.rad ?? 0
-	];
-	const immune: [boolean, boolean, boolean] = [
-		race.immuneGrav ?? false,
-		race.immuneTemp ?? false,
-		race.immuneRad ?? false
-	];
-
-	let fromIdeal: number, tmp: number, habRadius: number, poorPlanetMod: number, habRed: number;
-
-	for (let i = 0; i < habValues.length; i++) {
-		const habValue: number = habValues[i];
-		const habLower: number = habLows[i];
-		const habUpper: number = habHighs[i];
-		const habCenter: number = habCenters[i];
-
-		if (immune[i]) {
-			planetValuePoints += 10000;
-		} else {
-			if (habLower <= habValue && habUpper >= habValue) {
-				// green planet
-				fromIdeal = Math.abs(habValue - habCenter) * 100;
-				if (habCenter > habValue) {
-					habRadius = habCenter - habLower;
-					fromIdeal /= habRadius;
-					tmp = habCenter - habValue;
-				} else {
-					habRadius = habUpper - habCenter;
-					fromIdeal /= habRadius;
-					tmp = habValue - habCenter;
-				}
-				poorPlanetMod = tmp * 2 - habRadius;
-				fromIdeal = 100 - fromIdeal;
-				planetValuePoints += fromIdeal * fromIdeal;
-				if (poorPlanetMod > 0) {
-					ideality *= habRadius * 2 - poorPlanetMod;
-					ideality /= habRadius * 2;
-				}
-			} else {
-				// red planet
-				if (habLower <= habValue) {
-					habRed = habValue - habUpper;
-				} else {
-					habRed = habLower - habValue;
-				}
-
-				if (habRed > 15) {
-					habRed = 15;
-				}
-
-				redValue += habRed;
-			}
-		}
-	}
-
-	if (redValue !== 0) {
-		return -redValue;
-	}
-
-	planetValuePoints = Math.sqrt(planetValuePoints / 3.0) + 0.9;
-	planetValuePoints = (planetValuePoints * ideality) / 10000;
-
-	return Math.floor(planetValuePoints);
-}
-
 export function getHabWidth(race: Race) {
 	return {
-		grav: (race.habHigh.grav ?? 0) - (race.habLow.grav ?? 0),
-		temp: (race.habHigh.temp ?? 0) - (race.habLow.temp ?? 0),
-		rad: (race.habHigh.rad ?? 0) - (race.habLow.rad ?? 0)
+		grav: (race.habHigh?.grav ?? 0) - (race.habLow?.grav ?? 0),
+		temp: (race.habHigh?.temp ?? 0) - (race.habLow?.temp ?? 0),
+		rad: (race.habHigh?.rad ?? 0) - (race.habLow?.rad ?? 0)
 	};
 }
 

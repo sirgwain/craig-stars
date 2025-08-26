@@ -30,7 +30,6 @@ var c Converter
 // goverter:extend GameFleetIntelsToFleetIntels
 // goverter:extend GameFleetSpecToFleetSpec
 // goverter:extend GameMinefieldIntelsToMinefieldIntels
-// goverter:extend GameMinefieldSpecToMinefieldSpec
 // goverter:extend GameMineralPacketIntelsToMineralPacketIntels
 // goverter:extend GameMysteryTraderIntelsToMysteryTraderIntels
 // goverter:extend GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded
@@ -45,7 +44,6 @@ var c Converter
 // goverter:extend GamePlayerStatsToPlayerStats
 // goverter:extend GameProductionPlansToProductionPlans
 // goverter:extend GameProductionQueueItemsToProductionQueueItems
-// goverter:extend GameRaceSpecToRaceSpec
 // goverter:extend GameRaceToPlayerRace
 // goverter:extend GameSalvageIntelsToSalvageIntels
 // goverter:extend GameScoreIntelsToScoreIntels
@@ -62,7 +60,6 @@ var c Converter
 // goverter:extend IntToInt64
 // goverter:extend IntToNullInt64
 // goverter:extend MinefieldIntelsToGameMinefieldIntels
-// goverter:extend MinefieldSpecToGameMinefieldSpec
 // goverter:extend MineralPacketIntelsToGameMineralPacketIntels
 // goverter:extend MysteryTraderIntelsToGameMysteryTraderIntels
 // goverter:extend MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded
@@ -83,7 +80,6 @@ var c Converter
 // goverter:extend PlayerStatsToGamePlayerStats
 // goverter:extend ProductionPlansToGameProductionPlans
 // goverter:extend ProductionQueueItemsToGameProductionQueueItems
-// goverter:extend RaceSpecToGameRaceSpec
 // goverter:extend SalvageIntelsToGameSalvageIntels
 // goverter:extend ScoreIntelsToGameScoreIntels
 // goverter:extend ShipDesignIntelsToGameShipDesignIntels
@@ -119,6 +115,7 @@ type Converter interface {
 	// goverter:map . ResearchCost | ExtendResearchCost
 	// goverter:map . HabLow | ExtendHabLow
 	// goverter:map . HabHigh | ExtendHabHigh
+	// goverter:ignore Spec
 	ConvertRace(source generated.Race) cs.Race
 
 	ConvertRaces(source []generated.Race) []cs.Race
@@ -238,17 +235,7 @@ type Converter interface {
 	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
 	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords BattleRecords
-	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
-	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
-	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
-	// goverter:map PlayerIntels.FleetIntels FleetIntels
-	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
-	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MinefieldIntels MinefieldIntels
-	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
-	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
-	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
+	// goverter:autoMap Intels
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayer(source *cs.Player) generated.Player
 
@@ -266,17 +253,7 @@ type Converter interface {
 	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
 	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords BattleRecords
-	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
-	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
-	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
-	// goverter:map PlayerIntels.FleetIntels FleetIntels
-	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
-	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MinefieldIntels MinefieldIntels
-	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
-	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
-	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
+	// goverter:autoMap Intels
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayerToCreateParams(source *cs.Player) generated.CreatePlayerParams
 
@@ -294,50 +271,41 @@ type Converter interface {
 	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
 	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords BattleRecords
-	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
-	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
-	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
-	// goverter:map PlayerIntels.FleetIntels FleetIntels
-	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
-	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MinefieldIntels MinefieldIntels
-	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
-	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
-	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
+	// goverter:autoMap Intels
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayerToUpdateParams(source *cs.Player) generated.UpdatePlayerParams
 
-	// goverter:map . GameDBObject
+	// goverter:map . GameDBObject | ExtendPlayerGameDBObject
 	// goverter:map . TechLevels | ExtendTechLevels
 	// goverter:map . TechLevelsSpent | ExtendTechLevelsSpent
 	// goverter:map . PlayerOrders
-	// goverter:map . PlayerIntels
+	// goverter:map . Intels
 	// goverter:map . PlayerPlans
 	// goverter:ignore Designs
+	// goverter:ignore Spec
+	// goverter:ignore TechsJustGained
 	ConvertPlayer(source generated.Player) cs.Player
 
-	// goverter:map . GameDBObject
+	// goverter:map . GameDBObject | ExtendLightPlayerGameDBObject
 	// goverter:map . TechLevels | ExtendTechLevelsLight
 	// goverter:map . TechLevelsSpent | ExtendTechLevelsSpentLight
 	// goverter:map . PlayerOrders
 	// goverter:map . PlayerPlans
-	// goverter:ignore Messages
-	// goverter:ignore PlayerIntels
+	// goverter:ignore Intels
 	// goverter:ignore Designs
+	// goverter:ignore Spec
+	// goverter:ignore TechsJustGained
 	ConvertLightPlayer(source generated.GetLightPlayerForGameRow) cs.Player
 
-	// goverter:map . GameDBObject
+	// goverter:map . GameDBObject | ExtendPlayerStatusGameDBObject
 	// goverter:ignoreMissing
 	ConvertPlayerStatus(source generated.GetPlayersStatusForGameRow) cs.Player
 	ConvertPlayerStatuses(source []generated.GetPlayersStatusForGameRow) []*cs.Player
 
-	ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.PlayerStatus
-	ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.PlayerStatus
-	ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.PlayerStatus
-
+	ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.GamePlayer
+	ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.GamePlayer
+	ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.GamePlayer
 	ConvertGetPlayerForGameRowToShipDesign(source generated.GetPlayerForGameRow) generated.ShipDesign
-	ConvertGetPlayerForGameAndUserRowToShipDesign(source generated.GetPlayerForGameAndUserRow) generated.ShipDesign
 	ConvertGetPlayersWithDesignsForGameRowToShipDesign(source generated.GetPlayersWithDesignsForGameRow) generated.ShipDesign
 
 	ConvertPlayers(source []generated.Player) []*cs.Player
@@ -690,18 +658,6 @@ func IntToInt64(source int) int64 {
 	return int64(source)
 }
 
-func RaceSpecToGameRaceSpec(source *generated.RaceSpec) cs.RaceSpec {
-	return (cs.RaceSpec)(*source)
-}
-
-func GameRaceSpecToRaceSpec(source cs.RaceSpec) *generated.RaceSpec {
-	return (*generated.RaceSpec)(&source)
-}
-
-func RaceGenSpecToGameRaceSpec(source *generated.RaceSpec) cs.RaceSpec {
-	return (cs.RaceSpec)(*source)
-}
-
 func TagsToGameTags(source *generated.Tags) cs.Tags {
 	if source == nil {
 		return cs.Tags{}
@@ -847,99 +803,99 @@ func GameScoreIntelsToScoreIntels(source []cs.ScoreIntel) *generated.ScoreIntels
 	return (*generated.ScoreIntels)(&source)
 }
 
-func PlanetIntelsToGamePlanetIntels(source *generated.PlanetIntels) []cs.PlanetIntel {
+func PlanetIntelsToGamePlanetIntels(source *generated.PlanetIntels) []*cs.Planet {
 	// return an empty slice for nil
 	if source == nil {
-		return []cs.PlanetIntel{}
+		return []*cs.Planet{}
 	}
-	return ([]cs.PlanetIntel)(*source)
+	return ([]*cs.Planet)(*source)
 }
 
-func GamePlanetIntelsToPlanetIntels(source []cs.PlanetIntel) *generated.PlanetIntels {
+func GamePlanetIntelsToPlanetIntels(source []*cs.Planet) *generated.PlanetIntels {
 	return (*generated.PlanetIntels)(&source)
 }
 
-func FleetIntelsToGameFleetIntels(source *generated.FleetIntels) []cs.FleetIntel {
+func FleetIntelsToGameFleetIntels(source *generated.FleetIntels) []*cs.Fleet {
 	// return an empty slice for nil
 	if source == nil {
-		return []cs.FleetIntel{}
+		return []*cs.Fleet{}
 	}
-	return ([]cs.FleetIntel)(*source)
+	return ([]*cs.Fleet)(*source)
 }
 
-func GameFleetIntelsToFleetIntels(source []cs.FleetIntel) *generated.FleetIntels {
+func GameFleetIntelsToFleetIntels(source []*cs.Fleet) *generated.FleetIntels {
 	return (*generated.FleetIntels)(&source)
 }
 
-func ShipDesignIntelsToGameShipDesignIntels(source *generated.ShipDesignIntels) []cs.ShipDesignIntel {
+func ShipDesignIntelsToGameShipDesignIntels(source *generated.ShipDesignIntels) []*cs.ShipDesign {
 	// return an empty slice for nil
 	if source == nil {
-		return []cs.ShipDesignIntel{}
+		return []*cs.ShipDesign{}
 	}
-	return ([]cs.ShipDesignIntel)(*source)
+	return ([]*cs.ShipDesign)(*source)
 }
 
-func GameShipDesignIntelsToShipDesignIntels(source []cs.ShipDesignIntel) *generated.ShipDesignIntels {
+func GameShipDesignIntelsToShipDesignIntels(source []*cs.ShipDesign) *generated.ShipDesignIntels {
 	return (*generated.ShipDesignIntels)(&source)
 }
 
-func MineralPacketIntelsToGameMineralPacketIntels(source *generated.MineralPacketIntels) []cs.MineralPacketIntel {
+func MineralPacketIntelsToGameMineralPacketIntels(source *generated.MineralPacketIntels) []*cs.MineralPacket {
 	// return an empty slice for nil
 	if source == nil {
-		return []cs.MineralPacketIntel{}
+		return []*cs.MineralPacket{}
 	}
-	return ([]cs.MineralPacketIntel)(*source)
+	return ([]*cs.MineralPacket)(*source)
 }
 
-func GameMineralPacketIntelsToMineralPacketIntels(source []cs.MineralPacketIntel) *generated.MineralPacketIntels {
+func GameMineralPacketIntelsToMineralPacketIntels(source []*cs.MineralPacket) *generated.MineralPacketIntels {
 	return (*generated.MineralPacketIntels)(&source)
 }
 
-func SalvageIntelsToGameSalvageIntels(source *generated.SalvageIntels) []cs.SalvageIntel {
+func SalvageIntelsToGameSalvageIntels(source *generated.SalvageIntels) []*cs.Salvage {
 	// return an empty slice for nil
 	if source == nil {
-		return []cs.SalvageIntel{}
+		return []*cs.Salvage{}
 	}
-	return ([]cs.SalvageIntel)(*source)
+	return ([]*cs.Salvage)(*source)
 }
 
-func GameSalvageIntelsToSalvageIntels(source []cs.SalvageIntel) *generated.SalvageIntels {
+func GameSalvageIntelsToSalvageIntels(source []*cs.Salvage) *generated.SalvageIntels {
 	return (*generated.SalvageIntels)(&source)
 }
 
-func MinefieldIntelsToGameMinefieldIntels(source *generated.MinefieldIntels) []cs.MinefieldIntel {
+func MinefieldIntelsToGameMinefieldIntels(source *generated.MinefieldIntels) []*cs.Minefield {
 	// return an empty slice for nil
 	if source == nil {
-		return []cs.MinefieldIntel{}
+		return []*cs.Minefield{}
 	}
-	return ([]cs.MinefieldIntel)(*source)
+	return ([]*cs.Minefield)(*source)
 }
 
-func GameMinefieldIntelsToMinefieldIntels(source []cs.MinefieldIntel) *generated.MinefieldIntels {
+func GameMinefieldIntelsToMinefieldIntels(source []*cs.Minefield) *generated.MinefieldIntels {
 	return (*generated.MinefieldIntels)(&source)
 }
 
-func WormholeIntelsToGameWormholeIntels(source *generated.WormholeIntels) []cs.WormholeIntel {
+func WormholeIntelsToGameWormholeIntels(source *generated.WormholeIntels) []*cs.Wormhole {
 	// return an empty slice for nil
 	if source == nil {
-		return []cs.WormholeIntel{}
+		return []*cs.Wormhole{}
 	}
-	return ([]cs.WormholeIntel)(*source)
+	return ([]*cs.Wormhole)(*source)
 }
 
-func GameWormholeIntelsToWormholeIntels(source []cs.WormholeIntel) *generated.WormholeIntels {
+func GameWormholeIntelsToWormholeIntels(source []*cs.Wormhole) *generated.WormholeIntels {
 	return (*generated.WormholeIntels)(&source)
 }
 
-func MysteryTraderIntelsToGameMysteryTraderIntels(source *generated.MysteryTraderIntels) []cs.MysteryTraderIntel {
+func MysteryTraderIntelsToGameMysteryTraderIntels(source *generated.MysteryTraderIntels) []*cs.MysteryTrader {
 	// return an empty slice for nil
 	if source == nil {
-		return []cs.MysteryTraderIntel{}
+		return []*cs.MysteryTrader{}
 	}
-	return ([]cs.MysteryTraderIntel)(*source)
+	return ([]*cs.MysteryTrader)(*source)
 }
 
-func GameMysteryTraderIntelsToMysteryTraderIntels(source []cs.MysteryTraderIntel) *generated.MysteryTraderIntels {
+func GameMysteryTraderIntelsToMysteryTraderIntels(source []*cs.MysteryTrader) *generated.MysteryTraderIntels {
 	return (*generated.MysteryTraderIntels)(&source)
 }
 
@@ -1017,14 +973,6 @@ func WaypointsToGameWaypoints(source *generated.Waypoints) []cs.Waypoint {
 
 func GameWaypointsToWaypoints(source []cs.Waypoint) *generated.Waypoints {
 	return (*generated.Waypoints)(&source)
-}
-
-func MinefieldSpecToGameMinefieldSpec(source *generated.MinefieldSpec) cs.MinefieldSpec {
-	return (cs.MinefieldSpec)(*source)
-}
-
-func GameMinefieldSpecToMinefieldSpec(source cs.MinefieldSpec) *generated.MinefieldSpec {
-	return (*generated.MinefieldSpec)(&source)
 }
 
 func ShipDesignSpecToGameShipDesignSpec(source *generated.ShipDesignSpec) cs.ShipDesignSpec {
@@ -1139,6 +1087,33 @@ func ExtendTechLevelsSpent(source generated.Player) cs.TechLevel {
 		Construction:  int(source.TechLevelsSpentConstruction),
 		Electronics:   int(source.TechLevelsSpentElectronics),
 		Biotechnology: int(source.TechLevelsSpentBiotechnology),
+	}
+}
+
+func ExtendPlayerGameDBObject(source generated.Player) cs.GameDBObject {
+	return cs.GameDBObject{
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+	}
+}
+
+func ExtendLightPlayerGameDBObject(source generated.GetLightPlayerForGameRow) cs.GameDBObject {
+	return cs.GameDBObject{
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+	}
+}
+
+func ExtendPlayerStatusGameDBObject(source generated.GetPlayersStatusForGameRow) cs.GameDBObject {
+	return cs.GameDBObject{
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
 	}
 }
 

@@ -1,0 +1,36 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  args_bin = []
+  cmd = "mage generate"
+  delay = 1000
+  exclude_dir = ["magefiles", "dist", "vendor", "tmp", "data"]
+  exclude_file = []
+  exclude_regex = ["_test.go", ".generated.go", ".sql.go", ".pb.go", ".connect.go", ".wasm.go"]
+  exclude_unchanged = false
+  follow_symlink = false
+  full_bin = "true"
+  include_file = ["db/converter.go"]
+  include_dir = ["proto", "db/queries", "db/schema/memory"]
+  include_ext = ["sql", "proto", "yaml", "go"]
+  kill_delay = ".5s"
+  log = "tmp/build-errors.log"
+  send_interrupt = true
+  stop_on_error = true
+
+[color]
+  app = ""
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  time = false
+
+[misc]
+  clean_on_exit = false
+
+[screen]
+  clear_on_rebuild = false

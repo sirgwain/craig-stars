@@ -1,5 +1,5 @@
+import type { PlayerMessageType } from './cs-proto';
 import type { FilterOptions } from './Filter';
-import type { PlayerMessageType } from './cs';
 
 export enum PlanetViewState {
 	// I do enjoy the classics
@@ -48,7 +48,7 @@ export class PlayerSettings implements FilterOptions {
 	filterEnemyShipClasses = [];
 
 	constructor(
-		public gameId = 0,
+		public gameId = '0',
 		public playerNum = 0
 	) {}
 
@@ -56,7 +56,7 @@ export class PlayerSettings implements FilterOptions {
 		return PlayerSettings.key(this.gameId, this.playerNum);
 	}
 
-	static key(gameId: number, playerNum: number) {
+	static key(gameId: string | bigint, playerNum: number) {
 		return `playerSettings-${gameId}-${playerNum}`;
 	}
 

@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/traits.proto";
+import "craig_stars/v1/minefield.proto";
+import "craig_stars/v1/wormhole.proto";
+import "google/protobuf/timestamp.proto";
+
+// ===== Enums =====
+
+enum CometSize {
+  COMET_SIZE_UNSPECIFIED = 0;
+  COMET_SIZE_SMALL = 1;
+  COMET_SIZE_MEDIUM = 2;
+  COMET_SIZE_LARGE = 3;
+  COMET_SIZE_HUGE = 4;
+}
+
+enum RandomEvent {
+  RANDOM_EVENT_UNSPECIFIED = 0;
+  RANDOM_EVENT_COMET = 1;
+  RANDOM_EVENT_MINERAL_DEPOSIT = 2;
+  RANDOM_EVENT_PLANETARY_CHANGE = 3;
+  RANDOM_EVENT_ANCIENT_ARTIFACT = 4;
+}
+
+enum RepairRate {
+  REPAIR_RATE_UNSPECIFIED = 0;
+  REPAIR_RATE_MOVING = 1;
+  REPAIR_RATE_STOPPED = 2;
+  REPAIR_RATE_ORBITING = 3;
+  REPAIR_RATE_ORBITING_OWN_PLANET = 4;
+  REPAIR_RATE_STARBASE = 5;
+}
+
+// ===== Utility Messages =====
+
+message JammerCap {
+  double ship = 1;
+  double starbase = 2;
+}
+
+message CometStats {
+  int32 all_minerals = 1;
+  int32 all_random_minerals = 2;
+  int32 bonus_minerals = 3;
+  int32 bonus_random_minerals = 4;
+  int32 bonus_min_concentration = 5;
+  int32 bonus_random_concentration = 6;
+  int32 bonus_affects_minerals = 7;
+  int32 min_terraform = 8;
+  int32 random_terraform = 9;
+  int32 affects_habs = 10;
+  double pop_killed_percent = 11;
+}
+
+// ===== Subrules =====
+
+message CostRules {
+  Cost defense_cost = 1;
+  int32 factory_cost_germanium = 2;
+  int32 mineral_alchemy_cost = 3;
+  Cost planetary_scanner_cost = 4;
+  double starbase_component_cost_reduction = 5;
+  double starbase_hull_refund_factor = 6;
+  Cost terraform_cost = 7;
+  repeated int32 tech_base_cost = 8;
+}
+
+message BattleRules {
+  double beam_range_dropoff = 1;
+  double beam_bonus_cap = 2;
+  JammerCap jammer_cap = 3;
+  JammerCap jammer_multi = 4;
+  int32 movement_min = 5;
+  int32 movement_max = 6;
+  int32 moves_to_run_away = 7;
+  int32 num_battle_rounds = 8;
+  double torpedo_splash_damage = 9;
+}
+
+message UniverseGenerationRules {
+  Hab hab_dropoff_range = 1;
+  int32 high_rad_mineral_concentration_bonus_threshold = 2;
+  int32 limit_mineral_concentration = 3;
+  int32 max_extra_world_distance = 4;
+  int32 max_hab = 5;
+  int32 max_mineral_concentration = 6;
+  int32 max_starting_mineral_concentration = 7;
+  int32 max_starting_mineral_surface = 8;
+  int32 min_extra_planet_mineral_concentration = 9;
+  int32 min_extra_world_distance = 10;
+  int32 min_hab = 11;
+  int32 min_homeworld_mineral_concentration = 12;
+  int32 min_mineral_concentration = 13;
+  int32 min_starting_mineral_concentration = 14;
+  int32 min_starting_mineral_surface = 15;
+  map<int32, int32> race_leftover_points_per_item = 16;
+  int32 starting_year = 17;
+  int32 wormhole_min_planet_distance = 18;
+}
+
+// ===== Mystery Trader =====
+
+message MysteryTraderTechBoonMineralsReward {
+  int32 minerals_given = 1;
+  int32 reward = 2;
+}
+
+message MysteryTraderTechBoonRules {
+  int32 tech_levels = 1;
+  repeated MysteryTraderTechBoonMineralsReward rewards = 2;
+}
+
+message MysteryTraderRules {
+  repeated int32 chance_spawn = 1;
+  int32 chance_max_tech_gets_part = 2;
+  int32 chance_course_change = 3;
+  int32 chance_speed_up_only = 4;
+  int32 chance_again = 5;
+  bool even_year_only = 6;
+  Cost genesis_device_cost = 7;
+  int32 max_mystery_traders = 8;
+  int32 max_warp = 9;
+  int32 min_warp = 10;
+  int32 min_year = 11;
+  int32 requested_boon = 12;
+  repeated MysteryTraderTechBoonRules tech_boon = 13;
+}
+
+// ===== Rules =====
+
+message Rules {
+  CostRules cost_rules = 1;
+  BattleRules battle_rules = 2;
+  UniverseGenerationRules universe_generation_rules = 3;
+
+  int64 id = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  int64 game_id = 7;
+  double acquirable_part_trade_chance_base = 8;
+  int32 acquirable_part_trade_item_max = 9;
+  map<int32, CometStats> comet_stats_by_size = 10;
+  double fleet_safe_speed_explosion_chance = 11;
+  double invasion_defense_coverage_factor = 12;
+  map<uint32, LRTSpec> lrt_specs = 13; // LRT enum/spec definition needed
+  int32 max_population = 14;
+  int32 min_pop_floor = 15;
+  int32 max_tech_level = 16;
+  int32 minefield_cloak = 17;
+  map<int32, MinefieldStats> minefield_stats_by_type = 18; // MinefieldType enum/spec definition needed
+  int32 mineral_decay_factor = 19;
+  int32 min_hab_floor = 20;
+  MysteryTraderRules mystery_trader_rules = 21;
+  map<int32, double> packet_decay_rate = 22;
+  int32 packet_max_overwarp_speed = 23;
+  int32 packet_min_decay = 24;
+  int32 planet_min_distance = 25;
+  double population_overcrowd_dieoff_rate = 26;
+  double population_overcrowd_dieoff_rate_max = 27;
+  double population_overcrowd_resource_penalty = 28;
+  double population_overcrowd_resource_max = 29;
+  double population_scanner_error = 30;
+  map<int32, PRTSpec> prt_specs = 31; // Prt enum/spec definition needed
+  int32 race_starting_points = 32;
+  int32 radiating_immune = 33;
+  repeated int32 random_artifact_research_bonus_range = 34;
+  int32 random_comet_min_year = 35;
+  int32 random_comet_min_year_player_world = 36;
+  map<int32, double> random_event_chances = 37;
+  repeated int32 random_mineral_deposit_bonus_range = 38;
+  int32 remote_mining_mine_output = 39;
+  map<int32, double> repair_rates = 40;
+  int32 salvage_decay_min = 41;
+  double salvage_decay_rate = 42;
+  double salvage_from_battle_factor = 43;
+  double scrap_colonize_amount = 44;
+  double scrap_mineral_amount = 45;
+  double scrap_resource_amount = 46;
+  int32 show_public_scores_after_years = 47;
+  double smart_defense_coverage_factor = 48;
+  int32 stargate_max_hull_mass_factor = 49;
+  int32 stargate_max_range_factor = 50;
+  double tachyon_cloak_reduction = 51;
+  double tachyon_max_cloak_reduction = 52;
+  int64 techs_id = 53;
+  double tech_trade_chance = 54;
+  double torpedo_splash_damage = 55;
+  int32 wormhole_cloak = 56;
+  map<int32, int32> wormhole_pairs_for_size = 57; // Size enum/spec definition needed
+  map<int32, WormholeStats> wormhole_stats_by_stability = 58; // WormholeStability enum/spec definition needed
+}

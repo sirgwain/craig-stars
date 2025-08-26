@@ -37,6 +37,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.24.x]
+        tinygo-version: [0.39.0]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     needs: tag
@@ -56,6 +57,10 @@ jobs:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
+      - name: Setup tinygo
+        uses: acifani/setup-tinygo@v2
+        with:
+          tinygo-version: ${{ matrix.tinygo-version }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -81,7 +86,7 @@ jobs:
       - name: Tar up the binary for publish
         run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
       - name: Copy wasm_exec into frontend folder for the node build step
-        run: mage copy_wasm_exec
+        run: mage copy_wasm_exec_tinygo
 
       # set the version in package.json and build the frontend
       - run: jq ".version = \"${{ needs.tag.outputs.version }}\"" package.json > package.json.tmp && mv package.json.tmp package.json

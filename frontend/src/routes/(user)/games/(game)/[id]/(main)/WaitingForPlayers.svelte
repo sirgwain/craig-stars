@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { PlayerService } from '$lib/services/PlayerService';
 	import { me } from '$lib/services/Stores';
 	import { onDestroy, onMount } from 'svelte';
 	import GameStatus from '../GameStatus.svelte';
+	import { playerClient } from '$lib/services/connect';
 
 	const {
 		game,
@@ -26,7 +26,7 @@
 	}
 
 	async function onUnsubmitTurn() {
-		await PlayerService.unsubmitTurn($game.id);
+		await playerClient.unsubmitTurn({ gameId: $game.id });
 		$player.submittedTurn = false;
 		// trigger reactivity on the layout so our hotkeys are wired up again
 		// (not super happy with this workaround...)
@@ -41,7 +41,7 @@
 	onDestroy(stopPollingStatus);
 </script>
 
-<GameStatus title="Waiting for players to play" game={$game}>
+<GameStatus title="Waiting for players to play" game={$game.toGameWithPlayers()}>
 	<form>
 		<div class="gap-2 mt-2">
 			{#if $me.id == $game.hostId}

@@ -25,9 +25,9 @@
 		HullSlotTypeSpaceDock,
 		HullSlotTypeWeapon,
 		HullSlotTypeWeaponShield,
-		type HullSlotType,
-		type ShipDesignSlot
-	} from '$lib/types/cs';
+		type HullSlotType
+	} from '$lib/types/Consts';
+	import type { ShipDesignSlot } from '$lib/types/cs-proto';
 	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';
@@ -130,7 +130,7 @@
 		{onclick}
 		onpointerdown={(e) => {
 			if (highlighted && shipDesignSlot?.hullComponent && showTooltips) {
-				onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent));
+				onTechTooltip(e, $techs.getHullComponent(shipDesignSlot.hullComponent));
 			}
 		}}
 		class="w-full h-full"
@@ -141,7 +141,7 @@
 			{#if shipDesignSlot}
 				<div class="grow">&nbsp;</div>
 				<span class="h-[1rem] mt-auto text-center font-bold text-black"
-					>{shipDesignSlot.quantity ?? 0} of {capacity}</span
+					>{shipDesignSlot.quantity} of {capacity}</span
 				>
 			{:else}
 				<div class="grow whitespace-pre-wrap text-center">{typeDescription()}</div>

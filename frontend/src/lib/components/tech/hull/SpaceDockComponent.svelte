@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { UnlimitedSpaceDock } from '$lib/types/cs';
+	import { UnlimitedSpaceDock } from '$lib/types/Consts';
 
 	type Props = {
 		spaceDock: number;

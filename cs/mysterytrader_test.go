@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -187,7 +189,7 @@ func TestMysteryTrader_meet(t *testing.T) {
 			args:   args{&rules, &Game{Year: 2500}, testGalleon(player).withCargo(Cargo{Ironium: 5000})},
 			want: MysteryTraderReward{
 				Type:      MysteryTraderRewardLifeboat,
-				Ship:      MysteryTraderScout,
+				Ship:      &MysteryTraderScout,
 				ShipCount: 2,
 			},
 		},

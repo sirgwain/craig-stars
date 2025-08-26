@@ -1,5 +1,6 @@
 <script lang="ts" module>
 	import { showTooltip } from '$lib/services/Stores';
+	import type { TechHull } from '$lib/types/cs-proto';
 	import TechHullTooltip from './TechHullTooltip.svelte';
 
 	export function onTechHullTooltip(e: PointerEvent | MouseEvent, hull: TechHull | undefined) {
@@ -14,7 +15,6 @@
 </script>
 
 <script lang="ts">
-	import type { TechHull } from '$lib/types/cs';
 	import Hull from '../design/Hull.svelte';
 
 	let { hull }: TechHullTooltipProps = $props();

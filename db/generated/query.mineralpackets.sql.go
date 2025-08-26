@@ -15,6 +15,7 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
+        report_age,
         x,
         y,
         name,
@@ -52,12 +53,14 @@ VALUES
         ?,
         ?,
         ?,
+        ?,
         ?
     )
 `
 
 type CreateMineralPacketParams struct {
 	GameID          int64
+	ReportAge       int64
 	X               float64
 	Y               float64
 	Name            string
@@ -79,6 +82,7 @@ type CreateMineralPacketParams struct {
 func (q *Queries) CreateMineralPacket(ctx context.Context, arg CreateMineralPacketParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, CreateMineralPacket,
 		arg.GameID,
+		arg.ReportAge,
 		arg.X,
 		arg.Y,
 		arg.Name,
@@ -118,7 +122,7 @@ func (q *Queries) DeleteMineralPacket(ctx context.Context, id int64) (int64, err
 
 const GetMineralPacket = `-- name: GetMineralPacket :one
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
     mineral_packets
 WHERE
@@ -134,6 +138,7 @@ func (q *Queries) GetMineralPacket(ctx context.Context, id int64) (MineralPacket
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
+		&i.ReportAge,
 		&i.X,
 		&i.Y,
 		&i.Name,
@@ -156,7 +161,7 @@ func (q *Queries) GetMineralPacket(ctx context.Context, id int64) (MineralPacket
 
 const GetMineralPacketByNum = `-- name: GetMineralPacketByNum :one
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
     mineral_packets
 WHERE
@@ -179,6 +184,7 @@ func (q *Queries) GetMineralPacketByNum(ctx context.Context, arg GetMineralPacke
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
+		&i.ReportAge,
 		&i.X,
 		&i.Y,
 		&i.Name,
@@ -201,7 +207,7 @@ func (q *Queries) GetMineralPacketByNum(ctx context.Context, arg GetMineralPacke
 
 const GetMineralPackets = `-- name: GetMineralPackets :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
     mineral_packets
 `
@@ -220,6 +226,7 @@ func (q *Queries) GetMineralPackets(ctx context.Context) ([]MineralPacket, error
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -252,7 +259,7 @@ func (q *Queries) GetMineralPackets(ctx context.Context) ([]MineralPacket, error
 
 const GetMineralPacketsForGame = `-- name: GetMineralPacketsForGame :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
     mineral_packets
 WHERE
@@ -276,6 +283,7 @@ func (q *Queries) GetMineralPacketsForGame(ctx context.Context, gameID int64) ([
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -308,7 +316,7 @@ func (q *Queries) GetMineralPacketsForGame(ctx context.Context, gameID int64) ([
 
 const GetMineralPacketsForPlayer = `-- name: GetMineralPacketsForPlayer :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
     mineral_packets
 WHERE
@@ -337,6 +345,7 @@ func (q *Queries) GetMineralPacketsForPlayer(ctx context.Context, arg GetMineral
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -372,6 +381,7 @@ UPDATE mineral_packets
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
+    report_age = ?,
     x = ?,
     y = ?,
     name = ?,
@@ -394,6 +404,7 @@ WHERE
 
 type UpdateMineralPacketParams struct {
 	GameID          int64
+	ReportAge       int64
 	X               float64
 	Y               float64
 	Name            string
@@ -416,6 +427,7 @@ type UpdateMineralPacketParams struct {
 func (q *Queries) UpdateMineralPacket(ctx context.Context, arg UpdateMineralPacketParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, UpdateMineralPacket,
 		arg.GameID,
+		arg.ReportAge,
 		arg.X,
 		arg.Y,
 		arg.Name,

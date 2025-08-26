@@ -3,12 +3,12 @@
 
 	import { CommandedFleet } from '$lib/types/Fleet';
 	import { CommandedPlanet } from '$lib/types/Planet';
-	import { MapObjectTypePlanet } from '$lib/types/cs';
+	import { MapObjectType } from '$lib/types/cs-proto';
 
 	const planet: CommandedPlanet = new CommandedPlanet();
 
 	Object.assign(planet, {
-		type: MapObjectTypePlanet,
+		type: MapObjectType.PLANET,
 		reportAge: 0,
 		name: 'Obrin',
 		mineralConcentration: { ironium: 10, boranium: 20, germanium: 30 },

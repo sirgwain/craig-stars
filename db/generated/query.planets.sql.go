@@ -18,6 +18,7 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
+        report_age,
         x,
         y,
         name,
@@ -103,12 +104,14 @@ VALUES
         ?,
         ?,
         ?,
+        ?,
         ?
     )
 `
 
 type CreatePlanetParams struct {
 	GameID                            int64
+	ReportAge                         int64
 	X                                 float64
 	Y                                 float64
 	Name                              string
@@ -154,6 +157,7 @@ type CreatePlanetParams struct {
 func (q *Queries) CreatePlanet(ctx context.Context, arg CreatePlanetParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, CreatePlanet,
 		arg.GameID,
+		arg.ReportAge,
 		arg.X,
 		arg.Y,
 		arg.Name,
@@ -214,7 +218,7 @@ func (q *Queries) DeletePlanet(ctx context.Context, id int64) error {
 
 const GetPlanet = `-- name: GetPlanet :one
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
 FROM
     planets
 WHERE
@@ -230,6 +234,7 @@ func (q *Queries) GetPlanet(ctx context.Context, id int64) (Planet, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
+		&i.ReportAge,
 		&i.X,
 		&i.Y,
 		&i.Name,
@@ -276,11 +281,12 @@ func (q *Queries) GetPlanet(ctx context.Context, id int64) (Planet, error) {
 
 const GetPlanetByNum = `-- name: GetPlanetByNum :many
 SELECT
-    p.id, p.created_at, p.updated_at, p.game_id, p.x, p.y, p.name, p.num, p.player_num, p.grav, p."temp", p.rad, p.base_grav, p.base_temp, p.base_rad, p.terraformed_amount_grav, p.terraformed_amount_temp, p.terraformed_amount_rad, p.mineral_conc_ironium, p.mineral_conc_boranium, p.mineral_conc_germanium, p.mine_years_ironium, p.mine_years_boranium, p.mine_years_germanium, p.ironium, p.boranium, p.germanium, p.colonists, p.partial_population, p.mines, p.factories, p.defenses, p.homeworld, p.contributes_only_leftover_to_research, p.scanner, p.route_target_type, p.route_target_num, p.route_target_player_num, p.packet_target_num, p.packet_speed, p.production_queue, p.spec, p.tags, p.random_artifact,
+    p.id, p.created_at, p.updated_at, p.game_id, p.report_age, p.x, p.y, p.name, p.num, p.player_num, p.grav, p."temp", p.rad, p.base_grav, p.base_temp, p.base_rad, p.terraformed_amount_grav, p.terraformed_amount_temp, p.terraformed_amount_rad, p.mineral_conc_ironium, p.mineral_conc_boranium, p.mineral_conc_germanium, p.mine_years_ironium, p.mine_years_boranium, p.mine_years_germanium, p.ironium, p.boranium, p.germanium, p.colonists, p.partial_population, p.mines, p.factories, p.defenses, p.homeworld, p.contributes_only_leftover_to_research, p.scanner, p.route_target_type, p.route_target_num, p.route_target_player_num, p.packet_target_num, p.packet_speed, p.production_queue, p.spec, p.tags, p.random_artifact,
     f.id AS 'fleet.id',
     f.created_at AS 'fleet.created_at',
     f.updated_at AS 'fleet.updated_at',
     f.game_id AS 'fleet.game_id',
+    f.report_age AS 'fleet.report_age',
     COALESCE(f.battle_plan_num, 0) AS 'fleet.battle_plan_num',
     f.x AS 'fleet.x',
     f.y AS 'fleet.y',
@@ -328,6 +334,7 @@ type GetPlanetByNumRow struct {
 	FleetCreatedAt         sql.NullTime
 	FleetUpdatedAt         sql.NullTime
 	FleetGameID            sql.NullInt64
+	FleetReportAge         sql.NullInt64
 	FleetBattlePlanNum     int64
 	FleetX                 sql.NullFloat64
 	FleetY                 sql.NullFloat64
@@ -371,6 +378,7 @@ func (q *Queries) GetPlanetByNum(ctx context.Context, arg GetPlanetByNumParams) 
 			&i.Planet.CreatedAt,
 			&i.Planet.UpdatedAt,
 			&i.Planet.GameID,
+			&i.Planet.ReportAge,
 			&i.Planet.X,
 			&i.Planet.Y,
 			&i.Planet.Name,
@@ -415,6 +423,7 @@ func (q *Queries) GetPlanetByNum(ctx context.Context, arg GetPlanetByNumParams) 
 			&i.FleetCreatedAt,
 			&i.FleetUpdatedAt,
 			&i.FleetGameID,
+			&i.FleetReportAge,
 			&i.FleetBattlePlanNum,
 			&i.FleetX,
 			&i.FleetY,
@@ -458,7 +467,7 @@ func (q *Queries) GetPlanetByNum(ctx context.Context, arg GetPlanetByNumParams) 
 
 const GetPlanets = `-- name: GetPlanets :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
 FROM
     planets
 `
@@ -477,6 +486,7 @@ func (q *Queries) GetPlanets(ctx context.Context) ([]Planet, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -533,7 +543,7 @@ func (q *Queries) GetPlanets(ctx context.Context) ([]Planet, error) {
 
 const GetPlanetsForGame = `-- name: GetPlanetsForGame :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
 FROM
     planets
 WHERE
@@ -556,6 +566,7 @@ func (q *Queries) GetPlanetsForGame(ctx context.Context, gameID int64) ([]Planet
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -612,7 +623,7 @@ func (q *Queries) GetPlanetsForGame(ctx context.Context, gameID int64) ([]Planet
 
 const GetPlanetsForPlayer = `-- name: GetPlanetsForPlayer :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
 FROM
     planets
 WHERE
@@ -641,6 +652,7 @@ func (q *Queries) GetPlanetsForPlayer(ctx context.Context, arg GetPlanetsForPlay
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -700,6 +712,7 @@ UPDATE planets
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
+    report_age = ?,
     x = ?,
     y = ?,
     name = ?,
@@ -746,6 +759,7 @@ WHERE
 
 type UpdatePlanetParams struct {
 	GameID                            int64
+	ReportAge                         int64
 	X                                 float64
 	Y                                 float64
 	Name                              string
@@ -792,6 +806,7 @@ type UpdatePlanetParams struct {
 func (q *Queries) UpdatePlanet(ctx context.Context, arg UpdatePlanetParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, UpdatePlanet,
 		arg.GameID,
+		arg.ReportAge,
 		arg.X,
 		arg.Y,
 		arg.Name,

@@ -1,14 +1,5 @@
 <script lang="ts">
-	import {
-		Biotechnology,
-		Construction,
-		Electronics,
-		Energy,
-		JoaT,
-		Propulsion,
-		Weapons,
-		type Race
-	} from '$lib/types/cs';
+	import { Prt, type Race, TechField } from '$lib/types/cs-proto';
 	import ResearchCostField from './ResearchCostField.svelte';
 
 	type Props = {
@@ -19,12 +10,15 @@
 </script>
 
 <div class="flex flex-row flex-wrap justify-center gap-2">
-	<ResearchCostField bind:value={race.researchCost.energy} field={Energy} />
-	<ResearchCostField bind:value={race.researchCost.weapons} field={Weapons} />
-	<ResearchCostField bind:value={race.researchCost.propulsion} field={Propulsion} />
-	<ResearchCostField bind:value={race.researchCost.construction} field={Construction} />
-	<ResearchCostField bind:value={race.researchCost.electronics} field={Electronics} />
-	<ResearchCostField bind:value={race.researchCost.biotechnology} field={Biotechnology} />
+	<ResearchCostField bind:value={race.researchCost!.energy} field={TechField.ENERGY} />
+	<ResearchCostField bind:value={race.researchCost!.weapons} field={TechField.WEAPONS} />
+	<ResearchCostField bind:value={race.researchCost!.propulsion} field={TechField.PROPULSION} />
+	<ResearchCostField bind:value={race.researchCost!.construction} field={TechField.CONSTRUCTION} />
+	<ResearchCostField bind:value={race.researchCost!.electronics} field={TechField.ELECTRONICS} />
+	<ResearchCostField
+		bind:value={race.researchCost!.biotechnology}
+		field={TechField.BIOTECHNOLOGY}
+	/>
 </div>
 
 <label class="label justify-start mt-2">
@@ -35,6 +29,6 @@
 		bind:checked={race.techsStartHigh}
 	/>
 	<span class="ml-2"
-		>All 'Costs 75% extra' research fields start at Tech {race.prt == JoaT ? '4' : '3'}</span
+		>All 'Costs 75% extra' research fields start at Tech {race.prt == Prt.JOAT ? '4' : '3'}</span
 	>
 </label>

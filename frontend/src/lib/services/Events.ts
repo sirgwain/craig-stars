@@ -1,5 +1,5 @@
+import type { Fleet, Waypoint, ShipToken, WaypointTransportTasks } from '$lib/types/cs-proto';
 import type { CargoDest, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
-import type { Fleet, ShipToken, Waypoint, WaypointTransportTasks } from '$lib/types/cs';
 import type { CommandedFleet } from '$lib/types/Fleet';
 import type { CommandedPlanet } from '$lib/types/Planet';
 

@@ -4,21 +4,22 @@
 	import type { SelectWaypointProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { type AnyFleet } from '$lib/services/Universe';
+	import { None } from '$lib/types/Consts';
 	import {
-		MapObjectTypeFleet,
-		None,
-		type MapObject,
+		MapObjectType,
+		VectorSchema,
+		WaypointDestSchema,
+		type Fleet,
 		type Vector,
-		type Waypoint,
 		type WaypointDest
-	} from '$lib/types/cs';
+	} from '$lib/types/cs-proto';
 	import { filterFleet } from '$lib/types/Filter';
-	import { emptyMapObject } from '$lib/types/MapObject';
+	import { emptyMapObject, type MapObjectLike, type Position } from '$lib/types/MapObject';
 	import { emptyVector, equal } from '$lib/types/Vector';
+	import { create } from '@bufbuild/protobuf';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
-	import { ZoomTransform, zoom, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
+	import { zoom, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import hotkeys from 'hotkeys-js';
 	import { Html, LayerCake, Svg } from 'layercake';
 	import { onDestroy, onMount } from 'svelte';
@@ -59,9 +60,9 @@
 	type Props = {
 		onAddWaypoint: (dest: WaypointDest, fastestWaypoint: boolean) => Promise<boolean>;
 		onUpdateWaypointDest: (dest: WaypointDest, fastestWaypoint: boolean, done: boolean) => void;
-		onSelectMapObject: (mo: MapObject) => void;
-		onSetPacketDest: (mo: MapObject) => void;
-		onSetRouteDest: (mo: MapObject) => void;
+		onSelectMapObject: (mo: MapObjectLike) => void;
+		onSetPacketDest: (mo: MapObjectLike) => void;
+		onSetRouteDest: (mo: MapObjectLike) => void;
 	} & SelectWaypointProps;
 
 	let {
@@ -224,16 +225,16 @@
 	}
 
 	// translate/zoom the display to a point on the map
-	function translateViewport(position: Vector) {
+	function translateViewport(position: Position) {
 		if (!root) {
 			return;
 		}
 
 		select(root).call(zoomBehavior.scaleTo, $scale);
-		const scaled: Vector = {
-			x: scaler.x(position.x),
-			y: scaler.y(position.y)
-		};
+		const scaled: Vector = create(VectorSchema, {
+			x: scaler.x(Number(position.x ?? 0)),
+			y: scaler.y(Number(position.y ?? 0))
+		});
 		select(root)
 			.call(zoomBehavior.translateTo, scaled.x, scaled.y)
 			.call(zoomBehavior.scaleTo, $scale);
@@ -241,7 +242,7 @@
 
 	// zoom the viewport to a specific scale
 	function zoomViewport(scaleTo: number) {
-		if (!root || !zoomBehavior) {
+		if (!root) {
 			return;
 		}
 		select(root).call(zoomBehavior.scaleTo, scaleTo);
@@ -252,7 +253,7 @@
 		const { event, found } = e;
 
 		if (found && event instanceof MouseEvent) {
-			onScannerContextPopup(event, found.position);
+			onScannerContextPopup(event, found.mapObject?.position ?? emptyVector());
 		}
 	}
 
@@ -271,7 +272,11 @@
 		const fleetWaypoint =
 			found &&
 			$commandedFleet &&
-			$commandedFleet.waypoints.slice(1).find((wp) => equal(wp.position, found.position));
+			$commandedFleet.fleetOrders.waypoints
+				.slice(1)
+				.find((wp) =>
+					equal(wp.position ?? emptyVector(), found.mapObject?.position ?? emptyVector())
+				);
 		waypointHighlighted = !!fleetWaypoint;
 		if (waypointHighlighted) {
 			if (dragAndZoomEnabled) {
@@ -303,7 +308,10 @@
 			return;
 		}
 
-		if (found?.type == MapObjectTypeFleet && !filterFleet($player, found as AnyFleet, $settings)) {
+		if (
+			found?.mapObject?.type === MapObjectType.FLEET &&
+			!filterFleet($player, found as Fleet, $settings)
+		) {
 			// this object we clicked is filtered out, don't do anything
 			return;
 		}
@@ -318,7 +326,11 @@
 				const fleetWaypoint =
 					found &&
 					$commandedFleet &&
-					$commandedFleet.waypoints.slice(1).find((wp) => equal(wp.position, found.position));
+					$commandedFleet.fleetOrders.waypoints
+						.slice(1)
+						.find((wp) =>
+							equal(wp.position ?? emptyVector(), found.mapObject?.position ?? emptyVector())
+						);
 
 				if (fleetWaypoint && $selectedWaypoint != fleetWaypoint) {
 					onSelectWaypoint?.({ fleet: $commandedFleet, waypoint: fleetWaypoint });
@@ -355,11 +367,13 @@
 	}
 
 	// move the selected waypoint around snapping to targets
-	function dragWaypointMove(position: Vector, mo: MapObject | undefined) {
+	function dragWaypointMove(position: Position, mo: MapObjectLike | undefined) {
 		if ($selectedWaypoint && $currentSelectedWaypointIndex && $commandedFleet) {
 			// don't move the waypoint to any adjacent waypoints
 			if (mo && !positionWaypoint) {
-				const index = $commandedFleet.waypoints.findIndex((wp) => equal(wp.position, mo.position));
+				const index = $commandedFleet.fleetOrders.waypoints.findIndex((wp) =>
+					equal(wp.position ?? emptyVector(), mo.mapObject?.position ?? emptyVector())
+				);
 				if (
 					index == $currentSelectedWaypointIndex - 1 ||
 					index == $currentSelectedWaypointIndex + 1
@@ -368,15 +382,21 @@
 				}
 			}
 
-			const dest = { mo: mo ?? emptyMapObject(), position: position ?? emptyVector };
+			const dest = create(WaypointDestSchema, {
+				mo: mo?.mapObject ?? emptyMapObject(),
+				position: !mo?.mapObject ? { x: Number(position.x), y: Number(position.y) } : undefined
+			});
 			onUpdateWaypointDest(dest, fastestWaypoint, false);
 		}
 	}
 
-	async function dragWaypointDone(position: Vector, mo: MapObject | undefined) {
+	async function dragWaypointDone(position: Position, mo: MapObjectLike | undefined) {
 		// reset waypoint dragging
 		if ($selectedWaypoint && $commandedFleet && draggingWaypoint) {
-			const dest = { mo: mo ?? emptyMapObject(), position: position ?? emptyVector };
+			const dest = create(WaypointDestSchema, {
+				mo: mo?.mapObject ?? emptyMapObject(),
+				position: !mo?.mapObject ? { x: Number(position.x), y: Number(position.y) } : undefined
+			});
 			onUpdateWaypointDest(dest, fastestWaypoint, true);
 		}
 	}
@@ -385,7 +405,7 @@
 	function disableAddWaypointMode(event: MouseEvent) {
 		// ignore clicks on the add-waypoint toolbar button
 		const elem = event.target as Element;
-		if (elem?.id == 'add-waypoint' || elem?.parentElement?.id == 'add-waypoint') {
+		if (elem.id == 'add-waypoint' || elem.parentElement?.id == 'add-waypoint') {
 			return;
 		}
 		if ($settings.addWaypoint) {
@@ -395,16 +415,19 @@
 	}
 
 	// if the shift key is held, add a waypoint instead of selecting a mapobject
-	async function addWaypoint(mo: MapObject | undefined, position: Vector): Promise<boolean> {
+	async function addWaypoint(mo: MapObjectLike | undefined, position: Position): Promise<boolean> {
 		if (zooming) {
 			return false;
 		}
-		if (!$commandedFleet?.waypoints) {
+		if (!$commandedFleet?.fleetOrders.waypoints) {
 			return false;
 		}
 
 		// for add waypoints, we always snap to planet because the "drag" and "add waypoint button" keys (shift) are the same
-		const dest = { mo: mo ?? emptyMapObject(), position: mo ? emptyVector : position };
+		const dest = create(WaypointDestSchema, {
+			mo: mo?.mapObject ?? emptyMapObject(),
+			position: !mo?.mapObject ? { x: Number(position.x), y: Number(position.y) } : undefined
+		});
 		waypointJustAdded = await onAddWaypoint(dest, fastestWaypoint);
 		return true;
 	}
@@ -414,7 +437,7 @@
 	 * - We cycle through our commandable objects at the same location if we own an object there
 	 * @param mo
 	 */
-	function mapObjectSelected(mo: MapObject) {
+	function mapObjectSelected(mo: MapObjectLike) {
 		if ($settings.setPacketDest) {
 			onSetPacketDest(mo);
 		} else if ($settings.setRouteDest) {
@@ -429,19 +452,16 @@
 	// below we handle zooming events by updating a transform
 	onMount(() => {
 		clientRect = rect?.getBoundingClientRect() ?? { width: 100, height: 100 };
-		if (!$zoomTarget) {
-			return;
-		}
 
 		// setup zoom and translate to the zoomTarget
-		translateViewport($zoomTarget.position);
+		translateViewport($zoomTarget?.mapObject?.position ?? create(VectorSchema));
 		enableDragAndZoom();
 
 		// setup asubscriber to draw the target X and move the viewport to a new target
 		// when the zoomTarget changes
 		const unsubscribeZoomTarget = zoomTarget.subscribe((target) => {
 			if (target) {
-				translateViewport(target.position);
+				translateViewport(target.mapObject?.position ?? create(VectorSchema));
 				showTargetLocation();
 			}
 		});
@@ -474,23 +494,19 @@
 	const data = derivedStore([universe, commandedFleet], ([u, f]) => [
 		// add mapobject waypoints
 		...(f?.getWaypointMapObjects(u) || []),
-		...u
-			.getAllFleets()
-			.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
-		...u.mysteryTraderIntels,
+		...u.getAllFleets().filter((f) => f.orbitingPlanetNum === None),
+		...u.mysteryTraders,
+		...u.salvages,
+		...u.wormholes,
 		...u.mineralPackets,
-		...u.mineralPacketIntels,
-		...u.salvageIntels,
-		...u.wormholeIntels,
-		...u.minefields,
-		...u.minefieldIntels,
+		...u.allMinefields,
 		...u.allPlanets
 	]);
 
 	// all our data in LayerCake are mapObjects/waypoints. Add this custom getter to get the
 	// x/y coords of a mapobject or waypoint
-	const xGet = (mo: MapObject | Waypoint | undefined) => mo?.position?.x;
-	const yGet = (mo: MapObject | Waypoint | undefined) => mo?.position?.y;
+	const xGet = (mo: { position: Position | undefined }) => mo.position?.x ?? 0;
+	const yGet = (mo: { position: Position | undefined }) => mo.position?.y ?? 0;
 </script>
 
 <svelte:window onresize={handleResize} onkeydown={handleKeyDown} onkeyup={handleKeyUp} />

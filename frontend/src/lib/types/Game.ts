@@ -1,81 +1,9 @@
-import {
-	AIDifficultyCheater,
-	AIDifficultyNormal,
-	DensityDense,
-	DensityNormal,
-	DensityPacked,
-	DensitySparse,
-	GameStartModeAccBBS,
-	GameStartModeMax,
-	GameStartModeNormal,
-	NewGamePlayerTypeAI,
-	NewGamePlayerTypeGuest,
-	NewGamePlayerTypeHost,
-	NewGamePlayerTypeOpen,
-	PlayerPositionsClose,
-	PlayerPositionsDistant,
-	PlayerPositionsFarther,
-	PlayerPositionsModerate,
-	SizeHuge,
-	SizeHugeWide,
-	SizeLarge,
-	SizeLargeWide,
-	SizeMedium,
-	SizeMediumWide,
-	SizeSmall,
-	SizeSmallWide,
-	SizeTiny,
-	SizeTinyWide,
-	type AIDifficulty,
-	type Density,
-	type GameStartMode,
-	type PlayerPositions,
-	type Size
-} from './cs';
+import type { PlayerStatus } from '$lib/types/cs-proto';
+import { GameSchema, type Game, type GameWithPlayers } from '$lib/types/cs-proto';
+import { create } from '@bufbuild/protobuf';
 
-export const Sizes: Size[] = [
-	SizeTiny,
-	SizeTinyWide,
-	SizeSmall,
-	SizeSmallWide,
-	SizeMedium,
-	SizeMediumWide,
-	SizeLarge,
-	SizeLargeWide,
-	SizeHuge,
-	SizeHugeWide
-];
+export type GameWithPlayersFlat = Game & { players: PlayerStatus[] };
 
-export const Densities: Density[] = [DensitySparse, DensityNormal, DensityDense, DensityPacked];
-export const GameStartModes: GameStartMode[] = [
-	GameStartModeNormal,
-	GameStartModeAccBBS,
-	GameStartModeMax
-];
-export const PlayerPositionses: PlayerPositions[] = [
-	PlayerPositionsClose,
-	PlayerPositionsModerate,
-	PlayerPositionsFarther,
-	PlayerPositionsDistant
-];
-
-export const NewGamePlayerTypes = [
-	NewGamePlayerTypeHost,
-	NewGamePlayerTypeGuest,
-	NewGamePlayerTypeOpen,
-	NewGamePlayerTypeAI
-];
-
-export const GameStartModeFullNames: { [key in GameStartMode]: string } = {
-	[GameStartModeNormal]: 'Normal',
-	[GameStartModeAccBBS]: 'Accelerated BBS Play',
-	[GameStartModeMax]: 'Max Start'
-};
-
-export const AIDifficulties: AIDifficulty[] = [
-	// AIDifficultyNone,
-	// AIDifficultyEasy,
-	AIDifficultyNormal,
-	// AIDifficultyHard,
-	AIDifficultyCheater
-];
+export function getGameWithPlayersFlat(gwp: GameWithPlayers): GameWithPlayersFlat {
+	return { ...(gwp.game ?? create(GameSchema)), players: gwp.players ?? [] };
+}

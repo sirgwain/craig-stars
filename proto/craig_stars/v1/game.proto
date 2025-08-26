@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/player.proto";
+import "craig_stars/v1/race.proto";
+import "google/protobuf/timestamp.proto";
+
+message Game {
+  int64 id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
+
+  int64 host_id = 4;
+  string name = 5;
+  GameState state = 6;
+  bool public = 7;
+  string hash = 8;
+  Size size = 9;
+  Density density = 10;
+  PlayerPositions player_positions = 11;
+  bool random_events = 12;
+  bool computer_players_form_alliances = 13;
+  bool public_player_scores = 14;
+  bool max_minerals = 15;
+  GameStartMode start_mode = 16;
+  int32 quick_start_turns = 17;
+  int32 open_player_slots = 18;
+  int32 num_players = 19;
+  VictoryConditions victory_conditions = 20;
+  int64 seed = 21;
+  Vector area = 22;
+  int32 year = 23;
+  bool victor_declared = 24;
+  bool archived = 25;
+}
+
+message VictoryConditions {
+  uint32 conditions = 1;
+  int32 num_criteria_required = 2;
+  int32 years_passed = 3;
+  int32 own_planets = 4;
+  int32 attain_tech_level = 5;
+  int32 attain_tech_level_num_fields = 6;
+  int32 exceeds_score = 7;
+  int32 exceeds_second_place_score = 8;
+  int32 production_capacity = 9;
+  int32 own_capital_ships = 10;
+  int32 highest_score_after_years = 11;
+}
+
+message NewGamePlayer {
+  NewGamePlayerType type = 1;
+  AiDifficulty ai_difficulty = 2;
+  string color = 3;
+  int32 default_hull_set = 4;
+  Race race = 5;
+}
+
+message GameSettings {
+  string name = 1;
+  bool public = 2;
+  int32 quick_start_turns = 3;
+  Size size = 4;
+  Density density = 5;
+  PlayerPositions player_positions = 6;
+  bool random_events = 7;
+  bool computer_players_form_alliances = 8;
+  bool public_player_scores = 9;
+  bool max_minerals = 10;
+  GameStartMode start_mode = 11;
+  VictoryConditions victory_conditions = 12;
+  repeated NewGamePlayer players = 13;
+}
+
+message GameWithPlayers {
+  Game game = 1;
+  repeated PlayerStatus players = 2;
+}

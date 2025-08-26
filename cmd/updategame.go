@@ -1,9 +1,7 @@
-//go:build !wasi && !wasm
-
 package cmd
 
 import (
-	"github.com/sirgwain/craig-stars/update"
+	"github.com/sirgwain/craig-stars/cmd/update"
 	"github.com/spf13/cobra"
 )
 

@@ -2,13 +2,16 @@
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { defaultSortBy, type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { AdminService } from '$lib/services/AdminService';
-	import { addError, CSError } from '$lib/services/Errors';
-	import type { UserSession } from '$lib/types/User';
-	import { format, parseJSON } from 'date-fns';
+	import { adminClient } from '$lib/services/connect';
+	import { addError } from '$lib/services/Errors';
+	import { UserRole, UserSchema, type User } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
+	import { compare, timestampToString } from '$lib/types/Timestamp';
+	import { clone } from '@bufbuild/protobuf';
+	import type { ConnectError } from '@connectrpc/connect';
 	import { onMount } from 'svelte';
 
-	type UserWithNum = UserSession & { num: number };
+	type UserWithNum = User & { num: number };
 
 	const columns: TableColumn<UserWithNum>[] = [
 		{
@@ -21,7 +24,8 @@
 		},
 		{
 			key: 'lastLogin',
-			title: 'Last Login'
+			title: 'Last Login',
+			sortBy: (a, b) => compare(a.lastLogin, b.lastLogin, 'low')
 		},
 		{
 			key: 'role',
@@ -29,22 +33,23 @@
 		},
 		{
 			key: 'createdAt',
-			title: 'Created'
+			title: 'Created',
+			sortBy: (a, b) => compare(a.createdAt, b.createdAt)
 		}
 	];
 
 	// filterable users
-	let users: UserSession[] = $state([]);
+	let users: User[] = $state([]);
 	let search = $state('');
 	let sortKey: keyof UserWithNum = $state(
 		localStorage.getItem('usersSortKey') ?? 'num'
-	) as keyof UserSession;
+	) as keyof UserWithNum;
 	let sortDescending: boolean = $state(localStorage.getItem('usersSortDescending') === 'true');
 
 	let filteredUsers: UserWithNum[] = $derived(
 		users
-			.map((u, i) => Object.assign(u, { num: i + 1 }))
-			.sort((a, b) => defaultSortBy(a, b, sortKey, sortDescending))
+			.map((u, i) => Object.assign(clone(UserSchema, u), { num: i + 1 }))
+			.sort((a, b) => defaultSortBy(a, b, sortKey, sortDescending, columns))
 			.filter((i) => i.username.toLowerCase().indexOf(search.toLowerCase()) != -1)
 	);
 
@@ -58,9 +63,10 @@
 
 	onMount(async () => {
 		try {
-			users = await AdminService.loadUsers();
+			const resp = await adminClient.getUsers({});
+			users = resp.users;
 		} catch (e) {
-			addError(e as CSError);
+			addError(e as ConnectError);
 		}
 	});
 </script>
@@ -94,14 +100,16 @@
 			<span>
 				{#if column.key == 'username'}
 					{cell}
-					{#if row.isGuest()}<a
+					{#if row.role === UserRole.GUEST}<a
 							href={`/admin/users/convert-guest/${row.id}`}
 							class="btn btn-ghost btn-outline btn-sm">Convert Guest</a
 						>{/if}
-				{:else if column.key == 'createdAt'}
-					{format(parseJSON(row.createdAt), 'E, MMM do yyyy hh:mm aaa')}
+				{:else if column.key == 'role'}
+					{enumToString(UserRole, row.role)}
 				{:else if column.key == 'lastLogin' && cell}
-					{format(parseJSON(row.updatedAt), 'E, MMM do yyyy hh:mm aaa')}
+					{timestampToString(row.lastLogin)}
+				{:else if column.key == 'createdAt'}
+					{timestampToString(row.createdAt)}
 				{:else}
 					{cell}
 				{/if}

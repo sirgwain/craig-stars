@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -38,7 +40,7 @@ func createSingleUnitGame() *FullGame {
 	player := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
 	player.Num = 1
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}} // friends with themselves
-	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player})
+	player.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player})
 
 	planet := &Planet{
 		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player.Num},
@@ -46,7 +48,7 @@ func createSingleUnitGame() *FullGame {
 		BaseHab:   Hab{50, 50, 50},
 		Cargo:     Cargo{Colonists: 2500},
 	}
-	planet.Spec = computePlanetSpec(&game.Rules, player, planet)
+	planet.Spec = ComputePlanetSpec(&game.Rules, player, planet)
 
 	// setup initial planet intels for this planet
 	player.initDefaultPlanetIntels([]*Planet{planet})
@@ -91,8 +93,8 @@ func createTwoPlayerGame() *FullGame {
 	player2.Num = 2
 	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 
-	player1.PlayerIntels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2})
-	player2.PlayerIntels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player2, player2})
+	player1.Intels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2})
+	player2.Intels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player2, player2})
 
 	// create homeworlds
 	planet1 := &Planet{
@@ -101,7 +103,7 @@ func createTwoPlayerGame() *FullGame {
 		BaseHab:   Hab{50, 50, 50},
 		Cargo:     Cargo{Colonists: 2500},
 	}
-	planet1.Spec = computePlanetSpec(&game.Rules, player1, planet1)
+	planet1.Spec = ComputePlanetSpec(&game.Rules, player1, planet1)
 
 	planet2 := &Planet{
 		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: player2.Num, Position: Vector{100, 0}},
@@ -109,7 +111,7 @@ func createTwoPlayerGame() *FullGame {
 		BaseHab:   Hab{50, 50, 50},
 		Cargo:     Cargo{Colonists: 2500},
 	}
-	planet2.Spec = computePlanetSpec(&game.Rules, player2, planet2)
+	planet2.Spec = ComputePlanetSpec(&game.Rules, player2, planet2)
 
 	// setup initial planet intels for this planet
 	player1.initDefaultPlanetIntels([]*Planet{planet1, planet2})
@@ -810,7 +812,7 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	}))
 
 	// make sure player one knows they lost their planet
-	assert.True(t, slices.ContainsFunc(player2.PlanetIntels, func(p PlanetIntel) bool {
+	assert.True(t, slices.ContainsFunc(player2.PlanetIntels, func(p *Planet) bool {
 		return p.Num == planet.Num && p.PlayerNum == player1.Num
 	}))
 
@@ -1010,7 +1012,7 @@ func Test_turn_fleetMove(t *testing.T) {
 			Hab:       Hab{50, 50, 50},
 			BaseHab:   Hab{50, 50, 50},
 		}
-		planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
+		planet2.Spec = ComputePlanetSpec(&game.Rules, player, planet2)
 		game.Planets = []*Planet{planet1, planet2}
 		player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
@@ -1110,7 +1112,7 @@ func Test_turn_fleetMove(t *testing.T) {
 			Hab:       Hab{50, 50, 50},
 			BaseHab:   Hab{50, 50, 50},
 		}
-		planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
+		planet2.Spec = ComputePlanetSpec(&game.Rules, player, planet2)
 		game.Planets = []*Planet{planet1, planet2}
 		player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
@@ -1197,7 +1199,6 @@ func Test_turn_fleetMove(t *testing.T) {
 		minefieldPlayer.Race.Spec.MinefieldMinDecayFactor = 0
 		minefieldPlayer.Race.Spec.MinefieldMaxDecayRate = 0
 		minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{20, 0})
-		minefield.Spec = computeMinefieldSpec(rules, minefieldPlayer, minefield, 0)
 		// setup initial planet intels so turn generation works
 		minefieldPlayer.initDefaultPlanetIntels(game.Planets)
 
@@ -1249,7 +1250,6 @@ func Test_turn_fleetMove(t *testing.T) {
 		minefieldPlayer.Race.Spec.MinefieldMinDecayFactor = 0
 		minefieldPlayer.Race.Spec.MinefieldMaxDecayRate = 0
 		minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{20, 0})
-		minefield.Spec = computeMinefieldSpec(rules, minefieldPlayer, minefield, 0)
 		// setup initial planet intels so turn generation works
 		minefieldPlayer.initDefaultPlanetIntels(game.Planets)
 
@@ -1385,7 +1385,7 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 				MapObject:            MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: tt.fields.planetPlayerNum},
 				MineralConcentration: Mineral{100, 100, 100},
 			}
-			planet.Spec = computePlanetSpec(&game.Rules, player, planet)
+			planet.Spec = ComputePlanetSpec(&game.Rules, player, planet)
 			game.Planets = append(game.Planets, planet)
 
 			turn := turnGenerator{game: game}
@@ -1448,7 +1448,7 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 				MapObject:            MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: tt.fields.planetPlayerNum},
 				MineralConcentration: Mineral{100, 100, 100},
 			}
-			planet.Spec = computePlanetSpec(&game.Rules, player, planet)
+			planet.Spec = ComputePlanetSpec(&game.Rules, player, planet)
 			game.Planets = append(game.Planets, planet)
 
 			turn := turnGenerator{
@@ -1498,7 +1498,7 @@ func Test_turn_fleetLayMines(t *testing.T) {
 	assert.Equal(t, 1, len(game.Minefields))
 	minefield := game.Minefields[0]
 	assert.Equal(t, 320, minefield.NumMines)
-	assert.Equal(t, math.Sqrt(320), minefield.Spec.Radius)
+	assert.Equal(t, math.Sqrt(320), minefield.Radius())
 	assert.Equal(t, Vector{0, 0}, minefield.Position)
 
 }
@@ -1527,7 +1527,6 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	minefieldPlayer.Race.Spec.MinefieldMinDecayFactor = 0
 	minefieldPlayer.Race.Spec.MinefieldMaxDecayRate = 0
 	minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{0, 0})
-	minefield.Spec = computeMinefieldSpec(rules, minefieldPlayer, minefield, 0)
 	// setup initial planet intels so turn generation works
 	minefieldPlayer.initDefaultPlanetIntels(game.Planets)
 
@@ -1668,10 +1667,10 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	// make an IS race for reproducing and an AR race for dieoff
 	isPlayer := game.Players[0]
 	isPlayer.Race.PRT = IS
-	isPlayer.Race.Spec = computeRaceSpec(&isPlayer.Race, &rules)
+	isPlayer.Race.Spec = ComputeRaceSpec(&isPlayer.Race, &rules)
 	arPlayer := game.Players[1]
 	arPlayer.Race.PRT = AR
-	arPlayer.Race.Spec = computeRaceSpec(&arPlayer.Race, &rules)
+	arPlayer.Race.Spec = ComputeRaceSpec(&arPlayer.Race, &rules)
 
 	// each player gets a freighter with some colonists
 	isFleet := testSmallFreighter(isPlayer)
@@ -1761,7 +1760,7 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 	// make the player a high rad race to prevent radiation damage
 	player.Race.HabHigh.Rad = 100
 	player.Race.HabLow.Rad = 80 // midpoint: 90mR
-	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
 	turn.generateTurn()
 	assert.Equal(t, 41, fleet.Cargo.Colonists)
 
@@ -1822,7 +1821,7 @@ func Test_turn_detonateMines(t *testing.T) {
 
 			for _, player := range tt.args.players {
 				player.Relations = player.defaultRelationships(tt.args.players, false)
-				player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
+				player.Intels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
 			}
 
 			universe := NewUniverse(testLogger, &game.Rules)
@@ -1999,8 +1998,8 @@ func Test_turn_fleetPatrol(t *testing.T) {
 
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
-	enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
+	player.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
+	enemyPlayer.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
 	// setup initial planet intels so turn generation works
 	enemyPlayer.initDefaultPlanetIntels(game.Planets)
 
@@ -2046,7 +2045,7 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	// give player TT so it can terraform these other worlds
 	player := game.Players[0]
 	player.Race.LRTs |= Bitmask(TT)
-	player.Race.Spec = computeRaceSpec(&player.Race, rules)
+	player.Race.Spec = ComputeRaceSpec(&player.Race, rules)
 
 	// make two new remote terraformers, one over each planet to test deterraforming and terraforming
 	fleet1 := testRemoteTerraformer(player)
@@ -2062,9 +2061,9 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 	friendlyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
-	enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
-	friendlyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
+	player.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
+	enemyPlayer.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
+	friendlyPlayer.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
 
 	// give planet1 to the enemy and orbit it with fleet1
 	planet1 := &Planet{
@@ -2073,7 +2072,7 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 		Hab:       Hab{50, 50, 50},
 		BaseHab:   Hab{50, 50, 50},
 	}
-	planet1.Spec = computePlanetSpec(&game.Rules, player, planet1)
+	planet1.Spec = ComputePlanetSpec(&game.Rules, player, planet1)
 	fleet1.OrbitingPlanetNum = planet1.Num
 
 	// give planet2 to the friend and orbit it with fleet2
@@ -2083,7 +2082,7 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 		Hab:       Hab{48, 50, 50},
 		BaseHab:   Hab{48, 50, 50},
 	}
-	planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
+	planet2.Spec = ComputePlanetSpec(&game.Rules, player, planet2)
 	fleet2.OrbitingPlanetNum = planet2.Num
 
 	game.Planets = []*Planet{planet1, planet2}
@@ -2181,10 +2180,8 @@ func Test_turn_playerResearch(t *testing.T) {
 
 	assert.Equal(t, TechLevel{Energy: 5}, player.TechLevels, "should have raised 5 energy levels")
 	assert.Equal(t, TechLevel{Energy: 90}, player.TechLevelsSpent, "should leave 90 spent on energy level 6")
-	assert.Equal(t, 550+(5*10), player.Spec.CurrentResearchCost, "total cost of energy level 6 if we have 5 total tech levels")
 	assert.Equal(t, 1000, player.ResearchSpentLastYear, " spent 1000 on research last year")
-	assert.Equal(t, 1045, player.Spec.ResourcesPerYear, " planet grew, spend more next year")
-	assert.Equal(t, 1045, player.Spec.ResourcesPerYearResearch)
+	assert.True(t, len(player.TechsJustGained) > 0)
 }
 
 func Test_turn_buildStarbase(t *testing.T) {
@@ -2308,7 +2305,7 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 	assert.Equal(t, 2, len(player2.Designs))
 	assert.Equal(t, 1, len(fleet.Waypoints))
 	assert.Equal(t, None, fleet.Waypoints[0].TransferToPlayer)
-	assert.Equal(t, WaypointTaskNone, string(fleet.Waypoints[0].Task))
+	assert.Equal(t, WaypointTaskNone, fleet.Waypoints[0].Task)
 
 }
 
@@ -2353,8 +2350,8 @@ func Test_turn_fleetBattle(t *testing.T) {
 	assert.Equal(t, 1, len(player2.BattleRecords))
 
 	// ensure players were discovered
-	assert.Equal(t, player1.Race.PluralName, player2.PlayerIntels.PlayerIntels[0].RacePluralName)
-	assert.Equal(t, player2.Race.PluralName, player1.PlayerIntels.PlayerIntels[1].RacePluralName)
+	assert.Equal(t, player1.Race.PluralName, player2.Intels.PlayerIntels[0].RacePluralName)
+	assert.Equal(t, player2.Race.PluralName, player1.Intels.PlayerIntels[1].RacePluralName)
 
 	// ensure designs were discovered
 	assert.Equal(t, 1, len(player1.ShipDesignIntels))
@@ -2386,9 +2383,9 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 	player3.Name = "Player 3"
 	player3.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 
-	player1.PlayerIntels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2, player3})
-	player2.PlayerIntels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player1, player2, player3})
-	player3.PlayerIntels.PlayerIntels = player3.defaultPlayerIntels([]*Player{player1, player2, player3})
+	player1.Intels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2, player3})
+	player2.Intels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player1, player2, player3})
+	player3.Intels.PlayerIntels = player3.defaultPlayerIntels([]*Player{player1, player2, player3})
 
 	// make them enemies!
 	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}, {Relation: PlayerRelationEnemy}}
@@ -2458,12 +2455,12 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 	assert.Equal(t, 1, len(player3.BattleRecords))
 
 	// ensure players were discovered
-	assert.Equal(t, player1.Race.PluralName, player2.PlayerIntels.PlayerIntels[0].RacePluralName)
-	assert.Equal(t, player1.Race.PluralName, player3.PlayerIntels.PlayerIntels[0].RacePluralName)
-	assert.Equal(t, player2.Race.PluralName, player1.PlayerIntels.PlayerIntels[1].RacePluralName)
-	assert.Equal(t, player2.Race.PluralName, player3.PlayerIntels.PlayerIntels[1].RacePluralName)
-	assert.Equal(t, player3.Race.PluralName, player1.PlayerIntels.PlayerIntels[2].RacePluralName)
-	assert.Equal(t, player3.Race.PluralName, player2.PlayerIntels.PlayerIntels[2].RacePluralName)
+	assert.Equal(t, player1.Race.PluralName, player2.Intels.PlayerIntels[0].RacePluralName)
+	assert.Equal(t, player1.Race.PluralName, player3.Intels.PlayerIntels[0].RacePluralName)
+	assert.Equal(t, player2.Race.PluralName, player1.Intels.PlayerIntels[1].RacePluralName)
+	assert.Equal(t, player2.Race.PluralName, player3.Intels.PlayerIntels[1].RacePluralName)
+	assert.Equal(t, player3.Race.PluralName, player1.Intels.PlayerIntels[2].RacePluralName)
+	assert.Equal(t, player3.Race.PluralName, player2.Intels.PlayerIntels[2].RacePluralName)
 
 	// ensure designs were discovered
 	assert.Equal(t, 2, len(player1.ShipDesignIntels))

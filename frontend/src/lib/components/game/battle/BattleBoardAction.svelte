@@ -2,13 +2,7 @@
 	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import { Battle } from '$lib/types/Battle';
-	import {
-		TokenActionBeamFire,
-		TokenActionMove,
-		TokenActionRanAway,
-		TokenActionTorpedoFire,
-		type BattleRecordTokenAction
-	} from '$lib/types/cs';
+	import { type BattleRecordTokenActionJson } from '$lib/types/cs-proto';
 	import { getContext } from 'svelte';
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
@@ -16,7 +10,7 @@
 
 	type Props = {
 		battle: Battle;
-		action: BattleRecordTokenAction | undefined;
+		action: BattleRecordTokenActionJson | undefined;
 		phase: number;
 	};
 
@@ -39,16 +33,16 @@
 </script>
 
 {#if action}
-	{#if action.type === TokenActionMove}
-		{`${getTokenDescription(action.tokenNum)} moved from ${action.from.x}, ${action.from.y} to ${
-			action.to.x
-		},${action.to.y}`}
-	{:else if action.type === TokenActionRanAway}
+	{#if action.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_MOVE'}
+		{`${getTokenDescription(action.tokenNum)} moved from ${action.from?.x ?? 0}, ${action.from?.y ?? 0} to ${
+			action.to?.x ?? 0
+		},${action.to?.y ?? 0}`}
+	{:else if action.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_RAN_AWAY'}
 		{`${getTokenDescription(action.tokenNum)} ran away`}
-	{:else if action.type === TokenActionBeamFire}
-		{`The ${getTokenDescription(action.tokenNum)} at (${action.from.x}, ${
-			action.from.y
-		}) attacks the ${getTokenDescription(action.targetNum)} at (${action.to.x}, ${action.to.y})`}
+	{:else if action.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_BEAM_FIRE'}
+		{`The ${getTokenDescription(action.tokenNum)} at (${action.from?.x ?? 0}, ${
+			action.from?.y ?? 0
+		}) attacks the ${getTokenDescription(action.targetNum)} at (${action.to?.x ?? 0}, ${action.to?.y ?? 0})`}
 		{#if action.damageDoneArmor && action.damageDoneShields}
 			{`doing ${action.damageDoneArmor} damage to armor and ${action.damageDoneShields} damage to shields`}
 		{:else if action.damageDoneArmor}
@@ -56,10 +50,10 @@
 		{:else}
 			{`doing ${action.damageDoneShields} damage to shields`}
 		{/if}
-	{:else if action.type === TokenActionTorpedoFire}
+	{:else if action.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_TORPEDO_FIRE'}
 		{`The ${getTokenDescription(action.tokenNum)} attacks the ${getTokenDescription(
 			action.targetNum
-		)} at (${action.to.x}, ${action.to.y})`}
+		)} at (${action.to?.x ?? 0}, ${action.to?.y ?? 0})`}
 		{#if action.damageDoneArmor && action.damageDoneShields}
 			{`doing ${action.damageDoneArmor} damage to armor and ${action.damageDoneShields} damage to shields with ${action.torpedoHits} hits`}
 		{:else if action.damageDoneArmor}

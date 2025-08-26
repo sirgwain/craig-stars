@@ -17,6 +17,7 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
+        report_age,
         x,
         y,
         name,
@@ -50,12 +51,14 @@ VALUES
         ?,
         ?,
         ?,
+        ?,
         ?
     )
 `
 
 type CreateMysteryTraderParams struct {
 	GameID          int64
+	ReportAge       int64
 	X               float64
 	Y               float64
 	Name            string
@@ -75,6 +78,7 @@ type CreateMysteryTraderParams struct {
 func (q *Queries) CreateMysteryTrader(ctx context.Context, arg CreateMysteryTraderParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, CreateMysteryTrader,
 		arg.GameID,
+		arg.ReportAge,
 		arg.X,
 		arg.Y,
 		arg.Name,
@@ -112,7 +116,7 @@ func (q *Queries) DeleteMysteryTrader(ctx context.Context, id int64) (int64, err
 
 const GetMysteryTrader = `-- name: GetMysteryTrader :one
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
 FROM
     mystery_traders
 WHERE
@@ -128,6 +132,7 @@ func (q *Queries) GetMysteryTrader(ctx context.Context, id int64) (MysteryTrader
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
+		&i.ReportAge,
 		&i.X,
 		&i.Y,
 		&i.Name,
@@ -148,7 +153,7 @@ func (q *Queries) GetMysteryTrader(ctx context.Context, id int64) (MysteryTrader
 
 const GetMysteryTraderByNum = `-- name: GetMysteryTraderByNum :one
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
 FROM
     mystery_traders
 WHERE
@@ -169,6 +174,7 @@ func (q *Queries) GetMysteryTraderByNum(ctx context.Context, arg GetMysteryTrade
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
+		&i.ReportAge,
 		&i.X,
 		&i.Y,
 		&i.Name,
@@ -189,7 +195,7 @@ func (q *Queries) GetMysteryTraderByNum(ctx context.Context, arg GetMysteryTrade
 
 const GetMysteryTraders = `-- name: GetMysteryTraders :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
 FROM
     mystery_traders
 `
@@ -208,6 +214,7 @@ func (q *Queries) GetMysteryTraders(ctx context.Context) ([]MysteryTrader, error
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -238,7 +245,7 @@ func (q *Queries) GetMysteryTraders(ctx context.Context) ([]MysteryTrader, error
 
 const GetMysteryTradersForGame = `-- name: GetMysteryTradersForGame :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
+    id, created_at, updated_at, game_id, report_age, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
 FROM
     mystery_traders
 WHERE
@@ -261,6 +268,7 @@ func (q *Queries) GetMysteryTradersForGame(ctx context.Context, gameID int64) ([
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -294,6 +302,7 @@ UPDATE mystery_traders
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
+    report_age = ?,
     x = ?,
     y = ?,
     name = ?,
@@ -314,6 +323,7 @@ WHERE
 
 type UpdateMysteryTraderParams struct {
 	GameID          int64
+	ReportAge       int64
 	X               float64
 	Y               float64
 	Name            string
@@ -334,6 +344,7 @@ type UpdateMysteryTraderParams struct {
 func (q *Queries) UpdateMysteryTrader(ctx context.Context, arg UpdateMysteryTraderParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, UpdateMysteryTrader,
 		arg.GameID,
+		arg.ReportAge,
 		arg.X,
 		arg.Y,
 		arg.Name,

@@ -1,21 +1,20 @@
 <script lang="ts">
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
+	import { addError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { addError, type CSError } from '$lib/services/Errors';
-	import type { BattlePlan } from '$lib/types/cs';
+	import type { BattlePlan } from '$lib/types/cs-proto';
+	import type { ConnectError } from '@connectrpc/connect';
 	import BattlePlanCard from './BattlePlanCard.svelte';
 
 	const { game, player, deleteBattlePlan } = getGameContext();
 
 	async function deletePlan(plan: BattlePlan) {
-		if ($game) {
-			try {
-				await deleteBattlePlan(plan.num);
-				// trigger reactivity
-				$player.battlePlans = $player.battlePlans;
-			} catch (e) {
-				addError(e as CSError);
-			}
+		try {
+			await deleteBattlePlan(plan.num);
+			// trigger reactivity
+			$player.playerPlans.battlePlans = $player.playerPlans.battlePlans;
+		} catch (e) {
+			addError(e as ConnectError);
 		}
 	}
 </script>
@@ -32,9 +31,9 @@
 	{/snippet}
 </Breadcrumb>
 
-{#if $player.battlePlans.length}
+{#if $player.playerPlans.battlePlans.length}
 	<div class="flex flex-wrap justify-center gap-2">
-		{#each $player.battlePlans as plan (plan.num)}
+		{#each $player.playerPlans.battlePlans as plan (plan.num)}
 			<BattlePlanCard
 				{plan}
 				href={`/games/${$game.id}/battle-plans/${plan.num}`}

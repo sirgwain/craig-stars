@@ -9,7 +9,7 @@
 		if (response.ok) {
 			document.location = '/';
 		} else {
-			const resolvedResponse = await response?.json();
+			const resolvedResponse = await response.json();
 			error = resolvedResponse.error;
 			console.error(error);
 		}

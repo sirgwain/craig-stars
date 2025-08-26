@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/shipdesign.proto";
+
+enum WaypointTask {
+  WAYPOINT_TASK_UNSPECIFIED = 0;
+  WAYPOINT_TASK_TRANSPORT = 1;
+  WAYPOINT_TASK_COLONIZE = 2;
+  WAYPOINT_TASK_REMOTE_MINING = 3;
+  WAYPOINT_TASK_MERGE_WITH_FLEET = 4;
+  WAYPOINT_TASK_SCRAP_FLEET = 5;
+  WAYPOINT_TASK_LAY_MINEFIELD = 6;
+  WAYPOINT_TASK_PATROL = 7;
+  WAYPOINT_TASK_ROUTE = 8;
+  WAYPOINT_TASK_TRANSFER_FLEET = 9;
+}
+
+enum WaypointTaskTransportAction {
+  WAYPOINT_TASK_TRANSPORT_ACTION_UNSPECIFIED = 0;
+  WAYPOINT_TASK_TRANSPORT_ACTION_LOAD_OPTIMAL = 1;
+  WAYPOINT_TASK_TRANSPORT_ACTION_LOAD_ALL = 2;
+  WAYPOINT_TASK_TRANSPORT_ACTION_UNLOAD_ALL = 3;
+  WAYPOINT_TASK_TRANSPORT_ACTION_LOAD_AMOUNT = 4;
+  WAYPOINT_TASK_TRANSPORT_ACTION_UNLOAD_AMOUNT = 5;
+  WAYPOINT_TASK_TRANSPORT_ACTION_FILL_PERCENT = 6;
+  WAYPOINT_TASK_TRANSPORT_ACTION_WAIT_FOR_PERCENT = 7;
+  WAYPOINT_TASK_TRANSPORT_ACTION_LOAD_DUNNAGE = 8;
+  WAYPOINT_TASK_TRANSPORT_ACTION_SET_AMOUNT_TO = 9;
+  WAYPOINT_TASK_TRANSPORT_ACTION_SET_WAYPOINT_TO = 10;
+}
+
+enum FleetPurpose {
+  FLEET_PURPOSE_UNSPECIFIED = 0;
+  FLEET_PURPOSE_SCOUT = 1;
+  FLEET_PURPOSE_COLONIZER = 2;
+  FLEET_PURPOSE_BOMBER = 3;
+  FLEET_PURPOSE_FIGHTER = 4;
+  FLEET_PURPOSE_CAPITAL_SHIP = 5;
+  FLEET_PURPOSE_FREIGHTER = 6;
+  FLEET_PURPOSE_COLONIST_FREIGHTER = 7;
+  FLEET_PURPOSE_ARMED_FREIGHTER = 8;
+  FLEET_PURPOSE_MINE_LAYER = 9;
+  FLEET_PURPOSE_MINER = 10;
+  FLEET_PURPOSE_TERRAFORMER = 11;
+  FLEET_PURPOSE_INVADER = 12;
+}
+
+message Fleet {
+  GameDBObject game_db_object = 1;
+  MapObject map_object = 2;
+  FleetOrders fleet_orders = 3;
+  int32 planet_num = 4;
+  string base_name = 5;
+  Cargo cargo = 6;
+  int32 fuel = 7;
+  int32 age = 8;
+  repeated ShipToken tokens = 9;
+  Vector heading = 10;
+  int32 warp_speed = 11;
+  Vector previous_position = 12;
+  int32 orbiting_planet_num = 13;
+  bool starbase = 14;
+  FleetSpec spec = 15;
+}
+
+message FleetOrders {
+  repeated Waypoint waypoints = 1;
+  bool repeat_orders = 2;
+  int32 battle_plan_num = 3;
+  FleetPurpose purpose = 4;
+}
+
+message ShipToken {
+  int32 design_num = 1;
+  int32 quantity = 2;
+  int32 damage = 3;
+  int32 quantity_damaged = 4;
+}
+
+message Waypoint {
+  MapObjectTarget map_object_target = 1;
+  Vector position = 2;
+  int32 warp_speed = 3;
+  int32 est_fuel_usage = 4;
+  WaypointTask task = 5;
+  WaypointTransportTasks transport_tasks = 6;
+  bool wait_at_waypoint = 7;
+  int32 lay_minefield_duration = 8;
+  int32 patrol_range = 9;
+  int32 patrol_warp_speed = 10;
+  int32 transfer_to_player = 11;
+  bool partially_complete = 12;
+}
+
+message WaypointTransportTasks {
+  WaypointTransportTask fuel = 1;
+  WaypointTransportTask ironium = 2;
+  WaypointTransportTask boranium = 3;
+  WaypointTransportTask germanium = 4;
+  WaypointTransportTask colonists = 5;
+}
+
+message WaypointTransportTask {
+  int32 amount = 1;
+  WaypointTaskTransportAction action = 2;
+}
+
+message FleetSpec {
+  ShipDesignSpec ship_design_spec = 1;
+  int32 base_cloaked_cargo = 2;
+  bool has_mass_driver = 3;
+  bool has_stargate = 4;
+  int32 mass_empty = 5;
+  map<int32, bool> purposes = 6;
+  int32 total_ships = 7;
+}

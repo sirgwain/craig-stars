@@ -1,9 +1,10 @@
-import type { AnyFleet, AnyMineralPacket, AnyPlanet } from '$lib/services/Universe';
+import type { Fleet, MineralPacket, Planet, Salvage } from '$lib/types/cs-proto';
+import { CargoSchema, type Cargo, type CargoJson } from '$lib/types/cs-proto';
+import { create } from '@bufbuild/protobuf';
 import { negativeCargo } from './Cargo';
-import { type Cargo, type SalvageIntel } from './cs';
 
 // a destination that cargo can be transferred to/from
-export type CargoDest = AnyFleet | AnyPlanet | AnyMineralPacket | SalvageIntel | undefined;
+export type CargoDest = Fleet | Planet | MineralPacket | Salvage | undefined;
 
 export class CargoTransferRequest {
 	ironium = $state(0);
@@ -12,7 +13,7 @@ export class CargoTransferRequest {
 	colonists = $state(0);
 	fuel = $state(0);
 
-	constructor(cargo?: Cargo, fuel?: number) {
+	constructor(cargo?: CargoJson, fuel?: number) {
 		this.ironium = cargo?.ironium ?? 0;
 		this.boranium = cargo?.boranium ?? 0;
 		this.germanium = cargo?.germanium ?? 0;
@@ -20,7 +21,7 @@ export class CargoTransferRequest {
 		this.fuel = fuel ?? 0;
 	}
 
-	public jsonData(): Cargo & { fuel: number } {
+	public jsonData(): CargoJson & { fuel: number } {
 		return {
 			ironium: this.ironium,
 			boranium: this.boranium,
@@ -29,11 +30,20 @@ export class CargoTransferRequest {
 			fuel: this.fuel
 		};
 	}
+
+	public cargo(): Cargo {
+		return create(CargoSchema, {
+			ironium: this.ironium,
+			boranium: this.boranium,
+			germanium: this.germanium,
+			colonists: this.colonists
+		});
+	}
 }
 
 // return a new CargoTransferRequest from this one, but negated
 export function negative(req: CargoTransferRequest): CargoTransferRequest {
-	return new CargoTransferRequest(negativeCargo(req), -req.fuel);
+	return new CargoTransferRequest(negativeCargo(req.cargo()), -req.fuel);
 }
 
 // return the absolute size of this transfer request

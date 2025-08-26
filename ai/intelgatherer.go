@@ -20,7 +20,7 @@ func (ai *aiPlayer) gatherIntel() {
 			continue
 		}
 		// skip transports and colonizers
-		if !ai.hasAttackShips([]*cs.FleetIntel{&fleet}) {
+		if !ai.hasAttackShips([]*cs.Fleet{fleet}) {
 			continue
 		}
 
@@ -30,7 +30,7 @@ func (ai *aiPlayer) gatherIntel() {
 			ai.log.Debug().
 				Msgf("Planet %s is being targetted by player %d fleet %s", target.Name, fleet.PlayerNum, fleet.Name)
 
-			ai.targetedPlanets[target.Num] = append(ai.targetedPlanets[target.Num], &fleet)
+			ai.targetedPlanets[target.Num] = append(ai.targetedPlanets[target.Num], fleet)
 		}
 
 	}

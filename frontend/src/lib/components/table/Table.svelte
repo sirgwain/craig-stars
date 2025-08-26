@@ -10,17 +10,37 @@
 	}
 
 	// generic sortBy function
+	// If a column-level sortBy is defined for the provided key, it will be used.
 	export function defaultSortBy<T extends Partial<Record<K, unknown>>, K extends keyof T>(
 		a: T,
 		b: T,
 		key: K,
-		sortDescending: boolean
+		sortDescending: boolean,
+		columns?: TableColumn<T>[]
 	): number {
+		// Prefer a column-specific sortBy when available
+		const col = columns?.find((c) => c.key === (key as unknown as keyof Partial<T>));
+		if (col?.sortable !== false && typeof col?.sortBy === 'function') {
+			// Apply descending by swapping args to keep column sortBy simple
+			if (sortDescending) {
+				return col.sortBy(b as T, a as T);
+			}
+			return col.sortBy(a as T, b as T);
+		}
+
+		// Fallback: default comparison by field value
 		let [aField, bField] = [a[key], b[key]];
 		if (sortDescending) [bField, aField] = [aField, bField];
-		if (typeof aField === 'number' && typeof bField === 'number') return aField - bField;
-		if (typeof aField === 'boolean') return aField ? -1 : 1;
-		return `${aField}`.localeCompare(`${bField}`);
+
+		if (typeof aField === 'number' && typeof bField === 'number')
+			return (aField as number) - (bField as number);
+		if (typeof aField === 'bigint' && typeof bField === 'bigint')
+			return Number((aField as bigint) - (bField as bigint));
+		if (typeof aField === 'boolean' && typeof bField === 'boolean')
+			return aField === bField ? 0 : aField ? -1 : 1;
+
+		// String compare fallback
+		return `${aField ?? ''}`.localeCompare(`${bField ?? ''}`);
 	}
 </script>
 
@@ -152,7 +172,7 @@
 						}}
 					>
 						{#if head}
-							{@render head?.({
+							{@render head({
 								column,
 								isSorted: lastSortedKey === column.key,
 								sortDescending,
@@ -173,7 +193,7 @@
 					{#if !column.hidden}
 						<td class={assignedClasses.td}>
 							{#if cell}
-								{@render cell?.({ row, column, cell: row[column.key] })}
+								{@render cell({ row, column, cell: row[column.key] })}
 							{:else}
 								<span>{row[column.key]}</span>
 							{/if}

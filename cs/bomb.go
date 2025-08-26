@@ -177,7 +177,7 @@ func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Pl
 	// TODO: Make sure this doesn't change def coverage
 	// defenses should only be lowered *after* all bombs from a given player
 	// have struck
-	planet.Spec = computePlanetSpec(b.rules, defender, planet)
+	planet.Spec = ComputePlanetSpec(b.rules, defender, planet)
 
 	b.log.Debug().
 		Int("Player", attacker.Num).
@@ -230,7 +230,7 @@ func (b *bomber) smartBombPlanet(planet *Planet, defender *Player, attacker *Pla
 	planet.addPopulation(-killed)
 
 	// update planet spec
-	planet.Spec = computePlanetSpec(b.rules, defender, planet)
+	planet.Spec = ComputePlanetSpec(b.rules, defender, planet)
 
 	b.log.Debug().
 		Int("Player", attacker.Num).
@@ -282,7 +282,7 @@ func (b *bomber) retroBombPlanet(planet *Planet, defender *Player, attacker *Pla
 	planet.TerraformedAmount = planet.TerraformedAmount.Add(unterraformAmount)
 
 	// update planet spec
-	planet.Spec = computePlanetSpec(b.rules, defender, planet)
+	planet.Spec = ComputePlanetSpec(b.rules, defender, planet)
 
 	b.log.Debug().
 		Int("Player", attacker.Num).

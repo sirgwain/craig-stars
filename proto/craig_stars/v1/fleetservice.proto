@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/fleet.proto";
+import "craig_stars/v1/mineralpacket.proto";
+import "craig_stars/v1/planet.proto";
+import "craig_stars/v1/player.proto";
+import "craig_stars/v1/salvage.proto";
+
+service FleetService {
+  rpc GetFleet(GetFleetRequest) returns (GetFleetResponse);
+  rpc UpdateFleetOrders(UpdateFleetOrdersRequest) returns (UpdateFleetOrdersResponse);
+  rpc SplitFleet(SplitFleetRequest) returns (SplitFleetResponse);
+  rpc SplitAllFleets(SplitAllFleetsRequest) returns (SplitAllFleetsResponse);
+  rpc MergeFleets(MergeFleetsRequest) returns (MergeFleetsResponse);
+  rpc TransferCargo(TransferCargoRequest) returns (TransferCargoResponse);
+  rpc RenameFleet(RenameFleetRequest) returns (RenameFleetResponse);
+}
+
+message GetFleetRequest {
+  int64 game_id = 1;
+  int32 fleet_num = 2;
+}
+
+message GetFleetResponse {
+  Fleet fleet = 1;
+}
+
+message UpdateFleetOrdersRequest {
+  int64 game_id = 1;
+  int32 fleet_num = 2;
+  FleetOrders fleet_orders = 4;
+}
+
+message UpdateFleetOrdersResponse {
+  Fleet fleet = 1;
+}
+
+message SplitFleetRequest {
+  int64 game_id = 1;
+  int32 source_fleet_num = 2;
+  int32 dest_fleet_num = 3;
+  string dest_base_name = 4;
+  repeated ShipToken source_tokens = 5;
+  repeated ShipToken dest_tokens = 6;
+  Cargo transfer_amount = 7;
+  int32 fuel_transfer_amount = 8;
+}
+
+message SplitFleetResponse {
+  Fleet source = 1;
+  Fleet dest = 2;
+  map<string, CargoTransfers> cargo_transfers = 3;
+}
+
+message SplitAllFleetsRequest {
+  int64 game_id = 1;
+  int32 fleet_num = 2;
+}
+
+message SplitAllFleetsResponse {
+  repeated Fleet fleets = 1;
+  map<string, CargoTransfers> cargo_transfers = 2;
+}
+
+message MergeFleetsRequest {
+  int64 game_id = 1;
+  int32 fleet_num = 2;
+  repeated int32 fleet_nums = 3;
+}
+
+message MergeFleetsResponse {
+  Fleet fleet = 1;
+  map<string, CargoTransfers> cargo_transfers = 2;
+}
+
+message TransferCargoRequest {
+  int64 game_id = 1;
+  int32 fleet_num = 2;
+  MapObject mo = 3;
+  Cargo transfer_amount = 4;
+  int32 fuel_transfer_amount = 5;
+}
+
+message TransferCargoResponse {
+  Fleet fleet = 1;
+  oneof dest {
+    Fleet dest_fleet = 2;
+    Planet dest_planet = 3;
+    MineralPacket dest_mineral_packet = 4;
+    Salvage dest_salvage = 5;
+  }
+  Player player = 9;
+}
+
+message RenameFleetRequest {
+  int64 game_id = 1;
+  int32 fleet_num = 2;
+  string name = 3;
+}
+
+message RenameFleetResponse {
+  Fleet fleet = 1;
+}

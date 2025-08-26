@@ -3,33 +3,29 @@
 	import { getColor } from '$lib/components/game/newgame/playerColors';
 	import { me } from '$lib/services/Stores';
 	import {
-		AIDifficultyNone,
-		AIDifficultyNormal,
-		NewGamePlayerTypeAI,
-		NewGamePlayerTypeHost,
-		NewGamePlayerTypeOpen,
+		AiDifficulty,
+		NewGamePlayerSchema,
+		NewGamePlayerType,
 		type NewGamePlayer
-	} from '$lib/types/cs';
+	} from '$lib/types/cs-proto';
+	import { create } from '@bufbuild/protobuf';
 
 	const players: NewGamePlayer[] = [
-		{
-			type: NewGamePlayerTypeHost,
+		create(NewGamePlayerSchema, {
+			type: NewGamePlayerType.HOST,
 			color: getColor(0),
-			aiDifficulty: AIDifficultyNone,
-			hullSetNum: 0
-		},
-		{
-			type: NewGamePlayerTypeOpen,
+			aiDifficulty: AiDifficulty.UNSPECIFIED
+		}),
+		create(NewGamePlayerSchema, {
+			type: NewGamePlayerType.OPEN,
 			color: getColor(1),
-			aiDifficulty: AIDifficultyNone,
-			hullSetNum: 0
-		},
-		{
-			type: NewGamePlayerTypeAI,
+			aiDifficulty: AiDifficulty.NORMAL
+		}),
+		create(NewGamePlayerSchema, {
+			type: NewGamePlayerType.AI,
 			color: getColor(2),
-			aiDifficulty: AIDifficultyNormal,
-			hullSetNum: 0
-		}
+			aiDifficulty: AiDifficulty.NORMAL
+		})
 	];
 
 	const name = $me.username ? `${$me.username}'s game` : undefined;

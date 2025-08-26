@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import type { HabType } from '$lib/types/cs';
+	import type { HabType } from '$lib/types/Hab';
 	import { getHabValueString, HabTypeShortString, habTypeString } from '$lib/types/Hab';
 	import PlanetBaseHabPoint from './PlanetBaseHabPoint.svelte';
 	import PlanetHabPoint from './PlanetHabPoint.svelte';
@@ -36,7 +36,7 @@
 		<div class="h-full relative">
 			{#if !immune}
 				<div
-					style={`left: ${habLowPercent.toFixed()}%; width: ${habWidthPercent?.toFixed()}%`}
+					style={`left: ${habLowPercent.toFixed()}%; width: ${habWidthPercent.toFixed()}%`}
 					class={`absolute h-full ${HabTypeShortString[habType]}-bar`}
 				></div>
 			{/if}

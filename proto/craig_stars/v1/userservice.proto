@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/user.proto";
+
+service UserService {
+  // User methods
+  rpc GetMe(GetMeRequest) returns (GetMeResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc UpdateUserSettings(UpdateUserSettingsRequest) returns (UpdateUserSettingsResponse);
+  rpc TestDiscordWebhook(TestDiscordWebhookRequest) returns (TestDiscordWebhookResponse);
+}
+
+// User methods
+message GetMeRequest {}
+
+message GetMeResponse {
+  User user = 1;
+}
+
+message GetUserRequest {
+  int64 user_id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message UpdateUserSettingsRequest {
+  UserSettings user_settings = 1;
+}
+
+message UpdateUserSettingsResponse {
+  User user = 1;
+}
+
+message TestDiscordWebhookRequest {}
+message TestDiscordWebhookResponse {}

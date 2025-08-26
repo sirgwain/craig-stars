@@ -1,14 +1,21 @@
 <script lang="ts">
+	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
 	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
+	import { techs } from '$lib/services/Stores';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import type { Battle, PhaseToken } from '$lib/types/Battle';
+	import { enumToString } from '$lib/types/Enums';
+	import {
+		BattleTactic,
+		BattleTacticSchema,
+		BattleTarget,
+		BattleTargetSchema
+	} from '$lib/types/cs-proto';
+	import { enumFromJson } from '@bufbuild/protobuf';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { startCase } from 'lodash-es';
 	import { getContext } from 'svelte';
 	import { onShipDesignTooltip } from '../tooltips/ShipDesignTooltip.svelte';
-	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { techs } from '$lib/services/Stores';
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
@@ -50,8 +57,8 @@
 			>
 				<div class="flex flex-col">
 					<div>
-						{design?.name}
-						{#if (tokenState.quantity ?? 0) > 1}
+						{design.name}
+						{#if tokenState.quantity > 1}
 							x{tokenState.quantity}
 						{/if}
 						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
@@ -88,16 +95,29 @@
 			{/if}
 		</div>
 		<div>
-			Shields: {tokenState.stackShields ?? 'none'}
+			Shields: {tokenState.stackShields || 'none'}
 		</div>
 		<div>
-			Tactic: {startCase(token.tactic)}
+			Tactic: {enumToString(
+				BattleTactic,
+				token.tactic ? enumFromJson(BattleTacticSchema, token.tactic) : BattleTactic.UNSPECIFIED
+			)}
 		</div>
 		<div>
-			Primary Target: {startCase(token.primaryTarget)}
+			Primary Target: {enumToString(
+				BattleTarget,
+				token.primaryTarget
+					? enumFromJson(BattleTargetSchema, token.primaryTarget)
+					: BattleTarget.UNSPECIFIED
+			)}
 		</div>
 		<div>
-			Secondary Target: {startCase(token.secondaryTarget)}
+			Secondary Target: {enumToString(
+				BattleTarget,
+				token.secondaryTarget
+					? enumFromJson(BattleTargetSchema, token.secondaryTarget)
+					: BattleTarget.UNSPECIFIED
+			)}
 		</div>
 	{/if}
 </div>

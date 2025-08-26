@@ -932,8 +932,8 @@ func RunTestBattle(players []*Player, fleets []*Fleet) (*BattleRecord, error) {
 
 	for _, player := range players {
 		playersByNum[player.Num] = player
-		player.Race.Spec = computeRaceSpec(&player.Race, &rules)
-		player.Spec = computePlayerSpec(player, &rules, []*Planet{})
+		player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
+		player.Spec = ComputePlayerSpec(player, &rules)
 
 		for _, design := range player.Designs {
 			var err error

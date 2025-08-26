@@ -1,0 +1,31 @@
+version: v2
+clean: true
+managed:
+  # 'enabled: true' turns managed mode on, 'enabled: false' ignores all managed mode options.
+  enabled: true # default: false
+
+  override:
+    - file_option: go_package_prefix
+      value: github.com/sirgwain/craig-stars/proto/gen
+plugins:
+  - local: ["go", "tool", "google.golang.org/protobuf/cmd/protoc-gen-go"]
+    out: proto/gen
+    opt: paths=source_relative
+    exclude_types:
+      - "craig_stars.v1.WasmService"
+  - local: ["go", "tool", "connectrpc.com/connect/cmd/protoc-gen-connect-go"]
+    out: proto/gen
+    opt: paths=source_relative
+    exclude_types:
+      - "craig_stars.v1.WasmService"
+  # wasm protobuf stuff
+  - local: ["go", "tool", "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto"]
+    out: proto/gen
+    opt:
+      - paths=source_relative
+      - features=marshal+unmarshal+size
+  - local: ["go", "tool", "github.com/sirgwain/craig-stars/generators/protoc-gen-wasm-go"]
+    out: proto/gen
+    opt: paths=source_relative
+    types:
+      - "craig_stars.v1.WasmService"

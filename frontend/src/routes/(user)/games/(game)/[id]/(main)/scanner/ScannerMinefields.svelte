@@ -4,21 +4,20 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyMinefield } from '$lib/services/Universe';
+	import { MapObjectType, type Minefield } from '$lib/types/cs-proto';
 	import { equal, key } from '$lib/types/MapObject';
-	import { MapObjectTypeMinefield } from '$lib/types/cs';
 	import ScannerMinefield from './ScannerMinefield.svelte';
 
 	const { universe, selectedMapObject } = getGameContext();
 
-	function getColor(minefield: AnyMinefield) {
-		return $universe.getPlayerColor(minefield.playerNum);
+	function getColor(minefield: Minefield) {
+		return $universe.getPlayerColor(minefield.mapObject?.playerNum);
 	}
 
 	let minefields = $derived($universe.allMinefields);
 	let selectedMinefield = $derived(
-		$selectedMapObject && $selectedMapObject.type === MapObjectTypeMinefield
-			? ($selectedMapObject as AnyMinefield)
+		$selectedMapObject && $selectedMapObject.mapObject?.type === MapObjectType.MINEFIELD
+			? ($selectedMapObject as Minefield)
 			: undefined
 	);
 </script>

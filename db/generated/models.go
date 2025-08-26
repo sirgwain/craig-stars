@@ -16,6 +16,7 @@ type Fleet struct {
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 	GameID            int64
+	ReportAge         int64
 	BattlePlanNum     int64
 	X                 float64
 	Y                 float64
@@ -106,6 +107,7 @@ type Minefield struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	GameID        int64
+	ReportAge     int64
 	X             float64
 	Y             float64
 	Name          string
@@ -114,7 +116,6 @@ type Minefield struct {
 	NumMines      int64
 	Detonate      bool
 	MinefieldType *cs.MinefieldType
-	Spec          *MinefieldSpec
 	Tags          *Tags
 }
 
@@ -123,6 +124,7 @@ type MineralPacket struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	GameID          int64
+	ReportAge       int64
 	X               float64
 	Y               float64
 	Name            string
@@ -146,6 +148,7 @@ type MysteryTrader struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	GameID          int64
+	ReportAge       int64
 	X               float64
 	Y               float64
 	Name            string
@@ -167,6 +170,7 @@ type Planet struct {
 	CreatedAt                         time.Time
 	UpdatedAt                         time.Time
 	GameID                            int64
+	ReportAge                         int64
 	X                                 float64
 	Y                                 float64
 	Name                              string
@@ -260,7 +264,6 @@ type Player struct {
 	ScoreHistory                 *PlayerScores
 	AchievedVictoryConditions    *cs.Bitmask
 	Victor                       bool
-	Spec                         *PlayerSpec
 	Guest                        bool
 	AiDifficulty                 *cs.AIDifficulty
 	AcquiredTechs                *AcquiredTechs
@@ -302,7 +305,6 @@ type Race struct {
 	ResearchCostElectronics   cs.ResearchCostLevel
 	ResearchCostBiotechnology cs.ResearchCostLevel
 	TechsStartHigh            bool
-	Spec                      *RaceSpec
 }
 
 type Salvage struct {
@@ -310,6 +312,7 @@ type Salvage struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	GameID    int64
+	ReportAge int64
 	X         float64
 	Y         float64
 	Name      string
@@ -370,6 +373,7 @@ type Wormhole struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	GameID           int64
+	ReportAge        int64
 	X                float64
 	Y                float64
 	Name             string

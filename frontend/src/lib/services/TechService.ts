@@ -1,18 +1,23 @@
-import type { TechEngine } from '$lib/types/cs';
-import type { TechDefense, TechHullComponent, TechHull } from '$lib/types/cs';
-import type {
-	TechStore,
-	TechPlanetaryScanner,
-	TechTerraform,
-	Tech,
-	TechPlanetary
-} from '$lib/types/cs';
 import techjson from '$lib/ssr/techs.json';
+import {
+	GetTechsResponseSchema,
+	type GetTechsResponseJson,
+	type TechDefense,
+	type TechHull,
+	type TechHullComponent,
+	type TechPlanetary,
+	type TechPlanetaryScanner,
+	type TechTerraform
+} from '$lib/types/cs-proto';
+import type { TechLike, TechStore } from '$lib/types/Tech';
+import { fromJson, type UnknownField } from '@bufbuild/protobuf';
 import { kebabCase } from 'lodash-es';
 
 export class TechService implements TechStore {
-	techs: Tech[] = [];
-	engines: TechEngine[] = [];
+	$typeName: 'craig_stars.v1.GetTechsResponse';
+	$unknown?: UnknownField[] | undefined;
+
+	techs: TechLike[] = [];
 	planetaryScanners: TechPlanetaryScanner[] = [];
 	terraforms: TechTerraform[] = [];
 	defenses: TechDefense[] = [];
@@ -20,58 +25,40 @@ export class TechService implements TechStore {
 	hullComponents: TechHullComponent[] = [];
 	hulls: TechHull[] = [];
 
-	techsByName: Map<string, Tech> = new Map();
+	techsByName: Map<string, TechLike> = new Map();
 	hullsByName: Map<string, TechHull> = new Map();
 	hullComponentsByName: Map<string, TechHullComponent> = new Map();
 
 	constructor(store?: TechStore) {
-		store = store ?? (techjson as unknown as TechStore);
+		this.$typeName = 'craig_stars.v1.GetTechsResponse';
+		store = store ?? fromJson(GetTechsResponseSchema, techjson as unknown as GetTechsResponseJson);
 		this.buildMaps(store);
 	}
 
-	async fetch() {
-		const response = await fetch(`/api/techs`, {
-			method: 'GET',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-		if (response.ok) {
-			const store = (await response.json()) as TechStore;
-			this.buildMaps(store);
-		} else {
-			console.error(response);
-		}
-	}
-
 	private buildMaps(store: TechStore) {
-		this.engines = store.engines ?? [];
 		this.planetaryScanners = store.planetaryScanners ?? [];
 		this.terraforms = store.terraforms ?? [];
 		this.defenses = store.defenses ?? [];
 		this.planetaries = store.planetaries ?? [];
-		this.hullComponents = ((store.engines ?? []) as TechHullComponent[]).concat(
-			store.hullComponents
-		);
+		this.hullComponents = store.hullComponents ?? [];
 		this.hulls = store.hulls ?? [];
 
 		this.techs = [];
-		this.techs = this.techs.concat(store.engines);
-		this.techs = this.techs.concat(store.planetaryScanners);
-		this.techs = this.techs.concat(store.defenses);
-		this.techs = this.techs.concat(store.planetaries);
-		this.techs = this.techs.concat(store.hullComponents);
-		this.techs = this.techs.concat(store.hulls);
-		this.techs = this.techs.concat(store.terraforms);
+		this.techs = this.techs.concat(this.hullComponents);
+		this.techs = this.techs.concat(this.planetaryScanners);
+		this.techs = this.techs.concat(this.defenses);
+		this.techs = this.techs.concat(this.planetaries);
+		this.techs = this.techs.concat(this.hulls);
+		this.techs = this.techs.concat(this.terraforms);
 
-		this.techsByName = new Map(this.techs.map((t) => [kebabCase(t.name), t]));
+		this.techsByName = new Map(this.techs.map((t) => [kebabCase(t.tech?.name), t]));
 		this.hullComponentsByName = new Map(
-			this.hullComponents.concat(this.engines).map((t) => [kebabCase(t.name), t])
+			this.hullComponents.map((t) => [kebabCase(t.tech?.name), t])
 		);
-		this.hullsByName = new Map(this.hulls.map((t) => [kebabCase(t.name), t]));
+		this.hullsByName = new Map(this.hulls.map((t) => [kebabCase(t.tech?.name), t]));
 	}
 
-	getTech(name: string): Tech | undefined {
+	getTech(name: string): TechLike | undefined {
 		return this.techsByName.get(kebabCase(name));
 	}
 

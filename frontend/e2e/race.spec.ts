@@ -2,6 +2,7 @@ import { expect, test } from './setup';
 
 test('view races', async ({ authenticatedPage: page }) => {
 	await page.getByRole('link', { name: 'Races' }).click();
+	await page.waitForURL(`/races`);
 
 	// wait for races to show up
 	await expect(page.getByRole('link', { name: 'Humanoids' })).toBeVisible();

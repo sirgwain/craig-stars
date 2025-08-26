@@ -1,0 +1,45 @@
+output_package: converter
+output_file: enummapper.generated.go
+source_package: github.com/sirgwain/craig-stars/cs
+source_package_alias: cs
+proto_package: github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1
+proto_package_alias: craig_starsv1
+enums:
+  - name: AIDifficulty
+  - name: BattleAttackWho
+  - name: BattleRecordTokenActionType
+  - name: BattleTactic
+  - name: BattleTarget
+  - name: CargoTransferStatus
+  - name: CometSize
+  - name: Density
+  - name: FleetPurpose
+  - name: GameStartMode
+  - name: GameState
+  - name: MapObjectType
+  - name: MinefieldType
+  - name: MysteryTraderRewardType
+  - name: NewGamePlayerType
+  - name: NextResearchField
+  - name: PlayerMessageTargetType
+  - name: PlayerMessageType
+  - name: PlayerPositions
+  - name: PlayerRelation
+  - name: PRT
+  - name: QueueItemType
+  - name: RandomEvent
+  - name: RepairRate
+  - name: ResearchCostLevel
+  - name: ShipDesignPurpose
+  - name: Size
+  - name: SpendLeftoverPointsOn
+  - name: TechCategory
+  - name: TechField
+  - name: TechHullType
+  - name: TechOrigin
+  - name: TechTag
+  - name: TerraformHabType
+  - name: UserRole
+  - name: WaypointTask
+  - name: WaypointTaskTransportAction
+  - name: WormholeStability

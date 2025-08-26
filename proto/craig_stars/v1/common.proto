@@ -1,0 +1,220 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "google/protobuf/timestamp.proto";
+
+enum MapObjectType {
+  MAP_OBJECT_TYPE_UNSPECIFIED = 0;
+  MAP_OBJECT_TYPE_PLANET = 1;
+  MAP_OBJECT_TYPE_FLEET = 2;
+  MAP_OBJECT_TYPE_WORMHOLE = 3;
+  MAP_OBJECT_TYPE_MINEFIELD = 4;
+  MAP_OBJECT_TYPE_MYSTERY_TRADER = 5;
+  MAP_OBJECT_TYPE_SALVAGE = 6;
+  MAP_OBJECT_TYPE_MINERAL_PACKET = 7;
+}
+
+enum GameState {
+  GAME_STATE_UNSPECIFIED = 0;
+  GAME_STATE_SETUP = 1;
+  GAME_STATE_GENERATING_UNIVERSE = 2;
+  GAME_STATE_WAITING_FOR_PLAYERS = 3;
+  GAME_STATE_GENERATING_TURN = 4;
+  GAME_STATE_GENERATING_TURN_ERROR = 5;
+}
+
+enum Size {
+  SIZE_UNSPECIFIED = 0;
+  SIZE_TINY = 1;
+  SIZE_TINY_WIDE = 2;
+  SIZE_SMALL = 3;
+  SIZE_SMALL_WIDE = 4;
+  SIZE_MEDIUM = 5;
+  SIZE_MEDIUM_WIDE = 6;
+  SIZE_LARGE = 7;
+  SIZE_LARGE_WIDE = 8;
+  SIZE_HUGE = 9;
+  SIZE_HUGE_WIDE = 10;
+}
+
+enum Density {
+  DENSITY_UNSPECIFIED = 0;
+  DENSITY_SPARSE = 1;
+  DENSITY_NORMAL = 2;
+  DENSITY_DENSE = 3;
+  DENSITY_PACKED = 4;
+}
+
+enum PlayerPositions {
+  PLAYER_POSITIONS_UNSPECIFIED = 0;
+  PLAYER_POSITIONS_CLOSE = 1;
+  PLAYER_POSITIONS_MODERATE = 2;
+  PLAYER_POSITIONS_FARTHER = 3;
+  PLAYER_POSITIONS_DISTANT = 4;
+}
+
+enum GameStartMode {
+  GAME_START_MODE_UNSPECIFIED = 0;
+  GAME_START_MODE_ACC_BBS = 1;
+  GAME_START_MODE_MAX = 2;
+}
+
+enum NewGamePlayerType {
+  NEW_GAME_PLAYER_TYPE_UNSPECIFIED = 0;
+  NEW_GAME_PLAYER_TYPE_HOST = 1;
+  NEW_GAME_PLAYER_TYPE_GUEST = 2;
+  NEW_GAME_PLAYER_TYPE_OPEN = 3;
+  NEW_GAME_PLAYER_TYPE_AI = 4;
+}
+
+enum AiDifficulty {
+  AI_DIFFICULTY_UNSPECIFIED = 0;
+  AI_DIFFICULTY_EASY = 1;
+  AI_DIFFICULTY_NORMAL = 2;
+  AI_DIFFICULTY_HARD = 3;
+  AI_DIFFICULTY_CHEATER = 4;
+}
+
+enum PlayerType {
+  PLAYER_TYPE_UNSPECIFIED = 0;
+  PLAYER_TYPE_AI = 1;
+  PLAYER_TYPE_GUEST = 2;
+  PLAYER_TYPE_OPEN = 3;
+}
+
+enum TechField {
+  TECH_FIELD_UNSPECIFIED = 0;
+  TECH_FIELD_ENERGY = 1;
+  TECH_FIELD_WEAPONS = 2;
+  TECH_FIELD_PROPULSION = 3;
+  TECH_FIELD_CONSTRUCTION = 4;
+  TECH_FIELD_ELECTRONICS = 5;
+  TECH_FIELD_BIOTECHNOLOGY = 6;
+}
+
+enum NextResearchField {
+  NEXT_RESEARCH_FIELD_UNSPECIFIED = 0;
+  NEXT_RESEARCH_FIELD_SAME_FIELD = 1;
+  NEXT_RESEARCH_FIELD_ENERGY = 2;
+  NEXT_RESEARCH_FIELD_WEAPONS = 3;
+  NEXT_RESEARCH_FIELD_PROPULSION = 4;
+  NEXT_RESEARCH_FIELD_CONSTRUCTION = 5;
+  NEXT_RESEARCH_FIELD_ELECTRONICS = 6;
+  NEXT_RESEARCH_FIELD_BIOTECHNOLOGY = 7;
+  NEXT_RESEARCH_FIELD_LOWEST_FIELD = 8;
+}
+
+enum BattleTarget {
+  BATTLE_TARGET_UNSPECIFIED = 0;
+  BATTLE_TARGET_ANY = 1;
+  BATTLE_TARGET_STARBASE = 2;
+  BATTLE_TARGET_ARMED_SHIPS = 3;
+  BATTLE_TARGET_BOMBERS_FREIGHTERS = 4;
+  BATTLE_TARGET_UNARMED_SHIPS = 5;
+  BATTLE_TARGET_FUEL_TRANSPORTS = 6;
+  BATTLE_TARGET_FREIGHTERS = 7;
+}
+
+enum BattleTactic {
+  BATTLE_TACTIC_UNSPECIFIED = 0;
+  BATTLE_TACTIC_DISENGAGE = 1;
+  BATTLE_TACTIC_DISENGAGE_IF_CHALLENGED = 2;
+  BATTLE_TACTIC_MINIMIZE_DAMAGE_TO_SELF = 3;
+  BATTLE_TACTIC_MAXIMIZE_NET_DAMAGE = 4;
+  BATTLE_TACTIC_MAXIMIZE_DAMAGE_RATIO = 5;
+  BATTLE_TACTIC_MAXIMIZE_DAMAGE = 6;
+}
+
+enum BattleAttackWho {
+  BATTLE_ATTACK_WHO_UNSPECIFIED = 0;
+  BATTLE_ATTACK_WHO_ENEMIES = 1;
+  BATTLE_ATTACK_WHO_ENEMIES_AND_NEUTRALS = 2;
+  BATTLE_ATTACK_WHO_EVERYONE = 3;
+}
+
+enum ResourceType {
+  RESOURCE_TYPE_UNSPECIFIED = 0;
+  RESOURCE_TYPE_IRONIUM = 1;
+  RESOURCE_TYPE_BORANIUM = 2;
+  RESOURCE_TYPE_GERMANIUM = 3;
+  RESOURCE_TYPE_COLONISTS = 4;
+  RESOURCE_TYPE_FUEL = 5;
+  RESOURCE_TYPE_RESOURCES = 6;
+}
+
+message Vector {
+  double x = 1;
+  double y = 2;
+}
+
+message Hab {
+  int32 grav = 1;
+  int32 temp = 2;
+  int32 rad = 3;
+}
+
+message Mineral {
+  int32 ironium = 1;
+  int32 boranium = 2;
+  int32 germanium = 3;
+}
+
+message Cargo {
+  int32 ironium = 1;
+  int32 boranium = 2;
+  int32 germanium = 3;
+  int32 colonists = 4;
+}
+
+message Cost {
+  int32 ironium = 1;
+  int32 boranium = 2;
+  int32 germanium = 3;
+  int32 resources = 4;
+}
+
+message DBObject {
+  int64 id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+message GameDBObject {
+  int64 id = 1;
+  int64 game_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message MapObject {
+  MapObjectType type = 1;
+  Vector position = 2;
+  int32 num = 3;
+  int32 player_num = 4;
+  string name = 5;
+  map<string, string> tags = 6;
+  int32 report_age = 7;
+}
+
+message MapObjectTarget {
+  Vector target_position = 1;
+  MapObjectType target_type = 2;
+  string target_name = 3;
+  int32 target_num = 4;
+  int32 target_player_num = 5;
+}
+
+message TechLevel {
+  int32 energy = 1;
+  int32 weapons = 2;
+  int32 propulsion = 3;
+  int32 construction = 4;
+  int32 electronics = 5;
+  int32 biotechnology = 6;
+}
+
+message WaypointDest {
+  MapObject mo = 1;
+  Vector position = 2;
+}

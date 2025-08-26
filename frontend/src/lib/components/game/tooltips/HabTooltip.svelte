@@ -1,18 +1,28 @@
 <script lang="ts" module>
-	import type { HabType } from '$lib/types/cs';
+	import type { HabType } from '$lib/types/Hab';
 	import type { CommandedPlayer } from '$lib/types/Player';
+	import type { Planet } from '$lib/types/cs-proto';
+
 	export type HabTooltipProps = {
 		player: CommandedPlayer;
-		planet: AnyPlanet;
+		planet: Planet;
 		habType: HabType;
 	};
 </script>
 
 <script lang="ts">
-	import type { AnyPlanet } from '$lib/services/Universe';
-	import { add, getHabValue, getHabValueString, habTypeString, withHabValue } from '$lib/types/Hab';
-	import { getPlanetHabitability, isImmune } from '$lib/types/Race';
+	import { getGameContext } from '$lib/services/GameContext';
+	import {
+		add,
+		emptyHab,
+		getHabValue,
+		getHabValueString,
+		habTypeString,
+		withHabValue
+	} from '$lib/types/Hab';
+	import { isImmune } from '$lib/types/Race';
 
+	const { cs } = getGameContext();
 	let { player, planet, habType }: HabTooltipProps = $props();
 
 	const currentHab = getHabValue(planet.hab, habType);
@@ -20,14 +30,22 @@
 	const habString = getHabValueString(habType, currentHab);
 	const terraformedHabString = getHabValueString(
 		habType,
-		getHabValue(add(planet.hab ?? {}, withHabValue(habType, terraformedHab)), habType)
+		getHabValue(add(planet.hab ?? emptyHab(), withHabValue(habType, terraformedHab)), habType)
 	);
 	const habLowString = getHabValueString(habType, getHabValue(player.race.habLow, habType));
 	const habHighString = getHabValueString(habType, getHabValue(player.race.habHigh, habType));
-	const habCenter = getHabValue(player.race.spec?.habCenter, habType);
-	const habAfterTerraforming = add(planet.hab ?? {}, withHabValue(habType, terraformedHab));
+	const habCenter = getHabValue(player.race.spec.habCenter, habType);
+	const habAfterTerraforming = add(planet.hab ?? emptyHab(), withHabValue(habType, terraformedHab));
 	const habValueAfterTerraforming = getHabValue(habAfterTerraforming, habType);
-	const habitabilityAfterTerraforming = getPlanetHabitability(player.race, habAfterTerraforming);
+
+	let habitabilityAfterTerraforming = $state(0);
+	$effect(() => {
+		cs.wasmService
+			.getPlanetHabitability({ race: player.race, hab: habAfterTerraforming })
+			.then((resp) => {
+				habitabilityAfterTerraforming = resp.result;
+			});
+	});
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">
@@ -64,7 +82,7 @@
 			{#if terraformedHab != 0}
 				<p>
 					You currently possess the technology to modify the {habTypeString(habType)} on
-					<span class="font-semibold">{planet.name}</span> within the range of
+					<span class="font-semibold">{planet.mapObject?.name}</span> within the range of
 					<span class="font-semibold"
 						>{currentHab <= habValueAfterTerraforming ? habString : terraformedHabString}</span
 					>

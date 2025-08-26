@@ -2,9 +2,9 @@
 	import { page } from '$app/stores';
 	import DarkModeToggler from '$lib/components/DarkModeToggler.svelte';
 	import UserAvatar from '$lib/components/UserAvatar.svelte';
+	import { GameState } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { me } from '$lib/services/Stores';
-	import { GameStateWaitingForPlayers } from '$lib/types/cs';
 	import { ArrowUpTray, Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
@@ -29,13 +29,16 @@
 	<div class="flex-1">
 		<a class="btn btn-ghost text-xl text-primary" href="/">cs</a>
 		<div class="md:block">
-			<a class="btn btn-ghost text-lg text-accent" href={`/games/${$game.id}`}
-				>{$game.name} - {$game.year}</a
+			<a
+				data-type="game-link"
+				data-id={`${$game.name}`}
+				class="btn btn-ghost text-lg text-accent"
+				href={`/games/${$game.id}`}>{$game.name} - {$game.year}</a
 			>
 		</div>
 	</div>
 	<div class="flex-initial">
-		{#if $page.url.pathname === `/games/${$game.id}` && !$player.submittedTurn && $game.state === GameStateWaitingForPlayers}
+		{#if $page.url.pathname === `/games/${$game.id}` && !$player.submittedTurn && $game.state === GameState.WAITING_FOR_PLAYERS}
 			<button type="button" onclick={onSubmitTurn} class="btn btn-primary" title="submit turn"
 				><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
 					src={ArrowUpTray}

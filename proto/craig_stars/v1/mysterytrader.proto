@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/shipdesign.proto";
+
+enum MysteryTraderRewardType {
+  MYSTERY_TRADER_REWARD_TYPE_UNSPECIFIED = 0;
+  MYSTERY_TRADER_REWARD_TYPE_RESEARCH = 1;
+  MYSTERY_TRADER_REWARD_TYPE_ENGINE = 2;
+  MYSTERY_TRADER_REWARD_TYPE_BOMB = 3;
+  MYSTERY_TRADER_REWARD_TYPE_ARMOR = 4;
+  MYSTERY_TRADER_REWARD_TYPE_SHIELD = 5;
+  MYSTERY_TRADER_REWARD_TYPE_ELECTRICAL = 6;
+  MYSTERY_TRADER_REWARD_TYPE_MECHANICAL = 7;
+  MYSTERY_TRADER_REWARD_TYPE_TORPEDO = 8;
+  MYSTERY_TRADER_REWARD_TYPE_MINE_ROBOT = 9;
+  MYSTERY_TRADER_REWARD_TYPE_SHIP_HULL = 10;
+  MYSTERY_TRADER_REWARD_TYPE_BEAM_WEAPON = 11;
+  MYSTERY_TRADER_REWARD_TYPE_MINE_LAYER = 12;
+  MYSTERY_TRADER_REWARD_TYPE_GENESIS = 13;
+  MYSTERY_TRADER_REWARD_TYPE_JUMP_GATE = 14;
+  MYSTERY_TRADER_REWARD_TYPE_LIFEBOAT = 15;
+}
+
+message MysteryTrader {
+  GameDBObject game_db_object = 1;
+  MapObject map_object = 2;
+  int32 warp_speed = 3;
+  Vector destination = 4;
+  int32 requested_boon = 5;
+  MysteryTraderRewardType reward_type = 6;
+  Vector heading = 7;
+  map<int32, bool> players_rewarded = 8;
+  MysteryTraderSpec spec = 9;
+}
+message MysteryTraderSpec {}
+
+message MysteryTraderReward {
+  MysteryTraderRewardType type = 1;
+  TechLevel tech_levels = 2;
+  string tech = 3;
+  ShipDesign ship = 4;
+  int32 ship_count = 5;
+}

@@ -12,10 +12,11 @@ type Tags map[string]string
 type NewGamePlayerType string
 
 const (
-	NewGamePlayerTypeHost  NewGamePlayerType = "Host"
-	NewGamePlayerTypeGuest NewGamePlayerType = "Guest"
-	NewGamePlayerTypeOpen  NewGamePlayerType = "Open"
-	NewGamePlayerTypeAI    NewGamePlayerType = "AI"
+	NewGamePlayerTypeUnspecified NewGamePlayerType = ""
+	NewGamePlayerTypeHost        NewGamePlayerType = "Host"
+	NewGamePlayerTypeGuest       NewGamePlayerType = "Guest"
+	NewGamePlayerTypeOpen        NewGamePlayerType = "Open"
+	NewGamePlayerTypeAI          NewGamePlayerType = "AI"
 )
 
 type AIDifficulty string
@@ -31,7 +32,7 @@ const (
 // The Game itself tracks some settings, the Rules, the Host and the current state (year/victory declared)
 // All other parts of a Game are stored in the Universe
 type Game struct {
-	DBObject                     `tstype:",extends"`
+	DBObject
 	HostID                       int64             `json:"hostId"`
 	Name                         string            `json:"name" header:"Name"`
 	State                        GameState         `json:"state"`
@@ -87,8 +88,8 @@ type GameSettings struct {
 
 // A game with a list of player statuses
 type GameWithPlayers struct {
-	Game    `tstype:",extends"`
-	Players []PlayerStatus `json:"players"`
+	Game
+	Players []GamePlayer `json:"players"`
 }
 
 // return true if this is a single player game
@@ -124,34 +125,37 @@ func (g *FullGame) IsSinglePlayer() bool {
 type Size string
 
 const (
-	SizeTiny       Size = "Tiny"
-	SizeTinyWide   Size = "TinyWide"
-	SizeSmall      Size = "Small"
-	SizeSmallWide  Size = "SmallWide"
-	SizeMedium     Size = "Medium"
-	SizeMediumWide Size = "MediumWide"
-	SizeLarge      Size = "Large"
-	SizeLargeWide  Size = "LargeWide"
-	SizeHuge       Size = "Huge"
-	SizeHugeWide   Size = "HugeWide"
+	SizeUnspecified Size = ""
+	SizeTiny        Size = "Tiny"
+	SizeTinyWide    Size = "TinyWide"
+	SizeSmall       Size = "Small"
+	SizeSmallWide   Size = "SmallWide"
+	SizeMedium      Size = "Medium"
+	SizeMediumWide  Size = "MediumWide"
+	SizeLarge       Size = "Large"
+	SizeLargeWide   Size = "LargeWide"
+	SizeHuge        Size = "Huge"
+	SizeHugeWide    Size = "HugeWide"
 )
 
 type Density string
 
 const (
-	DensitySparse Density = "Sparse"
-	DensityNormal Density = "Normal"
-	DensityDense  Density = "Dense"
-	DensityPacked Density = "Packed"
+	DensityUnspecified Density = ""
+	DensitySparse      Density = "Sparse"
+	DensityNormal      Density = "Normal"
+	DensityDense       Density = "Dense"
+	DensityPacked      Density = "Packed"
 )
 
 type PlayerPositions string
 
 const (
-	PlayerPositionsClose    PlayerPositions = "Close"
-	PlayerPositionsModerate PlayerPositions = "Moderate"
-	PlayerPositionsFarther  PlayerPositions = "Farther"
-	PlayerPositionsDistant  PlayerPositions = "Distant"
+	PlayerPositionsUnspecified PlayerPositions = ""
+	PlayerPositionsClose       PlayerPositions = "Close"
+	PlayerPositionsModerate    PlayerPositions = "Moderate"
+	PlayerPositionsFarther     PlayerPositions = "Farther"
+	PlayerPositionsDistant     PlayerPositions = "Distant"
 )
 
 type GameStartMode string
@@ -165,6 +169,7 @@ const (
 type GameState string
 
 const (
+	GameStateUnspecified         GameState = ""
 	GameStateSetup               GameState = "Setup"
 	GameStateGeneratingUniverse  GameState = "GeneratingUniverse"
 	GameStateWaitingForPlayers   GameState = "WaitingForPlayers"
@@ -398,8 +403,8 @@ func (g *FullGame) computeSpecs() error {
 
 	rules := &g.Rules
 	for _, player := range g.Players {
-		player.Race.Spec = computeRaceSpec(&player.Race, rules)
-		player.Spec = computePlayerSpec(player, rules, g.Planets)
+		player.Race.Spec = ComputeRaceSpec(&player.Race, rules)
+		player.Spec = ComputePlayerSpec(player, rules)
 
 		for _, design := range player.Designs {
 			if design.OriginalPlayerNum != None {
@@ -429,7 +434,7 @@ func (g *FullGame) computeSpecs() error {
 	for _, planet := range g.Planets {
 		if planet.Owned() {
 			player := g.getPlayer(planet.PlayerNum)
-			planet.Spec = computePlanetSpec(rules, player, planet)
+			planet.Spec = ComputePlanetSpec(rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 				return fmt.Errorf("planet %s unable to populate queue designs: %w", planet.Name, err)
 			}
@@ -452,19 +457,10 @@ func (g *FullGame) computeSpecs() error {
 		}
 	}
 
-	for _, minefield := range g.Minefields {
-		player := g.getPlayer(minefield.PlayerNum)
-		minefield.Spec = computeMinefieldSpec(rules, player, minefield, g.numPlanetsWithin(minefield.Position, minefield.Radius()))
-	}
-
 	for _, wormhole := range g.Wormholes {
 		wormhole.Spec = computeWormholeSpec(wormhole, rules)
 	}
 
-	// compute the research specs after all the planet specs are computed
-	for _, player := range g.Players {
-		player.Spec.PlayerResearchSpec = ComputePlayerResearchSpec(player, rules, g.Planets)
-	}
 	return nil
 
 }

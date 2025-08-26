@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/game.proto";
+import "craig_stars/v1/user.proto";
+
+// AdminService exposes administrative RPCs.
+// All methods require the caller to be an admin (enforced server-side).
+service AdminService {
+  // ConvertGuestUser moves all guest user's players/races/games to a target user and deletes the guest user.
+  rpc ConvertGuestUser(ConvertGuestUserRequest) returns (ConvertGuestUserResponse);
+
+  // GetAllGames returns all games with their players.
+  rpc GetAllGames(GetAllGamesRequest) returns (GetAllGamesResponse);
+
+  // GetUserGames returns all games for a specified user.
+  rpc GetUserGames(GetUserGamesRequest) returns (GetUserGamesResponse);
+
+  // GetUsers returns all users
+  rpc GetUsers(GetUsersRequest) returns (GetUsersResponse);
+}
+
+message ConvertGuestUserRequest {
+  int64 guest_user_id = 1; // the guest user to convert FROM
+  int64 user_id = 2; // the real user to convert TO
+}
+
+message ConvertGuestUserResponse {}
+
+message GetAllGamesRequest {}
+
+message GetAllGamesResponse {
+  repeated GameWithPlayers games = 1;
+}
+
+message GetUserGamesRequest {
+  int64 user_id = 1;
+}
+
+message GetUserGamesResponse {
+  repeated GameWithPlayers games = 1;
+}
+
+message GetUsersRequest {}
+
+message GetUsersResponse {
+  repeated User users = 1;
+}

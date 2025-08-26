@@ -1,37 +1,22 @@
-import type { Mineral } from './cs';
 import {
-	Boranium,
-	Colonists,
-	Fuel,
-	Germanium,
-	Ironium,
-	Resources,
+	CargoSchema,
+	ResourceType,
 	type Cargo,
-	type ResourceType
-} from './cs';
+	type CargoJson,
+	type MineralJson as Mineral
+} from '$lib/types/cs-proto';
+import { create } from '@bufbuild/protobuf';
 
-export function resourceTypeToString(t: ResourceType): string {
-	switch (t) {
-		case Ironium:
-			return 'ironium';
-		case Boranium:
-			return 'boranium';
-		case Germanium:
-			return 'germanium';
-		case Colonists:
-			return 'colonists';
-		case Fuel:
-			return 'fuel';
-		case Resources:
-			return 'resources';
-	}
-	return 'unknown';
-}
+export type CargoType = ResourceType;
 
 export const totalCargo = (c: Cargo | undefined) =>
 	c ? (c.ironium ?? 0) + (c.boranium ?? 0) + (c.germanium ?? 0) + (c.colonists ?? 0) : 0;
 
 export const emptyCargo = (): Cargo => {
+	return create(CargoSchema, emptyCargoJson());
+};
+
+export const emptyCargoJson = (): CargoJson => {
 	return {
 		ironium: 0,
 		boranium: 0,
@@ -41,40 +26,40 @@ export const emptyCargo = (): Cargo => {
 };
 
 // return this cargo with all fields negated
-export const negativeCargo = (c: Cargo) => {
-	return {
+export const negativeCargo = (c: Cargo): Cargo => {
+	return create(CargoSchema, {
 		ironium: -(c.ironium ?? 0),
 		boranium: -(c.boranium ?? 0),
 		germanium: -(c.germanium ?? 0),
 		colonists: -(c.colonists ?? 0)
-	};
+	});
 };
 
-export const add = (c1: Cargo, c2: Cargo) => {
-	return {
-		ironium: (c1.ironium ?? 0) + (c2.ironium ?? 0),
-		boranium: (c1.boranium ?? 0) + (c2.boranium ?? 0),
-		germanium: (c1.germanium ?? 0) + (c2.germanium ?? 0),
-		colonists: (c1.colonists ?? 0) + (c2.colonists ?? 0)
-	};
+export const add = (c1: Cargo, c2: Cargo | undefined): Cargo => {
+	return create(CargoSchema, {
+		ironium: (c1.ironium ?? 0) + (c2?.ironium ?? 0),
+		boranium: (c1.boranium ?? 0) + (c2?.boranium ?? 0),
+		germanium: (c1.germanium ?? 0) + (c2?.germanium ?? 0),
+		colonists: (c1.colonists ?? 0) + (c2?.colonists ?? 0)
+	});
 };
 
-export const subtract = (c1: Cargo, c2: Cargo) => {
-	return {
+export const subtract = (c1: Cargo, c2: Cargo): Cargo => {
+	return create(CargoSchema, {
 		ironium: (c1.ironium ?? 0) - (c2.ironium ?? 0),
 		boranium: (c1.boranium ?? 0) - (c2.boranium ?? 0),
 		germanium: (c1.germanium ?? 0) - (c2.germanium ?? 0),
 		colonists: (c1.colonists ?? 0) - (c2.colonists ?? 0)
-	};
+	});
 };
 
-export const addMineral = (c1: Cargo, m1: Mineral) => {
-	return {
+export const addMineral = (c1: Cargo, m1: Mineral): Cargo => {
+	return create(CargoSchema, {
 		ironium: (c1.ironium ?? 0) + (m1.ironium ?? 0),
 		boranium: (c1.boranium ?? 0) + (m1.boranium ?? 0),
 		germanium: (c1.germanium ?? 0) + (m1.germanium ?? 0),
 		colonists: c1.colonists ?? 0
-	};
+	});
 };
 
 export function toMineral(cargo: Cargo): Mineral {
@@ -96,9 +81,9 @@ export function cargoPercent(cargo: Cargo, capacity: number | undefined): Cargo 
 	}
 
 	let total = 0;
-	const percent: Cargo = {
+	const percent: Cargo = create(CargoSchema, {
 		ironium: Math.round(((cargo.ironium ?? 0) / capacity) * 100)
-	};
+	});
 	total = percent.ironium ?? 0;
 	percent.boranium = Math.min(100 - total, Math.round(((cargo.boranium ?? 0) / capacity) * 100));
 	total += percent.boranium ?? 0;

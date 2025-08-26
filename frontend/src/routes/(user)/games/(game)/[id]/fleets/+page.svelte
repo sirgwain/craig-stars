@@ -6,9 +6,10 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { WaypointTask, type Fleet } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
 	import { fleetsSortBy, getEta, getLocation } from '$lib/types/Fleet';
 	import { getMapObjectName } from '$lib/types/MapObject';
-	import { type Fleet } from '$lib/types/cs';
 
 	const {
 		game,
@@ -28,16 +29,22 @@
 	};
 
 	const selectTarget = (fleet: Fleet, waypointIndex: number) => {
-		if (waypointIndex < 0 || waypointIndex > fleet.waypoints.length - 1) {
+		if (
+			!fleet.fleetOrders ||
+			waypointIndex < 0 ||
+			waypointIndex > fleet.fleetOrders.waypoints.length - 1
+		) {
 			return;
 		}
-		const target = $universe.getMapObject(fleet.waypoints[waypointIndex]);
+		const target = $universe.getMapObject(
+			fleet.fleetOrders.waypoints[waypointIndex].mapObjectTarget
+		);
 		if (target) {
 			selectMapObject(target);
 			zoomToMapObject(target);
 		}
 
-		selectWaypoint(fleet.waypoints[waypointIndex]);
+		selectWaypoint(fleet.fleetOrders.waypoints[waypointIndex]);
 
 		commandMapObject(fleet);
 		goto(`/games/${$game.id}`);
@@ -48,10 +55,13 @@
 	let filteredFleets = $derived(
 		$universe
 			.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
-			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? []
+			.filter((i) => i.mapObject?.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
 	);
 
 	type TableFleet = Fleet & {
+		name?: never;
+		num?: never;
+		battlePlanNum?: never;
 		location?: never;
 		destination?: never;
 		task?: never;
@@ -160,6 +170,8 @@
 					<button class="cs-link text-xl text-left" onclick={() => selectFleet(row)}
 						>{getMapObjectName(row)}</button
 					>
+				{:else if column.key == 'num'}
+					{row.mapObject?.num ?? 0}
 				{:else if column.key == 'location'}
 					{@const location = getLocation(row, $universe)}
 					<button class="cs-link text-xl text-left" onclick={() => selectTarget(row, 0)}
@@ -167,8 +179,8 @@
 					>
 				{:else if column.key == 'destination'}
 					{@const targetName =
-						row.waypoints && row.waypoints.length > 1
-							? $universe.getTargetName(row.waypoints[1])
+						row.fleetOrders?.waypoints && row.fleetOrders?.waypoints.length > 1
+							? $universe.getTargetName(row.fleetOrders?.waypoints[1])
 							: '--'}
 
 					{#if targetName !== '--'}
@@ -179,8 +191,10 @@
 						--
 					{/if}
 				{:else if column.key == 'task'}
-					{row.waypoints && row.waypoints.length > 1 && row.waypoints[1].task
-						? row.waypoints[1].task
+					{row.fleetOrders?.waypoints &&
+					row.fleetOrders?.waypoints.length > 1 &&
+					row.fleetOrders?.waypoints[1].task
+						? enumToString(WaypointTask, row.fleetOrders?.waypoints[1].task)
 						: '(no task here)'}
 				{:else if column.key == 'eta'}
 					{#if getEta(row) == -1}
@@ -192,19 +206,17 @@
 					{/if}
 				{:else if column.key == 'fuel'}
 					<div class="w-32 leading-[1rem]">
-						<FuelBar value={row.fuel} capacity={row.spec.fuelCapacity} />
+						<FuelBar value={row.fuel} capacity={row.spec?.shipDesignSpec?.fuelCapacity} />
 					</div>
 				{:else if column.key == 'cargo'}
 					<div class="w-32 leading-[1rem]">
-						<CargoBar value={row.cargo} capacity={row.spec.cargoCapacity} />
+						<CargoBar value={row.cargo} capacity={row.spec?.shipDesignSpec?.cargoCapacity} />
 					</div>
 				{:else if column.key == 'composition'}
-					{@const design = $game
-						? $universe.getDesign(
-								$player.num,
-								row.tokens && row.tokens.length ? row.tokens[0].designNum : 0
-							)
-						: undefined}
+					{@const design = $universe.getDesign(
+						$player.num,
+						row.tokens && row.tokens.length ? row.tokens[0].designNum : 0
+					)}
 					<div class="flex flex-row justify-between">
 						<div>
 							{design ? design.name : ''}
@@ -217,12 +229,14 @@
 						</div>
 					</div>
 				{:else if column.key == 'cloak'}
-					{row.spec && row.spec.cloakPercent ? row.spec.cloakPercent + '%' : '--'}
+					{row.spec && row.spec.shipDesignSpec?.cloakPercent
+						? row.spec.shipDesignSpec?.cloakPercent + '%'
+						: '--'}
 				{:else if column.key == 'battlePlanNum'}
-					{@const battlePlan = $game ? $player.getBattlePlan(row.battlePlanNum ?? 0) : undefined}
+					{@const battlePlan = $player.getBattlePlan(row.fleetOrders?.battlePlanNum ?? 0)}
 					{battlePlan?.name ?? ''}
 				{:else if column.key == 'mass'}
-					{row.spec?.mass ?? 0}
+					{row.spec?.shipDesignSpec?.mass ?? 0}
 				{:else}
 					{cell}
 				{/if}

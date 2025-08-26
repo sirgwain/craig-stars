@@ -1,0 +1,12 @@
+version: v2
+clean: true
+inputs:
+  - directory: ../proto
+plugins:
+  - local: protoc-gen-es
+    out: src/lib/protogen
+    # Also generate any imported dependencies
+    include_imports: true
+    opt:
+      - target=ts
+      - json_types=true

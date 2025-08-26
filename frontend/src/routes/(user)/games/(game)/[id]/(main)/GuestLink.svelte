@@ -1,12 +1,14 @@
 <script lang="ts">
 	import InfoToast from '$lib/components/InfoToast.svelte';
+	import type { GuestUser } from '$lib/types/cs-proto';
+	import type { PlayerStatus } from '$lib/types/cs-proto';
+	import { gameClient } from '$lib/services/connect';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { GameService } from '$lib/services/GameService';
-	import type { PlayerStatus } from '$lib/types/cs';
-	import type { UserSession } from '$lib/types/User';
 	import { Square2Stack } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
+	import { addError } from '$lib/services/Errors';
+	import type { ConnectError } from '@connectrpc/connect';
 
 	const { game } = getGameContext();
 
@@ -17,16 +19,21 @@
 
 	let { player, hideText = false }: Props = $props();
 
-	let guest: UserSession | undefined = $state();
+	let guest: GuestUser | undefined = $state();
 	let copiedText = $state('');
 
 	onMount(async () => {
-		if (player.guest) {
-			guest = await await GameService.loadGuest($game.id, player.num);
+		try {
+			if (player.guest) {
+				const resp = await gameClient.getGuestUser({ gameId: $game.id, playerNum: player.num });
+				guest = resp.user;
+			}
+		} catch (e) {
+			addError(e as ConnectError);
 		}
 	});
 
-	let link = $derived(`${window.location.origin}/auth/guest/${guest?.password}`);
+	let link = $derived(`${window.location.origin}/auth/guest/${guest?.hash}`);
 </script>
 
 {#if guest}

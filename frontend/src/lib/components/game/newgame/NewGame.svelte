@@ -1,25 +1,26 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import { Service } from '$lib/services/Service';
+	import { gameClient } from '$lib/services/connect';
 	import {
-		AIDifficultyNone,
-		AIDifficultyNormal,
-		DensityNormal,
-		GameStartModeNormal,
-		NewGamePlayerTypeAI,
-		NewGamePlayerTypeHost,
-		PlayerPositionsModerate,
-		SizeSmall,
 		VictoryConditionAttainTechLevels,
 		VictoryConditionExceedsSecondPlaceScore,
-		VictoryConditionOwnPlanets,
-		type Game,
+		VictoryConditionOwnPlanets
+	} from '$lib/types/Consts';
+	import {
+		AiDifficulty,
+		Density,
+		type NewGamePlayer as GamePlayer,
 		type GameSettings,
-		type NewGamePlayer as Player
-	} from '$lib/types/cs';
+		GameSettingsSchema,
+		GameStartMode,
+		NewGamePlayerSchema,
+		NewGamePlayerType,
+		PlayerPositions,
+		Size
+	} from '$lib/types/cs-proto';
+	import { create } from '@bufbuild/protobuf';
 	import { PlusCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import GameSettingsEditor from './GameSettingsEditor.svelte';
@@ -28,105 +29,96 @@
 	import VictoryConditions from './VictoryConditions.svelte';
 
 	type Props = {
-		players?: Player[];
+		players?: GamePlayer[];
 		name?: string;
 	};
 
 	let {
 		players = [
-			{
-				type: NewGamePlayerTypeHost,
+			create(NewGamePlayerSchema, {
+				type: NewGamePlayerType.HOST,
 				color: getColor(0),
-				aiDifficulty: AIDifficultyNone,
-				hullSetNum: 0
-			},
-			{
-				type: NewGamePlayerTypeAI,
+				aiDifficulty: AiDifficulty.UNSPECIFIED,
+				defaultHullSet: 0
+			}),
+			create(NewGamePlayerSchema, {
+				type: NewGamePlayerType.AI,
 				color: getColor(1),
-				aiDifficulty: AIDifficultyNormal,
-				hullSetNum: 0
-			},
-			{
-				type: NewGamePlayerTypeAI,
+				aiDifficulty: AiDifficulty.NORMAL,
+				defaultHullSet: 0
+			}),
+			create(NewGamePlayerSchema, {
+				type: NewGamePlayerType.AI,
 				color: getColor(2),
-				aiDifficulty: AIDifficultyNormal,
-				hullSetNum: 0
-			}
+				aiDifficulty: AiDifficulty.NORMAL,
+				defaultHullSet: 0
+			})
 		],
 		name = 'A Barefoot Jaywalk'
 	}: Props = $props();
 
-	let settings: GameSettings = $state({
-		name,
-		public: false,
-		size: SizeSmall,
-		density: DensityNormal,
-		playerPositions: PlayerPositionsModerate,
-		randomEvents: true,
-		computerPlayersFormAlliances: false,
-		publicPlayerScores: false,
-		maxMinerals: false,
-		startMode: GameStartModeNormal,
-		quickStartTurns: 0,
-		players,
-		victoryConditions: {
-			conditions:
-				VictoryConditionOwnPlanets |
-				VictoryConditionAttainTechLevels |
-				VictoryConditionExceedsSecondPlaceScore,
-			numCriteriaRequired: 1,
-			yearsPassed: 50,
-			ownPlanets: 60,
-			attainTechLevel: 22,
-			attainTechLevelNumFields: 4,
-			exceedsScore: 11000,
-			exceedsSecondPlaceScore: 100,
-			productionCapacity: 100,
-			ownCapitalShips: 100,
-			highestScoreAfterYears: 100
-		}
-	});
+	let settings: GameSettings = $state(
+		create(GameSettingsSchema, {
+			name,
+			public: false,
+			size: Size.SMALL,
+			density: Density.NORMAL,
+			playerPositions: PlayerPositions.MODERATE,
+			randomEvents: true,
+			computerPlayersFormAlliances: false,
+			publicPlayerScores: false,
+			maxMinerals: false,
+			startMode: GameStartMode.UNSPECIFIED, // normal
+			quickStartTurns: 0,
+			players,
+			victoryConditions: {
+				conditions:
+					VictoryConditionOwnPlanets |
+					VictoryConditionAttainTechLevels |
+					VictoryConditionExceedsSecondPlaceScore,
+				numCriteriaRequired: 1,
+				yearsPassed: 50,
+				ownPlanets: 60,
+				attainTechLevel: 22,
+				attainTechLevelNumFields: 4,
+				exceedsScore: 11000,
+				exceedsSecondPlaceScore: 100,
+				productionCapacity: 100,
+				ownCapitalShips: 100,
+				highestScoreAfterYears: 100
+			}
+		})
+	);
 
 	let submitting = $state(false);
 
 	const onSubmit = async () => {
 		submitting = true;
 		try {
-			const data = JSON.stringify(settings);
-
-			const response = await fetch(`/api/games`, {
-				method: 'post',
-				headers: {
-					accept: 'application/json'
-				},
-				body: data
-			});
-
-			if (!response.ok) {
-				await Service.throwError(response);
+			const resp = await gameClient.createGame({ settings: settings });
+			if (resp.game?.game) {
+				goto(`/games/${resp.game.game.id}`);
 			}
-			const game = (await response.json()) as Game;
-			goto(`/games/${game.id}`);
 		} finally {
 			submitting = false;
 		}
 	};
 
 	const addPlayer = () => {
-		const usedColors = new Set<string>(settings.players.map<string>((p) => p.color ?? ''));
+		const usedColors = new Set<string>(settings.players.map<string>((p) => p.color));
 
 		settings.players = [
 			...settings.players,
-			{
-				type: NewGamePlayerTypeAI,
+			create(NewGamePlayerSchema, {
+				type: NewGamePlayerType.AI,
 				color: getFirstAvailableColor(usedColors),
-				aiDifficulty: AIDifficultyNormal,
-				hullSetNum: 0
-			}
+				aiDifficulty: AiDifficulty.NORMAL,
+				defaultHullSet: 0
+			})
 		];
 	};
 
-	const removePlayer = (player: Player) => {
+	const removePlayer = (player: GamePlayer) => {
 		settings.players = settings.players.filter((p) => p !== player);
 	};
 </script>

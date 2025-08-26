@@ -6,36 +6,34 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import type { AnyShipDesign } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
+	import type { ShipDesign } from '$lib/types/cs-proto';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	const { game, player, universe } = getGameContext();
 
 	type Props = {
-		designs: AnyShipDesign[];
+		designs: ShipDesign[];
 	};
 
 	let { designs }: Props = $props();
 
 	// filterable designs
 	let search = $state('');
-	let filteredDesigns: AnyShipDesign[] = $derived(
+	let filteredDesigns: ShipDesign[] = $derived(
 		designs
-			.sort((a, b) =>
-				a.playerNum != b.playerNum ? a.playerNum - b.playerNum : (a.num ?? 0) - (b.num ?? 0)
-			)
+			.sort((a, b) => (a.playerNum != b.playerNum ? a.playerNum - b.playerNum : a.num - b.num))
 			.filter(
 				(i) =>
 					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 					i.hull.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 					$universe.getPlayerPluralName(i.playerNum).toLowerCase().indexOf(search.toLowerCase()) !=
 						-1
-			) ?? []
+			)
 	);
 
-	type TableShipDesign = AnyShipDesign & {
+	type TableShipDesign = ShipDesign & {
 		rating?: never;
 		armor?: never;
 		shields?: never;
@@ -63,32 +61,32 @@
 		{
 			key: 'rating',
 			title: 'Rating',
-			sortBy: (a, b) => (a.spec.powerRating ?? 0) - (b.spec.powerRating ?? 0)
+			sortBy: (a, b) => (a.spec?.powerRating ?? 0) - (b.spec?.powerRating ?? 0)
 		},
 		{
 			key: 'armor',
 			title: 'Armor',
-			sortBy: (a, b) => (a.spec.armor ?? 0) - (b.spec.armor ?? 0)
+			sortBy: (a, b) => (a.spec?.armor ?? 0) - (b.spec?.armor ?? 0)
 		},
 		{
 			key: 'shields',
 			title: 'Shields',
-			sortBy: (a, b) => (a.spec.shields ?? 0) - (b.spec.shields ?? 0)
+			sortBy: (a, b) => (a.spec?.shields ?? 0) - (b.spec?.shields ?? 0)
 		},
 		{
 			key: 'initiative',
 			title: 'Initiative',
-			sortBy: (a, b) => (a.spec.initiative ?? 0) - (b.spec.initiative ?? 0)
+			sortBy: (a, b) => (a.spec?.initiative ?? 0) - (b.spec?.initiative ?? 0)
 		},
 		{
 			key: 'movement',
 			title: 'Movement',
-			sortBy: (a, b) => (a.spec.movement ?? 0) - (b.spec.movement ?? 0)
+			sortBy: (a, b) => (a.spec?.movement ?? 0) - (b.spec?.movement ?? 0)
 		},
 		{
 			key: 'mass',
 			title: 'Mass',
-			sortBy: (a, b) => (a.spec.mass ?? 0) - (b.spec.mass ?? 0)
+			sortBy: (a, b) => (a.spec?.mass ?? 0) - (b.spec?.mass ?? 0)
 		}
 	];
 </script>
@@ -146,17 +144,17 @@
 						{$universe.getPlayerPluralName(row.playerNum)}
 					</a>
 				{:else if column.key === 'mass'}
-					{row.spec.mass ?? ''}
+					{row.spec?.mass ?? ''}
 				{:else if column.key === 'armor'}
-					{row.spec.armor ?? ''}
+					{row.spec?.armor ?? ''}
 				{:else if column.key === 'shields'}
-					{row.spec.shields ?? ''}
+					{row.spec?.shields ?? ''}
 				{:else if column.key === 'rating'}
-					{row.spec.powerRating ?? ''}
+					{row.spec?.powerRating ?? ''}
 				{:else if column.key === 'initiative'}
-					{row.spec.initiative ?? ''}
+					{row.spec?.initiative ?? ''}
 				{:else if column.key === 'movement'}
-					{row.spec.movement ?? ''}
+					{row.spec?.movement ?? ''}
 				{:else if column.key === 'hull'}
 					<button
 						class="w-full h-full cursor-help text-left"

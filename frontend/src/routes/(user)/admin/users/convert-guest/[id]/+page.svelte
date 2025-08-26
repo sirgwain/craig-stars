@@ -4,27 +4,27 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
 	import Select from '$lib/components/Select.svelte';
-	import { AdminService } from '$lib/services/AdminService';
-	import { Service } from '$lib/services/Service';
-	import type { GameWithPlayers } from '$lib/types/cs';
-	import type { UserSession } from '$lib/types/User';
+	import { adminClient } from '$lib/services/connect';
+	import { UserRole, type GameWithPlayers, type User } from '$lib/types/cs-proto';
 	import { onMount } from 'svelte';
 
-	let users: UserSession[] = $state([]);
+	let users: User[] = $state([]);
 	let games: GameWithPlayers[] = $state([]);
 	let id = page.params.id;
-	let guestUser: UserSession | undefined = $state();
-	let targetUserId: number | undefined = $state();
+	let guestUser: User | undefined = $state();
+	let targetUserId: bigint | undefined = $state();
 
 	onMount(async () => {
 		try {
-			users = await AdminService.loadUsers();
+			const usersResp = await adminClient.getUsers({});
+			users = usersResp.users;
 
-			guestUser = users.find((u) => u.id == parseInt(id));
+			guestUser = usersResp.users.find((u) => u.id == BigInt(id));
 
 			// load the games for this user
 			if (guestUser) {
-				games = await AdminService.loadUserGames(guestUser.id);
+				const gamesResp = await adminClient.getUserGames({ userId: guestUser.id });
+				games = gamesResp.games;
 			}
 		} catch (_err) {
 			// TODO: show error
@@ -32,19 +32,10 @@
 	});
 
 	async function onSubmit() {
-		const body = JSON.stringify({ userId: targetUserId });
-		const response = await fetch(`/api/admin/users/${id}/convert-guest-user`, {
-			method: 'POST',
-			headers: {
-				accept: 'application/json'
-			},
-			body
-		});
-
-		if (!response.ok) {
-			await Service.throwError(response);
+		if (!targetUserId || !guestUser) {
+			return;
 		}
-
+		await adminClient.convertGuestUser({ guestUserId: guestUser.id, userId: targetUserId });
 		await goto(`/admin/users`);
 	}
 </script>
@@ -61,11 +52,11 @@
 		</div>
 
 		{#if guestUser}
-			<ItemTitle>{guestUser?.username}</ItemTitle>
+			<ItemTitle>{guestUser.username}</ItemTitle>
 
 			<Select
 				values={users
-					.filter((u) => !u.isGuest())
+					.filter((u) => u.role !== UserRole.GUEST)
 					.map((u) => {
 						return { value: u.id, title: u.username };
 					})}
@@ -76,8 +67,8 @@
 			{#if games}
 				<SectionHeader>Guest User Games</SectionHeader>
 				<ul>
-					{#each games as game (game.id)}
-						<li>{game.name} - {game.players?.length ?? 0} players</li>
+					{#each games as game (game.game?.id)}
+						<li>{game.game?.name} - {game.players.length} players</li>
 					{/each}
 				</ul>
 			{/if}

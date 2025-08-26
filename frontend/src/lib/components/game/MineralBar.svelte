@@ -63,7 +63,7 @@
 		}
 		return (
 			(e.targetTouches[0].clientX - ref.getBoundingClientRect().left) /
-			ref.getBoundingClientRect()?.width
+			ref.getBoundingClientRect().width
 		);
 	}
 

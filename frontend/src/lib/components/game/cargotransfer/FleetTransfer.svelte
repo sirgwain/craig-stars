@@ -48,7 +48,7 @@
 
 	<div class="sm:text-right mr-1 h-8 select-none">Cargo Hold</div>
 	<div class="my-auto">
-		<CargoBar value={add(cargo, transferAmount)} capacity={cargoCapacity} />
+		<CargoBar value={add(cargo.cargo(), transferAmount.cargo())} capacity={cargoCapacity} />
 	</div>
 
 	<div class="col-span-2 mt-10 sm:mt-5"></div>

@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -402,7 +404,7 @@ func testSantaMariaIFE(player *Player) *Fleet {
 
 func Test_computeFleetSpec(t *testing.T) {
 	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
-	starterHumanoidPlayer.Race.Spec = computeRaceSpec(&starterHumanoidPlayer.Race, &rules)
+	starterHumanoidPlayer.Race.Spec = ComputeRaceSpec(&starterHumanoidPlayer.Race, &rules)
 
 	type args struct {
 		rules  *Rules
@@ -1147,7 +1149,7 @@ func TestFleet_repairFleet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := *player
 			p.Race.PRT = tt.args.prt
-			p.Race.Spec = computeRaceSpec(&p.Race, &rules)
+			p.Race.Spec = ComputeRaceSpec(&p.Race, &rules)
 
 			tt.args.fleet.Spec = ComputeFleetSpec(&rules, player, tt.args.fleet)
 
@@ -1425,7 +1427,7 @@ func TestFleet_CanColonize(t *testing.T) {
 		colonizer bool
 	}
 	type args struct {
-		planet *PlanetIntel
+		planet *Planet
 	}
 	tests := []struct {
 		name   string
@@ -1436,31 +1438,31 @@ func TestFleet_CanColonize(t *testing.T) {
 		{
 			name:   "can colonize",
 			fields: fields{cargo: Cargo{Colonists: 1}, colonizer: true},
-			args:   args{planet: &PlanetIntel{Spec: PlanetSpec{TerraformedHabitability: 1}}},
+			args:   args{planet: &Planet{Spec: PlanetSpec{TerraformedHabitability: 1}}},
 			want:   true,
 		},
 		{
 			name:   "cannot colonize no colonists",
 			fields: fields{cargo: Cargo{Colonists: 0}, colonizer: true},
-			args:   args{planet: &PlanetIntel{Spec: PlanetSpec{TerraformedHabitability: 1}}},
+			args:   args{planet: &Planet{Spec: PlanetSpec{TerraformedHabitability: 1}}},
 			want:   false,
 		},
 		{
 			name:   "cannot colonize no colonizer",
 			fields: fields{cargo: Cargo{Colonists: 1}, colonizer: false},
-			args:   args{planet: &PlanetIntel{Spec: PlanetSpec{TerraformedHabitability: 1}}},
+			args:   args{planet: &Planet{Spec: PlanetSpec{TerraformedHabitability: 1}}},
 			want:   false,
 		},
 		{
 			name:   "cannot colonize not habitable",
 			fields: fields{cargo: Cargo{Colonists: 1}, colonizer: true},
-			args:   args{planet: &PlanetIntel{Spec: PlanetSpec{TerraformedHabitability: -1}}},
+			args:   args{planet: &Planet{Spec: PlanetSpec{TerraformedHabitability: -1}}},
 			want:   false,
 		},
 		{
 			name:   "cannot colonize planet owned",
 			fields: fields{cargo: Cargo{Colonists: 1}, colonizer: true},
-			args:   args{planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}, Spec: PlanetSpec{TerraformedHabitability: 1}}},
+			args:   args{planet: &Planet{MapObject: MapObject{PlayerNum: 1}, Spec: PlanetSpec{TerraformedHabitability: 1}}},
 			want:   false,
 		},
 	}
@@ -1484,7 +1486,7 @@ func TestFleet_CanColonize(t *testing.T) {
 func TestFleet_CanFuel(t *testing.T) {
 	type args struct {
 		player *Player
-		planet *PlanetIntel
+		planet *Planet
 	}
 	tests := []struct {
 		name string
@@ -1495,7 +1497,7 @@ func TestFleet_CanFuel(t *testing.T) {
 			name: "can fuel",
 			args: args{
 				player: testPlayer(),
-				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}, Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{DockCapacity: 1}}},
+				planet: &Planet{MapObject: MapObject{PlayerNum: 1}, Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{DockCapacity: 1}}},
 			},
 			want: true,
 		},
@@ -1510,7 +1512,7 @@ func TestFleet_CanFuel(t *testing.T) {
 			name: "cannot fuel no dock",
 			args: args{
 				player: testPlayer(),
-				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}, Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{DockCapacity: 0}}},
+				planet: &Planet{MapObject: MapObject{PlayerNum: 1}, Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{DockCapacity: 0}}},
 			},
 			want: false,
 		},
@@ -1518,7 +1520,7 @@ func TestFleet_CanFuel(t *testing.T) {
 			name: "cannot fuel not friends",
 			args: args{
 				player: testPlayer(),
-				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 2}, Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{DockCapacity: 0}}},
+				planet: &Planet{MapObject: MapObject{PlayerNum: 2}, Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{DockCapacity: 0}}},
 			},
 			want: false,
 		},
@@ -1539,7 +1541,7 @@ func TestFleet_CanRemoteMine(t *testing.T) {
 	}
 	type args struct {
 		player *Player
-		planet *PlanetIntel
+		planet *Planet
 	}
 	tests := []struct {
 		name   string
@@ -1552,7 +1554,7 @@ func TestFleet_CanRemoteMine(t *testing.T) {
 			fields: fields{miningRate: 1},
 			args: args{
 				player: NewPlayer(0, NewRace()).WithNum(1),
-				planet: &PlanetIntel{},
+				planet: &Planet{},
 			},
 			want: true,
 		},
@@ -1567,7 +1569,7 @@ func TestFleet_CanRemoteMine(t *testing.T) {
 			name: "cannot remote mine planet owned",
 			args: args{
 				player: NewPlayer(0, NewRace()).WithNum(1),
-				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}},
+				planet: &Planet{MapObject: MapObject{PlayerNum: 1}},
 			},
 			want: false,
 		},
@@ -1575,7 +1577,7 @@ func TestFleet_CanRemoteMine(t *testing.T) {
 			name: "can remote mine own planets",
 			args: args{
 				player: NewPlayer(0, NewRace().WithPRT(AR).WithSpec(&rules)).WithNum(1),
-				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}},
+				planet: &Planet{MapObject: MapObject{PlayerNum: 1}},
 			},
 			want: true,
 		},
@@ -1598,8 +1600,8 @@ func TestFleet_CanJump(t *testing.T) {
 	}
 	type args struct {
 		player   *Player
-		orbiting *PlanetIntel
-		target   *PlanetIntel
+		orbiting *Planet
+		target   *Planet
 		dist     float64
 	}
 	tests := []struct {
@@ -1615,14 +1617,14 @@ func TestFleet_CanJump(t *testing.T) {
 			},
 			args: args{
 				player: testPlayer(),
-				orbiting: &PlanetIntel{
+				orbiting: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
 						SafeRange:    100,
 						SafeHullMass: 100,
 					}}},
-				target: &PlanetIntel{
+				target: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
@@ -1646,7 +1648,7 @@ func TestFleet_CanJump(t *testing.T) {
 			},
 			args: args{
 				player: testPlayer(),
-				target: &PlanetIntel{
+				target: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
@@ -1671,14 +1673,14 @@ func TestFleet_CanJump(t *testing.T) {
 			},
 			args: args{
 				player: NewPlayer(0, NewRace().WithPRT(IT).WithSpec(&rules)).WithNum(1).WithRelations([]PlayerRelationship{{Relation: PlayerRelationFriend}}),
-				orbiting: &PlanetIntel{
+				orbiting: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
 						SafeRange:    100,
 						SafeHullMass: 100,
 					}}},
-				target: &PlanetIntel{
+				target: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
@@ -1703,14 +1705,14 @@ func TestFleet_CanJump(t *testing.T) {
 			},
 			args: args{
 				player: testPlayer(),
-				orbiting: &PlanetIntel{
+				orbiting: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
 						SafeRange:    100,
 						SafeHullMass: 100,
 					}}},
-				target: &PlanetIntel{
+				target: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
@@ -1728,7 +1730,7 @@ func TestFleet_CanJump(t *testing.T) {
 			},
 			args: args{
 				player: testPlayer(),
-				target: &PlanetIntel{
+				target: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
@@ -1746,7 +1748,7 @@ func TestFleet_CanJump(t *testing.T) {
 			},
 			args: args{
 				player: testPlayer(),
-				orbiting: &PlanetIntel{
+				orbiting: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
@@ -1764,14 +1766,14 @@ func TestFleet_CanJump(t *testing.T) {
 			},
 			args: args{
 				player: testPlayer(),
-				orbiting: &PlanetIntel{
+				orbiting: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
 						SafeRange:    100,
 						SafeHullMass: 1,
 					}}},
-				target: &PlanetIntel{
+				target: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
@@ -1789,14 +1791,14 @@ func TestFleet_CanJump(t *testing.T) {
 			},
 			args: args{
 				player: testPlayer(),
-				orbiting: &PlanetIntel{
+				orbiting: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
 						SafeRange:    1,
 						SafeHullMass: 100,
 					}}},
-				target: &PlanetIntel{
+				target: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
@@ -2047,8 +2049,8 @@ func TestFleet_GetWarpSpeed(t *testing.T) {
 	type args struct {
 		player               *Player
 		dist                 float64
-		orbiting             *PlanetIntel
-		target               *PlanetIntel
+		orbiting             *Planet
+		target               *Planet
 		fuelAlreadyAllocated int
 		fastestWaypoint      bool
 	}
@@ -2072,14 +2074,14 @@ func TestFleet_GetWarpSpeed(t *testing.T) {
 			fleet: testLongRangeScout(player),
 			args: args{
 				player: player,
-				orbiting: &PlanetIntel{
+				orbiting: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
 						SafeRange:    100,
 						SafeHullMass: 100,
 					}}},
-				target: &PlanetIntel{
+				target: &Planet{
 					MapObject: MapObject{PlayerNum: 1},
 					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
 						HasStargate:  true,
@@ -2273,7 +2275,7 @@ func TestFleet_AddWaypoint(t *testing.T) {
 			name:  "colonize",
 			fleet: testSantaMaria(player).withCargo(Cargo{Colonists: 25}),
 			args: args{
-				player: NewPlayer(0, NewRace().WithSpec(&rules)).withPlanetIntels([]PlanetIntel{
+				player: NewPlayer(0, NewRace().WithSpec(&rules)).withPlanetIntels([]*Planet{
 					{
 						MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1},
 						Spec:      PlanetSpec{TerraformedHabitability: 100},
@@ -2305,7 +2307,7 @@ func TestFleet_AddWaypoint(t *testing.T) {
 			name:  "remote mine",
 			fleet: testPotatoBug(player),
 			args: args{
-				player: NewPlayer(0, NewRace().WithSpec(&rules)).withPlanetIntels([]PlanetIntel{
+				player: NewPlayer(0, NewRace().WithSpec(&rules)).withPlanetIntels([]*Planet{
 					{
 						MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1},
 					},
@@ -2349,7 +2351,7 @@ func TestFleet_AddWaypoint(t *testing.T) {
 				// player knows of two planets
 				player: NewPlayer(0, NewRace().WithSpec(&rules)).
 					WithRelations([]PlayerRelationship{{Relation: PlayerRelationFriend}}).
-					withPlanetIntels([]PlanetIntel{
+					withPlanetIntels([]*Planet{
 						{
 							MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1, PlayerNum: 1},
 							Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
@@ -2468,7 +2470,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 				NewPositionWaypoint(Vector{25, 0}, 5),
 			),
 			args: args{
-				player: NewPlayer(0, NewRace().WithSpec(&rules)).withPlanetIntels([]PlanetIntel{
+				player: NewPlayer(0, NewRace().WithSpec(&rules)).withPlanetIntels([]*Planet{
 					{
 						MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1},
 						Spec:      PlanetSpec{TerraformedHabitability: 100},
@@ -2514,7 +2516,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 				// player knows of two planets
 				player: NewPlayer(0, NewRace().WithSpec(&rules)).
 					WithRelations([]PlayerRelationship{{Relation: PlayerRelationFriend}}).
-					withPlanetIntels([]PlanetIntel{
+					withPlanetIntels([]*Planet{
 						{
 							MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1, PlayerNum: 1},
 							Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{

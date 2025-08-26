@@ -26,9 +26,7 @@
 		<span class="font-semibold">{planetName}</span> generates
 		<span class="font-semibold">{resourcesPerYear}</span>
 		resources each year.
-		<span class="font-semibold"
-			>{(resourcesPerYearResearch ?? 'None') == 0 ? 'None' : resourcesPerYearResearch}</span
-		>
+		<span class="font-semibold">{resourcesPerYearResearch || 'None'}</span>
 		of these resources have been allocated to research.
 		{#if resourcesPerYearResearch != 0}
 			That leaves <span class="font-semibold">{resourcesPerYearAvailable}</span> resources avaliable

@@ -3,17 +3,18 @@
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { defaultSortBy, type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
+	import { gameClient } from '$lib/services/connect';
 	import { addError } from '$lib/services/Errors';
-	import { GameService } from '$lib/services/GameService';
-	import { PlayerService } from '$lib/services/PlayerService';
 	import { me } from '$lib/services/Stores';
-	import type { Game, GameWithPlayers } from '$lib/types/cs';
+	import { Size, type Game } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
+	import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '$lib/types/Game';
+	import { timestampToString } from '$lib/types/Timestamp';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
 
-	type TableGame = GameWithPlayers & { action?: never };
+	type TableGame = GameWithPlayersFlat & { action?: never };
 	const columns: TableColumn<TableGame>[] = [
 		{
 			key: 'id',
@@ -56,20 +57,20 @@
 	];
 
 	// filterable games
-	let games: Game[] = $state([]);
+	let games: GameWithPlayersFlat[] = $state([]);
 	let search = $state('');
 	let sortKey: keyof TableGame = $state('updatedAt');
 	let filteredGames = $derived(
 		games
 			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
 			.map<TableGame>((r) => r as TableGame)
-			.sort((a, b) => defaultSortBy(a, b, sortKey, descending))
+			.sort((a, b) => defaultSortBy(a, b, sortKey, descending, columns))
 	);
 	let descending = $state(true);
 
 	async function archiveGame(game: Game) {
-		if (game.id && confirm(`Are you sure you want to unarchive ${game.name}?`)) {
-			await PlayerService.unArchiveGame(game.id);
+		if (game.id && confirm(`Are you sure you want to archive ${game.name}?`)) {
+			await gameClient.unarchiveGame({ gameId: game.id });
 			games = games.filter((g) => g.id !== game.id);
 		}
 	}
@@ -79,16 +80,17 @@
 			game.id &&
 			confirm(`Are you sure you want to delete ${game.name}? This operation cannot be undone.`)
 		) {
-			await GameService.deleteGame(game.id);
+			await gameClient.deleteGame({ gameId: game.id });
 			games = games.filter((g) => g.id !== game.id);
 		}
 	}
 
 	onMount(async () => {
 		try {
-			games = (await GameService.loadPlayerGames()).filter(
-				(g) => g.archived || g.players.find((p) => p.userId == $me.id)?.archived
-			);
+			const { games: playerGames } = await gameClient.getGames({});
+			games = playerGames
+				.map((gwp) => getGameWithPlayersFlat(gwp))
+				.filter((g) => g.archived || g.players.find((p) => p.userId == $me.id)?.archived);
 		} catch (err) {
 			addError(`${err}`);
 		}
@@ -127,11 +129,13 @@
 				{#if column.key == 'name'}
 					<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
 				{:else if column.key == 'createdAt'}
-					{format(parseJSON(row.createdAt ?? ''), 'E, MMM do yyyy hh:mm aaa')}
+					{timestampToString(row.createdAt)}
 				{:else if column.key == 'updatedAt'}
-					{format(parseJSON(row.updatedAt ?? ''), 'E, MMM do yyyy hh:mm aaa')}
+					{timestampToString(row.updatedAt)}
 				{:else if column.key == 'hostId'}
 					{row.players.find((p) => p.userId === row.hostId)?.name}
+				{:else if column.key == 'size'}
+					{enumToString(Size, row.size)}
 				{:else if column.key == 'players'}
 					{row.players.length}
 				{:else if column.key == 'action'}

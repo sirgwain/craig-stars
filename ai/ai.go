@@ -21,10 +21,10 @@ type aiPlayer struct {
 	planetsByNum           map[int]*cs.Planet
 	fleetsByNum            map[int]*cs.Fleet
 	fleetsByPlanetNum      map[int][]*cs.Fleet
-	fleetIntelsByPlanetNum map[int][]*cs.FleetIntel
+	fleetIntelsByPlanetNum map[int][]*cs.Fleet
 	designsByPurpose       map[cs.ShipDesignPurpose]*cs.ShipDesign
 	fleetsByPurpose        map[cs.FleetPurpose]fleet
-	targetedPlanets        map[int][]*cs.FleetIntel
+	targetedPlanets        map[int][]*cs.Fleet
 
 	// @sirgwain Do we _really_ need these extra variables? We already have a designsByPurpose map
 	fuelDepotDesign       *cs.ShipDesign
@@ -218,9 +218,9 @@ func (ai *aiPlayer) buildMaps() error {
 		ai.fleetsByPlanetNum[fleet.OrbitingPlanetNum] = append(ai.fleetsByPlanetNum[fleet.OrbitingPlanetNum], fleet)
 	}
 
-	ai.fleetIntelsByPlanetNum = make(map[int][]*cs.FleetIntel, len(ai.PlanetIntels))
+	ai.fleetIntelsByPlanetNum = make(map[int][]*cs.Fleet, len(ai.PlanetIntels))
 	for _, fleet := range ai.FleetIntels {
-		ai.fleetIntelsByPlanetNum[fleet.OrbitingPlanetNum] = append(ai.fleetIntelsByPlanetNum[fleet.OrbitingPlanetNum], &fleet)
+		ai.fleetIntelsByPlanetNum[fleet.OrbitingPlanetNum] = append(ai.fleetIntelsByPlanetNum[fleet.OrbitingPlanetNum], fleet)
 	}
 
 	ai.designsByPurpose = make(map[cs.ShipDesignPurpose]*cs.ShipDesign, len(ai.Designs))
@@ -311,7 +311,7 @@ func (ai *aiPlayer) buildMaps() error {
 		},
 	}
 
-	ai.targetedPlanets = make(map[int][]*cs.FleetIntel)
+	ai.targetedPlanets = make(map[int][]*cs.Fleet)
 	return nil
 }
 
@@ -520,7 +520,7 @@ func (ai *aiPlayer) ProcessTurn() error {
 		return err
 	}
 
-	if ai.game.Year%4 == 0 || len(ai.Player.Spec.TechsJustGained) > 0 {
+	if ai.game.Year%4 == 0 || len(ai.Player.TechsJustGained) > 0 {
 		// only update warship amounts/designs every 4 years or if we just gained a tech level
 		if err := ai.updateWarfleets(); err != nil {
 			return err
@@ -541,9 +541,9 @@ func (p *aiPlayer) getPlanet(num int) *cs.Planet {
 }
 
 // get the closest planet to this fleet from a list of unknown planets
-func (ai *aiPlayer) getClosestPlanetIntel(position cs.Vector, planetIntelsByNum map[int]cs.PlanetIntel) *cs.PlanetIntel {
+func (ai *aiPlayer) getClosestPlanetIntel(position cs.Vector, planetIntelsByNum map[int]*cs.Planet) *cs.Planet {
 	shortestDist := math.MaxFloat64
-	var closest *cs.PlanetIntel = nil
+	var closest *cs.Planet = nil
 
 	for num := range planetIntelsByNum {
 		intel := planetIntelsByNum[num]
@@ -551,7 +551,7 @@ func (ai *aiPlayer) getClosestPlanetIntel(position cs.Vector, planetIntelsByNum 
 		distSquared := position.DistanceSquaredTo(intel.Position)
 		if shortestDist > distSquared {
 			shortestDist = distSquared
-			closest = &intel
+			closest = intel
 		}
 	}
 
@@ -559,15 +559,15 @@ func (ai *aiPlayer) getClosestPlanetIntel(position cs.Vector, planetIntelsByNum 
 }
 
 // get the farthest planet to this fleet from a list of unknown planets
-func (ai *aiPlayer) getFarthestPlanetIntel(position cs.Vector, planetIntelsByNum map[int]cs.PlanetIntel) *cs.PlanetIntel {
+func (ai *aiPlayer) getFarthestPlanetIntel(position cs.Vector, planetIntelsByNum map[int]*cs.Planet) *cs.Planet {
 	var longestDistance float64 = -1
-	var farthest *cs.PlanetIntel = nil
+	var farthest *cs.Planet = nil
 
 	for _, intel := range planetIntelsByNum {
 		distSquared := position.DistanceSquaredTo(intel.Position)
 		if longestDistance < distSquared {
 			longestDistance = distSquared
-			farthest = &intel
+			farthest = intel
 		}
 	}
 
@@ -666,8 +666,8 @@ func (ai *aiPlayer) getIdleShipCount(planet *cs.Planet, fleetPurpose cs.FleetPur
 }
 
 // get all the enemy ships above a planet
-func (ai *aiPlayer) enemyShipsAbovePlanet(planet *cs.Planet) []*cs.FleetIntel {
-	fleets := []*cs.FleetIntel{}
+func (ai *aiPlayer) enemyShipsAbovePlanet(planet *cs.Planet) []*cs.Fleet {
+	fleets := []*cs.Fleet{}
 
 	for _, fleet := range ai.fleetIntelsByPlanetNum[planet.Num] {
 		if ai.IsEnemy(fleet.PlayerNum) {
@@ -679,7 +679,7 @@ func (ai *aiPlayer) enemyShipsAbovePlanet(planet *cs.Planet) []*cs.FleetIntel {
 }
 
 // hasAttackShips returns true if the fleet intels likely contains hostile ships
-func (ai *aiPlayer) hasAttackShips(fleets []*cs.FleetIntel) bool {
+func (ai *aiPlayer) hasAttackShips(fleets []*cs.Fleet) bool {
 	for _, fleet := range fleets {
 		for _, token := range fleet.Tokens {
 			design := ai.GetForeignDesign(fleet.PlayerNum, token.DesignNum)

@@ -1,41 +1,49 @@
-import { CommandedPlayer } from '$lib/types/Player';
-import { defaultRules } from '$lib/types/Rules';
-import type { GameWithPlayers, ShipDesign, Vector } from '$lib/types/cs';
 import {
-	DensityNormal,
-	GameStartModeNormal,
-	GameStateWaitingForPlayers,
-	PlayerPositionsModerate,
-	SizeSmall,
-	type PlayerStatus,
+	Density,
+	GameStartMode,
+	GameState,
+	PlayerPositions,
+	Size,
+	VectorSchema,
+	type Vector
+} from '$lib/types/cs-proto';
+import {
+	GameWithPlayersSchema,
+	VictoryConditionsSchema,
+	type Game,
+	type GameWithPlayers,
 	type VictoryConditions
-} from '$lib/types/cs';
-import { TechService } from './TechService';
-import { Universe } from './Universe';
+} from '$lib/types/cs-proto';
+import type { PlayerStatus } from '$lib/types/cs-proto';
+import { defaultRules } from '$lib/types/Rules';
+import { create } from '@bufbuild/protobuf';
+import { TimestampSchema } from '@bufbuild/protobuf/wkt';
 
-export class FullGame implements GameWithPlayers {
-	id = 0;
-	createdAt = '';
-	updatedAt = '';
-	hostId = 0;
-	seed = 0;
+export class FullGame implements Game {
+	$typeName: 'craig_stars.v1.Game';
+	$unknown = undefined;
+	id = BigInt(0);
+	createdAt = create(TimestampSchema, {});
+	updatedAt = create(TimestampSchema, {});
+	hostId = BigInt(0);
+	seed = BigInt(0);
 	name = '';
 	hash = '';
-	state = GameStateWaitingForPlayers;
+	state = GameState.WAITING_FOR_PLAYERS;
 	numPlayers = 0;
 	openPlayerSlots = 0;
 	quickStartTurns = 0;
-	size = SizeSmall;
-	area: Vector = { x: 0, y: 0 };
-	density = DensityNormal;
-	playerPositions = PlayerPositionsModerate;
+	size = Size.SMALL;
+	area: Vector = create(VectorSchema, { x: 0, y: 0 });
+	density = Density.NORMAL;
+	playerPositions = PlayerPositions.MODERATE;
 	randomEvents = false;
 	computerPlayersFormAlliances = false;
 	publicPlayerScores = false;
 	maxMinerals = false;
-	startMode = GameStartModeNormal;
+	startMode = GameStartMode.UNSPECIFIED; // Normal
 	year = 2400;
-	victoryConditions: VictoryConditions = {
+	victoryConditions: VictoryConditions = create(VictoryConditionsSchema, {
 		conditions: 0,
 		numCriteriaRequired: 0,
 		yearsPassed: 0,
@@ -47,23 +55,22 @@ export class FullGame implements GameWithPlayers {
 		productionCapacity: 0,
 		ownCapitalShips: 0,
 		highestScoreAfterYears: 0
-	};
+	});
 	public = false;
 	victorDeclared = false;
 	archived = false;
 	rules = defaultRules;
 	players: PlayerStatus[] = [];
 
-	// some data that is loaded
-	player: CommandedPlayer = new CommandedPlayer();
-	universe: Universe = new Universe();
-	techs = new TechService();
+	constructor() {
+		this.$typeName = 'craig_stars.v1.Game';
+	}
 
 	isMultiplayer(): boolean {
 		// we are multi player if any of the players are not ai controlled and not us
 		return (
 			this.openPlayerSlots > 0 ||
-			this.players.findIndex((p) => p.num != this.player.num && !p.aiControlled) == -1
+			this.players.reduce((count, p) => count + (p.aiControlled ? 0 : 1), 0) > 1
 		);
 	}
 
@@ -71,14 +78,10 @@ export class FullGame implements GameWithPlayers {
 		return !this.isMultiplayer();
 	}
 
-	validateDesign(design: ShipDesign): { valid: boolean; reason?: string } {
-		// TODO: add more validations
-
-		// if we have a design with this name already, it is invalid
-		const designsWithName = this.universe.getMyDesigns().filter((d) => d.name === design.name);
-		if (designsWithName.length > 1 || (designsWithName.length === 1 && !design.id)) {
-			return { valid: false, reason: `Another design named ${design.name} exists` };
-		}
-		return { valid: true };
+	toGameWithPlayers(): GameWithPlayers {
+		return create(GameWithPlayersSchema, {
+			game: this,
+			players: this.players
+		});
 	}
 }

@@ -1,8 +1,13 @@
 <script lang="ts">
-	import type { BattlePlan } from '$lib/types/cs';
+	import {
+		BattleAttackWho,
+		BattleTactic,
+		BattleTarget,
+		type BattlePlan
+	} from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { startCase } from 'lodash-es';
 
 	type Props = {
 		plan: BattlePlan;
@@ -14,7 +19,7 @@
 	let { plan, href, showDelete = true, onDelete }: Props = $props();
 
 	const deletePlan = async (plan: BattlePlan) => {
-		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
+		if (confirm(`Are you sure you want to delete ${plan.name}?`)) {
 			onDelete?.(plan);
 		}
 	};
@@ -34,19 +39,19 @@
 			</div>
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Primary Target</div>
-				<div>{startCase(plan.primaryTarget)}</div>
+				<div>{enumToString(BattleTarget, plan.primaryTarget)}</div>
 			</div>
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Secondary Target</div>
-				<div>{startCase(plan.secondaryTarget)}</div>
+				<div>{enumToString(BattleTarget, plan.secondaryTarget)}</div>
 			</div>
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Tactic</div>
-				<div>{startCase(plan.tactic)}</div>
+				<div>{enumToString(BattleTactic, plan.tactic)}</div>
 			</div>
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Attack Who</div>
-				<div>{startCase(plan.attackWho)}</div>
+				<div>{enumToString(BattleAttackWho, plan.attackWho)}</div>
 			</div>
 		</div>
 		{#if showDelete}

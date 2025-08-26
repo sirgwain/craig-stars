@@ -8,7 +8,7 @@ import (
 
 // find all colonizable planets and send colony ships to them
 func (ai *aiPlayer) colonize() error {
-	colonizablePlanets := map[int]cs.PlanetIntel{}
+	colonizablePlanets := map[int]*cs.Planet{}
 
 	// grab a list of colonizable planets we know we can live on
 	for _, planet := range ai.Player.PlanetIntels {
@@ -164,8 +164,8 @@ func (ai *aiPlayer) colonize() error {
 }
 
 // get the planet with the best distance to hab ratio
-func (ai *aiPlayer) getBestPlanetToColonize(fleet *cs.Fleet, colonizablePlanets map[int]cs.PlanetIntel) *cs.PlanetIntel {
-	var best *cs.PlanetIntel = nil
+func (ai *aiPlayer) getBestPlanetToColonize(fleet *cs.Fleet, colonizablePlanets map[int]*cs.Planet) *cs.Planet {
+	var best *cs.Planet = nil
 
 	// lowest weight wins
 	bestWeight := math.MaxFloat64
@@ -192,7 +192,7 @@ func (ai *aiPlayer) getBestPlanetToColonize(fleet *cs.Fleet, colonizablePlanets 
 
 		if weight < bestWeight {
 			bestWeight = weight
-			best = &intel
+			best = intel
 		}
 	}
 

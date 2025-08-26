@@ -5,8 +5,7 @@
 	import Starbase from '$lib/components/icons/Starbase.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { population } from '$lib/types/Cargo';
-	import { type MapObject } from '$lib/types/cs';
-	import { getUnderlyingMapObject, ownedBy } from '$lib/types/MapObject';
+	import { getUnderlyingMapObject, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
 	import FleetSummary from './FleetSummary.svelte';
 	import MapObjectIcon from './MapObjectIcon.svelte';
 	import MinefieldSummary from './MinefieldSummary.svelte';
@@ -19,7 +18,7 @@
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		mapObject: MapObject | undefined;
+		mapObject: MapObjectLike | undefined;
 	};
 
 	let { mapObject }: Props = $props();
@@ -28,7 +27,7 @@
 		getUnderlyingMapObject(mapObject)
 	);
 
-	let playerFleet = $derived($universe.getMyFleet(fleet?.num));
+	let playerFleet = $derived($universe.getMyFleet(fleet?.mapObject?.num));
 </script>
 
 <div class="flex flex-row justify-start gap-3 text-sm">
@@ -47,7 +46,7 @@
 					</div>
 				</div>
 				<div class="mt-1">
-					{#if planet.spec?.hasStarbase}
+					{#if planet.spec?.planetStarbaseSpec?.hasStarbase}
 						<Starbase class="w-4 h-4 starbase" />
 					{/if}
 				</div>
@@ -85,25 +84,31 @@
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Ship Count:</div>
 					<div>
-						{fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 'unknown'}
+						{fleet.tokens.reduce((count, t) => count + t.quantity, 0)}
 					</div>
 				</div>
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Fleet Mass:</div>
 					<div>
-						{fleet.spec?.mass ?? 0}kT
+						{fleet.spec?.shipDesignSpec?.mass ?? 0}kT
 					</div>
 				</div>
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Fuel:</div>
 					<div class="grow">
-						<FuelBar value={playerFleet.fuel} capacity={playerFleet.spec?.fuelCapacity ?? 0} />
+						<FuelBar
+							value={playerFleet.fuel}
+							capacity={playerFleet.spec?.shipDesignSpec?.fuelCapacity ?? 0}
+						/>
 					</div>
 				</div>
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Cargo:</div>
 					<div class="grow">
-						<CargoBar value={playerFleet.cargo} capacity={playerFleet.spec?.cargoCapacity} />
+						<CargoBar
+							value={playerFleet.cargo}
+							capacity={playerFleet.spec?.shipDesignSpec?.cargoCapacity}
+						/>
 					</div>
 				</div>
 			</div>

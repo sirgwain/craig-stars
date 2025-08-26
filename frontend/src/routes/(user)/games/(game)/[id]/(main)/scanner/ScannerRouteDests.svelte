@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/cs';
+	import { MapObjectTargetSchema, MapObjectType } from '$lib/types/cs-proto';
+	import { None } from '$lib/types/Consts';
 	import { emptyVector } from '$lib/types/Vector';
+	import { create } from '@bufbuild/protobuf';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
@@ -9,26 +11,29 @@
 	const { xGet, yGet, xScale } = getContext<LayerCake>('LayerCake');
 
 	let planets = $derived(
-		$universe.planets.filter((planet) => planet.routeTargetNum && planet.routeTargetNum != None)
+		$universe.planets.filter((planet) => (planet.planetOrders?.routeTargetNum ?? None) != None)
 	);
 
 	let lines = $derived(
 		planets.map((planet) => {
 			// get the target, if it's empty, just point to our planet position (which will render an empty line)
 			// it should not be empty...
-			const target = $universe.getMapObject({
-				targetPosition: emptyVector,
-				targetType: planet.routeTargetType ?? '',
-				targetNum: planet.routeTargetNum ?? 0,
-				targetPlayerNum: planet.routeTargetPlayerNum ?? 0
-			});
+			const target = $universe.getMapObject(
+				create(MapObjectTargetSchema, {
+					targetPosition: emptyVector(),
+					targetType: planet.planetOrders?.routeTargetType ?? MapObjectType.UNSPECIFIED,
+					targetNum: planet.planetOrders?.routeTargetNum ?? 0,
+					targetPlayerNum: planet.planetOrders?.routeTargetPlayerNum ?? 0
+				})
+			);
 			const coords = [
-				{ position: planet.position },
-				{ position: target?.position ?? planet.position }
+				{ position: planet.mapObject?.position },
+				{ position: target?.mapObject?.position ?? planet.mapObject?.position }
 			];
 
-			const strokeWidth = planet.num === $commandedPlanet?.num ? 1.5 : 1;
-			const dist = (planet.packetSpeed ?? 0) * (planet.packetSpeed ?? 0);
+			const strokeWidth = planet.mapObject?.num === $commandedPlanet?.mapObject.num ? 1.5 : 1;
+			const dist =
+				(planet.planetOrders?.packetSpeed ?? 0) * (planet.planetOrders?.packetSpeed ?? 0);
 
 			return {
 				path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),

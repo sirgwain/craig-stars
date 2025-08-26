@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package testgames
 
 import "github.com/sirgwain/craig-stars/cs"

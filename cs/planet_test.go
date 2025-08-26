@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -10,14 +12,14 @@ import (
 
 func newTestPlayerPlanet() (player *Player, planet *Planet) {
 	player = NewPlayer(1, NewRace()).WithNum(1)
-	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
 	planet = &Planet{}
 	planet.PlayerNum = player.Num
 	planet.BaseHab = player.Race.HabCenter()
 	planet.Hab = planet.BaseHab
 
-	player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
-	planet.Spec = computePlanetSpec(&rules, player, planet)
+	player.Spec = ComputePlayerSpec(player, &rules)
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 	return player, planet
 }
@@ -201,7 +203,7 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 			if tt.args.player.Race.GrowthRate == 15 {
 				tt.args.player.Race.GrowthRate = 10
 			}
-			tt.args.player.Race.Spec = computeRaceSpec(&tt.args.player.Race, &rules)
+			tt.args.player.Race.Spec = ComputeRaceSpec(&tt.args.player.Race, &rules)
 			if got := p.GetGrowthAmount(tt.args.player, tt.args.maxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax); got != tt.want {
 				t.Errorf("Planet.getGrowthAmount() = %v, want %v", got, tt.want)
 			}
@@ -301,14 +303,14 @@ func Test_computePlanetSpec(t *testing.T) {
 	player.Race.Spec.InnateMinesFactor = 0.1
 	player.Race.Spec.InnateScannerFactor = 0.1
 	planet.setPopulation(67300)
-	planet.Spec = computePlanetSpec(&rules, player, planet)
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 	assert.Equal(t, planet.Spec.ScanRange, 82)
 	assert.Equal(t, planet.Spec.ScanRangePen, 0)
 
 	// now use a death start
 	planet.Starbase = testDeathStar(player, planet)
-	planet.Spec = computePlanetSpec(&rules, player, planet)
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 	assert.Equal(t, planet.Spec.ScanRange, 82)
 	assert.Equal(t, planet.Spec.ScanRangePen, 41)
@@ -452,7 +454,7 @@ func TestPlanet_grow(t *testing.T) {
 			planet := NewPlanet().WithPlayerNum(player.Num).
 				WithHab(tt.fields.hab).WithPopulation(tt.fields.population)
 			for range tt.fields.turnsToGrow {
-				planet.Spec = computePlanetSpec(&rules, player, planet) // only really needed for growth amount
+				planet.Spec = ComputePlanetSpec(&rules, player, planet) // only really needed for growth amount
 				planet.grow(player)
 			}
 

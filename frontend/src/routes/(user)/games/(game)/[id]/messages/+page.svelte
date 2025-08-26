@@ -3,11 +3,8 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import {
-		PlayerMessagePlayerGainTechLevel,
-		PlayerMessagePlayerTechGained,
-		type PlayerMessage
-	} from '$lib/types/cs';
+	import { PlayerMessageType, type PlayerMessage } from '$lib/types/cs-proto';
+	import { getMapObjectTarget } from '$lib/types/Message';
 	import MessageDetail from './MessageDetail.svelte';
 
 	const { game, player, universe, settings, gotoTarget } = getGameContext();
@@ -26,16 +23,19 @@
 				return 'Battle';
 			}
 		}
-		if (message.type === PlayerMessagePlayerGainTechLevel) {
+		if (message.type === PlayerMessageType.PLAYER_GAIN_TECH_LEVEL) {
 			return 'Research';
 		}
-		if (message.type === PlayerMessagePlayerTechGained && message.spec) {
+		if (message.type === PlayerMessageType.BATTLE_REPORTS) {
+			return 'Battle Reports';
+		}
+		if (message.type === PlayerMessageType.PLAYER_TECH_GAINED && message.spec) {
 			return message.spec.techGained;
 		}
 
-		const target = $universe.getMapObject(message);
+		const target = $universe.getMapObject(getMapObjectTarget(message));
 		if (target) {
-			return target.name;
+			return target.mapObject?.name ?? '';
 		}
 		return '';
 	}
@@ -47,13 +47,13 @@
 		$player.messages.filter((m) => showAllMessages || $settings.isMessageVisible(m.type))
 	);
 
-	type TableMessage = PlayerMessage & { target?: never };
+	type TableMessage = PlayerMessage & { targetType?: never };
 	const columns: TableColumn<TableMessage>[] = [
 		{
-			key: 'target',
+			key: 'targetType',
 			title: 'Target',
-			sortBy: (a, b) => (a.targetType ?? '').localeCompare(b.targetType ?? ''),
-			filterBy: (value, row) => (getTarget(row) ?? '').toLowerCase().indexOf(value) != -1
+			sortBy: (a, b) => (a.target?.targetType ?? 0) - (b.target?.targetType ?? 0),
+			filterBy: (value, row) => getTarget(row).toLowerCase().indexOf(value) != -1
 		},
 		{
 			key: 'text',
@@ -94,12 +94,12 @@
 
 		{#snippet cell({ column, row })}
 			<span>
-				{#if column.key == 'target'}
+				{#if column.key == 'targetType'}
 					<button
 						class="cs-link text-xl text-left"
 						onclick={() => selectMessage(row)}
 						data-type="goto-target-button"
-						data-id={row.targetName}>{getTarget(row)}</button
+						data-id={row.target?.targetName}>{getTarget(row)}</button
 					>
 				{:else}
 					<MessageDetail message={row} />

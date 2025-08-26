@@ -1,8 +1,9 @@
-import { apiErrorsFailTest, expect, test } from './setup';
+import { apiErrorsFailTest, expect, submitTurn, test } from './setup';
+import { WaypointTaskTransportAction } from '../src/lib/protogen/craig_stars/v1/fleet_pb';
 
 test('create a new game', async ({ newGamePage }) => {
 	const { page, name } = newGamePage;
-	const gameLink = page.getByRole('link', { name: name });
+	const gameLink = await page.locator('[data-type="game-link"]').first();
 	await expect(gameLink).toBeVisible();
 	await expect(gameLink).toHaveText(`${name} - 2400`);
 });
@@ -12,7 +13,7 @@ test('submit turn', async ({ newGamePage }) => {
 	apiErrorsFailTest(page, id);
 
 	// start with a new game, ensure we have year 2400
-	const gameLink = page.getByRole('link', { name: name });
+	const gameLink = await page.locator('[data-type="game-link"]').first();
 	await expect(gameLink).toBeVisible();
 	await expect(gameLink).toHaveText(`${name} - 2400`);
 
@@ -63,6 +64,7 @@ test('relations page', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Relations' }).click();
+	await page.waitForURL(`/games/${id}/relations`);
 
 	await page.getByRole('radio', { name: 'Friend' }).first().check();
 	await page.getByRole('radio', { name: 'Neutral' }).first().check();
@@ -77,6 +79,7 @@ test('battle plans page', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Battle Plans' }).click();
+	await page.waitForURL(`/games/${id}/battle-plans`);
 
 	await page.getByRole('link', { name: 'Create' }).click();
 	await page.getByRole('textbox', { name: 'Name' }).fill(name);
@@ -106,6 +109,7 @@ test('production plans page', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Production Plans' }).click();
+	await page.waitForURL(`/games/${id}/production-plans`);
 
 	await page.getByRole('link', { name: 'Create' }).click();
 	await page.getByRole('textbox', { name: 'Name' }).fill(name);
@@ -146,18 +150,30 @@ test('transport plans page', async ({ newGamePage }) => {
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Transport Plans' }).click();
+	await page.waitForURL(`/games/${id}/transport-plans`);
 
 	await page.getByRole('link', { name: 'Create' }).click();
 	await page.getByRole('textbox', { name: 'Name' }).fill(name);
 
-	await page.getByLabel('Action Fuel NoneLoad').selectOption('LoadOptimal');
-	await page.getByLabel('Action Ironium NoneLoad').selectOption('LoadAmount');
+	await page
+		.getByLabel('Action Fuel NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.LOAD_OPTIMAL));
+
+	await page
+		.getByLabel('Action Ironium NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.LOAD_AMOUNT));
 	await page.getByLabel('Amount Ironium').fill('1');
-	await page.getByLabel('Action Boranium NoneLoad').selectOption('UnloadAmount');
+	await page
+		.getByLabel('Action Boranium NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.UNLOAD_AMOUNT));
 	await page.getByLabel('Amount Boranium').fill('1');
-	await page.getByLabel('Action Germanium NoneLoad').selectOption('FillPercent');
+	await page
+		.getByLabel('Action Germanium NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.FILL_PERCENT));
 	await page.getByLabel('Amount Germanium').fill('3');
-	await page.getByLabel('Action Colonists NoneLoad').selectOption('SetAmountTo');
+	await page
+		.getByLabel('Action Colonists NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.SET_AMOUNT_TO));
 	await page.getByLabel('Amount Colonists').fill('10');
 
 	await page.getByRole('button', { name: 'Save' }).click();
@@ -244,7 +260,7 @@ test('designs report page', async ({ newGamePage }) => {
 
 	// sort
 	await page.getByRole('button', { name: 'Player' }).click();
-	await page.getByRole('button', { name: 'ID' }).click();
+	await page.getByRole('button', { name: 'ID', exact: true }).first().click();
 	await page.getByRole('button', { name: 'Name' }).click();
 	await page.getByRole('button', { name: 'Hull' }).click();
 	await page.getByRole('button', { name: 'Rating' }).click();
@@ -315,6 +331,22 @@ test('battles report page', async ({ newGamePage }) => {
 	await page.getByRole('button', { name: 'Ours Left' }).click();
 	await page.getByRole('button', { name: 'Theirs Left' }).click();
 	await page.getByRole('button', { name: 'Theirs Left' }).click();
+});
+
+test('players report page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+
+	// generate some data
+	await submitTurn(page);
+
+	await page.locator('label').filter({ hasText: 'Reports' }).click();
+	await page.getByRole('link', { name: 'Players' }).click();
+	await page.waitForURL(`/games/${id}/players`);
+
+	await page.getByText('1 admin').click();
+	await expect(page.getByRole('main')).toContainText('1 admin');
+	await expect(page.getByRole('main')).toContainText('Humanoids');
+	await expect(page.getByRole('main')).toContainText('Playing');
 });
 
 test('game techs page', async ({ newGamePage }) => {

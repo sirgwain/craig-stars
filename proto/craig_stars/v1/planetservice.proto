@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/planet.proto";
+
+service PlanetService {
+  rpc GetPlanet(GetPlanetRequest) returns (GetPlanetResponse);
+  rpc UpdatePlanetOrders(UpdatePlanetOrdersRequest) returns (UpdatePlanetOrdersResponse);
+}
+
+message GetPlanetRequest {
+  int64 game_id = 1;
+  int32 planet_num = 2;
+}
+
+message GetPlanetResponse {
+  Planet planet = 1;
+}
+
+message UpdatePlanetOrdersRequest {
+  int64 game_id = 1;
+  int32 planet_num = 2;
+  PlanetOrders planet_orders = 4;
+}
+
+message UpdatePlanetOrdersResponse {
+  Planet planet = 1;
+}

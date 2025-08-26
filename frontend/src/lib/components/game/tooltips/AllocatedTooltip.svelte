@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	import { showTooltip } from '$lib/services/Stores';
-	import type { Cost } from '$lib/types/cs';
+	import type { Cost } from '$lib/types/cs-proto';
 	import AllocatedTooltip from './AllocatedTooltip.svelte';
 
 	export function onAllocatedTooltip(e: PointerEvent | MouseEvent, cost: Cost | undefined) {

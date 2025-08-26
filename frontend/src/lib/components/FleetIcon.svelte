@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyFleet, AnyShipDesign } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
-	import type { ShipToken } from '$lib/types/cs';
+	import type { Fleet, ShipDesign, ShipToken } from '$lib/types/cs-proto';
 	import { NoSymbol } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onShipDesignTooltip } from './game/tooltips/ShipDesignTooltip.svelte';
@@ -10,16 +9,16 @@
 	const { universe } = getGameContext();
 
 	type Props = {
-		fleet: AnyFleet;
+		fleet: Fleet;
 		tokens?: ShipToken[];
 	};
 
-	let { fleet, tokens = fleet.tokens ?? [] }: Props = $props();
+	let { fleet, tokens = fleet.tokens }: Props = $props();
 
-	const design: AnyShipDesign | undefined = $derived.by(() => {
+	const design: ShipDesign | undefined = $derived.by(() => {
 		const token = tokens.find((t) => t.quantity > 0);
 		if (token) {
-			return $universe.getDesign(fleet.playerNum, token.designNum);
+			return $universe.getDesign(fleet.mapObject?.playerNum, token.designNum);
 		}
 	});
 </script>
@@ -27,9 +26,9 @@
 <div class="avatar mr-2">
 	<div
 		class="border-2 border-neutral p-2 bg-black"
-		style={`border-color: ${$universe.getPlayerColor(fleet.playerNum)};`}
+		style={`border-color: ${$universe.getPlayerColor(fleet.mapObject?.playerNum)};`}
 	>
-		{#if tokens && tokens.reduce((count, t) => count + t.quantity, 0) > 1}
+		{#if tokens.reduce((count, t) => count + t.quantity, 0) > 1}
 			<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 		{/if}
 

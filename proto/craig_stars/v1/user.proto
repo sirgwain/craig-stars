@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "google/protobuf/timestamp.proto";
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_USER = 1;
+  USER_ROLE_ADMIN = 2;
+  USER_ROLE_GUEST = 3;
+}
+
+message UserSession {
+  // Embedded DBObject
+  int64 id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
+
+  string username = 4;
+  string password = 5;
+  UserRole role = 6;
+  string status = 7;
+  google.protobuf.Timestamp last_login = 8;
+  string discord_id = 9;
+  string discord_avatar = 10;
+}
+
+message User {
+  // Embedded DBObject
+  int64 id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
+
+  // Embedded UserSettings
+  string discord_webhook_url = 4;
+
+  string username = 5;
+  UserRole role = 6;
+  bool banned = 7;
+  bool verified = 8;
+  int64 game_id = 9;
+  int32 player_num = 10;
+  google.protobuf.Timestamp last_login = 11;
+  string discord_id = 12;
+  string discord_avatar = 13;
+}
+
+message UserSettings {
+  string discord_webhook_url = 1;
+}

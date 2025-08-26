@@ -6,7 +6,7 @@
 	import Population from '$lib/components/icons/Population.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getLabelForPRT } from '$lib/types/Race';
-	import { Grav, Rad, Temp } from '$lib/types/cs';
+	import { Grav, Rad, Temp } from '$lib/types/Hab';
 	import HabBar from './HabBar.svelte';
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';
@@ -24,7 +24,7 @@
 			<div class="stat-title">Growth Rate</div>
 			<div class="stat-figure"><Population class="w-8 h-8 fill-base-content" /></div>
 			<div class="stat-value">
-				{race.growthRate * (race.spec?.growthFactor ?? 1)}%
+				{race.growthRate * (race.spec.growthFactor || 1)}%
 			</div>
 		</div>
 	</div>

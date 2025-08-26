@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Archive from '$lib/components/icons/Archive.svelte';
 	import { me } from '$lib/services/Stores';
-	import type { GameWithPlayers } from '$lib/types/cs';
+	import type { GameWithPlayers } from '$lib/types/cs-proto';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -20,13 +20,13 @@
 <div class="col-span-5">
 	<a
 		class="text-primary text-2xl hover:text-accent w-full"
-		href="/games/{game.id}"
+		href="/games/{game.game?.id}"
 		data-type="game-link"
-		data-id={game.id}>{game.name}</a
+		data-id={game.game?.id}>{game.game?.name}</a
 	>
 </div>
 <div class="col-span-2 text-md">
-	{game.year}
+	{game.game?.year}
 </div>
 <div class="col-span-3 text-md">
 	{#if showNumSubmitted}
@@ -35,7 +35,7 @@
 		{game.players.length}
 	{/if}
 </div>
-{#if game.hostId == $me.id}
+{#if game.game?.hostId == BigInt($me.id)}
 	<div class="col-span-2 flex justify-center join">
 		<button onclick={onArchive} class="btn btn-error btn-sm rounded-l-md" title="Archive Game">
 			<Archive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
@@ -45,7 +45,7 @@
 			class="btn btn-error btn-sm border-l-secondary rounded-r-md"
 			title="Delete Game"
 			data-type="delete-button"
-			data-id={game.id}
+			data-id={game.game.id}
 		>
 			<Icon src={XMark} size="16" class="hover:stroke-accent" />
 		</button>

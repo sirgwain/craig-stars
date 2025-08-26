@@ -153,54 +153,54 @@ func Test_getClosestPlanet(t *testing.T) {
 	player := cs.NewPlayer(1, cs.NewRace().WithSpec(&game.Rules))
 	aiPlayer := NewAIPlayer(game, &cs.StaticTechStore, player, cs.PlayerMapObjects{})
 
-	planetAt0_0 := cs.PlanetIntel{
+	planetAt0_0 := &cs.Planet{
 		MapObject: cs.MapObject{Position: cs.Vector{X: 0, Y: 0}},
 	}
-	planetAt50_50 := cs.PlanetIntel{
+	planetAt50_50 := &cs.Planet{
 		MapObject: cs.MapObject{Position: cs.Vector{X: 50, Y: 50}},
 	}
-	planetAt100_100 := cs.PlanetIntel{
+	planetAt100_100 := &cs.Planet{
 		MapObject: cs.MapObject{Position: cs.Vector{X: 100, Y: 100}},
 	}
 
 	tests := []struct {
 		name                string
 		position            cs.Vector
-		unknownPlanetsByNum map[int]cs.PlanetIntel
-		want                *cs.PlanetIntel
+		unknownPlanetsByNum map[int]*cs.Planet
+		want                *cs.Planet
 	}{
 		{
 			name:                "no planets",
 			position:            cs.Vector{},
-			unknownPlanetsByNum: map[int]cs.PlanetIntel{},
+			unknownPlanetsByNum: map[int]*cs.Planet{},
 			want:                nil,
 		},
 		{
 			name:     "1 planet",
 			position: cs.Vector{},
-			unknownPlanetsByNum: map[int]cs.PlanetIntel{
+			unknownPlanetsByNum: map[int]*cs.Planet{
 				1: planetAt0_0,
 			},
-			want: &planetAt0_0,
+			want: planetAt0_0,
 		},
 		{
 			name:     "2 planets - picks closest",
 			position: cs.Vector{},
-			unknownPlanetsByNum: map[int]cs.PlanetIntel{
+			unknownPlanetsByNum: map[int]*cs.Planet{
 				1: planetAt100_100,
 				2: planetAt50_50,
 			},
-			want: &planetAt50_50,
+			want: planetAt50_50,
 		},
 		{
 			name:     "3 planets - picks closest",
 			position: cs.Vector{},
-			unknownPlanetsByNum: map[int]cs.PlanetIntel{
+			unknownPlanetsByNum: map[int]*cs.Planet{
 				12: planetAt0_0,
 				1:  planetAt50_50,
 				2:  planetAt100_100,
 			},
-			want: &planetAt0_0,
+			want: planetAt0_0,
 		},
 	}
 	for _, tt := range tests {

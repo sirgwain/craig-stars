@@ -1,5 +1,3 @@
-//go:build !wasi && !wasm
-
 // The `server` package configures webserver routes to access the database.
 // It is the "glue" that ties the [cs] and [db] packages together.
 package server
@@ -17,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
@@ -25,6 +24,7 @@ import (
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
+	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
 	"github.com/sirgwain/craig-stars/test/testgames"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -41,9 +41,12 @@ type contextKey int
 
 const (
 	keyDb contextKey = iota
+	keyDbRead
+	keyDbWrite
 	keyUserSession
 	keyRace
 	keyGame
+	keyGamePlayer
 	keyPlayer
 	keyShipDesign
 	keyBattlePlan
@@ -56,9 +59,10 @@ const (
 )
 
 type server struct {
-	db     DBConnection
-	config config.Config
-	sf     singleflight.Group
+	db              DBConnection
+	config          config.Config
+	sf              singleflight.Group
+	discordNotifier *discordNotifier
 }
 
 const userRejected = "rejected"
@@ -77,12 +81,14 @@ func Start(config config.Config) error {
 		}
 	}
 
+	discordNotifier := newDiscordNotifier(dbConn, config)
+
 	// create a server
 	server := &server{
-		db:     dbConn,
-		config: config,
+		db:              dbConn,
+		config:          config,
+		discordNotifier: discordNotifier,
 	}
-	_ = server
 
 	var authLogger = logger.Func(func(format string, args ...interface{}) { log.Info().Msgf(format, args...) })
 
@@ -254,193 +260,49 @@ func Start(config config.Config) error {
 
 	r.Use(middleware.Heartbeat("/api/ping"))
 
-	// techs are public
-	r.Route("/api/techs", func(r chi.Router) {
-		r.Get("/", server.techs)
-		r.Get("/{name:[a-zA-Z0-9-\\s]+}", server.tech)
-	})
-	r.Route("/api/battles", func(r chi.Router) {
-		r.Get("/test", server.testBattle)
-	})
-
 	r.Group(func(r chi.Router) {
 		r.Use(m.Auth)
-		r.Use(render.SetContentType(render.ContentTypeJSON))
 		r.Use(server.userSessionCtx)
-		r.Get("/api/me", me)
+		r.Use(render.SetContentType(render.ContentTypeJSON))
 
-		// user api calls
-		r.Route("/api/users", func(r chi.Router) {
-			r.Route("/{id:[0-9]+}", func(r chi.Router) {
-				r.Use(server.userCtx)
-				r.Get("/", server.user)
-				r.Put("/", server.updateUserSettings)
-				r.Post("/test-discord-webhook", server.testDiscordWebhook)
-			})
-		})
-
-		// race CRUD
-		r.Route("/api/races", func(r chi.Router) {
-			r.Post("/", server.createRace)
-			r.Get("/", server.races)
-			r.Post("/points", server.getRacePoints)
-
-			// race by id operations
-			r.Route("/{id:[0-9]+}", func(r chi.Router) {
-				r.Use(server.raceCtx)
-				r.Get("/", server.race)
-				r.Put("/", server.updateRace)
-				r.Delete("/", server.deleteRace)
-			})
-		})
-
-		r.Route("/api/calculators", func(r chi.Router) {
-			r.Post("/planet-production-estimate", server.getPlanetProductionEstimate)
-			r.Post("/starbase-upgrade-cost", server.getStarbaseUpgradeCost)
-		})
-
-		// admin routes
-		r.Route("/api/admin", func(r chi.Router) {
-			r.Use(server.adminRequired)
-			r.Get("/games", server.allGames)
-			r.Get("/users", server.users)
-			r.Get("/users/{id:[0-9]+}/games", server.userGames)
-			r.Post("/users/{id:[0-9]+}/convert-guest-user", server.convertGuestUser)
-		})
-
-		// route for all operations that act on a game
+		// route for a few leftover REST operations on games
 		r.Route("/api/games", func(r chi.Router) {
-			r.Post("/", server.createGame)
-			r.Get("/", server.games)
-			r.Get("/hosted", server.hostedGames)
-			r.Get("/open", server.openGames)
-			r.Get("/invite/{hash:[a-zA-Z0-9]+}", server.gameByHash)
-
 			// game by id operations
 			r.Route("/{id:[0-9]+}", func(r chi.Router) {
 				r.Use(server.gameCtx)
 				r.Get("/ping-discord", server.pingDiscordForGameUpdate)
-				r.Get("/", server.game)
-				r.Put("/", server.updateGame)
-				r.Get("/guest/{num:[0-9]+}", server.getGuestUser)
-				r.Post("/join", server.joinGame)
-				r.Post("/leave", server.leaveGame)
-				r.Post("/add-ai", server.addOpenPlayerSlot)
-				r.Post("/add-open-player-slot", server.addOpenPlayerSlot)
-				r.Post("/add-guest-player", server.addGuestPlayer)
-				r.Post("/add-ai-player", server.addAIPlayer)
-				r.Post("/kick-player", server.kickPlayer)
-				r.Post("/delete-player", server.deletePlayerSlot)
-				r.Post("/update-player", server.updatePlayerSlot)
-				r.Post("/start-game", server.startGame)
-				r.Post("/generate-turn", server.generateTurn)
 				r.Get("/compute-specs", server.computeSpecs)
-				r.Delete("/", server.deleteGame)
-
-				// routes requiring a player and game
-				r.Group(func(r chi.Router) {
-					r.Use(server.playerCtx)
-					r.Get("/player", server.player)
-					r.Put("/player", server.updatePlayerOrders)
-					r.Put("/player/plans", server.updatePlayerPlans)
-					r.Put("/player/relations", server.updatePlayerRelations)
-					r.Post("/submit-turn", server.submitTurn)
-					r.Post("/unsubmit-turn", server.unSubmitTurn)
-					r.Post("/archive-game", server.archiveGame)
-					r.Post("/unarchive-game", server.unArchiveGame)
-					r.Post("/research-cost", server.getResearchCost)
-
-					// ship designs
-					r.Route("/designs", func(r chi.Router) {
-						r.Get("/", server.shipDesigns)
-						r.Post("/", server.createShipDesign)
-						r.Post("/spec", server.computeShipDesignSpec)
-
-						// shipdesign by num operations
-						r.Route("/{num:[0-9]+}", func(r chi.Router) {
-							r.Use(server.shipdDesignCtx)
-							r.Get("/", server.shipDesign)
-							r.Put("/", server.updateShipDesign)
-							r.Delete("/", server.deleteShipDesign)
-						})
-					})
-
-					// battle plans
-					r.Route("/battle-plans", func(r chi.Router) {
-						r.Post("/", server.createBattlePlan)
-
-						// shipdesign by num operations
-						r.Route("/{num:[0-9]+}", func(r chi.Router) {
-							r.Use(server.battlePlanCtx)
-							r.Put("/", server.updateBattlePlan)
-							r.Delete("/", server.deleteBattlePlan)
-						})
-					})
-
-					// production plans
-					r.Route("/production-plans", func(r chi.Router) {
-						r.Post("/", server.createProductionPlan)
-
-						// shipdesign by num operations
-						r.Route("/{num:[0-9]+}", func(r chi.Router) {
-							r.Use(server.productionPlanCtx)
-							r.Put("/", server.updateProductionPlan)
-							r.Delete("/", server.deleteProductionPlan)
-						})
-					})
-
-					// transport plans
-					r.Route("/transport-plans", func(r chi.Router) {
-						r.Post("/", server.createTransportPlan)
-
-						// shipdesign by num operations
-						r.Route("/{num:[0-9]+}", func(r chi.Router) {
-							r.Use(server.transportPlanCtx)
-							r.Put("/", server.updateTransportPlan)
-							r.Delete("/", server.deleteTransportPlan)
-						})
-					})
-
-					// planet order updates
-					r.Route("/planets", func(r chi.Router) {
-						r.Route("/{num:[0-9]+}", func(r chi.Router) {
-							r.Use(server.planetCtx)
-							r.Get("/", server.planet)
-							r.Put("/", server.updatePlanetOrders)
-						})
-					})
-
-					// fleet order updates
-					r.Route("/fleets", func(r chi.Router) {
-						r.Route("/{num:[0-9]+}", func(r chi.Router) {
-							r.Use(server.fleetCtx)
-							r.Get("/", server.fleet)
-							r.Put("/", server.updateFleetOrders)
-							r.Post("/split", server.split)
-							r.Post("/split-all", server.splitAll)
-							r.Post("/merge", server.merge)
-							r.Post("/transfer-cargo", server.transferCargo)
-							r.Post("/rename", server.renameFleet)
-						})
-					})
-
-					// minefield order updates
-					r.Route("/minefields", func(r chi.Router) {
-						r.Route("/{num:[0-9]+}", func(r chi.Router) {
-							r.Use(server.minefieldCtx)
-							r.Get("/", server.minefield)
-							r.Put("/", server.updateMinefieldOrders)
-						})
-					})
-				})
-
-				r.Get("/full-player", server.fullPlayer)
-				r.Get("/mapobjects", server.mapObjects)
-				r.Get("/universe", server.universe)
-
 			})
 		})
 
+	})
+
+	// Create a subrouter for /api/grpc for grpc calls
+	grpc := http.NewServeMux()
+	userInterceptors := []connect.Interceptor{newDbInterceptor(dbConn), newErrorLogInterceptor()}
+	gameInterceptors := []connect.Interceptor{newDbInterceptor(dbConn), newGameInterceptor(), newErrorLogInterceptor()}
+
+	grpc.Handle(craig_starsv1connect.NewTechServiceHandler(NewTechServiceHandler(), connect.WithInterceptors(newErrorLogInterceptor())))
+	grpc.Handle(craig_starsv1connect.NewUserServiceHandler(NewUserServiceHandler(dbConn, discordNotifier), connect.WithInterceptors(userInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewRaceServiceHandler(NewRaceServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewGameServiceHandler(NewGameServiceHandler(dbConn, server.config, discordNotifier), connect.WithInterceptors(gameInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewPlayerServiceHandler(NewPlayerServiceHandler(dbConn, server.config, discordNotifier), connect.WithInterceptors(gameInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewShipDesignServiceHandler(NewshipDesignServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewBattlePlanServiceHandler(NewBattlePlanServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewProductionPlanServiceHandler(NewProductionPlanServiceHandler(), connect.WithInterceptors(gameInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewTransportPlanServiceHandler(NewTransportPlanServiceHandler(), connect.WithInterceptors(gameInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewPlanetServiceHandler(NewPlanetServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewFleetServiceHandler(NewFleetServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewMinefieldServiceHandler(NewMinefieldServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewAdminServiceHandler(NewAdminServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewBattleServiceHandler(NewBattleServiceHandler(), connect.WithInterceptors(userInterceptors...)))
+
+	// Mount the grpc calls to /api/grpc
+	r.Group(func(r chi.Router) {
+		r.Use(m.Auth)
+		r.Use(server.userSessionCtx)
+
+		r.Mount("/api/grpc", http.StripPrefix("/api/grpc", grpc))
 	})
 
 	// setup auth routes
@@ -523,11 +385,6 @@ func (s *server) contextDb(r *http.Request) DBClient {
 	return r.Context().Value(keyDb).(DBClient)
 }
 
-// create a new gameRunner for this request
-func (s *server) newGameRunner(ctx context.Context) GameRunner {
-	return NewGameRunner(s.db, s.config)
-}
-
 // create a new request logger with zerolog. Inspired by https://github.com/ironstar-io/chizerolog
 func requestLogger(logger *zerolog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -591,21 +448,6 @@ func (s *server) int64URLParam(r *http.Request, key string) (*int64, error) {
 	}
 	var num int64
 	num, err := strconv.ParseInt(param, 10, 64)
-	if err != nil {
-
-		return nil, err
-	}
-
-	return &num, nil
-}
-
-func (s *server) intURLParam(r *http.Request, key string) (*int, error) {
-	param := chi.URLParam(r, key)
-	if param == "" {
-		return nil, nil
-	}
-	var num int
-	num, err := strconv.Atoi(param)
 	if err != nil {
 
 		return nil, err

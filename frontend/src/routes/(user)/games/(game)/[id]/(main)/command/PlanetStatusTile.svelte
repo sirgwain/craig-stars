@@ -22,12 +22,12 @@
 	function onResourcesTooltip(e: PointerEvent) {
 		e.preventDefault();
 		showTooltip<ResourcesTooltipProps>(e.x, e.y, ResourcesTooltip, {
-			planetName: planet.name,
-			resourcesPerYear: planet.spec.resourcesPerYear ?? 0,
-			resourcesPerYearAvailable: planet.spec.resourcesPerYearAvailable ?? 0,
-			resourcesPerYearResearch: planet.spec.resourcesPerYearResearch ?? 0,
-			resourcesPerYearResearchEstimated: planet.spec.resourcesPerYearResearchEstimatedLeftover ?? 0,
-			innateResources: $player.race.spec?.innateResources ?? false
+			planetName: planet.mapObject.name,
+			resourcesPerYear: planet.spec.resourcesPerYear,
+			resourcesPerYearAvailable: planet.spec.resourcesPerYearAvailable,
+			resourcesPerYearResearch: planet.spec.resourcesPerYearResearch,
+			resourcesPerYearResearchEstimated: planet.spec.resourcesPerYearResearchEstimatedLeftover,
+			innateResources: $player.race.spec.innateResources
 		});
 	}
 
@@ -42,28 +42,28 @@
 
 	function onScannerTooltip(e: PointerEvent) {
 		e.preventDefault();
-		if ($player.race.spec?.innateScanner) {
+		if ($player.race.spec.innateScanner) {
 			showTooltip(e.x, e.y, InnateScannerTooltip);
 		} else {
-			onTechTooltip(e, $techs.getTech(planet.spec.scanner ?? ''));
+			onTechTooltip(e, $techs.getTech(planet.spec.scanner));
 		}
 	}
 	function onDefenseTooltip(e: PointerEvent) {
 		e.preventDefault();
-		onTechTooltip(e, $techs.getTech(planet.spec.defense ?? ''));
+		onTechTooltip(e, $techs.getTech(planet.spec.defense));
 	}
 </script>
 
-{#if planet.spec && planet.cargo}
+{#if planet.cargo}
 	<CommandTile title="Status">
 		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>
 			<div class="text-tile-item-title">Population</div>
-			<div>{((planet.cargo.colonists ?? 0) * 100).toLocaleString()}</div>
+			<div>{(planet.cargo.colonists * 100).toLocaleString()}</div>
 		</div>
 		<div class="flex justify-between cursor-help" onpointerdown={onResourcesTooltip}>
 			<div class="text-tile-item-title">Resources/Year</div>
 			<div>
-				{planet.spec.resourcesPerYearAvailable ?? 0} of {planet.spec.resourcesPerYear ?? 0}
+				{planet.spec.resourcesPerYearAvailable} of {planet.spec.resourcesPerYear}
 			</div>
 		</div>
 
@@ -71,14 +71,14 @@
 
 		<div class="flex justify-between cursor-help" onpointerdown={onScannerTooltip}>
 			<div class="text-tile-item-title">Scanner Type</div>
-			<div>{planet.spec.scanner ?? 'none'}</div>
+			<div>{planet.spec.scanner || 'none'}</div>
 		</div>
 		<div class="flex justify-between cursor-help" onpointerdown={onScannerTooltip}>
 			<div class="text-tile-item-title">Scanner Range</div>
-			<div>{planet.spec.scanRange ?? '--'} l.y.</div>
+			<div>{planet.spec.scanRange || '--'} l.y.</div>
 		</div>
 
-		{#if $player.race.spec?.canBuildDefenses}
+		{#if $player.race.spec.canBuildDefenses}
 			<div class="divider p-0 m-0"></div>
 
 			<div class="flex justify-between cursor-help" onpointerdown={onDefenseTooltip}>
@@ -92,7 +92,7 @@
 			<div class="flex justify-between cursor-help" onpointerdown={onDefenseTooltip}>
 				<div class="text-tile-item-title">Defense Coverage</div>
 				<div>
-					{((planet.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
+					{(planet.spec.defenseCoverage * 100).toFixed(1)}%
 				</div>
 			</div>
 		{/if}

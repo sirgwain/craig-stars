@@ -9,10 +9,11 @@
 	} & NextPrevMapObjectProps;
 
 	let { planet, hideTitle, onNextMapObject, onPreviousMapObject }: Props = $props();
-	const icon = (planet: CommandedPlanet) => (planet ? `planet-${(planet.num - 1) % 26}` : '');
+	const icon = (planet: CommandedPlanet) =>
+		planet.mapObject.num ? `planet-${(planet.mapObject.num - 1) % 26}` : '';
 </script>
 
-<CommandTile title={hideTitle ? '' : planet.name}>
+<CommandTile title={hideTitle ? '' : planet.mapObject.name}>
 	<div class="grid grid-cols-2">
 		<div class="avatar">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">
