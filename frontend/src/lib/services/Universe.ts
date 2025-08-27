@@ -138,7 +138,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.scoreIntels = playerUniverse?.scoreIntels;
 		this.planetIntels = playerUniverse.planets;
 		this.fleetIntels =
-			playerUniverse.fleets.filter((f) => f.mapObject?.playerNum !== playerNum && !f.starbase) ??
+			playerUniverse.fleets.filter((f) => f.mapObject && f.mapObject?.playerNum !== playerNum && !f.starbase) ??
 			[];
 		this.minefieldIntels =
 			playerUniverse.minefields.filter((mo) => mo.mapObject?.playerNum !== playerNum) ?? [];
