@@ -19,6 +19,9 @@
 
 	onMount(async () => {
 		try {
+			if (!page.params.id) {
+				throw new Error('Game ID is required');
+			}
 			const resp = await gameClient.getGame({ gameId: BigInt(page.params.id) });
 			if (resp.game) {
 				game = getGameWithPlayersFlat(resp.game);

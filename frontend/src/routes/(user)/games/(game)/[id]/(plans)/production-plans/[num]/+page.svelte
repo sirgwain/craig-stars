@@ -10,7 +10,7 @@
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
 
 	const { game, player, universe, updateProductionPlan } = getGameContext();
-	let num = parseInt(page.params.num);
+	let num = parseInt(page.params.num || '0');
 
 	let plan: ProductionPlan | undefined = $derived(
 		$player.playerPlans.productionPlans.find((p) => p.num == num)

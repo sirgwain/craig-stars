@@ -6,8 +6,8 @@
 	import { getGameContext } from '$lib/services/GameContext';
 
 	const { game, universe } = getGameContext();
-	let playerNum = parseInt(page.params.playerNum);
-	let num = parseInt(page.params.num);
+	let playerNum = parseInt(page.params.playerNum || '0');
+	let num = parseInt(page.params.num || '0');
 
 	let design = $derived($universe.getDesign(playerNum, num));
 </script>

@@ -10,7 +10,7 @@
 	const { game, player } = getGameContext();
 
 	let nameSlug = page.params.name;
-	let tech = $derived($techs.getTech(nameSlug));
+	let tech = $derived($techs.getTech(nameSlug || ''));
 
 	let hull = $derived(tech as TechHull);
 </script>

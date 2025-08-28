@@ -6,7 +6,7 @@
 	import ProductionQueue from '../../../dialogs/production/ProductionQueue.svelte';
 
 	const { player, universe, commandedPlanet, commandMapObject } = getGameContext();
-	let num = parseInt(page.params.num);
+	let num = parseInt(page.params.num || '0');
 
 	onMount(() => {
 		const planet = $universe.getPlanet(num);

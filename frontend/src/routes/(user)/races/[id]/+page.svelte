@@ -20,7 +20,7 @@
 
 	onMount(async () => {
 		loadWasm().then((res) => (cs = res));
-		if (id !== 'new') {
+		if (id && id !== 'new') {
 			try {
 				const resp = await raceClient.getRace({ raceId: BigInt(id) });
 				if (resp.race) {

@@ -19,7 +19,7 @@
 			const usersResp = await adminClient.getUsers({});
 			users = usersResp.users;
 
-			guestUser = usersResp.users.find((u) => u.id == BigInt(id));
+			guestUser = usersResp.users.find((u) => id && u.id == BigInt(id));
 
 			// load the games for this user
 			if (guestUser) {

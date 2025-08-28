@@ -10,7 +10,7 @@
 	import type { ConnectError } from '@connectrpc/connect';
 
 	const { game, universe, updateDesign } = getGameContext();
-	let num = parseInt(page.params.num);
+	let num = parseInt(page.params.num || '0');
 
 	let design: ShipDesign | undefined = $state($universe.getMyDesign(num));
 	let hull = $derived(design && $techs.getHull(design.hull));

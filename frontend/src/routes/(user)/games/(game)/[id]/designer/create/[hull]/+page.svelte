@@ -13,7 +13,7 @@
 	const { game, universe, player, createDesign } = getGameContext();
 	let hullName = page.params.hull;
 
-	let hull = $derived($techs.getHull(hullName));
+	let hull = $derived($techs.getHull(hullName || ''));
 
 	let design: ShipDesign | undefined = $state();
 

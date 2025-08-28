@@ -26,7 +26,7 @@
 
 	let { children }: Props = $props();
 
-	let id = parseInt($page.params.id);
+	let id = parseInt($page.params.id || '0');
 
 	let context: GameContext | undefined = $state(undefined);
 	let error: string | undefined = $state(undefined);

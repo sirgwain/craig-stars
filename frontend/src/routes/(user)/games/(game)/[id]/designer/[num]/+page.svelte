@@ -5,7 +5,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 
 	const { game, universe } = getGameContext();
-	let num = parseInt(page.params.num);
+	let num = parseInt(page.params.num || '0');
 
 	let design = $derived($universe.getMyDesign(num));
 </script>

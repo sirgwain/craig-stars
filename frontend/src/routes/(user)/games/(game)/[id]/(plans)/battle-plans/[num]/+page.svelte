@@ -10,7 +10,7 @@
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
 
 	const { game, player, updateBattlePlan } = getGameContext();
-	let num = parseInt(page.params.num);
+	let num = parseInt(page.params.num || '0');
 
 	let plan: BattlePlan | undefined = $derived(
 		$player.playerPlans.battlePlans.find((p) => p.num == num)
