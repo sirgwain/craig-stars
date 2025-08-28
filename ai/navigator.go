@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"log/slog"
 	"math"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -15,8 +16,10 @@ func (ai *aiPlayer) updateFleetWarpSpeed() error {
 			if wp1.WarpSpeed == fleet.Spec.Engine.FreeSpeed {
 				warpSpeed := ai.getWarpSpeed(fleet, wp1.MapObjectTarget, false)
 				if warpSpeed > wp1.WarpSpeed {
-					ai.log.Debug().
-						Msgf("Fleet %s increasing warp from %d to %d", fleet.Name, wp1.WarpSpeed, warpSpeed)
+					ai.log.Debug("Fleet increasing warp",
+						slog.String("fleet", fleet.Name),
+						slog.Int("fromWarp", wp1.WarpSpeed),
+						slog.Int("toWarp", warpSpeed))
 
 					fleet.Waypoints[1].WarpSpeed = warpSpeed
 					ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)

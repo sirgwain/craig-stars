@@ -6,11 +6,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strconv"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/ai"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
@@ -79,7 +79,7 @@ func NewGameRunner(dbConn DBConnection, config config.Config) GameRunner {
 
 func timeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
-	log.Printf("%s took %s", name, elapsed)
+	slog.Info("Operation completed", slog.String("operation", name), slog.Duration("elapsed", elapsed))
 }
 
 // extract the guest number from a guest username
@@ -132,7 +132,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			switch playerSetting.Type {
 			case cs.NewGamePlayerTypeHost:
 
-				log.Debug().Int64("hostID", hostID).Msg("Adding host to game")
+				slog.Debug("Adding host to game", slog.Int64("hostID", hostID))
 				player := gr.client.NewPlayer(hostID, playerSetting.Race, &game.Rules)
 				player.GameID = game.ID
 				player.Num = i + 1
@@ -142,7 +142,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				player.Ready = true
 				players = append(players, player)
 			case cs.NewGamePlayerTypeAI:
-				log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
+				slog.Debug("Adding ai player to game", slog.Int64("hostID", hostID))
 				var race cs.Race
 				if playerSetting.AIDifficulty == cs.AIDifficultyCheater {
 					race = cheaterAIRaces[cheaterAIPlayerNumber]
@@ -165,7 +165,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				player.Ready = true
 				players = append(players, player)
 			case cs.NewGamePlayerTypeOpen:
-				log.Debug().Int("openPlayerSlots", game.OpenPlayerSlots).Msg("Added open player slot to game")
+				slog.Debug("Added open player slot to game", slog.Int("openPlayerSlots", game.OpenPlayerSlots))
 				race := cs.NewRace()
 				player := gr.client.NewPlayer(0, *race, &game.Rules)
 				player.GameID = game.ID
@@ -221,7 +221,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			return err
 		}
 
-		universeLogger := log.With().Int64("GameID", game.ID).Str("GameName", game.Name).Logger()
+		universeLogger := slog.With(slog.Int64("GameID", game.ID), slog.String("GameName", game.Name))
 		universe := cs.NewUniverse(universeLogger, &game.Rules)
 		fullGame = &cs.FullGame{
 			Game:      game,
@@ -336,7 +336,7 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, name string, race cs.
 		return err
 	}
 
-	log.Info().Int64("GameID", gameID).Int64("UserID", userID).Str("Race", player.Race.Name).Msgf("Joined game %s", fullGame.Name)
+	slog.Info("Joined game", slog.Int64("GameID", gameID), slog.Int64("UserID", userID), slog.String("Race", player.Race.Name), slog.String("Game", fullGame.Name))
 	return nil
 }
 
@@ -443,7 +443,7 @@ func (gr *gameRunner) LeaveGame(gameID, userID int64) error {
 		}
 	}
 
-	log.Info().Int64("GameID", gameID).Int64("UserID", userID).Msgf("Left game %s", game.Name)
+	slog.Info("Left game", slog.Int64("GameID", gameID), slog.Int64("UserID", userID), slog.String("Game", game.Name))
 
 	return nil
 }
@@ -519,7 +519,7 @@ func (gr *gameRunner) KickPlayer(gameID int64, playerNum int) error {
 		return err
 	}
 
-	log.Info().Int64("GameID", gameID).Int("PlayerNum", playerNum).Msgf("kicked player %d %s", playerNum, game.Name)
+	slog.Info("Kicked player", slog.Int64("GameID", gameID), slog.Int("PlayerNum", playerNum), slog.String("Game", game.Name))
 
 	return nil
 }
@@ -613,7 +613,7 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 		return err
 	}
 
-	log.Info().Int64("GameID", gameID).Int("PlayerNum", playerNum).Msgf("deleted player slot %d %s", playerNum, game.Name)
+	slog.Info("Deleted player slot", slog.Int64("GameID", gameID), slog.Int("PlayerNum", playerNum), slog.String("Game", game.Name))
 
 	return nil
 }
@@ -645,7 +645,7 @@ func (gr *gameRunner) AddOpenPlayerSlot(game *cs.GameWithPlayers) (*cs.Player, e
 		return nil, err
 	}
 
-	log.Info().Int64("GameID", game.ID).Int("Num", player.Num).Msgf("added player slot %d %s", player.Num, game.Name)
+	slog.Info("Added player slot", slog.Int64("GameID", game.ID), slog.Int("Num", player.Num), slog.String("Game", game.Name))
 
 	return player, nil
 }
@@ -705,7 +705,7 @@ func (gr *gameRunner) AddGuestPlayer(game *cs.GameWithPlayers) (*cs.Player, erro
 		return nil, err
 	}
 
-	log.Info().Int64("GameID", game.ID).Int("Num", player.Num).Msgf("added player slot %d %s", player.Num, game.Name)
+	slog.Info("Added player slot", slog.Int64("GameID", game.ID), slog.Int("Num", player.Num), slog.String("Game", game.Name))
 
 	return player, nil
 }
@@ -735,7 +735,7 @@ func (gr *gameRunner) AddAIPlayer(game *cs.GameWithPlayers) (*cs.Player, error) 
 			return fmt.Errorf("updating open player slots for game %d: %w", game.ID, err)
 		}
 
-		log.Info().Int64("GameID", game.ID).Int("Num", player.Num).Msgf("added player slot %d %s", player.Num, game.Name)
+		slog.Info("Added player slot", slog.Int64("GameID", game.ID), slog.Int("Num", player.Num), slog.String("Game", game.Name))
 		return nil
 	}); err != nil {
 		return nil, err
@@ -897,7 +897,7 @@ func (gr *gameRunner) processAITurns(fullGame *cs.FullGame) {
 		pmo := fullGame.Universe.GetPlayerMapObjects(player.Num)
 		ai := ai.NewAIPlayer(fullGame.Game, fullGame.TechStore, player, pmo)
 		if err := ai.ProcessTurn(); err != nil {
-			log.Error().Err(err).Int64("GameID", fullGame.ID).Int("PlayerNum", player.Num).Msgf("ai process turn")
+			slog.Error("AI process turn error", slog.Any("error", err), slog.Int64("GameID", fullGame.ID), slog.Int("PlayerNum", player.Num))
 		}
 
 		if player.AIControlled {
@@ -914,11 +914,12 @@ func (gr *gameRunner) generateTurn(readWriteClient DBClient, fullGame *cs.FullGa
 		if r := recover(); r != nil {
 			// update the state so it's clear we got an error during turn generation
 			if err := readWriteClient.UpdateGameState(gr.ctx, fullGame.ID, cs.GameStateGeneratingTurnError); err != nil {
-				log.Error().Err(err).Msgf("failed to update game state")
+				slog.Error("Failed to update game state", slog.Any("error", err))
 			}
 
 			// middleware.PrintPrettyStack(r)
-			log.Panic().Msgf("failed to generate turn %v", r)
+			slog.Error("Failed to generate turn", slog.Any("error", r))
+			panic("failed to generate turn")
 		}
 	}()
 
@@ -926,7 +927,7 @@ func (gr *gameRunner) generateTurn(readWriteClient DBClient, fullGame *cs.FullGa
 	if err := gr.client.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players); err != nil {
 		// update the state so it's clear we got an error during turn generation
 		if err := readWriteClient.UpdateGameState(gr.ctx, fullGame.ID, cs.GameStateGeneratingTurnError); err != nil {
-			log.Error().Err(err).Msgf("failed to update game state")
+			slog.Error("Failed to update game state", slog.Any("error", err))
 		}
 
 		return fmt.Errorf("generate turn ->: %w", err)
@@ -949,7 +950,7 @@ func (gr *gameRunner) generateTurn(readWriteClient DBClient, fullGame *cs.FullGa
 
 			for _, design := range player.Designs {
 				if design.Delete && design.ID != 0 && !design.CannotDelete {
-					log.Debug().Msgf("player %d deleting design %d - id %d", player.Num, design.Num, design.ID)
+					slog.Debug("Player deleting design", slog.Int("playerNum", player.Num), slog.Int("designNum", design.Num), slog.Int("designID", int(design.ID)))
 					if err := c.DeleteShipDesign(gr.ctx, design.ID); err != nil {
 						return fmt.Errorf("delete AI player design %s %v", design.Name, err)
 					}
@@ -964,7 +965,7 @@ func (gr *gameRunner) generateTurn(readWriteClient DBClient, fullGame *cs.FullGa
 	}); err != nil {
 		// update the state of the game to error
 		if err := readWriteClient.UpdateGameState(gr.ctx, fullGame.ID, cs.GameStateGeneratingTurnError); err != nil {
-			log.Error().Err(err).Msgf("failed to update game state after failing to save game during turn generation")
+			slog.Error("Failed to update game state after failing to save game during turn generation", slog.Any("error", err))
 		}
 
 		return err

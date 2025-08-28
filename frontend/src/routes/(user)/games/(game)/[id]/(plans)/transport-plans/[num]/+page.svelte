@@ -10,7 +10,7 @@
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 
 	const { game, player, updateTransportPlan } = getGameContext();
-	let num = parseInt(page.params.num);
+	let num = parseInt(page.params.num || '0');
 
 	let plan: TransportPlan | undefined = $derived(
 		$player.playerPlans.transportPlans.find((p) => p.num == num)

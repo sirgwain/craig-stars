@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 type CargoTransferRequest struct {
@@ -79,11 +79,10 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 		}
 	}
 
-	log.Info().
-		Int64("GameID", player.GameID).
-		Int("PlayerNum", player.Num).
-		Str("Player", player.Name).
-		Msg("update player orders")
+	slog.Info("update player orders",
+		slog.Int64("GameID", player.GameID),
+		slog.Int("PlayerNum", player.Num),
+		slog.String("Player", player.Name))
 
 }
 
@@ -93,12 +92,11 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 	o.updatePlanetSpec(rules, player, planet)
 	planet.MarkDirty()
 
-	log.Info().
-		Int64("GameID", player.GameID).
-		Int("PlayerNum", player.Num).
-		Str("Planet", planet.Name).
-		Interface("Orders", orders).
-		Msg("update planet orders")
+	slog.Info("update planet orders",
+		slog.Int64("GameID", player.GameID),
+		slog.Int("PlayerNum", player.Num),
+		slog.String("Planet", planet.Name),
+		slog.Any("Orders", orders))
 
 	return nil
 }
@@ -161,12 +159,11 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 
 	fleet.computeFuelUsage(player)
 
-	log.Info().
-		Int64("GameID", player.GameID).
-		Int("PlayerNum", player.Num).
-		Str("Fleet", fleet.Name).
-		Interface("Orders", orders).
-		Msg("update fleet orders")
+	slog.Info("update fleet orders",
+		slog.Int64("GameID", player.GameID),
+		slog.Int("PlayerNum", player.Num),
+		slog.String("Fleet", fleet.Name),
+		slog.Any("Orders", orders))
 
 }
 
@@ -243,17 +240,16 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 	target := dest.GetMapObject().ToTarget()
 	player.transferByHand(fleet, target, transferAmount.Cargo.Negative())
 
-	log.Info().
-		Int64("GameID", player.GameID).
-		Int("PlayerNum", player.Num).
-		Str("Fleet", fleet.Name).
-		Str("InitialFleetCargo", initialFleetCargo.PrettyString()).
-		Str("InitialDestCargo", initialDestCargo.PrettyString()).
-		Str("Cargo", fleet.Cargo.PrettyString()).
-		Str("Transfer", transferAmount.Cargo.PrettyString()).
-		Str("DestCargo", dest.GetCargo().PrettyString()).
-		Str("Dest", destName).
-		Msg("by hand transfer")
+	slog.Info("by hand transfer",
+		slog.Int64("GameID", player.GameID),
+		slog.Int("PlayerNum", player.Num),
+		slog.String("Fleet", fleet.Name),
+		slog.String("InitialFleetCargo", initialFleetCargo.PrettyString()),
+		slog.String("InitialDestCargo", initialDestCargo.PrettyString()),
+		slog.String("Cargo", fleet.Cargo.PrettyString()),
+		slog.String("Transfer", transferAmount.Cargo.PrettyString()),
+		slog.String("DestCargo", dest.GetCargo().PrettyString()),
+		slog.String("Dest", destName))
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 	fleet.computeFuelUsage(player)
@@ -280,12 +276,11 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		if err != nil {
 			return
 		}
-		log.Info().
-			Int64("GameID", player.GameID).
-			Int("PlayerNum", player.Num).
-			Str("Source", source.Name).
-			Str("Dest", dest.Name).
-			Msg("split fleet")
+		slog.Info("split fleet",
+			slog.Int64("GameID", player.GameID),
+			slog.Int("PlayerNum", player.Num),
+			slog.String("Source", source.Name),
+			slog.String("Dest", dest.Name))
 	}()
 	source = request.Source
 	dest = request.Dest
@@ -468,11 +463,10 @@ func (o *orders) SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, s
 		index--
 	}
 
-	log.Info().
-		Int64("GameID", player.GameID).
-		Int("PlayerNum", player.Num).
-		Str("Fleet", source.Name).
-		Msg("split all fleet")
+	slog.Info("split all fleet",
+		slog.Int64("GameID", player.GameID),
+		slog.Int("PlayerNum", player.Num),
+		slog.String("Fleet", source.Name))
 
 	return newFleets, nil
 }
@@ -698,12 +692,11 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 	// merge cargo transfers
 	player.CargoTransfers.mergeByHandTransfers(fleet, fleets)
 
-	log.Info().
-		Int64("GameID", player.GameID).
-		Int("PlayerNum", player.Num).
-		Str("Source", src).
-		Strs("Dest", dest).
-		Msg("merged fleet")
+	slog.Info("merged fleet",
+		slog.Int64("GameID", player.GameID),
+		slog.Int("PlayerNum", player.Num),
+		slog.String("Source", src),
+		slog.Any("Dest", dest))
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 	fleet.computeFuelUsage(player)

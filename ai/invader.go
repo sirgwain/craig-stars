@@ -2,6 +2,7 @@ package ai
 
 import (
 	"github.com/sirgwain/craig-stars/cs"
+	"log/slog"
 )
 
 func (ai *aiPlayer) invade() error {
@@ -29,11 +30,13 @@ func (ai *aiPlayer) invade() error {
 				fleet.Waypoints[1] = cs.NewPlanetWaypoint(closestStarbase.Position, closestStarbase.Num, closestStarbase.Name, warpSpeed).
 					WithTask(cs.WaypointTaskTransport).
 					WithTransportTasks(cs.WaypointTransportTasks{Colonists: cs.WaypointTransportTask{Action: cs.TransportActionUnloadAll}})
-				ai.log.Debug().
-					Int("Invaders", fleet.Cargo.Colonists*100).
-					Int("Defenders", target.GetPopulation()).
-					Bool("HasStarbase", target.Spec.HasStarbase).
-					Msgf("%s called off invasion of %s, returning to %s", fleet.Name, target.Name, closestStarbase.Name)
+				ai.log.Debug("Fleet called off invasion, returning to starbase",
+					slog.String("fleet", fleet.Name),
+					slog.String("target", target.Name),
+					slog.String("starbase", closestStarbase.Name),
+					slog.Int("Invaders", fleet.Cargo.Colonists*100),
+					slog.Int("Defenders", target.GetPopulation()),
+					slog.Bool("HasStarbase", target.Spec.HasStarbase))
 			}
 		}
 	}

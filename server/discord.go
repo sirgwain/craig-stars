@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"log/slog"
+
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
 
 	"github.com/disgoorg/disgo/discord"
@@ -39,18 +40,18 @@ func newDiscordNotifier(db DBConnection, cfg config.Config) *discordNotifier {
 
 // SendNewTurnNotification sends a notification about a new turn
 // this will not send for single players games or games with the admin (my tests)
-func (d *discordNotifier) SendNewTurnNotification(ctx context.Context, gameID int64) {
+func (d *discordNotifier) SendNewTurnNotification(gameID int64) {
 	if !d.config.Discord.WebhookNotify {
 		// no webhook notifications for this server
 		return
 	}
 
 	readClient := d.db.NewReadClient()
-
+	ctx := context.Background()
 	go func() {
 		game, err := readClient.GetGame(ctx, gameID)
 		if err != nil {
-			log.Error().Err(err).Msg("get game for discord notification")
+			slog.Error("get game for discord notification", slog.Any("error", err))
 			return
 		}
 
@@ -72,13 +73,13 @@ func (d *discordNotifier) SendNewTurnNotification(ctx context.Context, gameID in
 
 		host, err := readClient.GetUser(ctx, game.HostID)
 		if err != nil {
-			log.Error().Err(err).Msg("get host user for game for discord notification")
+			slog.Error("get host user for game for discord notification", slog.Any("error", err))
 			return
 		}
 
 		users, err := readClient.GetUsersForGame(ctx, gameID)
 		if err != nil {
-			log.Error().Err(err).Msg("get users for game for discord notification")
+			slog.Error("get users for game for discord notification", slog.Any("error", err))
 			return
 		}
 
@@ -103,16 +104,14 @@ func (d *discordNotifier) SendNewTurnNotification(ctx context.Context, gameID in
 				id, token, err := parseDiscordWebhookUrl(user.DiscordWebhookURL)
 				if err != nil {
 					// don't fail on bad user data, just log it and move on
-					log.Error().
-						Err(err).
-						Msgf("unable to parse user %s webhook url: %s", user.Username, user.DiscordWebhookURL)
+					slog.Error("unable to parse user webhook url", slog.Any("error", err), slog.String("username", user.Username), slog.String("webhookURL", user.DiscordWebhookURL))
 					continue
 				}
 				webhooks = append(webhooks, discordWebhook{id: id, token: token})
 			}
 		}
 
-		log.Debug().Msgf("notifying players of game %d of new turn at %d webhooks", gameID, len(webhooks))
+		slog.Debug("notifying players of new turn", slog.Int64("gameID", gameID), slog.Int("webhooks", len(webhooks)))
 		for _, hook := range webhooks {
 			d.sendWebhookMessage(ctx, hook, discord.NewWebhookMessageCreateBuilder().
 				SetContentf("**%s** has a new turn. \n%s", game.Name, strings.Join(userAts, ", ")).
@@ -153,7 +152,7 @@ func (d *discordNotifier) sendWebhookMessage(_ context.Context, hook discordWebh
 	// https://discord.com/api/webhooks/<id>/<token>
 	id, err := snowflake.Parse(hook.id)
 	if err != nil {
-		log.Error().Err(err).Msg("parse discord webhook id")
+		slog.Error("parse discord webhook id", slog.Any("error", err))
 		return
 	}
 	client := webhook.New(id, hook.token)
@@ -164,7 +163,7 @@ func (d *discordNotifier) sendWebhookMessage(_ context.Context, hook discordWebh
 		// delay each request by 2 seconds
 		rest.WithDelay(2*time.Second),
 	); err != nil {
-		log.Error().Err(err).Msgf("sending discord message")
+		slog.Error("sending discord message", slog.Any("error", err))
 	}
 }
 
@@ -187,10 +186,10 @@ func (s *server) pingDiscordForGameUpdate(w http.ResponseWriter, r *http.Request
 	game := s.contextGame(r)
 
 	if user.ID != game.HostID {
-		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("access denied for sending discord updates")
+		slog.Error("access denied for sending discord updates", slog.Int64("GameID", game.ID), slog.String("User", user.Username))
 		render.Render(w, r, ErrForbidden)
 		return
 	}
 
-	s.discordNotifier.SendNewTurnNotification(r.Context(), game.ID)
+	s.discordNotifier.SendNewTurnNotification(game.ID)
 }

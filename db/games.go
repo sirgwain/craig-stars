@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db/generated"
 )
@@ -181,7 +181,7 @@ func (c *client) GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error
 		player.Designs = append(player.Designs, design)
 	}
 
-	universeLogger := log.With().Int64("GameID", game.ID).Str("GameName", game.Name).Logger()
+	universeLogger := slog.With(slog.Int64("GameID", game.ID), slog.String("GameName", game.Name))
 	universe := cs.NewUniverse(universeLogger, &game.Rules)
 
 	planets, err := c.GetPlanetsForGame(ctx, game.ID)

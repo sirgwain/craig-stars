@@ -5,7 +5,7 @@
 	import SplitFleet from '../../../dialogs/split/SplitFleet.svelte';
 
 	const { universe, commandMapObject, commandedFleet } = getGameContext();
-	let num = parseInt(page.params.num);
+	let num = parseInt(page.params.num || '0');
 
 	onMount(() => {
 		if (!$commandedFleet || $commandedFleet.mapObject.num !== num) {

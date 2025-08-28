@@ -1,4 +1,4 @@
-//go:build tinygo && (wasi || wasm)
+//go:build wasi || wasm
 
 package wasm
 

@@ -2,6 +2,7 @@ package ai
 
 import (
 	"github.com/sirgwain/craig-stars/cs"
+	"log/slog"
 )
 
 // transport resources and people from planet to planet
@@ -39,8 +40,8 @@ func (ai *aiPlayer) transportColonists() error {
 		return err
 	}
 
-	ai.log.Debug().
-		Msgf("%d colonist transport fleets assembled from idle fleets", len(fleets))
+	ai.log.Debug("Colonist transport fleets assembled from idle fleets",
+		slog.Int("fleets", len(fleets)))
 
 	for _, fleet := range fleetMakeup.getFleetsMatchingMakeup(ai, ai.Fleets) {
 		// don't use colonizer fleets as transports
@@ -51,8 +52,9 @@ func (ai *aiPlayer) transportColonists() error {
 					fleets = append(fleets, fleet)
 
 					orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
-					ai.log.Debug().
-						Msgf("%s will load colonists from %s for transport to a needy world", fleet.Name, orbiting.Name)
+					ai.log.Debug("Fleet will load colonists for transport to a needy world",
+						slog.String("fleet", fleet.Name),
+						slog.String("planet", orbiting.Name))
 
 				} else {
 					// find the nearest feeder and head that way
@@ -60,16 +62,18 @@ func (ai *aiPlayer) transportColonists() error {
 					if closestFeeder != nil {
 						newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: closestFeeder.MapObject}, len(fleet.Waypoints)-1, false)
 						if newWpIndex == 0 {
-							ai.log.Warn().
-								Msgf("Fleet %s tried to target %s for feeding but did not add the waypoint", fleet.Name, closestFeeder.Name)
+							ai.log.Warn("Fleet tried to target planet for feeding but did not add the waypoint",
+								slog.String("fleet", fleet.Name),
+								slog.String("planet", closestFeeder.Name))
 							continue
 						}
 
 						// TODO: only remove a feeder if we have too many targets?
 						delete(feedersByNum, closestFeeder.Num)
 
-						ai.log.Debug().
-							Msgf("%s is heading to %s to load colonists for transport to a needy world", fleet.Name, closestFeeder.Name)
+						ai.log.Debug("Fleet is heading to planet to load colonists for transport to a needy world",
+							slog.String("fleet", fleet.Name),
+							slog.String("planet", closestFeeder.Name))
 					}
 				}
 			} else {
@@ -85,8 +89,9 @@ func (ai *aiPlayer) transportColonists() error {
 	}
 
 	idleFleets := len(fleets)
-	ai.log.Debug().
-		Msgf("%d transport, %d needy planets", idleFleets, len(needersByNum))
+	ai.log.Debug("Transport fleets and needy planets",
+		slog.Int("transports", idleFleets),
+		slog.Int("needyPlanets", len(needersByNum)))
 
 	for _, fleet := range fleets {
 		planet := ai.getClosestPlanet(fleet, needersByNum)
@@ -107,19 +112,20 @@ func (ai *aiPlayer) transportColonists() error {
 					popNextYear := orbiting.PopNextYear()
 					newDensity := float64(popNextYear-colonistsToLoad*100) / float64(orbiting.Spec.MaxPopulation)
 					if newDensity < ai.config.colonistTransportDensity {
-						ai.log.Debug().
-							Int64("GameID", ai.GameID).
-							Int("PlayerNum", ai.Num).
-							Int("ColonistsAvailable", popNextYear).
-							Int("ColonistsNeeded", colonistsToLoad*100).
-							Int("DensityAfterLoad", int(newDensity)).
-							Msgf("Fleet %s cannot load colonists from %s", fleet.Name, orbiting.Name)
+						ai.log.Debug("Fleet cannot load colonists",
+							slog.String("fleet", fleet.Name),
+							slog.String("planet", orbiting.Name),
+							slog.Int64("GameID", ai.GameID),
+							slog.Int("PlayerNum", ai.Num),
+							slog.Int("ColonistsAvailable", popNextYear),
+							slog.Int("ColonistsNeeded", colonistsToLoad*100),
+							slog.Int("DensityAfterLoad", int(newDensity)))
 
 						continue
 					}
 					if err := ai.client.TransferByHand(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}); err != nil {
 						// something went wrong, skip this planet
-						ai.log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
+						ai.log.Error("transferring colonists from planet returned error, skipping", slog.Any("error", err))
 						continue
 					}
 				}
@@ -128,8 +134,9 @@ func (ai *aiPlayer) transportColonists() error {
 			// unload on this planet
 			newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: planet.MapObject}, len(fleet.Waypoints)-1, false)
 			if newWpIndex == 0 {
-				ai.log.Warn().
-					Msgf("Fleet %s tried to target %s for unloading but did not add the waypoint", fleet.Name, planet.Name)
+				ai.log.Warn("Fleet tried to target planet for unloading but did not add the waypoint",
+					slog.String("fleet", fleet.Name),
+					slog.String("planet", planet.Name))
 				continue
 			}
 
@@ -140,10 +147,12 @@ func (ai *aiPlayer) transportColonists() error {
 			idleFleets--
 			delete(needersByNum, planet.Num)
 
-			ai.log.Debug().
-				Int64("GameID", ai.GameID).
-				Int("PlayerNum", ai.Num).
-				Msgf("fleet %s transporting %d colonists to %s", fleet.Name, fleet.Cargo.Colonists*100, planet.Name)
+			ai.log.Debug("Fleet transporting colonists to planet",
+				slog.String("fleet", fleet.Name),
+				slog.String("planet", planet.Name),
+				slog.Int("colonists", fleet.Cargo.Colonists*100),
+				slog.Int64("GameID", ai.GameID),
+				slog.Int("PlayerNum", ai.Num))
 
 		}
 		if len(needersByNum) == 0 {

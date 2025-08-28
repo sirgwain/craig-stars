@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
+	"log/slog"
 )
 
 func NewshipDesignServiceHandler(db DBConnection) craig_starsv1connect.ShipDesignServiceHandler {
@@ -84,16 +84,16 @@ func (s *shipDesignService) CreateShipDesign(ctx context.Context, req *connect.R
 	// Compute Spec then Validate
 	design.Spec, err = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design)
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", gamePlayer.Num).Str("DesignName", design.Name).Msg("compute ship design spec")
+		slog.Error("compute ship design spec", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", gamePlayer.Num), slog.String("DesignName", design.Name))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	if err := dbWriteClient.SaveShipDesign(ctx, design); err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", gamePlayer.Num).Str("DesignName", design.Name).Msg("save new player design")
+		slog.Error("save new player design", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", gamePlayer.Num), slog.String("DesignName", design.Name))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	log.Info().Int64("GameID", design.GameID).Int("PlayerNum", player.Num).Str("DesignName", design.Name).Msg("created player design")
+	slog.Info("created player design", slog.Int64("GameID", design.GameID), slog.Int("PlayerNum", player.Num), slog.String("DesignName", design.Name))
 
 	return connect.NewResponse(&craig_starsv1.CreateShipDesignResponse{
 		Design: converter.C.ConvertCSShipDesign(design),
@@ -119,22 +119,21 @@ func (s *shipDesignService) UpdateShipDesign(ctx context.Context, req *connect.R
 	}
 
 	if existingDesign.Spec.NumInstances > 0 {
-		log.Error().
-			Int64("GameID", existingDesign.GameID).
-			Int64("ID", existingDesign.ID).
-			Int("PlayerNum", existingDesign.PlayerNum).
-			Str("DesignName", design.Name).
-			Msgf("design in use (%d instances), cannot update", existingDesign.Spec.NumInstances)
+		slog.Error("design in use, cannot update",
+			slog.Int64("GameID", existingDesign.GameID),
+			slog.Int64("ID", existingDesign.ID),
+			slog.Int("PlayerNum", existingDesign.PlayerNum),
+			slog.String("DesignName", design.Name),
+			slog.Int("instances", existingDesign.Spec.NumInstances))
 
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("design is in use, cannot update"))
 	}
 	if existingDesign.OriginalPlayerNum != cs.None {
-		log.Error().
-			Int64("GameID", existingDesign.GameID).
-			Int64("ID", existingDesign.ID).
-			Int("PlayerNum", existingDesign.PlayerNum).
-			Str("DesignName", design.Name).
-			Msg("design is transferred from another player, cannot update")
+		slog.Error("design is transferred from another player, cannot update",
+			slog.Int64("GameID", existingDesign.GameID),
+			slog.Int64("ID", existingDesign.ID),
+			slog.Int("PlayerNum", existingDesign.PlayerNum),
+			slog.String("DesignName", design.Name))
 
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("design is transferred, cannot update"))
 	}
@@ -158,11 +157,11 @@ func (s *shipDesignService) UpdateShipDesign(ctx context.Context, req *connect.R
 	}
 
 	if err := dbWriteClient.SaveShipDesign(ctx, design); err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Str("DesignName", design.Name).Msg("update player design")
+		slog.Error("update player design", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num), slog.String("DesignName", design.Name))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	log.Info().Int64("GameID", design.GameID).Int("PlayerNum", player.Num).Str("DesignName", design.Name).Msg("updated player design")
+	slog.Info("updated player design", slog.Int64("GameID", design.GameID), slog.Int("PlayerNum", player.Num), slog.String("DesignName", design.Name))
 
 	return connect.NewResponse(&craig_starsv1.UpdateShipDesignResponse{
 		Design: converter.C.ConvertCSShipDesign(design),
@@ -254,32 +253,32 @@ func (s *shipDesignService) DeleteShipDesign(ctx context.Context, req *connect.R
 			if err := c.SaveFleet(ctx, fleet); err != nil {
 				return fmt.Errorf("update fleet in database: %w", err)
 			}
-			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated fleet %s after deleting design", fleet.Name)
+			slog.Info("updated fleet after deleting design", slog.String("fleet", fleet.Name), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num), slog.Int("Num", design.Num))
 		}
 
 		for _, fleet := range fleetsToDelete {
 			if err := c.DeleteFleet(ctx, fleet.ID); err != nil {
 				return fmt.Errorf("delete fleet from database: %w", err)
 			}
-			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted fleet %s after deleting design", fleet.Name)
+			slog.Info("deleted fleet after deleting design", slog.String("fleet", fleet.Name), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num), slog.Int("Num", design.Num))
 		}
 
 		for _, planet := range planetsToUpdate {
 			if err := c.SavePlanet(ctx, planet); err != nil {
 				return fmt.Errorf("update planet in database: %w", err)
 			}
-			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated planet %s after deleting design", planet.Name)
+			slog.Info("updated planet after deleting design", slog.String("planet", planet.Name), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num), slog.Int("Num", design.Num))
 
 		}
 
 		if err := c.DeleteShipDesign(ctx, design.ID); err != nil {
 			return fmt.Errorf("delete design from database: %w", err)
 		}
-		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted design %s", design.Name)
+		slog.Info("deleted design", slog.String("design", design.Name), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num), slog.Int("Num", design.Num))
 
 		return nil
 	}); err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("delete design from database")
+		slog.Error("delete design from database", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 

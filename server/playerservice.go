@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"log/slog"
+
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -98,14 +99,14 @@ func (s *playerService) SubmitTurn(ctx context.Context, req *connect.Request[cra
 	// update the player in the db
 	player, err := dbClient.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("failed to get player")
+		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player: %w", err))
 	}
 
 	// submit the turn
 	player.SubmittedTurn = true
 	if err := dbWriteClient.SubmitPlayerTurn(ctx, game.ID, player.Num, true); err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("update player submit")
+		slog.Error("update player submit", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("submit turn"))
 	}
 
@@ -121,19 +122,19 @@ func (s *playerService) SubmitTurn(ctx context.Context, req *connect.Request[cra
 	})
 
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Msg("check and generate new turn")
+		slog.Error("check and generate new turn", slog.Any("error", err), slog.Int64("GameID", game.ID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("check and generate new turn: %w", err))
 	}
 
 	// return the game status
 	updatedGame, err := dbClient.GetGame(ctx, game.ID)
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load game")
+		slog.Error("load game", slog.Any("error", err), slog.Int64("GameID", player.GameID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("load game: %w", err))
 	}
 
 	if result == TurnGenerated {
-		s.discordNotifier.SendNewTurnNotification(ctx, game.ID)
+		s.discordNotifier.SendNewTurnNotification(game.ID)
 	}
 
 	return connect.NewResponse(&craig_starsv1.SubmitTurnResponse{
@@ -151,7 +152,7 @@ func (s *playerService) UnsubmitTurn(ctx context.Context, req *connect.Request[c
 
 	player, err := dbClient.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("failed to get player")
+		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player: %w", err))
 	}
 
@@ -173,7 +174,7 @@ func (s *playerService) UpdatePlayerOrders(ctx context.Context, req *connect.Req
 
 	player, err := dbClient.GetPlayerForGame(ctx, game.ID, gamePlayer.Num)
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("failed to get player")
+		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player: %w", err))
 	}
 	player.Race.Spec = cs.ComputeRaceSpec(&player.Race, &game.Rules)
@@ -201,14 +202,14 @@ func (s *playerService) UpdatePlayerOrders(ctx context.Context, req *connect.Req
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 		// save the player to the database
 		if err := c.UpdatePlayerOrders(ctx, player); err != nil {
-			log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
+			slog.Error("update player", slog.Any("error", err), slog.Int64("GameID", player.GameID), slog.Int("PlayerNum", player.Num))
 			return err
 		}
 
 		for _, planet := range planets {
 			if planet.Dirty {
 				if err := c.UpdatePlanetSpec(ctx, planet); err != nil {
-					log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
+					slog.Error("updating player planet in database", slog.Any("error", err), slog.Int64("ID", player.ID))
 					return err
 				}
 			}
@@ -233,7 +234,7 @@ func (s *playerService) UpdatePlayerRelations(ctx context.Context, req *connect.
 
 	player, err := dbClient.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("failed to get player")
+		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player: %w", err))
 	}
 

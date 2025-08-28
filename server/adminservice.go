@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
+	"log/slog"
 )
 
 // NewAdminServiceHandler constructs the AdminService handler.
@@ -99,7 +99,7 @@ func (s *adminService) ConvertGuestUser(ctx context.Context, req *connect.Reques
 
 	guestUser, err := dbClient.GetUser(ctx, guestID)
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", guestID).Msg("load guest user")
+		slog.Error("load guest user", slog.Any("error", err), slog.Int64("UserID", guestID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("load guest user"))
 	}
 	if guestUser == nil {
@@ -113,7 +113,7 @@ func (s *adminService) ConvertGuestUser(ctx context.Context, req *connect.Reques
 
 	targetUser, err := dbClient.GetUser(ctx, targetUserID)
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", targetUserID).Msg("load user")
+		slog.Error("load user", slog.Any("error", err), slog.Int64("UserID", targetUserID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("load user"))
 	}
 	if targetUser == nil {
@@ -128,14 +128,14 @@ func (s *adminService) ConvertGuestUser(ctx context.Context, req *connect.Reques
 	// load players belonging to guest
 	players, err := dbClient.GetPlayersForUser(ctx, guestUser.ID)
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", targetUserID).Msg("load players")
+		slog.Error("load players", slog.Any("error", err), slog.Int64("UserID", targetUserID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("load players"))
 	}
 
 	// load guest user games as player
 	playerGames, err := dbClient.GetGamesForUser(ctx, guestUser.ID)
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", targetUserID).Msg("load player games")
+		slog.Error("load player games", slog.Any("error", err), slog.Int64("UserID", targetUserID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("load player games"))
 	}
 
@@ -151,14 +151,14 @@ func (s *adminService) ConvertGuestUser(ctx context.Context, req *connect.Reques
 	// load races belonging to guest
 	races, err := dbClient.GetRacesForUser(ctx, guestUser.ID)
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", targetUserID).Msg("load races")
+		slog.Error("load races", slog.Any("error", err), slog.Int64("UserID", targetUserID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("load races"))
 	}
 
 	// load games hosted by guest
 	hostedGames, err := dbClient.GetGamesForHost(ctx, guestUser.ID)
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", targetUserID).Msg("load games for host")
+		slog.Error("load games for host", slog.Any("error", err), slog.Int64("UserID", targetUserID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("load games for host"))
 	}
 
@@ -193,18 +193,15 @@ func (s *adminService) ConvertGuestUser(ctx context.Context, req *connect.Reques
 			return fmt.Errorf("delete guest user: %w", err)
 		}
 
-		log.Info().Msgf("converted guest %s to %s (%d players, %d races, %d games)", guestUser.Username, targetUser.Username, len(players), len(races), len(hostedGames))
+		slog.Info("converted guest user", slog.String("guestUser", guestUser.Username), slog.String("targetUser", targetUser.Username), slog.Int("players", len(players)), slog.Int("races", len(races)), slog.Int("games", len(hostedGames)))
 
 		return nil
 	}); err != nil {
-		log.Error().Err(err).Msg("update user objects in database")
+		slog.Error("update user objects in database", slog.Any("error", err))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	log.Info().
-		Int64("GuestUserID", guestUser.ID).
-		Int64("UserID", targetUser.ID).
-		Msgf("moved guest %s games and races to %s, deleted %s", guestUser.Username, targetUser.Username, guestUser.Username)
+	slog.Info("moved guest games and races", slog.Int64("GuestUserID", guestUser.ID), slog.Int64("UserID", targetUser.ID), slog.String("guestUser", guestUser.Username), slog.String("targetUser", targetUser.Username))
 
 	return connect.NewResponse(&craig_starsv1.ConvertGuestUserResponse{}), nil
 }

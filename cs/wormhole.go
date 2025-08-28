@@ -5,7 +5,7 @@ import (
 
 	"slices"
 
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 type Wormhole struct {
@@ -103,7 +103,7 @@ func (w *Wormhole) jiggle(area Vector, mapObjectGetter mapObjectGetter, random r
 			Clamp(w.Position.X+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.X),
 			Clamp(w.Position.Y+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.Y),
 		}
-		log.Debug().Msgf("%v jiggled to %v", w, newPosition)
+		slog.Debug(fmt.Sprintf("%v jiggled to %v", w, newPosition))
 		jiggleCount++
 
 		if mapObjectGetter.getMapObjectsAtPosition(newPosition) == nil || jiggleCount > 100 {
@@ -121,7 +121,7 @@ func (w *Wormhole) degrade() {
 			// go to the next stability
 			w.Stability = WormholeStabilities[slices.Index(WormholeStabilities, w.Stability)+1]
 			w.YearsAtStability = 0
-			log.Debug().Msgf("%v degraded to %s", w, w.Stability)
+			slog.Debug(fmt.Sprintf("%v degraded to %s", w, w.Stability))
 		}
 	}
 }

@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-pkgz/auth/token"
-	"github.com/rs/zerolog/log"
+	"log/slog"
+
+	"github.com/go-pkgz/auth/v2/token"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 )
@@ -111,7 +112,7 @@ func (s *server) createNewDiscordUser(ctx context.Context, tokenUser tokenUser) 
 
 	user, err := cs.NewDiscordUser(tokenUser.Name, tokenUser.discordID(), tokenUser.discordAvatar())
 	if err != nil {
-		log.Error().Err(err).Str("Username", tokenUser.Name).Msg("failed to create new user")
+		slog.Error("failed to create new user", slog.Any("error", err), slog.String("Username", tokenUser.Name))
 		return nil, err
 	}
 
@@ -119,10 +120,10 @@ func (s *server) createNewDiscordUser(ctx context.Context, tokenUser tokenUser) 
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 		newUser, err := c.CreateUser(ctx, user)
 		if err != nil {
-			log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
+			slog.Error("failed to create new user", slog.Any("error", err), slog.String("Username", user.Username))
 			return err
 		}
-		log.Info().Str("Username", newUser.Username).Int64("ID", newUser.ID).Msg("created new user from token")
+		slog.Info("created new user from token", slog.String("Username", newUser.Username), slog.Int64("ID", newUser.ID))
 
 		// create a new test race
 		race := cs.Humanoids()
@@ -131,7 +132,7 @@ func (s *server) createNewDiscordUser(ctx context.Context, tokenUser tokenUser) 
 		if err = c.SaveRace(ctx, &race); err != nil {
 			return err
 		}
-		log.Info().Str("Username", newUser.Username).Int64("ID", newUser.ID).Msg("created new race for user")
+		slog.Info("created new race for user", slog.String("Username", newUser.Username), slog.Int64("ID", newUser.ID))
 		return nil
 	}); err != nil {
 		return nil, err
@@ -151,10 +152,10 @@ func (s *server) updateUser(ctx context.Context, tokenUser tokenUser, user *cs.U
 
 	readWriteClient := s.db.NewReadWriteClient()
 	if err := readWriteClient.UpdateUser(ctx, user); err != nil {
-		log.Error().Err(err).Str("Username", user.Username).Msg("failed to update user")
+		slog.Error("failed to update user", slog.Any("error", err), slog.String("Username", user.Username))
 		return err
 	}
-	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Str("DiscordID", user.DiscordID).Str("DiscordAvatar", user.DiscordAvatar).Msg("updated")
+	slog.Info("updated user", slog.String("Username", user.Username), slog.Int64("ID", user.ID), slog.String("DiscordID", user.DiscordID), slog.String("DiscordAvatar", user.DiscordAvatar))
 
 	return nil
 }

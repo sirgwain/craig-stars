@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
+	"log/slog"
 )
 
 func NewRaceServiceHandler(db DBConnection) craig_starsv1connect.RaceServiceHandler {
@@ -26,7 +26,7 @@ func (s *raceService) GetRaces(ctx context.Context, req *connect.Request[craig_s
 
 	races, err := dbClient.GetRacesForUser(ctx, user.ID)
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", user.ID).Msg("get races from database")
+		slog.Error("get races from database", slog.Any("error", err), slog.Int64("UserID", user.ID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get races from database"))
 	}
 
@@ -68,7 +68,7 @@ func (s *raceService) CreateRace(ctx context.Context, req *connect.Request[craig
 	race.UserID = user.ID
 
 	if err := dbWriteClient.SaveRace(ctx, race); err != nil {
-		log.Error().Err(err).Int64("UserID", user.ID).Msg("create race")
+		slog.Error("create race", slog.Any("error", err), slog.Int64("UserID", user.ID))
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
@@ -101,7 +101,7 @@ func (s *raceService) UpdateRace(ctx context.Context, req *connect.Request[craig
 	}
 
 	if err := dbWriteClient.SaveRace(ctx, race); err != nil {
-		log.Error().Err(err).Int64("ID", race.ID).Msg("update race in database")
+		slog.Error("update race in database", slog.Any("error", err), slog.Int64("ID", race.ID))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -130,7 +130,7 @@ func (s *raceService) DeleteRace(ctx context.Context, req *connect.Request[craig
 	}
 
 	if err := dbWriteClient.DeleteRace(ctx, race.ID); err != nil {
-		log.Error().Err(err).Int64("ID", race.ID).Msg("delete race from database")
+		slog.Error("delete race from database", slog.Any("error", err), slog.Int64("ID", race.ID))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 

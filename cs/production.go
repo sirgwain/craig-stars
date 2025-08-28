@@ -2,21 +2,20 @@ package cs
 
 import (
 	"fmt"
+	"log/slog"
 	"math"
-
-	"github.com/rs/zerolog"
 )
 
 // The producer interface performs planetary production
 
 // create a new planet production object
-func newProducer(log zerolog.Logger, rules *Rules, planet *Planet, player *Player) producer {
-	producerLogger := log.With().
-		Int("Num", planet.Num).
-		Str("Name", planet.Name).
-		Int("PlayerNum", player.Num).
-		Str("Player", player.Name).
-		Logger()
+func newProducer(log *slog.Logger, rules *Rules, planet *Planet, player *Player) producer {
+	producerLogger := log.With(
+		slog.Int("Num", planet.Num),
+		slog.String("Name", planet.Name),
+		slog.Int("PlayerNum", player.Num),
+		slog.String("Player", player.Name),
+	)
 	return producer{
 		log:       producerLogger,
 		rules:     rules,
@@ -27,7 +26,7 @@ func newProducer(log zerolog.Logger, rules *Rules, planet *Planet, player *Playe
 }
 
 type producer struct {
-	log       zerolog.Logger
+	log       *slog.Logger
 	rules     *Rules
 	planet    *Planet
 	player    *Player
@@ -187,10 +186,11 @@ func (p *producer) produce() (productionResult, error) {
 	for itemIndex, item := range planet.ProductionQueue {
 		cost, err := p.getItemCost(p.rules, p.player, p.planet, item)
 		if err != nil {
-			p.log.Error().
-				Err(err).
-				Any("item", item).
-				Msgf("produce() returned error when calculating costs: %v", err)
+			p.log.Error("produce() returned error when calculating costs",
+				slog.Any("err", err),
+				slog.Any("item", item),
+			)
+
 			return productionResult{}, err
 		}
 
@@ -249,11 +249,12 @@ func (p *producer) produce() (productionResult, error) {
 
 			// planets are ending up with negative minerals. Trying to figure out why...
 			if available.MinZero() != available {
-				p.log.Warn().
-					Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
-					Str("ProductionQueue", fmt.Sprintf("%+v", planet.ProductionQueue)).
-					Str("itemResult", fmt.Sprintf("%+v", result)).
-					Msgf("available minerals and resources went negative - available: %+v", available)
+				p.log.Warn("available minerals and resources went negative - available",
+					slog.String("Cargo", planet.Cargo.PrettyString()),
+					slog.Any("ProductionQueue", planet.ProductionQueue),
+					slog.Any("itemResult", result),
+					slog.Any("available", available),
+				)
 				available = available.MinZero()
 			}
 		}
@@ -322,10 +323,10 @@ func (p *producer) produce() (productionResult, error) {
 	planet.ProductionQueue = newQueue
 	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
 	if planet.Cargo.MinZero() != planet.Cargo {
-		p.log.Warn().
-			Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
-			Str("productionResult", fmt.Sprintf("%+v", result)).
-			Msgf("planet cargo was negative after production: %s", planet.Cargo.PrettyString())
+		p.log.Warn("planet cargo was negative after production",
+			slog.String("Cargo", planet.Cargo.PrettyString()),
+			slog.Any("productionResult", result),
+		)
 		return result, fmt.Errorf("planet cargo was negative after production")
 		// planet.Cargo = planet.Cargo.MinZero()
 	}

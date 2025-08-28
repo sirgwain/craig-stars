@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"log/slog"
 	"math"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -36,8 +37,7 @@ func (ai *aiPlayer) bomb() error {
 						target := ai.GetPlanetIntel(wp.TargetNum)
 						fleet.Waypoints = fleet.Waypoints[:1]
 						bomberFleets = append(bomberFleets, fleet)
-						ai.log.Debug().
-							Msgf("Fleet %s was going to bomb %s, but it's no longer a bombable target", fleet.Name, target.Name)
+						ai.log.Debug("Fleet was going to bomb target, but it's no longer bombable", slog.String("fleet", fleet.Name), slog.String("target", target.Name))
 
 					} else {
 						delete(bombablePlanets, wp.TargetNum)
@@ -57,16 +57,14 @@ func (ai *aiPlayer) bomb() error {
 
 	// after colonizing, we may have idle fleets leftover
 	idleFleets := len(bomberFleets)
-	ai.log.Debug().
-		Msgf("%d bomber, %d bombable planets", idleFleets, len(bombablePlanets))
+	ai.log.Debug("Found bombers and bombable planets", slog.Int("bombers", idleFleets), slog.Int("bombablePlanets", len(bombablePlanets)))
 
 	for _, fleet := range bomberFleets {
 		bestPlanet := ai.getBestPlanetToBomb(fleet, bombablePlanets)
 		if bestPlanet != nil {
 			newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: bestPlanet.MapObject}, len(fleet.Waypoints)-1, true)
 			if newWpIndex == 0 {
-				ai.log.Warn().
-					Msgf("Fleet %s tried to target %s for bombing but did not add the waypoint", fleet.Name, bestPlanet.Name)
+				ai.log.Warn("Fleet tried to target planet for bombing but did not add the waypoint", slog.String("fleet", fleet.Name), slog.String("planet", bestPlanet.Name))
 				continue
 			}
 
@@ -74,13 +72,14 @@ func (ai *aiPlayer) bomb() error {
 			delete(bombablePlanets, bestPlanet.Num)
 			idleFleets--
 
-			ai.log.Debug().
-				Int("Fuel", fleet.Fuel).
-				Int("WarpSpeed", fleet.Waypoints[newWpIndex].WarpSpeed).
-				Int("EstFuelUsage", fleet.Waypoints[newWpIndex].EstFuelUsage).
-				Int("Population", bestPlanet.GetPopulation()).
-				Bool("HasStarbase", bestPlanet.Spec.HasStarbase).
-				Msgf("Fleet %s targeting %s for bombing", fleet.Name, bestPlanet.Name)
+			ai.log.Debug("Fleet targeting planet for bombing",
+				slog.String("fleet", fleet.Name),
+				slog.String("planet", bestPlanet.Name),
+				slog.Int("Fuel", fleet.Fuel),
+				slog.Int("WarpSpeed", fleet.Waypoints[newWpIndex].WarpSpeed),
+				slog.Int("EstFuelUsage", fleet.Waypoints[newWpIndex].EstFuelUsage),
+				slog.Int("Population", bestPlanet.GetPopulation()),
+				slog.Bool("HasStarbase", bestPlanet.Spec.HasStarbase))
 
 		}
 	}

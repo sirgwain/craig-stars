@@ -7,7 +7,7 @@
 	import { emptyVector } from '$lib/types/Vector';
 
 	const { universe, commandedFleet, commandMapObject, merge } = getGameContext();
-	let num = parseInt(page.params.num);
+	let num = parseInt(page.params.num || '0');
 
 	let fleetsInOrbit: Fleet[] = $derived.by(() => {
 		if ($commandedFleet && $commandedFleet.mapObject.num === num) {

@@ -1,6 +1,6 @@
 module github.com/sirgwain/craig-stars/test
 
-go 1.24.2
+go 1.25
 
 replace github.com/sirgwain/craig-stars => ../
 
@@ -8,7 +8,6 @@ replace github.com/sirgwain/craig-stars/cs => ../cs
 
 require (
 	github.com/nsf/jsondiff v0.0.0-20230430225905-43f6cf3098c1
-	github.com/rs/zerolog v1.34.0
 	github.com/sirgwain/craig-stars v0.0.0-00010101000000-000000000000
 	github.com/sirgwain/craig-stars/cs v0.0.0-00010101000000-000000000000
 )
@@ -19,9 +18,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.18.3 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-sqlite3 v1.14.28 // indirect
+	github.com/mattn/go-sqlite3 v1.14.32 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/sagikazarmark/locafero v0.9.0 // indirect
 	github.com/simukti/sqldb-logger v0.0.0-20230108155151-646c1a075551 // indirect

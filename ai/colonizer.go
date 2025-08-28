@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"log/slog"
 	"math"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -58,11 +59,12 @@ func (ai *aiPlayer) colonize() error {
 					// TODO: add defenses to the calcs
 					// and cancel if they have a starbase
 					if ai.IsEnemy(target.PlayerNum) && !target.Spec.HasStarbase && target.GetPopulation() < int(float64(fleet.Cargo.Colonists*100)/ai.config.invasionFactor) {
-						ai.log.Debug().
-							Int("Invaders", fleet.Cargo.Colonists*100).
-							Int("Defenders", target.GetPopulation()).
-							Bool("HasStarbase", target.Spec.HasStarbase).
-							Msgf("Colonizer %s switched to invasion of %s", fleet.Name, target.Name)
+						ai.log.Debug("Colonizer switched to invasion",
+							slog.String("fleet", fleet.Name),
+							slog.String("target", target.Name),
+							slog.Int("Invaders", fleet.Cargo.Colonists*100),
+							slog.Int("Defenders", target.GetPopulation()),
+							slog.Bool("HasStarbase", target.Spec.HasStarbase))
 
 						fleet.Purpose = cs.FleetPurposeInvader
 						warpSpeed := fleet.Waypoints[1].WarpSpeed
@@ -74,8 +76,10 @@ func (ai *aiPlayer) colonize() error {
 						// remove the target and return this colonizer to the pool
 						fleet.Waypoints = fleet.Waypoints[:1]
 						colonizerFleets = append(colonizerFleets, fleet)
-						ai.log.Debug().
-							Msgf("Fleet %s was targeting %s for colonizing, but it is owned by player %d", fleet.Name, target.Name, target.PlayerNum)
+						ai.log.Debug("Fleet was targeting planet but it is owned by another player",
+							slog.String("fleet", fleet.Name),
+							slog.String("target", target.Name),
+							slog.Int("playerNum", target.PlayerNum))
 
 					}
 					continue
@@ -86,8 +90,9 @@ func (ai *aiPlayer) colonize() error {
 
 	// after colonizing, we may have idle fleets leftover
 	idleFleets := len(colonizerFleets)
-	ai.log.Debug().
-		Msgf("%d colonizerFleets, %d colonizable planets", idleFleets, len(colonizablePlanets))
+	ai.log.Debug("Colonizer fleets and planets",
+		slog.Int("colonizerFleets", idleFleets),
+		slog.Int("colonizablePlanets", len(colonizablePlanets)))
 
 	// Check each of our idle colonizer fleets and have them load dudes
 	for _, fleet := range colonizerFleets {
@@ -122,37 +127,40 @@ func (ai *aiPlayer) colonize() error {
 		popNextYear := orbiting.PopNextYear()
 		newDensity := float64(popNextYear-colonistsToLoad*100) / float64(orbiting.Spec.MaxPopulation)
 		if newDensity < ai.config.colonizerPopulationDensity {
-			ai.log.Debug().
-				Int("ColonistsAvailable", popNextYear).
-				Int("ColonistsNeeded", colonistsToLoad*100).
-				Float64("DensityAfterLoad", newDensity).
-				Msgf("Fleet %s aborting loading colonists from planet %s; too little pop", fleet.Name, orbiting.Name)
+			ai.log.Debug("Fleet aborting loading colonists; too little pop",
+				slog.String("fleet", fleet.Name),
+				slog.String("planet", orbiting.Name),
+				slog.Int("ColonistsAvailable", popNextYear),
+				slog.Int("ColonistsNeeded", colonistsToLoad*100),
+				slog.Float64("DensityAfterLoad", newDensity))
 
 			continue
 		}
 
 		if err := ai.client.TransferByHand(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}); err != nil {
 			// something went wrong, skip this planet
-			ai.log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
+			ai.log.Error("transferring colonists from planet returned error, skipping", slog.Any("error", err))
 			continue
 		}
 
 		newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: bestPlanet.MapObject}, 0, true)
 		if newWpIndex == 0 {
-			ai.log.Warn().
-				Str("Cargo", fleet.Cargo.PrettyString()).
-				Bool("Colonizer", fleet.Spec.Colonizer).
-				Bool("CanColonize", fleet.CanColonize(bestPlanet)).
-				Msgf("Fleet %s tried to target %s for colonizing but did not add the waypoint", fleet.Name, bestPlanet.Name)
+			ai.log.Warn("Fleet tried to target planet for colonizing but did not add the waypoint",
+				slog.String("fleet", fleet.Name),
+				slog.String("planet", bestPlanet.Name),
+				slog.String("Cargo", fleet.Cargo.PrettyString()),
+				slog.Bool("Colonizer", fleet.Spec.Colonizer),
+				slog.Bool("CanColonize", fleet.CanColonize(bestPlanet)))
 			continue
 		}
 		ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 		delete(colonizablePlanets, bestPlanet.Num)
 		idleFleets--
 
-		ai.log.Debug().
-			Int("WarpSpeed", fleet.Waypoints[1].WarpSpeed).
-			Msgf("Fleet %s targeting %s for colonizing", fleet.Name, bestPlanet.Name)
+		ai.log.Debug("Fleet targeting planet for colonizing",
+			slog.String("fleet", fleet.Name),
+			slog.String("planet", bestPlanet.Name),
+			slog.Int("WarpSpeed", fleet.Waypoints[1].WarpSpeed))
 
 	}
 

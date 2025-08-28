@@ -2,9 +2,9 @@ package ai
 
 import (
 	"fmt"
+	"log/slog"
 	"math"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -49,8 +49,7 @@ func (ai *aiPlayer) produce() error {
 					return fmt.Errorf("unable to design ship %v: %w", ship.purpose, err)
 				}
 				if design == nil {
-					ai.log.Debug().
-						Msgf("unable to design ship %v", ship.purpose)
+					ai.log.Debug("unable to design ship", slog.String("purpose", string(ship.purpose)))
 					continue
 				}
 
@@ -59,11 +58,13 @@ func (ai *aiPlayer) produce() error {
 				}
 
 				if !ai.isShipInQueue(planet, fleetMakeup.purpose, ship.purpose, ship.quantity) {
-					ai.log.Debug().
-						Str("FleetPurpose", string(fleetMakeup.purpose)).
-						Str("Purpose", string(ship.purpose)).
-						Int("PlayerNum", ai.Num).
-						Msgf("adding %d %s to %s queue", ship.quantity, design.Name, planet.Name)
+					ai.log.Debug("adding ship to queue",
+						slog.String("FleetPurpose", string(fleetMakeup.purpose)),
+						slog.String("Purpose", string(ship.purpose)),
+						slog.Int("PlayerNum", ai.Num),
+						slog.Int("quantity", ship.quantity),
+						slog.String("design", design.Name),
+						slog.String("planet", planet.Name))
 
 					ai.addShipToTopOfQueue(planet, fleetMakeup.purpose, design, ship.quantity)
 					if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
@@ -230,14 +231,14 @@ func (ai *aiPlayer) upgradeStarbase(planet *cs.Planet, timeToWait int) error {
 	existingDesign := ai.GetDesign(planet.Spec.StarbaseDesignNum)
 	if existingDesign == nil {
 		err := fmt.Errorf("failed to find existing starbase design")
-		log.Err(err).
-			Int64("GameID", ai.GameID).
-			Int("PlayerNum", ai.Num).
-			Int("PlanetNum", planet.Num).
-			Str("PlanetName", planet.Name).
-			Int("DesignNum", planet.Spec.StarbaseDesignNum).
-			Str("DesignName", planet.Spec.StarbaseDesignName).
-			Msgf("design not found")
+		slog.Error("design not found",
+			slog.Any("error", err),
+			slog.Int64("GameID", ai.GameID),
+			slog.Int("PlayerNum", ai.Num),
+			slog.Int("PlanetNum", planet.Num),
+			slog.String("PlanetName", planet.Name),
+			slog.Int("DesignNum", planet.Spec.StarbaseDesignNum),
+			slog.String("DesignName", planet.Spec.StarbaseDesignName))
 
 		return err
 	}
@@ -306,10 +307,11 @@ func (ai *aiPlayer) addStarbaseToTopOfQueue(planet *cs.Planet, design *cs.ShipDe
 	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeStarbase, Quantity: 1, DesignNum: design.Num}
 	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
 
-	ai.log.Debug().
-		Int64("GameID", ai.GameID).
-		Int("PlayerNum", ai.Num).
-		Msgf("Planet %s added %s to production queue", planet.Name, design.Name)
+	ai.log.Debug("added starbase to production queue",
+		slog.Int64("GameID", ai.GameID),
+		slog.Int("PlayerNum", ai.Num),
+		slog.String("planet", planet.Name),
+		slog.String("design", design.Name))
 
 }
 

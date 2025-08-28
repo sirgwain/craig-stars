@@ -5,7 +5,7 @@
 	import Designs from '../Designs.svelte';
 
 	const { game, universe } = getGameContext();
-	let playerNum = parseInt(page.params.playerNum);
+	let playerNum = parseInt(page.params.playerNum || '0');
 
 	let designs = $derived($universe.getDesigns(playerNum));
 </script>

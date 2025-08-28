@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
+	"log/slog"
 )
 
 func NewMinefieldServiceHandler(db DBConnection) craig_starsv1connect.MinefieldServiceHandler {
@@ -67,7 +67,7 @@ func (s *minefieldService) UpdateMinefieldOrders(ctx context.Context, req *conne
 	}
 
 	if err := dbWriteClient.SaveMinefield(ctx, minefield); err != nil {
-		log.Error().Err(err).Int64("ID", minefield.ID).Msg("update minefield in database")
+		slog.Error("update minefield in database", slog.Any("error", err), slog.Int64("ID", minefield.ID))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 

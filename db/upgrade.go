@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db/generated"
+	"github.com/sirgwain/craig-stars/hash"
 )
 
 /*
@@ -54,7 +55,7 @@ func (tx *client) ensureUpgrade(ctx context.Context) error {
 
 	u := upgrade{tx: tx}
 	for current := version.Current; current < LATEST_VERSION; current++ {
-		log.Info().Msgf("upgrading database data from v%d to v%d", current, current+1)
+		slog.Info("upgrading database data", slog.Int64("from", current), slog.Int64("to", current+1))
 		// check each version and call the upgrade functionality
 		switch current {
 		case 0:
@@ -139,11 +140,13 @@ func (u *upgrade) upgradeGames(ctx context.Context, upgradeGame func(fg *cs.Full
 }
 
 func (u *upgrade) initStarterDB(ctx context.Context) error {
-	log.Info().Msg("initializing starter database with admin user, 'admin' password")
-	user, err := cs.NewUser("admin", "admin", "", cs.RoleAdmin)
+	slog.Info("initializing starter database with admin user, 'admin' password")
+	password, err := hash.HashPassword("admin")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to hash password: %w", err)
 	}
+
+	user := cs.NewUser("admin", password, "", cs.RoleAdmin)
 
 	// create the admin user, 'admin' password
 	newUser, err := u.tx.CreateUser(ctx, user)

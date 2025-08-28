@@ -2,14 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-
+	"github.com/phsym/console-slog"
+	slogmulti "github.com/samber/slog-multi"
 	"github.com/spf13/cobra"
 )
 
@@ -21,32 +20,57 @@ var (
 )
 
 var logFile string
+var debugEnabled = true
 
-// prerun method for enabling debug logging
+// prerun method for enabling slog logging
 func logPreRun(cmd *cobra.Command, args []string) error {
-	// enable debug mode if configured
-	var writer io.Writer
-	writer = zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime}
+	// pick level based on your flag/env/config
+	level := slog.LevelInfo
+	if debugEnabled { // e.g. from a flag
+		level = slog.LevelDebug
+	}
+
+	// base console handler (pretty printing)
+	consoleHandler := console.NewHandler(os.Stderr, &console.HandlerOptions{
+		Level: level,
+	})
+
+	var handler slog.Handler = consoleHandler
+
 	if logFile != "" {
-		if err := os.MkdirAll(filepath.Dir(logFile), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(logFile), 0o755); err != nil {
 			return fmt.Errorf("failed to create log dir %s: \n%w", filepath.Base(logFile), err)
 		}
 		logFileWriter, err := os.OpenFile(
 			logFile,
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
-			0664,
+			0o664,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to create log file %s: \n%w", logFile, err)
 		}
 
-		// make a file and console writer
-		writer = io.MultiWriter(writer, logFileWriter)
+		// add a JSON handler for the log file
+		fileHandler := slog.NewJSONHandler(logFileWriter, &slog.HandlerOptions{
+			Level: level,
+		})
+
+		// wrap both handlers with MultiHandler
+		handler = slogmulti.Fanout(consoleHandler, fileHandler)
 	}
-	log.Logger = log.Output(writer)
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	log.Debug().Msg("Debug logging enabled")
-	log.Info().Msgf("version: %s, build: %s (%s)", semver, commit, buildTime)
+
+	// build the logger and set global
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+
+	// emit startup logs
+	slog.Debug("Debug logging enabled")
+	slog.Info("starting up",
+		slog.String("version", semver),
+		slog.String("commit", commit),
+		slog.String("build", buildTime),
+	)
+
 	return nil
 }
 

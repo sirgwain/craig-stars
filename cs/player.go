@@ -2,12 +2,11 @@ package cs
 
 import (
 	"fmt"
+	"log/slog"
 	"slices"
 	"sort"
 	"strings"
 	"time"
-
-	"github.com/rs/zerolog/log"
 )
 
 // A Player contains all intel, messages, tech levels, and research orders for a single empire in the game.
@@ -264,7 +263,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 	}
 
 	// start with a base discoverer
-	player.discoverer = newDiscoverer(log.Logger, player)
+	player.discoverer = newDiscoverer(slog.Default(), player)
 	player.PlayerPlans = player.defaultPlans()
 	return player
 }
