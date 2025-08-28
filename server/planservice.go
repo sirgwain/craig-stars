@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
+	"log/slog"
 )
 
 // ------------------------
@@ -180,7 +180,7 @@ func (s *battlePlanService) DeleteBattlePlan(ctx context.Context, req *connect.R
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 		for _, f := range fleetsToUpdate {
 			if err := c.SaveFleet(ctx, f); err != nil {
-				log.Error().Err(err).Msg("update fleet in database")
+				slog.Error("update fleet in database", slog.Any("error", err))
 				return err
 			}
 		}
@@ -363,7 +363,7 @@ func (s *productionPlanService) DeleteProductionPlan(ctx context.Context, req *c
 	if err := dbWriteClient.UpdatePlayerPlans(ctx, player); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	log.Info().Int64("GameID", game.ID).Int("PlayerNum", gamePlayer.Num).Int("Num", plan.Num).Msgf("deleted ProductionPlan %s", plan.Name)
+	slog.Info("deleted ProductionPlan", slog.String("plan", plan.Name), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", gamePlayer.Num), slog.Int("Num", plan.Num))
 	return connect.NewResponse(&craig_starsv1.DeleteProductionPlanResponse{}), nil
 }
 
@@ -516,6 +516,6 @@ func (s *transportPlanService) DeleteTransportPlan(ctx context.Context, req *con
 	if err := dbWriteClient.UpdatePlayerPlans(ctx, player); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	log.Info().Int64("GameID", game.ID).Int("PlayerNum", gamePlayer.Num).Int("Num", plan.Num).Msgf("deleted TransportPlan %s", plan.Name)
+	slog.Info("deleted TransportPlan", slog.String("plan", plan.Name), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", gamePlayer.Num), slog.Int("Num", plan.Num))
 	return connect.NewResponse(&craig_starsv1.DeleteTransportPlanResponse{}), nil
 }

@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
+	"log/slog"
 )
 
 type GameIdRequest interface {
@@ -42,10 +42,9 @@ func newErrorLogInterceptor() connect.UnaryInterceptorFunc {
 		) (connect.AnyResponse, error) {
 			res, err := next(ctx, req)
 			if err != nil {
-				log.Error().
-					Err(err).
-					Str("Procedure", req.Spec().Procedure).
-					Msg("grpc call failed")
+				slog.Error("grpc call failed",
+					slog.Any("error", err),
+					slog.String("Procedure", req.Spec().Procedure))
 			}
 			return res, err
 		})

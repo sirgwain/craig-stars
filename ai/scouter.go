@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"log/slog"
 	"math"
 	"slices"
 
@@ -33,10 +34,11 @@ func (ai *aiPlayer) scout() error {
 
 						target := ai.GetPlanetIntel(wp.TargetNum)
 						if target.ReportAge != cs.ReportAgeUnexplored {
-							ai.log.Debug().
-								Int64("GameID", ai.GameID).
-								Int("PlayerNum", ai.Num).
-								Msgf("Scout %s no longer targeting %s, it's already explored", fleet.Name, target.Name)
+							ai.log.Debug("Scout no longer targeting planet, it's already explored",
+								slog.String("scout", fleet.Name),
+								slog.String("target", target.Name),
+								slog.Int64("GameID", ai.GameID),
+								slog.Int("PlayerNum", ai.Num))
 
 							// we discovered this target in some other way, change targets
 							fleet.Waypoints = fleet.Waypoints[:1]
@@ -50,10 +52,11 @@ func (ai *aiPlayer) scout() error {
 	}
 
 	idleFleets := len(scannerFleets)
-	ai.log.Debug().
-		Int64("GameID", ai.GameID).
-		Int("PlayerNum", ai.Num).
-		Msgf("%d scannerFleets, %d unknown planets", idleFleets, len(unknownPlanetsByNum))
+	ai.log.Debug("Scanner fleets and unknown planets",
+		slog.Int("scannerFleets", idleFleets),
+		slog.Int("unknownPlanets", len(unknownPlanetsByNum)),
+		slog.Int64("GameID", ai.GameID),
+		slog.Int("PlayerNum", ai.Num))
 
 	for _, fleet := range scannerFleets {
 		closestPlanet := ai.getClosestPlanetIntel(fleet.Position, unknownPlanetsByNum)
@@ -62,8 +65,9 @@ func (ai *aiPlayer) scout() error {
 			fastest := float64(fleet.Fuel)/float64(fleet.Spec.FuelCapacity) > .5
 			newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: closestPlanet.MapObject}, len(fleet.Waypoints)-1, fastest)
 			if newWpIndex == 0 {
-				ai.log.Warn().
-					Msgf("Fleet %s tried to target %s for scouting but did not add the waypoint", fleet.Name, closestPlanet.Name)
+				ai.log.Warn("Fleet tried to target planet for scouting but did not add the waypoint",
+					slog.String("fleet", fleet.Name),
+					slog.String("planet", closestPlanet.Name))
 				continue
 			}
 
@@ -71,11 +75,12 @@ func (ai *aiPlayer) scout() error {
 			delete(unknownPlanetsByNum, closestPlanet.Num)
 			idleFleets--
 
-			ai.log.Debug().
-				Int64("GameID", ai.GameID).
-				Int("PlayerNum", ai.Num).
-				Int("WarpSpeed", fleet.Waypoints[newWpIndex].WarpSpeed).
-				Msgf("Scout %s targeting %s", fleet.Name, closestPlanet.Name)
+			ai.log.Debug("Scout targeting planet",
+				slog.String("scout", fleet.Name),
+				slog.String("planet", closestPlanet.Name),
+				slog.Int("WarpSpeed", fleet.Waypoints[newWpIndex].WarpSpeed),
+				slog.Int64("GameID", ai.GameID),
+				slog.Int("PlayerNum", ai.Num))
 		}
 	}
 
@@ -169,11 +174,12 @@ func (ai *aiPlayer) scoutPackets() error {
 			return err
 		}
 
-		ai.log.Debug().
-			Int64("GameID", ai.GameID).
-			Int("PlayerNum", ai.Num).
-			Int("WarpSpeed", planet.PacketSpeed).
-			Msgf("Planet %s is sending a scout packet to %s", planet.Name, farthest.Name)
+		ai.log.Debug("Planet is sending a scout packet",
+			slog.String("planet", planet.Name),
+			slog.String("target", farthest.Name),
+			slog.Int("WarpSpeed", planet.PacketSpeed),
+			slog.Int64("GameID", ai.GameID),
+			slog.Int("PlayerNum", ai.Num))
 
 	}
 	return nil

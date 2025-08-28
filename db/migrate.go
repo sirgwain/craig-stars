@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -38,7 +38,8 @@ func (c *dbConn) mustMigrate(cfg *config.Config) {
 func (c *dbConn) setupInMemoryDatabase() {
 	schema, err := iofs.New(memorySchemaFiles, "schema/memory")
 	if err != nil {
-		log.Fatal().Err(err).Msg("loading embedded schema")
+		slog.Error("loading embedded schema", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	config := &sqlite3.Config{
@@ -47,17 +48,20 @@ func (c *dbConn) setupInMemoryDatabase() {
 
 	driver, err := sqlite3.WithInstance(c.dbRead, config)
 	if err != nil {
-		log.Fatal().Err(err).Msg("creating database driver")
+		slog.Error("creating database driver", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	m, err := migrate.NewWithInstance("iofs", schema, "users", driver)
 	if err != nil {
-		log.Fatal().Err(err).Msg("creating migration")
+		slog.Error("creating migration", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	err = m.Up()
 	if err != nil {
-		log.Fatal().Err(err).Msg("migrating users")
+		slog.Error("migrating users", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 }
@@ -65,7 +69,8 @@ func (c *dbConn) setupInMemoryDatabase() {
 func (c *dbConn) mustMigrateDatabase(datasource string, fs embed.FS, path string) {
 	d, err := iofs.New(fs, path)
 	if err != nil {
-		log.Fatal().Err(err).Msg("loading embedded schema")
+		slog.Error("loading embedded schema", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	config := &sqlite3.Config{
@@ -76,52 +81,58 @@ func (c *dbConn) mustMigrateDatabase(datasource string, fs embed.FS, path string
 	defer func() {
 		// close this db connection, we'll open a new joined connection after migration
 		if err := db.Close(); err != nil {
-			log.Fatal().Err(err).Msg("failed to close database after migration")
+			slog.Error("failed to close database after migration", slog.Any("error", err))
+			os.Exit(1)
 		}
 	}()
 
 	if err != nil {
-		log.Fatal().Err(err).Msg("opening database")
+		slog.Error("opening database", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	driver, err := sqlite3.WithInstance(db, config)
 	if err != nil {
-		log.Fatal().Err(err).Msg("creating database driver")
+		slog.Error("creating database driver", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	m, err := migrate.NewWithInstance("iofs", d, datasource, driver)
 	if err != nil {
-		log.Fatal().Err(err).Msg("creating migration")
+		slog.Error("creating migration", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	version, _, err := m.Version()
 	if err != nil && err != migrate.ErrNilVersion {
-		log.Fatal().Err(err).Msg("get database version")
+		slog.Error("get database version", slog.Any("error", err))
+		os.Exit(1)
 	}
 
-	log.Info().Msgf("database %s is version %d", path, version)
+	slog.Info("database version", slog.String("path", path), slog.Int("version", int(version)))
 	backupFile := c.mustBackup(datasource, version)
 	err = m.Up()
 	switch err {
 	case migrate.ErrNoChange:
-		log.Info().Msgf("database %s, no migration required", path)
+		slog.Info("database no migration required", slog.String("path", path))
 		// remove the backup, we don't need it
 		os.Remove(backupFile)
 	case nil:
-		log.Info().Msgf("database %s migrated", path)
+		slog.Info("database migrated", slog.String("path", path))
 		db.Exec("VACUUM;")
-		log.Info().Msgf("database %s vacuumed", path)
+		slog.Info("database vacuumed", slog.String("path", path))
 	}
 
 	if err != nil && err != migrate.ErrNoChange {
-		log.Fatal().Err(err).Msg("migrating database")
+		slog.Error("migrating database", slog.Any("error", err))
+		os.Exit(1)
 	}
 }
 
 func (c *dbConn) mustBackup(filename string, version uint) string {
 
 	if strings.Contains(filename, ":memory") {
-		log.Debug().Msg("not backing up in memory db")
+		slog.Debug("not backing up in memory db")
 		return ""
 	}
 
@@ -143,7 +154,8 @@ func (c *dbConn) mustBackup(filename string, version uint) string {
 	// connect to the source
 	srcDb, err := sql.Open(register, filename)
 	if err != nil {
-		log.Fatal().Err(err).Msgf("failed to connect to %s to backup", filename)
+		slog.Error("failed to connect to backup", slog.String("filename", filename), slog.Any("error", err))
+		os.Exit(1)
 	}
 	defer srcDb.Close()
 	srcDb.Ping()
@@ -151,7 +163,8 @@ func (c *dbConn) mustBackup(filename string, version uint) string {
 	// connect to the dest
 	destDb, err := sql.Open(register, backup)
 	if err != nil {
-		log.Fatal().Err(err).Msgf("failed to connect to %s to backup", backup)
+		slog.Error("failed to connect to backup", slog.String("backup", backup), slog.Any("error", err))
+		os.Exit(1)
 	}
 	defer destDb.Close()
 	destDb.Ping()
@@ -159,19 +172,22 @@ func (c *dbConn) mustBackup(filename string, version uint) string {
 	// perform the backup
 	bk, err := sqlite3conn[1].Backup("main", sqlite3conn[0], "main")
 	if err != nil {
-		log.Fatal().Err(err).Msgf("failed to backup %s", backup)
+		slog.Error("failed to backup", slog.String("backup", backup), slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	_, err = bk.Step(-1)
 	if err != nil {
-		log.Fatal().Err(err).Msgf("failed backup step %s", backup)
+		slog.Error("failed backup step", slog.String("backup", backup), slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	if err := bk.Finish(); err != nil {
-		log.Fatal().Err(err).Msgf("failed backup finish %s", backup)
+		slog.Error("failed backup finish", slog.String("backup", backup), slog.Any("error", err))
+		os.Exit(1)
 	}
 
-	log.Info().Msgf("backed up database %s -> %s", filename, backup)
+	slog.Info("backed up database", slog.String("from", filename), slog.String("to", backup))
 
 	return backup
 }

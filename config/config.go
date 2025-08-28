@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
@@ -70,7 +70,7 @@ func GetConfig() *Config {
 		if viper.GetBool("test-mode") {
 			// test mode uses an in memory db, no discord auth
 			config = &testModeConfig
-			log.Debug().Msgf("Config (test mode) : %+v", config)
+			slog.Debug("Config (test mode)", slog.Any("config", config))
 			return config
 		}
 
@@ -108,11 +108,11 @@ func GetConfig() *Config {
 		viper.Unmarshal(&config)
 
 		// Config
-		log.Debug().Msgf("Database.Filename : %v", config.Database.Filename)
-		log.Debug().Msgf("Database.UsersFilename : %v", config.Database.UsersFilename)
-		log.Debug().Msgf("Config : %+v", config)
+		slog.Debug(fmt.Sprintf("Database.Filename : %v", config.Database.Filename))
+		slog.Debug(fmt.Sprintf("Database.UsersFilename : %v", config.Database.UsersFilename))
+		slog.Debug(fmt.Sprintf("Config : %+v", config))
 		if config.GeneratedUserPassword != "" {
-			log.Debug().Msgf("GeneratedUserPassword is set")
+			slog.Debug("GeneratedUserPassword is set")
 		}
 	}
 	return config

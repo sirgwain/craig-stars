@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
+	"log/slog"
 )
 
 func NewPlanetServiceHandler(db DBConnection) craig_starsv1connect.PlanetServiceHandler {
@@ -64,12 +64,12 @@ func (s *planetService) UpdatePlanetOrders(ctx context.Context, req *connect.Req
 	orders := converter.C.ConvertPlanetOrders(req.Msg.PlanetOrders)
 	orderer := cs.NewOrderer()
 	if err := orderer.UpdatePlanetOrders(&game.Rules, player, planet, *orders); err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Str("Planet", planet.Name).Msg("update planet orders")
+		slog.Error("update planet orders", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num), slog.String("Planet", planet.Name))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	if err := dbClientWrite.SavePlanet(ctx, planet); err != nil {
-		log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
+		slog.Error("update planet in database", slog.Any("error", err), slog.Int64("ID", planet.ID))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 

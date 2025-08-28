@@ -6,11 +6,11 @@ import (
 	"os"
 
 	"github.com/lensesio/tableprinter"
-	"github.com/rs/zerolog"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 func newGamesListCmd() *cobra.Command {
@@ -71,7 +71,9 @@ func newGamesListCmd() *cobra.Command {
 					fmt.Printf("saved %s\n", fullGame.Name)
 				}
 				if generate {
-					zerolog.SetGlobalLevel(zerolog.WarnLevel)
+					// Set log level to warn for turn generation
+					warnLogger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
+					slog.SetDefault(warnLogger)
 					client := cs.NewGamer()
 					if err := client.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players); err != nil {
 						return fmt.Errorf("failed to generate turn for game %s (%d): %w", fullGame.Name, fullGame.ID, err)

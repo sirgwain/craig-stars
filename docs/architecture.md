@@ -12,7 +12,6 @@
 - [golang-migrate](https://github.com/golang-migrate/migrate)
 - [goverter](https://github.com/jmattheis/goverter)
 - [go-chi](https://github.com/chi/go-chi)
-- [zerolog](https://github.com/rs/zerolog)
 - [disgo](https://github.com/disgoorg/disgo)
 - [go-pkgz/auth](https://github.com/go-pkgz/auth)
 - [cobra](https://github.com/spf13/cobra) (for cli)

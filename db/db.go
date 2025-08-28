@@ -11,9 +11,9 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 	gen "github.com/sirgwain/craig-stars/db/generated"
 
+	"log/slog"
+
 	"github.com/mattn/go-sqlite3"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
@@ -228,23 +228,23 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 	c.mustMigrate(cfg)
 
 	// create a new logger for logging database calls
-	var zlogger zerolog.Logger
+	var logger *slog.Logger
 	if cfg.Database.DebugLogging {
-		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(zerolog.DebugLevel)
+		logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	} else {
-		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.WarnLevel)
+		logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
 	}
-	loggerAdapter := newLoggerWithLogger(&zlogger)
+	loggerAdapter := newLoggerWithLogger(logger)
 
 	// dsn is like file::memory:?cache=shared, or file:data.db?_journal=WAL
 	dsn := fmt.Sprintf("file:%s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)
-	zlogger.Debug().Msgf("Connecting to database %s", dsn)
+	logger.Debug("Connecting to database", slog.String("dsn", dsn))
 	connectHook := func(conn *sqlite3.SQLiteConn) error {
 		if c.databaseInMemory {
 			// no need to attach
 			return nil
 		}
-		log.Debug().Msgf("Attaching Users database %s", cfg.Database.UsersFilename)
+		logger.Debug("Attaching Users database", slog.String("filename", cfg.Database.UsersFilename))
 		if _, err := conn.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", cfg.Database.UsersFilename), nil); err != nil {
 			return err
 		}

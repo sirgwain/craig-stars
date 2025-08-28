@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
+	"log/slog"
 )
 
 func NewUserServiceHandler(db DBConnection, discordNotifier *discordNotifier) craig_starsv1connect.UserServiceHandler {
@@ -102,7 +102,7 @@ func (s *userService) TestDiscordWebhook(ctx context.Context, req *connect.Reque
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to send test webhook: %w", err))
 	}
 
-	log.Info().Msgf("sending test discord message for %s", user.Username)
+	slog.Info("sending test discord message", slog.String("user", user.Username))
 
 	return &connect.Response[craig_starsv1.TestDiscordWebhookResponse]{}, nil
 }

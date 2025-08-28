@@ -2,6 +2,7 @@ package ai
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -169,10 +170,11 @@ func (ai *aiPlayer) removeUnusedDesigns() {
 		if found, found2 := unusedDesigns[design.Num]; found && found2 {
 			// log a message if we're deleting an existing design
 			if design.ID != 0 {
-				ai.log.Debug().
-					Int64("GameID", ai.GameID).
-					Int("PlayerNum", ai.Num).
-					Msgf("marking %s, design %d for deletion, unused", design.Name, design.Num)
+				ai.log.Debug("marking design for deletion, unused",
+					slog.String("design", design.Name),
+					slog.Int("designNum", design.Num),
+					slog.Int64("GameID", ai.GameID),
+					slog.Int("PlayerNum", ai.Num))
 			}
 			design.Delete = true
 		}

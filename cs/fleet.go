@@ -2,11 +2,9 @@ package cs
 
 import (
 	"fmt"
+	"log/slog"
 	"math"
 	"slices"
-
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 // warpspeed for using a stargate vs moving with warp drive
@@ -1284,7 +1282,7 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet,
 }
 
 // Repair a fleet. This changes based on where the fleet is
-func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player, orbiting *Planet) {
+func (fleet *Fleet) repairFleet(log *slog.Logger, rules *Rules, player *Player, orbiting *Planet) {
 	needsRepair := false
 	// Check if anything even needs repairing
 	for _, token := range fleet.Tokens {
@@ -1347,20 +1345,19 @@ func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player
 			token.QuantityDamaged = 0
 		}
 
-		log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Str("Token", token.design.Name).
-			Int("RepairAmount", repairAmount).
-			Int("QuantityDamaged", token.QuantityDamaged).
-			Int("Damage", int(token.Damage)).
-			Msgf("fleet token repaired")
+		log.Debug("fleet token repaired",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+			slog.String("Token", token.design.Name),
+			slog.Int("RepairAmount", repairAmount),
+			slog.Int("QuantityDamaged", token.QuantityDamaged),
+			slog.Int("Damage", int(token.Damage)))
 
 	}
 }
 
 // Repair a starbase
-func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Player) {
+func (fleet *Fleet) repairStarbase(log *slog.Logger, rules *Rules, player *Player) {
 	repairRate := rules.RepairRates[RepairRateStarbase]
 	token := &fleet.Tokens[0]
 
@@ -1370,14 +1367,13 @@ func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Pla
 	// Remove damage from this fleet by its armor * repairRate
 	token.Damage = math.Floor(max(0, fleet.Tokens[0].Damage-float64(repairAmount)))
 
-	log.Debug().
-		Int("Player", fleet.PlayerNum).
-		Str("Fleet", fleet.Name).
-		Str("Token", token.design.Name).
-		Int("RepairAmount", repairAmount).
-		Int("QuantityDamaged", token.QuantityDamaged).
-		Int("Damage", int(token.Damage)).
-		Msgf("starbase repaired")
+	log.Debug("starbase repaired",
+		slog.Int("Player", fleet.PlayerNum),
+		slog.String("Fleet", fleet.Name),
+		slog.String("Token", token.design.Name),
+		slog.Int("RepairAmount", repairAmount),
+		slog.Int("QuantityDamaged", token.QuantityDamaged),
+		slog.Int("Damage", int(token.Damage)))
 
 }
 
@@ -1493,10 +1489,9 @@ func (f *Fleet) AddWaypoint(
 	if position == (Vector{}) ||
 		position == selectedWaypoint.Position ||
 		(nextWaypoint != nil && position == nextWaypoint.Position) {
-		log.Debug().
-			Str("position", position.String()).
-			Str("selectedWaypoint.Position", selectedWaypoint.Position.String()).
-			Msgf("Not adding waypoint position")
+		slog.Debug("Not adding waypoint position",
+			slog.String("position", position.String()),
+			slog.String("selectedWaypoint.Position", selectedWaypoint.Position.String()))
 		return 0 // don't add duplicate waypoint
 	}
 

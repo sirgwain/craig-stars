@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"log/slog"
 	"math"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -27,8 +28,10 @@ func (ai *aiPlayer) gatherIntel() {
 		// check if these hostile fleets are headed towards one of our planets
 		targets := ai.findPlanetTargets(fleet.Position, fleet.Heading, ai.Planets)
 		for _, target := range targets {
-			ai.log.Debug().
-				Msgf("Planet %s is being targetted by player %d fleet %s", target.Name, fleet.PlayerNum, fleet.Name)
+			ai.log.Debug("Planet is being targetted by enemy fleet",
+				slog.String("planet", target.Name),
+				slog.Int("playerNum", fleet.PlayerNum),
+				slog.String("fleet", fleet.Name))
 
 			ai.targetedPlanets[target.Num] = append(ai.targetedPlanets[target.Num], fleet)
 		}

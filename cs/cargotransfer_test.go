@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/test"
+	"log/slog"
 )
 
 func TestCargoTransfers_splitFleetCargoTransfers(t *testing.T) {
@@ -453,7 +453,7 @@ func TestCargoTransferer_getCargoLoadAmount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cargoTransferer := newCargoTransferer(log.Logger, &FullGame{})
+			cargoTransferer := newCargoTransferer(slog.Default(), &FullGame{})
 			gotTransferAmount, gotWantToTransfer, gotWaitAtWaypoint := cargoTransferer.getCargoLoadAmount(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.task)
 			if gotTransferAmount != tt.wantTransferAmount {
 				t.Errorf("cargoTransfer.getCargoLoadAmount() gotTransferAmount = %v, want %v", gotTransferAmount, tt.wantTransferAmount)
@@ -588,7 +588,7 @@ func TestCargoTransferer_getCargoUnloadAmount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			cargoTransferer := newCargoTransferer(log.Logger, &FullGame{})
+			cargoTransferer := newCargoTransferer(slog.Default(), &FullGame{})
 			gotTransferAmount, gotWantToTransfer, gotWaitAtWaypoint := cargoTransferer.getCargoUnloadAmount(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.task)
 			if gotTransferAmount != tt.wantTransferAmount {
 				t.Errorf("cargoTransfer.getCargoUnloadAmount() gotTransferAmount = %v, want %v", gotTransferAmount, tt.wantTransferAmount)
@@ -668,7 +668,7 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			cargoTransferer := newCargoTransferer(log.Logger, &FullGame{})
+			cargoTransferer := newCargoTransferer(slog.Default(), &FullGame{})
 			invalid := cargoTransferer.transferToDest(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.transferAmount)
 			if invalid != tt.wantInvalid {
 				t.Errorf("cargoTransferer.transferToDest() got %v, want %v", invalid, tt.wantInvalid)

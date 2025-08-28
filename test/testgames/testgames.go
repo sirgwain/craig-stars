@@ -5,8 +5,7 @@ package testgames
 import (
 	"context"
 	"fmt"
-
-	"github.com/rs/zerolog/log"
+	"log/slog"
 
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -775,7 +774,7 @@ func newGame(name string) *cs.FullGame {
 	game.Area = cs.Vector{X: 200, Y: 200}
 	game.Rules.ResetSeed(0) // keep the same seed for tests
 	game.State = cs.GameStateWaitingForPlayers
-	universe := cs.NewUniverse(log.Logger, &game.Rules)
+	universe := cs.NewUniverse(slog.Default(), &game.Rules)
 
 	return &cs.FullGame{
 		Game:      game,

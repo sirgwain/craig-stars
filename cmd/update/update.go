@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/db"
+	"log/slog"
 )
 
 // Update the host of a game.
@@ -42,7 +42,7 @@ func UpdateHost(gameID int64, userID int64) error {
 	}
 
 	db.UpdateGameHost(ctx, game.ID, user.ID)
-	log.Info().Msgf("updated game %d host to userID %d", game.ID, userID)
+	slog.Info("updated game host", slog.Int64("gameID", game.ID), slog.Int64("userID", userID))
 
 	return nil
 }
@@ -82,7 +82,7 @@ func UpdatePlayer(gameID int64, playerNum int, userID int64) error {
 	// update this player's userID
 	player.UserID = userID
 	readWriteClient.UpdatePlayerUserID(ctx, player)
-	log.Info().Msgf("updated game %d, player %d to userID %d", player.GameID, player.Num, userID)
+	slog.Info("updated game player", slog.Int64("gameID", player.GameID), slog.Int("playerNum", player.Num), slog.Int64("userID", userID))
 
 	return nil
 }

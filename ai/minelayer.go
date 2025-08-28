@@ -1,6 +1,9 @@
 package ai
 
-import "github.com/sirgwain/craig-stars/cs"
+import (
+	"github.com/sirgwain/craig-stars/cs"
+	"log/slog"
+)
 
 // lay mines
 func (ai *aiPlayer) layMines() error {
@@ -49,8 +52,9 @@ func (ai *aiPlayer) layMines() error {
 			} else {
 				newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: closestPlanet.MapObject}, len(fleet.Waypoints)-1, false)
 				if newWpIndex == 0 {
-					ai.log.Warn().
-						Msgf("Fleet %s tried to target %s for mine laying but did not add the waypoint", fleet.Name, closestPlanet.Name)
+					ai.log.Warn("Fleet tried to target planet for mine laying but did not add the waypoint",
+						slog.String("fleet", fleet.Name),
+						slog.String("planet", closestPlanet.Name))
 					continue
 				}
 

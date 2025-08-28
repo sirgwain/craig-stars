@@ -3,9 +3,9 @@ package db
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"testing"
 
-	"github.com/rs/zerolog"
 	"github.com/sirgwain/craig-stars/ai"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
@@ -24,10 +24,7 @@ func connectTestDB() *client {
 	}
 
 	// create a test user
-	user, err := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
-	if err != nil {
-		panic(fmt.Errorf("error generating test user: \n%w", err))
-	}
+	user := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
 
 	if err := dbConn.WrapInTransaction(func(c Client) error {
 		if _, err := c.CreateUser(context.Background(), user); err != nil {
@@ -112,7 +109,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 	cfg.Database.DebugLogging = false
 	cfg.Database.SkipUpgrade = true
 
-	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	slog.SetLogLoggerLevel(slog.LevelError)
 
 	b.Run("Small Game one turn", func(b *testing.B) {
 		var err error
@@ -211,7 +208,7 @@ func BenchmarkGetFullGame(b *testing.B) {
 	cfg.Database.DebugLogging = false
 	cfg.Database.SkipUpgrade = true
 
-	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	slog.SetLogLoggerLevel(slog.LevelError)
 
 	b.Run("Small Game one turn", func(b *testing.B) {
 		var err error

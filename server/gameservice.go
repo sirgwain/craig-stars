@@ -257,7 +257,7 @@ func (s *gameService) StartGame(ctx context.Context, req *connect.Request[craig_
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to start game: %w", err))
 	}
 
-	s.discordNotifier.SendNewTurnNotification(ctx, game.ID)
+	s.discordNotifier.SendNewTurnNotification(game.ID)
 
 	return connect.NewResponse(&craig_starsv1.StartGameResponse{}), nil
 
@@ -446,7 +446,7 @@ func (s *gameService) ForceGenerateTurn(ctx context.Context, req *connect.Reques
 
 	// if a new turn was generated, send discord notification
 	if result == TurnGenerated {
-		s.discordNotifier.SendNewTurnNotification(ctx, game.ID)
+		s.discordNotifier.SendNewTurnNotification(game.ID)
 	}
 
 	// Convert and return the updated game

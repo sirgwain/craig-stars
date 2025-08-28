@@ -15,26 +15,27 @@ import (
 	"syscall"
 	"time"
 
+	"log/slog"
+
 	"connectrpc.com/connect"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
+	"github.com/sirgwain/craig-stars/hash"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
 	"github.com/sirgwain/craig-stars/test/testgames"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/singleflight"
 
-	"github.com/go-pkgz/auth"
-	"github.com/go-pkgz/auth/avatar"
-	"github.com/go-pkgz/auth/logger"
-	"github.com/go-pkgz/auth/provider"
-	"github.com/go-pkgz/auth/token"
+	"github.com/go-pkgz/auth/v2"
+	"github.com/go-pkgz/auth/v2/avatar"
+	"github.com/go-pkgz/auth/v2/logger"
+	"github.com/go-pkgz/auth/v2/provider"
+	"github.com/go-pkgz/auth/v2/token"
 )
 
 type contextKey int
@@ -90,13 +91,13 @@ func Start(config config.Config) error {
 		discordNotifier: discordNotifier,
 	}
 
-	var authLogger = logger.Func(func(format string, args ...interface{}) { log.Info().Msgf(format, args...) })
+	var authLogger = logger.Func(func(format string, args ...interface{}) { slog.Info(fmt.Sprintf(format, args...)) })
 
 	cookieDuration := time.Hour * 24
 	if config.Discord.CookieDuration != "" {
 		duration, err := time.ParseDuration(config.Discord.CookieDuration)
 		if err != nil {
-			log.Error().Err(err).Msgf("failed to load cookie duration from config %s", config.Discord.CookieDuration)
+			slog.Error("failed to load cookie duration from config", slog.Any("error", err), slog.String("cookieDuration", config.Discord.CookieDuration))
 		} else {
 			cookieDuration = duration
 
@@ -124,7 +125,7 @@ func Start(config config.Config) error {
 				var err error
 				user, err = client.GetUserByUsername(context.Background(), claims.User.Name)
 				if err != nil {
-					log.Error().Err(err).Msgf("failed to load %s from database during claims update", claims.User.Name)
+					slog.Error("failed to load user from database during claims update", slog.Any("error", err), slog.String("user", claims.User.Name))
 					claims.User.SetBoolAttr(userRejected, true)
 					return claims
 				}
@@ -132,11 +133,11 @@ func Start(config config.Config) error {
 				if user == nil {
 					if tokenUser.discordID() != "" {
 						if _, err = server.createNewDiscordUser(context.Background(), tokenUser); err != nil {
-							log.Error().Err(err).Msgf("failed to load %s from database during claims update", claims.User.Name)
+							slog.Error("failed to load user from database during claims update", slog.Any("error", err), slog.String("user", claims.User.Name))
 							claims.User.SetBoolAttr(userRejected, true)
 						}
 					} else {
-						log.Error().Err(err).Msgf("failed to load %s from database during claims update", claims.User.Name)
+						slog.Error("failed to load user from database during claims update", slog.Any("error", err), slog.String("user", claims.User.Name))
 						claims.User.SetBoolAttr(userRejected, true)
 					}
 					return claims
@@ -153,7 +154,7 @@ func Start(config config.Config) error {
 					} else if user.IsDiscordUser() {
 						// update the discord user on auth
 						if err := server.updateUser(context.Background(), tokenUser, user); err != nil {
-							log.Error().Err(err).Msgf("failed to load %s from database during claims update", claims.User.Name)
+							slog.Error("failed to load user from database during claims update", slog.Any("error", err), slog.String("user", claims.User.Name))
 							claims.User.SetBoolAttr("blocked", true)
 						}
 					}
@@ -180,29 +181,29 @@ func Start(config config.Config) error {
 		client := server.db.NewReadClient()
 		user, err := client.GetUserByUsername(context.Background(), username)
 		if err != nil {
-			log.Error().Err(err).Str("Username", username).Msg("get user from database")
+			slog.Error("get user from database", slog.Any("error", err), slog.String("Username", username))
 			return false, err
 		}
 
 		if user == nil {
-			log.Error().Str("Username", username).Msg("user not found")
+			slog.Error("user not found", slog.String("Username", username))
 			return false, nil
 		}
 
 		// Check for username and password match
-		return user.ComparePassword(password)
+		return hash.ComparePassword(user.Password, password)
 	}))
 
 	AddGuestProvider(service, issuer, authLogger, "guest", HashCheckerFunc(func(hash string) (username string, attributes map[string]interface{}, err error) {
 		client := server.db.NewReadClient()
 		user, err := client.GetGuestUser(context.Background(), hash)
 		if err != nil {
-			log.Error().Err(err).Str("Hash", hash).Msg("get user from database")
+			slog.Error("get user from database", slog.Any("error", err), slog.String("Hash", hash))
 			return "", nil, err
 		}
 
 		if user == nil {
-			log.Error().Str("Hash", hash).Msg("user not found")
+			slog.Error("user not found", slog.String("Hash", hash))
 			return "", nil, nil
 		}
 
@@ -246,7 +247,7 @@ func Start(config config.Config) error {
 	// A good base middleware stack
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(requestLogger(&log.Logger))
+	r.Use(requestLogger())
 
 	// wrap requests in a transaction
 	// do this before Recoverer so we can rollback panics
@@ -322,7 +323,7 @@ func Start(config config.Config) error {
 	go func() {
 		<-sig
 
-		log.Info().Msg("shutdown signal received")
+		slog.Info("shutdown signal received")
 
 		// Shutdown signal with grace period of 30 seconds
 		shutdownCtx, cancel := context.WithTimeout(serverCtx, 30*time.Second)
@@ -331,34 +332,38 @@ func Start(config config.Config) error {
 		go func() {
 			<-shutdownCtx.Done()
 			if shutdownCtx.Err() == context.DeadlineExceeded {
-				log.Fatal().Msg("graceful shutdown timed out - forcing exit.")
+				slog.Error("graceful shutdown timed out - forcing exit.")
+				os.Exit(1)
 			}
 		}()
 
 		// Trigger graceful shutdown
-		log.Info().Msg("shutting down http server")
+		slog.Info("shutting down http server")
 		err := httpServer.Shutdown(shutdownCtx)
 		if err != nil {
-			log.Fatal().Err(err).Msg("graceful shutdown failed")
+			slog.Error("graceful shutdown failed", slog.Any("error", err))
+			os.Exit(1)
 		}
 		// close the db
-		log.Info().Msg("closing database")
+		slog.Info("closing database")
 		if err = dbConn.Close(); err != nil {
-			log.Fatal().Err(err).Msg("close db failed")
+			slog.Error("close db failed", slog.Any("error", err))
+			os.Exit(1)
 		}
 		serverStopCtx()
 	}()
 
 	// Run the httpServer
-	log.Info().Msg("starting http server")
+	slog.Info("starting http server")
 	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal().Err(err).Msg("server closed")
+		slog.Error("server closed", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
 
-	log.Info().Msg("shutdown complete")
+	slog.Info("shutdown complete")
 
 	return nil
 }
@@ -385,12 +390,10 @@ func (s *server) contextDb(r *http.Request) DBClient {
 	return r.Context().Value(keyDb).(DBClient)
 }
 
-// create a new request logger with zerolog. Inspired by https://github.com/ironstar-io/chizerolog
-func requestLogger(logger *zerolog.Logger) func(next http.Handler) http.Handler {
+// create a new request logger with slog
+func requestLogger() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			log := logger.With().Logger()
-
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
 			t1 := time.Now()
@@ -399,40 +402,31 @@ func requestLogger(logger *zerolog.Logger) func(next http.Handler) http.Handler 
 
 				// Recover and record stack traces in case of a panic
 				if rec := recover(); rec != nil {
-					log.Error().
-						Timestamp().
-						Interface("info", rec).
-						Bytes("stack", debug.Stack()).
-						Msg("system error")
+					slog.Error("system error",
+						slog.Any("info", rec),
+						slog.String("stack", string(debug.Stack())))
 					http.Error(ww, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				}
 
 				// log end request
-				var event *zerolog.Event
+				attrs := []slog.Attr{
+					slog.String("ip", r.RemoteAddr),
+					slog.String("url", r.URL.Path),
+					slog.String("method", r.Method),
+					slog.Int("status", ww.Status()),
+					slog.Float64("ms", float64(t2.Sub(t1).Nanoseconds())/1000000.0),
+					slog.String("content-length", r.Header.Get("Content-Length")),
+					slog.Int("resp_bytes", ww.BytesWritten()),
+				}
+
+				// always log the user_agent for now
+				attrs = append(attrs, slog.String("user_agent", r.Header.Get("User-Agent")))
+
 				if ww.Status() >= 400 {
-					event = log.Error()
+					slog.LogAttrs(r.Context(), slog.LevelError, "", attrs...)
 				} else {
-					event = log.Info()
+					slog.LogAttrs(r.Context(), slog.LevelInfo, "", attrs...)
 				}
-
-				fields := map[string]interface{}{
-					"ip":             r.RemoteAddr,
-					"url":            r.URL.Path,
-					"method":         r.Method,
-					"status":         ww.Status(),
-					"ms":             float64(t2.Sub(t1).Nanoseconds()) / 1000000.0,
-					"content-length": r.Header.Get("Content-Length"),
-					"resp_bytes":     ww.BytesWritten(),
-				}
-
-				// don't log the user_agent while we're debugging, we should know what it is
-				if zerolog.GlobalLevel() != zerolog.DebugLevel {
-					fields["user_agent"] = r.Header.Get("User-Agent")
-				}
-
-				event.
-					Timestamp().
-					Fields(fields).Msg("")
 			}()
 
 			next.ServeHTTP(ww, r)

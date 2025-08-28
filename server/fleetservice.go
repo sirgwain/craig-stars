@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
+	"log/slog"
 )
 
 func NewFleetServiceHandler(db DBConnection) craig_starsv1connect.FleetServiceHandler {
@@ -67,7 +67,7 @@ func (s *fleetService) UpdateFleetOrders(ctx context.Context, req *connect.Reque
 	orderer.UpdateFleetOrders(player, fleet, *orders)
 
 	if err := dbWriteClient.SaveFleet(ctx, fleet); err != nil {
-		log.Error().Err(err).Int64("ID", fleet.ID).Msg("update fleet in database")
+		slog.Error("update fleet in database", slog.Any("error", err), slog.Int64("ID", fleet.ID))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -161,7 +161,7 @@ func (s *fleetService) RenameFleet(ctx context.Context, req *connect.Request[cra
 
 	// Save the fleet
 	if err := dbWriteClient.SaveFleet(ctx, fleet); err != nil {
-		log.Error().Err(err).Int64("ID", fleet.ID).Msg("update fleet in database")
+		slog.Error("update fleet in database", slog.Any("error", err), slog.Int64("ID", fleet.ID))
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -280,12 +280,12 @@ func (s *fleetService) SplitFleet(ctx context.Context, req *connect.Request[crai
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 		if source.Delete {
 			if err := c.DeleteFleet(ctx, source.ID); err != nil {
-				log.Error().Err(err).Msg("delete fleet in database")
+				slog.Error("delete fleet in database", slog.Any("error", err))
 				return err
 			}
 		} else {
 			if err := c.SaveFleet(ctx, source); err != nil {
-				log.Error().Err(err).Msg("update fleet in database")
+				slog.Error("update fleet in database", slog.Any("error", err))
 				return err
 			}
 		}
@@ -295,13 +295,13 @@ func (s *fleetService) SplitFleet(ctx context.Context, req *connect.Request[crai
 		// to the database, so just ignore it
 		if dest.Delete && dest.ID != 0 {
 			if err := c.DeleteFleet(ctx, dest.ID); err != nil {
-				log.Error().Err(err).Msg("delete fleet in database")
+				slog.Error("delete fleet in database", slog.Any("error", err))
 				return err
 			}
 		} else {
 			dest.GameID = game.ID
 			if err := c.SaveFleet(ctx, dest); err != nil {
-				log.Error().Err(err).Msg("update fleet in database")
+				slog.Error("update fleet in database", slog.Any("error", err))
 				return err
 			}
 		}

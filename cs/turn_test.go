@@ -7,19 +7,25 @@ import (
 	"os"
 	"slices"
 	"testing"
-	"time"
 
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 )
 
 // many functions require a copy of the current game's rules.
 // for testing, create a standard rules var every test can use
 var rules = NewRules()
-var writer = zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime}
-var testLogger = log.With().Bool("TestMode", true).Logger().Output(writer)
+var testLogger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+	AddSource: true,
+	Level:     slog.LevelDebug,
+	ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+		if a.Key == slog.TimeKey {
+			return slog.Attr{}
+		}
+		return a
+	},
+}))
 
 type MockRand struct {
 	int63Result int64

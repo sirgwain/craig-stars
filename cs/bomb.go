@@ -1,9 +1,8 @@
 package cs
 
 import (
+	"log/slog"
 	"math"
-
-	"github.com/rs/zerolog"
 )
 
 // Bombers orbiting enemy planets will Bomb planets, killing population and destroying installations.
@@ -29,10 +28,10 @@ type BombingResult struct {
 
 type bomber struct {
 	rules *Rules
-	log   zerolog.Logger
+	log   *slog.Logger
 }
 
-func newBomber(log zerolog.Logger, rules *Rules) bomber {
+func newBomber(log *slog.Logger, rules *Rules) bomber {
 	return bomber{rules: rules, log: log}
 }
 
@@ -68,7 +67,6 @@ func (b *bomber) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []
 	// bomb the planet with regular bombs
 	for playerNum := range orbitingPlayerNums {
 		result := b.normalBombPlanet(planet, planetOwner, pg.getPlayer(playerNum), b.getBombersForPlayer(enemyBombers, playerNum))
-
 		resultsByPlayer[playerNum] = resultsByPlayer[playerNum].Add(result)
 		// stop bombing if everyone is dead
 		if planet.GetPopulation() == 0 {
@@ -179,17 +177,16 @@ func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Pl
 	// have struck
 	planet.Spec = ComputePlanetSpec(b.rules, defender, planet)
 
-	b.log.Debug().
-		Int("Player", attacker.Num).
-		Str("Planet", planet.Name).
-		Str("Fleet", fleets[0].Name).
-		Int("NumFleets", len(fleets)).
-		Int("PlanetPlayer", planet.PlayerNum).
-		Int("Killed", killed).
-		Int("MinesDestroyed", minesDestroyed).
-		Int("FactoriesDestroyed", factoriesDestroyed).
-		Int("DefensesDestroyed", defensesDestroyed).
-		Msgf("fleet bombed planet")
+	b.log.Debug("fleet bombed planet",
+		slog.Int("Player", attacker.Num),
+		slog.String("Planet", planet.Name),
+		slog.String("Fleet", fleets[0].Name),
+		slog.Int("NumFleets", len(fleets)),
+		slog.Int("PlanetPlayer", planet.PlayerNum),
+		slog.Int("Killed", killed),
+		slog.Int("MinesDestroyed", minesDestroyed),
+		slog.Int("FactoriesDestroyed", factoriesDestroyed),
+		slog.Int("DefensesDestroyed", defensesDestroyed))
 
 	return BombingResult{
 		BomberName:         fleets[0].Name,
@@ -232,14 +229,13 @@ func (b *bomber) smartBombPlanet(planet *Planet, defender *Player, attacker *Pla
 	// update planet spec
 	planet.Spec = ComputePlanetSpec(b.rules, defender, planet)
 
-	b.log.Debug().
-		Int("Player", attacker.Num).
-		Str("Planet", planet.Name).
-		Str("Fleet", fleets[0].Name).
-		Int("NumFleets", len(fleets)).
-		Int("PlanetPlayer", planet.PlayerNum).
-		Int("killed", killed).
-		Msgf("fleet smart bombed planet")
+	b.log.Debug("fleet smart bombed planet",
+		slog.Int("Player", attacker.Num),
+		slog.String("Planet", planet.Name),
+		slog.String("Fleet", fleets[0].Name),
+		slog.Int("NumFleets", len(fleets)),
+		slog.Int("PlanetPlayer", planet.PlayerNum),
+		slog.Int("killed", killed))
 
 	return BombingResult{
 		BomberName:      fleets[0].Name,
@@ -284,14 +280,12 @@ func (b *bomber) retroBombPlanet(planet *Planet, defender *Player, attacker *Pla
 	// update planet spec
 	planet.Spec = ComputePlanetSpec(b.rules, defender, planet)
 
-	b.log.Debug().
-		Int("Player", attacker.Num).
-		Str("Planet", planet.Name).
-		Int("PlanetPlayer", planet.PlayerNum).
-		Str("Fleet", fleets[0].Name).
-		Int("NumFleets", len(fleets)).
-		Str("UnterraformAmount", unterraformAmount.String()).
-		Msgf("fleet retro bombed planet")
+	b.log.Debug("fleet retro bombed planet",
+		slog.Int("Player", attacker.Num),
+		slog.Int("PlanetPlayer", planet.PlayerNum),
+		slog.String("Fleet", fleets[0].Name),
+		slog.Int("NumFleets", len(fleets)),
+		slog.String("UnterraformAmount", unterraformAmount.String()))
 
 	return BombingResult{
 		BomberName:        fleets[0].Name,

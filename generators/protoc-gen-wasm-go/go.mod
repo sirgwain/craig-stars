@@ -1,6 +1,6 @@
 module github.com/sirgwain/craig-stars/generators/protoc-gen-wasm-go
 
-go 1.24.2
+go 1.25
 
 replace github.com/sirgwain/craig-stars/proto-wasm => ../../proto-wasm
 

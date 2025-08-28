@@ -1,6 +1,9 @@
 package cs
 
-import "github.com/rs/zerolog/log"
+import (
+	"fmt"
+	"log/slog"
+)
 
 /*
 Because the game is actively running, bugs are introduced and we need to fix them as
@@ -33,10 +36,10 @@ func (c *cleanup) RemovePlayerDesignIntels(game *FullGame) {
 			if design.PlayerNum != player.Num {
 				designIntels = append(designIntels, design)
 			} else {
-				log.Info().
-					Int64("GameID", game.ID).
-					Str("Name", game.Name).
-					Msgf("cleanup: removing design intel for player %d's %s design", player.Num, design.Name)
+				slog.Info("cleanup: removing design intel",
+					slog.Int64("GameID", game.ID),
+					slog.String("Name", game.Name),
+					slog.String("message", fmt.Sprintf("cleanup: removing design intel for player %d's %s design", player.Num, design.Name)))
 			}
 		}
 		player.ShipDesignIntels = designIntels
@@ -57,10 +60,10 @@ func (c *cleanup) AddScannerToInnateScannerPlanets(game *FullGame) {
 
 		planet.Scanner = true
 		planet.MarkDirty()
-		log.Info().
-			Int64("GameID", game.ID).
-			Str("Name", game.Name).
-			Msgf("cleanup: setting scanner to true for player %d's %s planet", player.Num, planet.Name)
+		slog.Info("cleanup: setting scanner to true",
+			slog.Int64("GameID", game.ID),
+			slog.String("Name", game.Name),
+			slog.String("message", fmt.Sprintf("cleanup: setting scanner to true for player %d's %s planet", player.Num, planet.Name)))
 	}
 }
 
@@ -80,12 +83,11 @@ func (c *cleanup) AddRandomArtifactsToPlanets(game *FullGame) {
 			planet.RandomArtifact = true
 			planet.MarkDirty()
 
-			log.Info().
-				Int64("GameID", game.ID).
-				Str("Name", game.Name).
-				Msgf("cleanup: added random artifact to planet %s", planet.Name)
+			slog.Info("cleanup: added random artifact",
+				slog.Int64("GameID", game.ID),
+				slog.String("Name", game.Name),
+				slog.String("message", fmt.Sprintf("cleanup: added random artifact to planet %s", planet.Name)))
 		}
-
 	}
 }
 
@@ -101,10 +103,10 @@ func (c *cleanup) ResetHomeworldBaseHab(game *FullGame) {
 		planet.BaseHab = planet.Hab
 
 		planet.MarkDirty()
-		log.Info().
-			Int64("GameID", game.ID).
-			Str("Name", game.Name).
-			Msgf("cleanup: reset BaseHab on homeworld %s from %s to %s", planet.Name, prevHab, planet.BaseHab)
+		slog.Info("cleanup: reset BaseHab on homeworld",
+			slog.Int64("GameID", game.ID),
+			slog.String("Name", game.Name),
+			slog.String("message", fmt.Sprintf("cleanup: reset BaseHab on homeworld %s from %s to %s", planet.Name, prevHab, planet.BaseHab)))
 	}
 }
 
@@ -135,11 +137,10 @@ func (c *cleanup) FixMineralConc(game *FullGame) {
 			}
 
 			planet.MarkDirty()
-			log.Info().
-				Int64("GameID", game.ID).
-				Str("Name", game.Name).
-				Msgf("cleanup: reset MineralConcentration on planet %s from %s to %s", planet.Name, prevMinConc, planet.MineralConcentration)
-
+			slog.Info("cleanup: reset MineralConcentration",
+				slog.Int64("GameID", game.ID),
+				slog.String("Name", game.Name),
+				slog.String("message", fmt.Sprintf("cleanup: reset MineralConcentration on planet %s from %s to %s", planet.Name, prevMinConc, planet.MineralConcentration)))
 		}
 
 	}

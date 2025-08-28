@@ -2,38 +2,45 @@ package db
 
 import (
 	"context"
+	"log/slog"
 
-	"github.com/rs/zerolog"
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
-type zerologAdapter struct {
-	logger *zerolog.Logger
+type slogAdapter struct {
+	logger *slog.Logger
 }
 
-func newLoggerWithLogger(l *zerolog.Logger) sqldblogger.Logger {
-	return &zerologAdapter{
+func newLoggerWithLogger(l *slog.Logger) sqldblogger.Logger {
+	return &slogAdapter{
 		logger: l,
 	}
 }
 
 // Log implement sqldblogger.Logger and log it as is.
 // To use context.Context values, please copy this file and adjust to your needs.
-func (zl *zerologAdapter) Log(_ context.Context, level sqldblogger.Level, msg string, data map[string]interface{}) {
-	var lvl zerolog.Level
+func (zl *slogAdapter) Log(_ context.Context, level sqldblogger.Level, msg string, data map[string]interface{}) {
+	var lvl slog.Level
 
 	switch level {
 	case sqldblogger.LevelError:
-		lvl = zerolog.ErrorLevel
+		lvl = slog.LevelError
 	case sqldblogger.LevelInfo:
-		lvl = zerolog.InfoLevel
+		lvl = slog.LevelInfo
 	case sqldblogger.LevelDebug:
-		lvl = zerolog.DebugLevel
+		lvl = slog.LevelDebug
 	case sqldblogger.LevelTrace:
-		lvl = zerolog.TraceLevel
+		lvl = slog.LevelDebug // slog doesn't have trace, default to debug
 	default:
-		lvl = zerolog.DebugLevel
+		lvl = slog.LevelDebug
 	}
 
-	zl.logger.WithLevel(lvl).Fields(data).Msg(msg)
+	attrs := make([]slog.Attr, len(data))
+	i := 0
+	for k, v := range data {
+		attrs[i] = slog.Any(k, v)
+		i++
+	}
+
+	zl.logger.LogAttrs(context.Background(), lvl, msg, attrs...)
 }

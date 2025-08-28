@@ -2,10 +2,8 @@ package cs
 
 import (
 	"fmt"
+	"log/slog"
 	"slices"
-
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 // ByHandCargoTransfers are any cargo transfers performed by the player in the UI that need to be
@@ -23,7 +21,7 @@ type ByHandCargoTransfer struct {
 type CargoTransfers map[string][]ByHandCargoTransfer
 
 type cargoTransferer struct {
-	log     zerolog.Logger
+	log     *slog.Logger
 	invader invader
 	game    *FullGame
 }
@@ -74,7 +72,7 @@ type cargoTransferResult struct {
 	waitAtWaypoint bool
 }
 
-func newCargoTransferer(log zerolog.Logger, game *FullGame) cargoTransferer {
+func newCargoTransferer(log *slog.Logger, game *FullGame) cargoTransferer {
 	return cargoTransferer{log: log, game: game, invader: newInvader()}
 }
 
@@ -333,10 +331,9 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 			fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
 			if fleet == nil {
 				// don't kill turn processing for this because it's unclear how to fix it to unblock players
-				t.log.Error().
-					Int("Player", player.Num).
-					Int("Fleet", transfer.SourceFleetNum).
-					Msgf("fleet not found for ByHandCargoTransfer")
+				t.log.Error("fleet not found for ByHandCargoTransfer",
+					slog.Int("Player", player.Num),
+					slog.Int("Fleet", transfer.SourceFleetNum))
 				continue
 			}
 
@@ -356,13 +353,13 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 					cargoInBucket = cargoInBucket.SetAmount(cargoType, amountInBucket+loadAmount)
 					cargoToLoad = cargoToLoad.SetAmount(cargoType, loadAmount)
 
-					log.Debug().
-						Int("Player", player.Num).
-						Str("Fleet", fleet.Name).
-						Str("Target", transfer.MapObjectTarget.PrettyString()).
-						Str("cargoInBucket", cargoInBucket.PrettyString()).
-						Str("cargoToLoad", cargoToLoad.PrettyString()).
-						Msgf("by hand load cargo")
+					t.log.Debug("by hand load cargo",
+						slog.Int("Player", player.Num),
+						slog.String("Fleet", fleet.Name),
+						slog.String("Target", transfer.MapObjectTarget.PrettyString()),
+						slog.String("cargoInBucket", cargoInBucket.PrettyString()),
+						slog.String("cargoToLoad", cargoToLoad.PrettyString()),
+					)
 
 				}
 			}
@@ -385,11 +382,10 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 			if !ok || dest.Deleted() {
 				// can't load from space
 				// TODO: send the user a message
-				t.log.Error().
-					Int("Player", player.Num).
-					Str("Fleet", fleet.Name).
-					Str("Target", transfer.MapObjectTarget.PrettyString()).
-					Msgf("target not found for ByHandCargoTransfer load")
+				t.log.Error("target not found for ByHandCargoTransfer load",
+					slog.Int("Player", player.Num),
+					slog.String("Fleet", fleet.Name),
+					slog.String("Target", transfer.MapObjectTarget.PrettyString()))
 				continue
 			}
 
@@ -398,14 +394,13 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 				// this transfer already happened so reverse it and add it again for real this time
 				dest.SetCargo(dest.GetCargo().Subtract(cargoToLoad.NegativeOnly()))
 			}
-			log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Str("Dest", dest.GetMapObject().Name).
-				Str("Cargo", fleet.Cargo.PrettyString()).
-				Str("DestCargo", dest.GetCargo().PrettyString()).
-				Str("CargoToLoad", cargoToLoad.PrettyString()).
-				Msgf("by hand load cargo")
+			t.log.Debug("by hand load cargo",
+				slog.Int("Player", fleet.PlayerNum),
+				slog.String("Fleet", fleet.Name),
+				slog.String("Dest", dest.GetMapObject().Name),
+				slog.String("Cargo", fleet.Cargo.PrettyString()),
+				slog.String("DestCargo", dest.GetCargo().PrettyString()),
+				slog.String("CargoToLoad", cargoToLoad.PrettyString()))
 
 			results = append(results, t.load(fleet, dest, transportTasks)...)
 		}
@@ -441,10 +436,9 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 			fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
 			if fleet == nil {
 				// don't kill turn processing for this because it's unclear how to fix it to unblock players
-				t.log.Error().
-					Int("Player", player.Num).
-					Int("Fleet", transfer.SourceFleetNum).
-					Msgf("fleet not found for ByHandCargoTransfer")
+				t.log.Error("fleet not found for ByHandCargoTransfer",
+					slog.Int("Player", player.Num),
+					slog.Int("Fleet", transfer.SourceFleetNum))
 				continue
 			}
 
@@ -463,13 +457,13 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 					cargoInBucket = cargoInBucket.SetAmount(cargoType, amountInBucket+unloadAmount)
 					cargoToUnload = cargoToUnload.SetAmount(cargoType, unloadAmount)
 
-					log.Debug().
-						Int("Player", player.Num).
-						Str("Fleet", fleet.Name).
-						Str("Target", transfer.MapObjectTarget.PrettyString()).
-						Str("cargoInBucket", cargoInBucket.PrettyString()).
-						Str("cargoToUnload", cargoToUnload.PrettyString()).
-						Msgf("by hand unload cargo")
+					t.log.Debug("by hand unload cargo",
+						slog.Int("Player", player.Num),
+						slog.String("Fleet", fleet.Name),
+						slog.String("Target", transfer.MapObjectTarget.PrettyString()),
+						slog.String("cargoInBucket", cargoInBucket.PrettyString()),
+						slog.String("cargoToUnload", cargoToUnload.PrettyString()),
+					)
 
 				}
 			}
@@ -483,10 +477,9 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 
 			if transfer.Targeting(fleet.MapObject) {
 				// uh oh, we can't transfer to ourselves
-				t.log.Warn().
-					Int("Player", player.Num).
-					Str("Fleet", fleet.Name).
-					Msgf("fleet tried to transfer by hand to itself")
+				t.log.Warn("fleet tried to transfer by hand to itself",
+					slog.Int("Player", player.Num),
+					slog.String("Fleet", fleet.Name))
 				continue
 			}
 
@@ -501,11 +494,10 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 			if !ok {
 				if transfer.TargetType != MapObjectTypeNone {
 					// uh oh, our dest went away. Log an error, it's a bug
-					t.log.Error().
-						Int("Player", player.Num).
-						Str("Fleet", fleet.Name).
-						Str("Target", transfer.MapObjectTarget.PrettyString()).
-						Msgf("target not found for ByHandCargoTransfer unload")
+					t.log.Error("target not found for ByHandCargoTransfer unload",
+						slog.Int("Player", player.Num),
+						slog.String("Fleet", fleet.Name),
+						slog.String("Target", transfer.MapObjectTarget.PrettyString()))
 					continue
 				}
 
@@ -519,14 +511,13 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				dest.SetCargo(dest.GetCargo().Subtract(cargoToUnload.PositiveOnly()))
 			}
 
-			log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Str("Dest", dest.GetMapObject().Name).
-				Str("Cargo", fleet.Cargo.PrettyString()).
-				Str("DestCargo", dest.GetCargo().PrettyString()).
-				Str("CargoToUnload", cargoToUnload.PrettyString()).
-				Msgf("by hand unload cargo")
+			t.log.Debug("by hand unload cargo",
+				slog.Int("Player", fleet.PlayerNum),
+				slog.String("Fleet", fleet.Name),
+				slog.String("Dest", dest.GetMapObject().Name),
+				slog.String("Cargo", fleet.Cargo.PrettyString()),
+				slog.String("DestCargo", dest.GetCargo().PrettyString()),
+				slog.String("CargoToUnload", cargoToUnload.PrettyString()))
 
 			transferResults := t.unload(fleet, dest, transportTasks)
 			for _, result := range transferResults {
@@ -535,12 +526,11 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 					// if we don't do this, we end up with
 					fleet.Cargo = fleet.Cargo.SubtractAmount(result.cargoType, cargoToUnload.GetAmount(result.cargoType))
 					dest.SetCargo(dest.GetCargo().AddAmount(result.cargoType, cargoToUnload.GetAmount(result.cargoType)))
-					t.log.Error().
-						Int("Player", player.Num).
-						Int("Fleet", transfer.SourceFleetNum).
-						Str("CargoType", result.cargoType.String()).
-						Int("Amount", cargoToUnload.GetAmount(result.cargoType)).
-						Msgf("fleet tried to transfer by hand, but failed")
+					t.log.Error("fleet tried to transfer by hand, but failed",
+						slog.Int("Player", player.Num),
+						slog.Int("Fleet", transfer.SourceFleetNum),
+						slog.String("CargoType", result.cargoType.String()),
+						slog.Int("Amount", cargoToUnload.GetAmount(result.cargoType)))
 
 					continue
 				}
@@ -550,12 +540,13 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 					fleet.Cargo = fleet.Cargo.SubtractAmount(result.cargoType, result.wanted-result.transferred)
 					dest.SetCargo(dest.GetCargo().AddAmount(result.cargoType, result.wanted-result.transferred))
 
-					t.log.Warn().
-						Int("Player", player.Num).
-						Int("Fleet", transfer.SourceFleetNum).
-						Str("CargoType", result.cargoType.String()).
-						Int("Amount", cargoToUnload.GetAmount(result.cargoType)).
-						Msgf("fleet tried to transfer %d by hand, but only transferred %d", result.wanted, result.transferred)
+					t.log.Warn("fleet tried to transfer by hand, but only transferred",
+						slog.Int("Player", player.Num),
+						slog.Int("Fleet", transfer.SourceFleetNum),
+						slog.String("CargoType", result.cargoType.String()),
+						slog.Int("Amount", cargoToUnload.GetAmount(result.cargoType)),
+						slog.Int("Wanted", result.wanted),
+						slog.Int("Transferred", result.transferred))
 				}
 			}
 
@@ -623,20 +614,18 @@ func (t *cargoTransferer) load(fleet *Fleet, dest CargoHolder, transportTasks Wa
 	if salvage, ok := dest.(*Salvage); ok && salvage.Cargo == (Cargo{}) {
 		t.game.deleteSalvage(salvage)
 
-		t.log.Debug().
-			Int("Player", salvage.PlayerNum).
-			Str("Salvage", salvage.Name).
-			Msgf("deleted salvage")
+		t.log.Debug("deleted salvage",
+			slog.Int("Player", salvage.PlayerNum),
+			slog.String("Salvage", salvage.Name))
 
 	}
 	// delete this packet if we emptied it
 	if packet, ok := dest.(*MineralPacket); ok && packet.Cargo == (Cargo{}) {
 		t.game.deletePacket(packet)
 
-		t.log.Debug().
-			Int("Player", packet.PlayerNum).
-			Str("Packet", packet.Name).
-			Msgf("deleted salvage")
+		t.log.Debug("deleted packet",
+			slog.Int("Player", packet.PlayerNum),
+			slog.String("Packet", packet.Name))
 
 	}
 
@@ -679,12 +668,12 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 	if transferAmount > 0 && cargoType == Colonists && ok && planet.Owned() && !planet.OwnedBy(fleet.PlayerNum) {
 		if planet.Spec.HasStarbase {
 			// can't invade a planet with a starbase
-			t.log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Str("Dest", dest.GetMapObject().Name).
-				Str("cargoType", cargoType.String()).
-				Msgf("fleet %s cannot unload %d00 colonists to %s, starbase is in orbit", fleet.Name, transferAmount, dest.GetMapObject().Name)
+			t.log.Debug("fleet cannot unload colonists, starbase is in orbit",
+				slog.Int("Player", fleet.PlayerNum),
+				slog.String("Fleet", fleet.Name),
+				slog.String("Dest", dest.GetMapObject().Name),
+				slog.String("cargoType", cargoType.String()),
+				slog.Int("TransferAmount", transferAmount))
 
 			return 0, CargoTransferStatusDestStarbase
 		}
@@ -871,54 +860,54 @@ func (t *cargoTransferer) transferToDest(fleet *Fleet, dest CargoHolder, cargoTy
 
 	// check for load from owned dest
 	if transferAmount < 0 && !dest.CanLoad(fleet) {
-		// can't load from things we don't own
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Str("Dest", dest.GetMapObject().Name).
-			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s cannot load %d to %s, does not own dest", fleet.Name, transferAmount, dest.GetMapObject().Name)
+		t.log.Debug("fleet cannot load cargo, does not own dest",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+			slog.String("Dest", dest.GetMapObject().Name),
+			slog.String("cargoType", cargoType.String()),
+			slog.Int("TransferAmount", transferAmount))
 
 		return CargoTransferStatusOwned
 	}
 
 	if transferAmount > 0 && !fleet.Cargo.CanTransferAmount(cargoType, transferAmount) {
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Str("Dest", dest.GetMapObject().Name).
-			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s cannot transfer %d to %s, there is not enough in the fleet to transfer", fleet.Name, transferAmount, dest.GetMapObject().Name)
+		t.log.Debug("fleet cannot transfer cargo, not enough in fleet",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+			slog.String("Dest", dest.GetMapObject().Name),
+			slog.String("cargoType", cargoType.String()),
+			slog.Int("TransferAmount", transferAmount))
 		return CargoTransferStatusCargo
 	}
 
 	if transferAmount < 0 && fleet.availableCargoSpace() < -transferAmount {
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Str("Dest", dest.GetMapObject().Name).
-			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", fleet.Name, fleet.availableCargoSpace(), transferAmount, dest.GetMapObject().Name)
+		t.log.Debug("fleet has insufficient cargo space",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+			slog.String("Dest", dest.GetMapObject().Name),
+			slog.String("cargoType", cargoType.String()),
+			slog.Int("AvailableSpace", fleet.availableCargoSpace()),
+			slog.Int("TransferAmount", transferAmount))
 		return CargoTransferStatusCargoCapacity
 	}
 
 	if transferAmount < 0 && !destCargo.CanTransferAmount(cargoType, -transferAmount) {
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Str("Dest", dest.GetMapObject().Name).
-			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s cannot transfer %d from %s, there is not enough to transfer", fleet.Name, transferAmount, dest.GetMapObject().Name)
+		t.log.Debug("fleet cannot transfer cargo, not enough to transfer",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+			slog.String("Dest", dest.GetMapObject().Name),
+			slog.String("cargoType", cargoType.String()),
+			slog.Int("TransferAmount", transferAmount))
 		return CargoTransferStatusDestCargo
 	}
 
 	if transferAmount > 0 && dest.GetCargoCapacity() != Infinite && (dest.GetCargoCapacity()-destCargo.Total()) < transferAmount {
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Str("Dest", dest.GetMapObject().Name).
-			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s cannot transfer %d to %s, there is not enough to space to hold the cargo", fleet.Name, transferAmount, dest.GetMapObject().Name)
+		t.log.Debug("fleet cannot transfer cargo, not enough space to hold cargo",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+			slog.String("Dest", dest.GetMapObject().Name),
+			slog.String("cargoType", cargoType.String()),
+			slog.Int("TransferAmount", transferAmount))
 		return CargoTransferStatusDestCargoCapacity
 
 	}

@@ -3,7 +3,7 @@ package cs
 import (
 	"fmt"
 
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 // BattleRecord is a recording of a single battle.
@@ -207,7 +207,7 @@ func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Battle
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
 	b.Stats.DamageTakenByPlayer[token.PlayerNum] += damageDoneArmor
 
-	log.Debug().Msgf("Round: %d %s", round, action)
+	slog.Debug(fmt.Sprintf("Round: %d %s", round, action))
 
 }
 
@@ -235,7 +235,7 @@ func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from Bat
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
 	b.Stats.DamageTakenByPlayer[token.PlayerNum] += damageDoneArmor
 
-	log.Debug().Msgf("Round: %d %s", round, action)
+	slog.Debug(fmt.Sprintf("Round: %d %s", round, action))
 }
 
 // record a destroyed token for the battle message

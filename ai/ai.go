@@ -2,10 +2,9 @@ package ai
 
 import (
 	"fmt"
+	"log/slog"
 	"math"
 
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -13,7 +12,7 @@ type aiPlayer struct {
 	*cs.Player
 	cs.PlayerMapObjects
 	requests
-	log                    zerolog.Logger
+	log                    *slog.Logger
 	game                   *cs.Game
 	techStore              *cs.TechStore
 	config                 playerConfig
@@ -114,13 +113,12 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 	aiPlayer := aiPlayer{
 		Player: player,
 		game:   game,
-		log: log.With().
-			Int64("GameID", game.ID).
-			Str("Game", game.Name).
-			Int("PlayerNum", player.Num).
-			Str("Player", player.Name).
-			Int("Year", game.Year). // @sirgwain Should this be year or year+1?
-			Logger(),
+		log: slog.With(
+			slog.Int64("GameID", game.ID),
+			slog.String("Game", game.Name),
+			slog.Int("PlayerNum", player.Num),
+			slog.String("Player", player.Name),
+			slog.Int("Year", game.Year)), // @sirgwain Should this be year or year+1?
 		techStore: techStore,
 		requests: requests{
 			fleetBuilds: make(map[cs.FleetPurpose]int),
@@ -344,7 +342,7 @@ func (ai *aiPlayer) updateWarfleets() (err error) {
 	// if 1 design exists and the other doesn't, automatically use it and exit
 	if beamDesign == nil {
 		if torpDesign == nil {
-			ai.log.Debug().Msgf("Skipping over choosing warship quantities due to nil designs")
+			ai.log.Debug("Skipping over choosing warship quantities due to nil designs")
 		} else {
 			ai.updateWarshipAmounts(warshipCount.bombers, 0, warshipCount.warships, warshipCount.fuelTransports)
 		}
