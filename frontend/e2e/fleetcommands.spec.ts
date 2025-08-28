@@ -112,26 +112,32 @@ test('Colonizer Test', async ({ authenticatedPage }) => {
 	await page
 		.locator(`[data-id="colonists"][data-type="transfer-to-source-button"]`)
 		.click({ clickCount: 1, modifiers: ['Meta'] });
-	await page.getByRole('button', { name: 'Ok' }).click();
 
-	// wait for the TransferCargo to complete
-	await page.waitForResponse(
+	const transferCargoResponse = page.waitForResponse(
 		(resp) =>
 			resp.url().includes('/api/grpc/craig_stars.v1.FleetService/TransferCargo') &&
 			resp.request().method() === 'POST' &&
 			resp.status() === 200
 	);
-	// meta click the planet to set a waypoint at max speed
-	await page.locator(`[data-id="${key(planet2)}"]`).click({ force: true, modifiers: ['Meta'] });
+
+	await page.getByRole('button', { name: 'Ok' }).click();
+
+	// wait for the TransferCargo to complete
+	await transferCargoResponse;
 
 	// wait for the UpdateFleetOrders to complete
-	await page.waitForResponse(
+	const updateFleetOrderResponse = page.waitForResponse(
 		(resp) =>
 			resp.url().includes('/api/grpc/craig_stars.v1.FleetService/UpdateFleetOrders') &&
 			resp.request().method() === 'POST' &&
 			resp.status() === 200
 	);
 
+	// meta click the planet to set a waypoint at max speed
+	await page.locator(`[data-id="${key(planet2)}"]`).click({ force: true, modifiers: ['Meta'] });
+
+	await updateFleetOrderResponse;
+	
 	// waypoints tile should update
 	const fleetWaypointsTile = await page
 		.locator('[data-type="command-tile"][data-id="Fleet Waypoints"]')
