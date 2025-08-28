@@ -67,6 +67,7 @@ import { FullGame } from './FullGame';
 import { rollover } from './Math';
 import { Universe } from './Universe';
 import { emptyVector } from '$lib/types/Vector';
+import { emptyCargo } from '$lib/types/Cargo';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -680,6 +681,10 @@ export async function createGameContext(
 			return;
 		}
 		fleet = new CommandedFleet(Object.assign(fleet, updatedFleet));
+		// if the cargo is empty in the updated, it will be undefined in the response which means it
+		// won't be set by the Object.assign, so make sure it's assigned so cargo transfer work as expected
+		fleet.cargo = updatedFleet.cargo ?? emptyCargo();
+
 		const index = get(currentSelectedWaypointIndex);
 		const u = get(universe);
 		const cf = get(commandedFleet);
@@ -1130,21 +1135,28 @@ export async function createGameContext(
 		const u = get(universe);
 
 		await updatePlayer(result.player);
+
 		updateFleet(fleet, result.fleet);
 
 		if (result.dest?.value?.mapObject?.type === MapObjectType.PLANET) {
 			const planet = create(PlanetSchema, result.dest.value as Planet);
+			// if the cargo is empty in the updated, it will be undefined in the response which means it
+			// won't be set by the Object.assign, so make sure it's assigned so cargo transfer work as expected
+			(dest as Planet).cargo = planet.cargo;
 			updatePlanet(dest as Planet, planet);
 		} else if (result.dest?.value?.mapObject?.type === MapObjectType.FLEET) {
 			// update the destination fleet in the universe
 			const destFleet = create(FleetSchema, result.dest.value as Fleet);
+			(dest as Fleet).cargo = destFleet.cargo;
 			updateFleet(dest as Fleet, destFleet);
 		} else if (result.dest?.value?.mapObject?.type === MapObjectType.MINERAL_PACKET) {
 			// TODO: do we need to create different mineral packets here?
 			const destMineralPacket = create(MineralPacketSchema, result.dest.value as MineralPacket);
+			(dest as MineralPacket).cargo = destMineralPacket.cargo;
 			u.updateMineralPacket(destMineralPacket);
 		} else if (result.dest?.value?.mapObject?.type === MapObjectType.SALVAGE) {
 			const destSalvage = create(SalvageSchema, result.dest.value as Salvage);
+			(dest as Salvage).cargo = destSalvage.cargo;
 			u.updateSalvage(destSalvage);
 		}
 
