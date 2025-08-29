@@ -917,7 +917,7 @@ func (t *turnGenerator) mysteryTraderMove() {
 
 func (t *turnGenerator) fleetMove() {
 
-	fleetsTargetingFleets := []*Fleet{}
+	fleetsTargetingMovers := []*Fleet{}
 
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
@@ -936,9 +936,9 @@ func (t *turnGenerator) fleetMove() {
 				continue
 			}
 
-			if wp1.TargetType == MapObjectTypeFleet {
+			if wp1.TargetType == MapObjectTypeFleet || wp1.TargetType == MapObjectTypeMineralPacket || wp1.TargetType == MapObjectTypeMysteryTrader {
 				// move this after all the fleets not targeting fleets move
-				fleetsTargetingFleets = append(fleetsTargetingFleets, fleet)
+				fleetsTargetingMovers = append(fleetsTargetingMovers, fleet)
 				continue
 			}
 
@@ -951,7 +951,7 @@ func (t *turnGenerator) fleetMove() {
 
 	// move all the fleets targeting other fleets
 	// TODO: build a directed graph and detect cycles and all that jazz
-	for _, fleet := range fleetsTargetingFleets {
+	for _, fleet := range fleetsTargetingMovers {
 		t.moveFleet(fleet)
 	}
 }

@@ -19,8 +19,8 @@ type Cargo struct {
 func NewCargoFromMineral(mineral Mineral, pop int) Cargo {
 	return Cargo{
 		Ironium:   mineral.Ironium,
-		Boranium:  mineral.Ironium,
-		Germanium: mineral.Ironium,
+		Boranium:  mineral.Boranium,
+		Germanium: mineral.Germanium,
 		Colonists: pop,
 	}
 }
