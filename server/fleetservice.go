@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"log/slog"
+
 	"connectrpc.com/connect"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
-	"log/slog"
 )
 
 func NewFleetServiceHandler(db DBConnection) craig_starsv1connect.FleetServiceHandler {
@@ -59,6 +60,7 @@ func (s *fleetService) UpdateFleetOrders(ctx context.Context, req *connect.Reque
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+	player.Race.Spec = cs.ComputeRaceSpec(&player.Race, &game.Rules)
 
 	fleet.InjectDesigns(player.Designs)
 
@@ -115,6 +117,7 @@ func (s *fleetService) MergeFleets(ctx context.Context, req *connect.Request[cra
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+	player.Race.Spec = cs.ComputeRaceSpec(&player.Race, &game.Rules)
 
 	// Execute the merge
 	orderer := cs.NewOrderer()
@@ -190,6 +193,7 @@ func (s *fleetService) SplitAllFleets(ctx context.Context, req *connect.Request[
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+	player.Race.Spec = cs.ComputeRaceSpec(&player.Race, &game.Rules)
 
 	fleets, err := dbClient.GetFleetsForPlayer(ctx, game.ID, gamePlayer.Num)
 	if err != nil {
@@ -244,6 +248,7 @@ func (s *fleetService) SplitFleet(ctx context.Context, req *connect.Request[crai
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+	player.Race.Spec = cs.ComputeRaceSpec(&player.Race, &game.Rules)
 
 	playerFleets, err := dbClient.GetFleetsForPlayer(ctx, game.ID, gamePlayer.Num)
 	if err != nil {

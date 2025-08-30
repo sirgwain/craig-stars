@@ -683,8 +683,9 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 // Formula: (scanner1^4 + scanner2^4 + ...
 // + scannerN^4)^(0.25)
 func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerSpec, techLevels TechLevel, design *ShipDesign, hull *TechHull) {
-	spec.ScanRange = 0
-	spec.ScanRangePen = 0
+	// we do some scanRange^4 calcs so we need temporary big nums
+	var scanRange int64
+	var scanRangePen int64
 	hasPenScan := false // counter to track if we have a pen scanner or not
 
 	// compute built in scanner if hull allows for it
@@ -693,11 +694,11 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 		builtInNormal := builtInScanner.NormalMulti.Multiply(techLevels).Total()
 		builtInPen := builtInScanner.PenMulti.Multiply(techLevels).Total()
 		if builtInNormal > 0 {
-			spec.ScanRange = PowInt(builtInNormal, 4)
+			scanRange = PowInt(int64(builtInNormal), 4)
 		}
 		if builtInPen > 0 {
-			spec.ScanRangePen = PowInt(builtInPen, 4)
-			hasPenScan = spec.ScanRangePen > 0
+			scanRangePen = PowInt(int64(builtInPen), 4)
+			hasPenScan = scanRangePen > 0
 		}
 	}
 
@@ -714,27 +715,31 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 
 		// Add (scanrange)^4 to our tally for both normal and pen scans
 		if component.ScanRange != NoScanner {
-			spec.ScanRange += PowInt(component.ScanRange, 4) * slot.Quantity
+			scanRange += PowInt(int64(component.ScanRange), 4) * int64(slot.Quantity)
 		}
 
 		if component.ScanRangePen != NoScanner {
 			hasPenScan = true
-			spec.ScanRangePen += PowInt(component.ScanRangePen, 4) * slot.Quantity
+			scanRangePen += PowInt(int64(component.ScanRangePen), 4) * int64(slot.Quantity)
 		}
 	}
 
 	// time to quad root everything
-	if spec.ScanRange > 0 {
-		s := math.Pow(float64(spec.ScanRange), .25) * scannerSpec.ScanRangeFactor
-		spec.ScanRange = int(math.Round(s))
+	if scanRange > 0 {
+		s := math.Pow(float64(scanRange), .25) * scannerSpec.ScanRangeFactor
+		scanRange = int64(math.Round(s))
 	}
 
-	if spec.ScanRangePen > 0 {
-		s := math.Pow(float64(spec.ScanRangePen), .25)
-		spec.ScanRangePen = int(math.Round(s))
+	if scanRangePen > 0 {
+		s := math.Pow(float64(scanRangePen), .25)
+		scanRangePen = int64(math.Round(s))
 	} else if !hasPenScan {
-		spec.ScanRangePen = NoScanner
+		scanRangePen = NoScanner
 	}
+
+	// set our spec values back to int versions
+	spec.ScanRange = int(scanRange)
+	spec.ScanRangePen = int(scanRangePen)
 
 	// Update scanner field if we have any scanning capabilities whatsoever
 	// all fleets should be able to regular scan at range 0 (i.e. see planet occupation status while in orbit), but not pen scan

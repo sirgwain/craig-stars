@@ -166,8 +166,8 @@ func (t *ShipToken) getOvergateMassVanishingChance(safeSourceMass int, maxMassFa
 	// Mass Vanishing % = 100/3*[1-(5*maxMass-mass)^2/(4*maxMass)^2], rounded down to nearest 1%.
 	// where maxMass is the maximum safe mass for the sending gate.
 	vanishingChance := 100.0 / 3 * (1 -
-		float64(PowInt(maxMassFactor*safeSourceMass-t.design.Spec.Mass, 2))/
-			float64(PowInt(4*safeSourceMass, 2)))
+		float64(PowInt(int64(maxMassFactor*safeSourceMass-t.design.Spec.Mass), 2))/
+			float64(PowInt(int64(4*safeSourceMass), 2)))
 
 	// return chance rounded down to nearest %
 	return math.Floor(vanishingChance) / 100

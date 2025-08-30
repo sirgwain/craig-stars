@@ -113,8 +113,8 @@ func AbsMin[S constraints.Signed | constraints.Float](nums ...S) S {
 // Raise an integer to the power of another integer and return the result.
 //
 // Does not support negative exponents (we *are* dealing with integers here after all)
-func PowInt[I constraints.Integer](base, exponent I) I {
-	var result I = 1
+func PowInt(base, exponent int64) int64 {
+	var result int64 = 1
 	// According to internet, this is the fastest way to do int exponentiation - by squaring
 	for exponent != 0 {
 		if exponent&1 == 1 {
