@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"log/slog"
+
 	"connectrpc.com/connect"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
-	"log/slog"
 )
 
 func NewshipDesignServiceHandler(db DBConnection) craig_starsv1connect.ShipDesignServiceHandler {
@@ -65,6 +66,7 @@ func (s *shipDesignService) CreateShipDesign(ctx context.Context, req *connect.R
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to load player: %w", err))
 	}
+	player.Race.Spec = cs.ComputeRaceSpec(&player.Race, &game.Rules)
 
 	design := converter.C.ConvertShipDesignP(req.Msg.Design)
 	if err := design.Validate(&game.Rules, player); err != nil {

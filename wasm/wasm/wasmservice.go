@@ -79,7 +79,7 @@ func (s *wasmService) ComputeRaceSpec(ctx context.Context, req *craig_starsv1.Co
 
 func (s *wasmService) ComputeShipDesignSpec(ctx context.Context, req *craig_starsv1.ComputeShipDesignSpecRequest) (*craig_starsv1.ComputeShipDesignSpecResponse, error) {
 	design := converter.C.ConvertShipDesignP(req.Design)
-	spec, err := cs.ComputeShipDesignSpec(s.rules, s.player.TechLevels, s.player.Race.Spec, design)
+	spec, err := cs.ComputeShipDesignSpec(s.rules, s.player.TechLevels, cs.ComputeRaceSpec(&s.player.Race, s.rules), design)
 	if err != nil {
 		return nil, err
 	}

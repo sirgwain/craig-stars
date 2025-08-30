@@ -78,9 +78,9 @@ func Test_roundHalfTowards0(t *testing.T) {
 func TestPowInt(t *testing.T) {
 	tests := []struct {
 		name     string
-		base     int
-		exponent int
-		want     int
+		base     int64
+		exponent int64
+		want     int64
 	}{
 		{"1^4", 1, 4, 1},
 		{"2^3", 2, 3, 8},
@@ -88,6 +88,7 @@ func TestPowInt(t *testing.T) {
 		{"30^2", 30, 2, 900},
 		{"5^3", 5, 3, 125},
 		{"2^20", 2, 20, 1_048_576},
+		{"500^4", 500, 4, 62_500_000_000}, // peerless scanner 500ly^4
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
