@@ -12,8 +12,9 @@
 	import { create } from '@bufbuild/protobuf';
 	import { flatten } from 'lodash-es';
 	import type { HTMLSelectAttributes } from 'svelte/elements';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 
-	const { player, universe } = getGameContext();
+	const { player, universe, settings } = getGameContext();
 
 	type Dictionary<T> = Partial<Record<number, T>>;
 
@@ -77,7 +78,7 @@
 
 <select
 	style={target?.targetPlayerNum && target.targetPlayerNum != $player.num
-		? `color: ${$universe.getPlayerColor(target.targetPlayerNum)};`
+		? `color: ${getDisplayColor(target.targetPlayerNum, $player, $universe, $settings)};`
 		: ''}
 	onchange={(e) => onSelectChange(parseInt(e.currentTarget.value))}
 	class={`select select-outline select-secondary select-sm text-sm ${rest.class ?? ''}`}
@@ -103,7 +104,7 @@
 				{#if !equal(fleet, mo)}
 					<option
 						style={mo.mapObject?.playerNum != $player.num
-							? `color: ${$universe.getPlayerColor(mo.mapObject?.playerNum)};`
+							? `color: ${getDisplayColor(mo.mapObject?.playerNum, $player, $universe, $settings)};`
 							: ''}
 						selected={isTarget(mo)}
 						value={1 + index + (otherMapObjectsHere[MapObjectType.PLANET]?.length ?? 0)}

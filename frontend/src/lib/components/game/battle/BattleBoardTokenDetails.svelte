@@ -1,6 +1,6 @@
 <script lang="ts">
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
+	import { designFinderKey, getGameContext, playerFinderKey } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import type { Battle, PhaseToken } from '$lib/types/Battle';
@@ -16,6 +16,9 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { getContext } from 'svelte';
 	import { onShipDesignTooltip } from '../tooltips/ShipDesignTooltip.svelte';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
+
+	const { player, universe, settings } = getGameContext();
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
@@ -66,7 +69,7 @@
 					<div class="flex flex-row justify-center">
 						<div
 							class="border"
-							style={`border-color: ${playerFinder.getPlayerColor(design.playerNum)};`}
+							style={`border-color: ${getDisplayColor(design.playerNum, $player, $universe, $settings)};`}
 						>
 							<TechAvatar tech={$techs.getHull(design.hull)} hullSetNumber={design.hullSetNumber} />
 						</div>

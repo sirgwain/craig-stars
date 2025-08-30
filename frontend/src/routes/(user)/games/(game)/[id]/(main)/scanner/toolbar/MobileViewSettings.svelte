@@ -13,6 +13,7 @@
 	import FilterAllyDesigns from './FilterAllyDesigns.svelte';
 	import FilterEnemyDesigns from './FilterEnemyDesigns.svelte';
 	import { clamp } from 'lodash-es';
+	import FilterPlayerColors from './FilterPlayerColors.svelte';
 
 	const { player, settings } = getGameContext();
 </script>
@@ -54,6 +55,9 @@
 		{/if}
 		<div class="h-10 w-10">
 			<FilterEnemyDesigns />
+		</div>
+		<div class="h-10 w-10">
+			<FilterPlayerColors />
 		</div>
 	</div>
 	<div class="menu-title">Scanners</div>

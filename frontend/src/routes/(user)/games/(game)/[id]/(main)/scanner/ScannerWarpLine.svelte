@@ -6,8 +6,9 @@
 	import { getContext } from 'svelte';
 	import type { SVGAttributes } from 'svelte/elements';
 	import { MapObjectType } from '$lib/types/cs-proto';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 
-	const { player, universe, selectedMapObject } = getGameContext();
+	const { player, universe, settings, selectedMapObject } = getGameContext();
 	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 
 	type Line = {
@@ -33,7 +34,7 @@
 			const warpSpeed = mo.warpSpeed;
 			const distPerLy = warpSpeed * warpSpeed;
 			if (mo.mapObject?.playerNum) {
-				color = $universe.getPlayerColor(mo.mapObject.playerNum);
+				color = getDisplayColor(mo.mapObject.playerNum, $player, $universe, $settings);
 			} else if (mo.mapObject?.type === MapObjectType.MYSTERY_TRADER) {
 				color = '#00FFFF';
 			}
@@ -73,7 +74,7 @@
 				markerHeight="3"
 				orient="auto"
 			>
-				<path d="M 3 0 L 7 5 L 3 10" stroke={line.color} fill="context-fill" stroke-width={2} />
+				<path d="M 3 0 L 7 5 L 3 10" stroke={line.color} stroke-width={2} />
 			</marker>
 		</defs>
 	</svg>

@@ -3,6 +3,7 @@
 	import { radiansToDegrees } from '$lib/services/Math';
 	import type { Fleet } from '$lib/types/cs-proto';
 	import { ownedBy } from '$lib/types/MapObject';
+	import { getStrokeColor } from '$lib/utils/colorUtils';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { settings, player } = getGameContext();
@@ -40,6 +41,15 @@
 
 <!-- ScannerFleet -->
 <MapObjectScaler mapObject={fleet}>
+	<polygon
+		points={`0,0 0,${size} ${size},${size}`}
+		fill="none"
+		stroke={getStrokeColor(commanded ? commandedColor : color)}
+		stroke-width="1"
+		stroke-linejoin="round"
+		transform={`rotate(${getAngle(fleet)}) translate(${-size / 2} ${-size / 2})`}
+	/>
+
 	<polygon
 		points={`0,0 0,${size} ${size},${size}`}
 		fill={commanded ? commandedColor : color}

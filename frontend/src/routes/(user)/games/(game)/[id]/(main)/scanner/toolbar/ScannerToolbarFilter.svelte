@@ -7,6 +7,7 @@
 	import FilterFleetCounts from './FilterFleetCounts.svelte';
 	import FilterIdleFleets from './FilterIdleFleets.svelte';
 	import FilterMyDesigns from './FilterMyDesigns.svelte';
+	import FilterPlayerColors from './FilterPlayerColors.svelte';
 	import FilterScanners from './FilterScanners.svelte';
 
 	let { ...props }: HTMLAttributes<HTMLUListElement> = $props();
@@ -32,6 +33,9 @@
 	{/if}
 	<li class="h-10 w-10">
 		<FilterEnemyDesigns />
+	</li>
+	<li class="h-10 w-10">
+		<FilterPlayerColors />
 	</li>
 
 	<li class="h-10 w-10">

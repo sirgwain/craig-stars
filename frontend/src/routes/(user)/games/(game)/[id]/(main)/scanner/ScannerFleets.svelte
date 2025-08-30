@@ -3,6 +3,7 @@
 	import type { Fleet } from '$lib/types/cs-proto';
 	import { filterFleet } from '$lib/types/Filter';
 	import { equal } from '$lib/types/MapObject';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import ScannerFleet from './ScannerFleet.svelte';
 
 	const { player, universe, commandedFleet, settings } = getGameContext();
@@ -19,7 +20,7 @@
 {#each fleets as fleet (fleet)}
 	<ScannerFleet
 		{fleet}
-		color={$universe.getPlayerColor(fleet.mapObject?.playerNum)}
+		color={getDisplayColor(fleet.mapObject?.playerNum, $player, $universe, $settings)}
 		commanded={$commandedFleet?.mapObject.num === fleet.mapObject?.num &&
 			$commandedFleet?.mapObject.playerNum === fleet.mapObject?.playerNum}
 	/>

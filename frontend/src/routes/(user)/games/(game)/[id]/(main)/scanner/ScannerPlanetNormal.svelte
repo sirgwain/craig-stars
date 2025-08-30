@@ -5,6 +5,7 @@
 	import { MapObjectType } from '$lib/types/cs-proto';
 	import { filterFleet } from '$lib/types/Filter';
 	import { owned } from '$lib/types/MapObject';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import { emptyVector } from '$lib/types/Vector';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';
@@ -49,7 +50,7 @@
 		if (planet.mapObject?.playerNum === $player.num) {
 			color = '#00FF00';
 		} else if (planet.mapObject?.playerNum) {
-			color = $universe.getPlayerColor(planet.mapObject.playerNum);
+			color = getDisplayColor(planet.mapObject.playerNum, $player, $universe, $settings);
 		} else if (
 			planet.mapObject?.reportAge !== ReportAgeUnexplored &&
 			!planet.mapObject?.playerNum
