@@ -232,6 +232,15 @@ export function canTransferCargoType(fleet: Fleet, dest: CargoDest, cargoType: C
 		}
 	}
 
+	// can't transfer cargo to planet's with starbases
+	if (
+		dest?.mapObject?.type === MapObjectType.PLANET &&
+		dest.mapObject.playerNum !== fleet.mapObject?.playerNum &&
+		(dest as Planet).spec?.planetStarbaseSpec?.hasStarbase
+	) {
+		return false;
+	}
+
 	return true;
 }
 

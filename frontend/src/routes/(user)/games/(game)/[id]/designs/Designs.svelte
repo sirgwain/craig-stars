@@ -8,10 +8,11 @@
 	import { techs } from '$lib/services/Stores';
 	import { getHullIcon } from '$lib/techicon';
 	import type { ShipDesign } from '$lib/types/cs-proto';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 
 	type Props = {
 		designs: ShipDesign[];
@@ -121,7 +122,7 @@
 							<div class="avatar mr-2">
 								<div
 									class="border-2 border-neutral p-2 bg-black"
-									style={`border-color: ${$universe.getPlayerColor(row.playerNum)};`}
+									style={`border-color: ${getDisplayColor(row.playerNum, $player, $universe, $settings)};`}
 								>
 									<div class="fleet-avatar {getHullIcon(row)} bg-black"></div>
 								</div>

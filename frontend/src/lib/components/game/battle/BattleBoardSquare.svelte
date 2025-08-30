@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
-	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
+	import { designFinderKey, getGameContext } from '$lib/services/GameContext';
+	import type { DesignFinder } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
 	import type { PhaseToken } from '$lib/types/Battle';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import { getContext } from 'svelte';
 
+	const { player, universe, settings } = getGameContext();
+
 	const designFinder = getContext<DesignFinder>(designFinderKey);
-	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
 	type Props = {
 		tokens?: PhaseToken[] | undefined;
@@ -60,7 +62,7 @@
 	class:border-neutral={!selected && !tokens}
 	class:border-accent={selected}
 	style={!selected && tokens && tokens[tokenIndex]
-		? `border-color: ${playerFinder.getPlayerColor(tokens[tokenIndex].playerNum)};`
+		? `border-color: ${getDisplayColor(tokens[tokenIndex].playerNum, $player, $universe, $settings)};`
 		: ''}
 >
 	{#if tokens}

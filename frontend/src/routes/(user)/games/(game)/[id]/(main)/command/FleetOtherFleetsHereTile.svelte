@@ -10,9 +10,17 @@
 	import { commandable, getMapObjectName, key } from '$lib/types/MapObject';
 	import { onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 
-	const { universe, game, player, commandedFleet, commandedMapObjectKey, commandMapObject } =
-		getGameContext();
+	const {
+		universe,
+		game,
+		player,
+		settings,
+		commandedFleet,
+		commandedMapObjectKey,
+		commandMapObject
+	} = getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;
@@ -105,7 +113,7 @@
 				{#each cargoDestsByPlayer[0] as mo (key(mo))}
 					<option
 						style={mo?.mapObject?.playerNum !== $player.num
-							? `color: ${$universe.getPlayerColor(mo?.mapObject?.playerNum)};`
+							? `color: ${getDisplayColor(mo?.mapObject?.playerNum, $player, $universe, $settings)};`
 							: ''}
 						value={key(mo)}
 					>
@@ -116,7 +124,7 @@
 			{#each cargoDestsByPlayer[$player.num].filter((m) => m && key(m) !== key(fleet)) as m (key(m))}
 				<option
 					style={m?.mapObject?.playerNum !== $player.num
-						? `color: ${$universe.getPlayerColor(m?.mapObject?.playerNum)};`
+						? `color: ${getDisplayColor(m?.mapObject?.playerNum, $player, $universe, $settings)};`
 						: ''}
 					value={key(m)}
 				>
@@ -127,7 +135,7 @@
 				{#if p.num !== $player.num && p.num in cargoDestsByPlayer}
 					<optgroup
 						label={$universe.getPlayerName(p.num)}
-						style={`color: ${$universe.getPlayerColor(p.num)};`}
+						style={`color: ${getDisplayColor(p.num, $player, $universe, $settings)};`}
 					>
 						{#each cargoDestsByPlayer[p.num] as m (key(m))}
 							<option value={key(m)}>

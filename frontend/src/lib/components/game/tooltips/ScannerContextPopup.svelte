@@ -22,8 +22,9 @@
 	} from '$lib/types/MapObject';
 	import { flatten } from 'lodash-es';
 	import { showPopup, type PopupProps } from './Popup.svelte';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 
-	const { player, universe, commandMapObject, selectMapObject } = getGameContext();
+	const { player, universe, settings, commandMapObject, selectMapObject } = getGameContext();
 
 	let { position, onClose }: ScannerContextPopupProps = $props();
 
@@ -61,7 +62,7 @@
 				{#each otherMapObjectsHere[MapObjectType.PLANET] as mo (mo)}
 					<li
 						style={mo.mapObject?.playerNum != $player.num && mo.mapObject?.playerNum != None
-							? `color: ${$universe.getPlayerColor(mo.mapObject?.playerNum)};`
+							? `color: ${getDisplayColor(mo.mapObject?.playerNum, $player, $universe, $settings)};`
 							: ''}
 					>
 						<button
@@ -80,7 +81,7 @@
 				{#each otherMapObjectsHere[MapObjectType.FLEET] as mo (mo)}
 					<li
 						style={mo.mapObject?.playerNum != $player.num
-							? `color: ${$universe.getPlayerColor(mo.mapObject?.playerNum)};`
+							? `color: ${getDisplayColor(mo.mapObject?.playerNum, $player, $universe, $settings)};`
 							: ''}
 					>
 						<button
@@ -100,7 +101,7 @@
 				{#each otherMapObjectsHere[MapObjectType.MINEFIELD] as mo (mo)}
 					<li
 						style={mo.mapObject?.playerNum != $player.num
-							? `color: ${$universe.getPlayerColor(mo.mapObject?.playerNum)};`
+							? `color: ${getDisplayColor(mo.mapObject?.playerNum, $player, $universe, $settings)};`
 							: ''}
 					>
 						<button
@@ -121,7 +122,7 @@
 				{#each everythingElse as mo (mo)}
 					<li
 						style={mo.mapObject?.playerNum != $player.num
-							? `color: ${$universe.getPlayerColor(mo.mapObject?.playerNum)};`
+							? `color: ${getDisplayColor(mo.mapObject?.playerNum, $player, $universe, $settings)};`
 							: ''}
 					>
 						<button

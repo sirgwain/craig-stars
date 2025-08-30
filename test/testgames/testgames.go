@@ -311,6 +311,52 @@ var TestGames = []TestGame{
 		}},
 	},
 	{
+		Name: "Cargo Transfer Invasion Starbase",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName:          "Teamster",
+						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Fuel:              450,
+						Cargo:             cs.Cargo{Ironium: 10, Colonists: 200},
+						OrbitingPlanetNum: 1,
+					},
+				},
+			},
+			{
+				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace()},
+				Designs: []cs.ShipDesign{
+					{
+						Name: "Starbase",
+						Hull: cs.SpaceStation.Name,
+					},
+				},
+			},
+		},
+		Planets: []cs.Planet{{
+			MapObject: cs.MapObject{
+				Name:      "Planet 1",
+				PlayerNum: 2, // give player2 a planet
+			},
+			Hab:   cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+			Cargo: cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 25},
+			Starbase: &cs.Fleet{
+
+				BaseName:  "Starbase",
+				Tokens:    []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+				PlanetNum: 1,
+			},
+		}},
+	},
+	{
 		Name: "Cargo Transfer Planet Owned",
 		Players: []TestPlayer{
 			{
@@ -750,6 +796,13 @@ func createTestGame(tg TestGame) *cs.FullGame {
 			addFleet(game, player, &f, i+1)
 		}
 
+		// add any starbases on this planet
+		for i, planet := range tg.Planets {
+			if planet.PlayerNum == p.Num && planet.Starbase != nil {
+				addStarbase(game, player, planet.Starbase, game.Planets[i])
+			}
+		}
+
 		for i, mp := range p.MineralPackets {
 			addMineralPacket(game, player, &mp, i+1)
 		}
@@ -799,7 +852,11 @@ func addPlayer(game *cs.FullGame, player *cs.Player) *cs.Player {
 func addPlanet(game *cs.FullGame, planet *cs.Planet) *cs.Planet {
 	planet.Type = cs.MapObjectTypePlanet
 	planet.Num = len(game.Planets) + 1
+	if planet.BaseHab == (cs.Hab{}) {
+		planet.BaseHab = planet.Hab
+	}
 	game.Planets = append(game.Planets, planet)
+
 	return planet
 }
 
@@ -828,6 +885,21 @@ func addFleet(game *cs.FullGame, player *cs.Player, fleet *cs.Fleet, num int) *c
 	}
 
 	game.Fleets = append(game.Fleets, fleet)
+	return fleet
+}
+
+func addStarbase(game *cs.FullGame, player *cs.Player, fleet *cs.Fleet, planet *cs.Planet) *cs.Fleet {
+	fleet.Type = cs.MapObjectTypeFleet
+	fleet.PlayerNum = player.Num
+	fleet.Name = fleet.BaseName
+	fleet.Waypoints = []cs.Waypoint{
+		cs.NewPositionWaypoint(fleet.Position, 0),
+	}
+
+	fleet.PlanetNum = planet.Num
+	fleet.Starbase = true
+
+	game.Starbases = append(game.Starbases, fleet)
 	return fleet
 }
 

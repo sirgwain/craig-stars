@@ -11,6 +11,7 @@
 		fuelCapacity: number;
 		allowFuelTransfers?: boolean;
 		allowColonistTransfers?: boolean;
+		allowMineralTransfers?: boolean;
 		onTransferFuel?: (amount: number) => number;
 		onTransferIronium?: (amount: number) => number;
 		onTransferBoranium?: (amount: number) => number;
@@ -24,6 +25,7 @@
 		cargoCapacity = 0,
 		fuelCapacity = 0,
 		allowFuelTransfers = false,
+		allowMineralTransfers = false,
 		allowColonistTransfers = false,
 		onTransferFuel: onTransferFuel,
 		onTransferIronium: onFransferIronium,
@@ -59,6 +61,7 @@
 			value={cargo.ironium + transferAmount.ironium}
 			capacity={cargoCapacity}
 			color="ironium-bar"
+			readonly={!allowMineralTransfers}
 			onValueChanged={(value) =>
 				onFransferIronium?.(value - (cargo.ironium + transferAmount.ironium))}
 		/>
@@ -69,6 +72,7 @@
 			value={cargo.boranium + transferAmount.boranium}
 			capacity={cargoCapacity}
 			color="boranium-bar"
+			readonly={!allowMineralTransfers}
 			onValueChanged={(value) =>
 				onTransferBoranium?.(value - (cargo.boranium + transferAmount.boranium))}
 		/>
@@ -79,6 +83,7 @@
 			value={cargo.germanium + transferAmount.germanium}
 			capacity={cargoCapacity}
 			color="germanium-bar"
+			readonly={!allowMineralTransfers}
 			onValueChanged={(value) =>
 				onTransferGermanium?.(value - (cargo.germanium + transferAmount.germanium))}
 		/>

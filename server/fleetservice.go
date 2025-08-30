@@ -414,6 +414,7 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 	// Convert MapObject
 	mo := converter.C.ConvertMapObject(req.Msg.Mo)
 	var dest cs.CargoHolder
+	var destIsIntel bool
 
 	// Handle different destination types - simplified implementation
 	switch mo.Type {
@@ -430,7 +431,12 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("planet not found"))
 		}
 		if !planet.OwnedBy(gamePlayer.Num) {
-			dest = player.GetPlanetIntel(mo.Num)
+			destPlanet := player.GetPlanetIntel(mo.Num)
+			if destPlanet.Spec.HasStarbase {
+				return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cannot transfer cargo to/from an enemy planet with a starbase"))
+			}
+			dest = destPlanet
+			destIsIntel = true
 		} else {
 			dest = planet
 		}
@@ -448,6 +454,7 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 			dest = destFleet
 		} else {
 			dest = player.GetFleetIntel(mo.PlayerNum, mo.Num)
+			destIsIntel = true
 		}
 	case cs.MapObjectTypeMineralPacket:
 		// Get mineralPacket
@@ -462,6 +469,7 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 			dest = destPacket
 		} else {
 			dest = player.GetMineralPacketIntel(mo.PlayerNum, mo.Num)
+			destIsIntel = true
 		}
 	case cs.MapObjectTypeSalvage:
 		// Get salvage
@@ -470,6 +478,7 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("salvage not found"))
 		}
 		dest = salvage
+		destIsIntel = true
 	default:
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("transfer type %s not yet implemented", mo.Type))
 	}
@@ -491,13 +500,13 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 			return err
 		}
 
-		if destFleet, ok := dest.(*cs.Fleet); ok && destFleet != nil {
+		if destFleet, ok := dest.(*cs.Fleet); ok && destFleet != nil && !destIsIntel {
 			if err := c.SaveFleet(ctx, destFleet); err != nil {
 				return err
 			}
 		}
 
-		if destPlanet, ok := dest.(*cs.Planet); ok && destPlanet != nil {
+		if destPlanet, ok := dest.(*cs.Planet); ok && destPlanet != nil && !destIsIntel {
 			if err := c.SavePlanet(ctx, destPlanet); err != nil {
 				return err
 			}
@@ -515,7 +524,7 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 			}
 		}
 
-		if destMineralPacket, ok := dest.(*cs.MineralPacket); ok && destMineralPacket != nil {
+		if destMineralPacket, ok := dest.(*cs.MineralPacket); ok && destMineralPacket != nil && !destIsIntel {
 			if err := c.SaveMineralPacket(ctx, destMineralPacket); err != nil {
 				return err
 			}

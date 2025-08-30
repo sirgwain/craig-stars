@@ -6,15 +6,16 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { MineralPacket } from '$lib/types/cs-proto';
 	import { key } from '$lib/types/MapObject';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import ScannerMineralPacket from './ScannerMineralPacket.svelte';
 
-	const { player, universe } = getGameContext();
+	const { player, universe, settings } = getGameContext();
 
 	function getColor(mineralPacket: MineralPacket) {
 		if (mineralPacket.mapObject?.playerNum === $player.num) {
 			return '#0900FF';
 		}
-		return $universe.getPlayerColor(mineralPacket.mapObject?.playerNum);
+		return getDisplayColor(mineralPacket.mapObject?.playerNum, $player, $universe, $settings);
 	}
 </script>
 

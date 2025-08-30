@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { population } from '$lib/types/Cargo';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { population } from '$lib/types/Cargo';
+	import type { Planet } from '$lib/types/cs-proto';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
-	import type { Planet } from '$lib/types/cs-proto';
 
-	const { universe } = getGameContext();
+	const { universe, player, settings } = getGameContext();
 
 	type Props = {
 		planet: Planet;
@@ -37,7 +38,7 @@
 		let strokeWidth = pop / 1_300_000;
 
 		if (planet.mapObject?.playerNum) {
-			color = $universe.getPlayerColor(planet.mapObject.playerNum);
+			color = getDisplayColor(planet.mapObject.playerNum, $player, $universe, $settings);
 		}
 
 		// setup the properties of our planet circle

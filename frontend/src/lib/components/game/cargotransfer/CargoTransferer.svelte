@@ -238,6 +238,7 @@
 				allowFuelTransfers={dest &&
 					'fuel' in dest &&
 					canTransferCargoType(src, dest, ResourceType.FUEL)}
+				allowMineralTransfers={canTransferCargoType(src, dest, ResourceType.IRONIUM)}
 				allowColonistTransfers={canTransferCargoType(src, dest, ResourceType.COLONISTS)}
 				onTransferFuel={(amount) => transferFuel(amount).src}
 				onTransferIronium={(amount) => transferIronium(amount).src}
@@ -261,16 +262,19 @@
 			<div class="mt-28 h-40 sm:mt-16 sm:h-28 flex flex-col justify-between">
 				<TransferButtons
 					data-id="ironium"
+					disabled={!canTransferCargoType(src, dest, ResourceType.IRONIUM)}
 					onTransferToSource={() => transferIronium(quantityModifier)}
 					onTransferToDest={() => transferIronium(-quantityModifier)}
 				/>
 				<TransferButtons
 					data-id="boranium"
+					disabled={!canTransferCargoType(src, dest, ResourceType.BORANIUM)}
 					onTransferToSource={() => transferBoranium(quantityModifier)}
 					onTransferToDest={() => transferBoranium(-quantityModifier)}
 				/>
 				<TransferButtons
 					data-id="germanium"
+					disabled={!canTransferCargoType(src, dest, ResourceType.GERMANIUM)}
 					onTransferToSource={() => transferGermanium(quantityModifier)}
 					onTransferToDest={() => transferGermanium(-quantityModifier)}
 				/>
@@ -319,6 +323,7 @@
 						cargoCapacity={destCargoCapacity}
 						fuelCapacity={destFuelCapacity}
 						allowFuelTransfers={canTransferCargoType(src, dest, ResourceType.FUEL)}
+						allowMineralTransfers={canTransferCargoType(src, dest, ResourceType.IRONIUM)}
 						allowColonistTransfers={canTransferCargoType(src, dest, ResourceType.COLONISTS)}
 						onTransferFuel={(amount) => transferFuel(-amount).dest}
 						onTransferIronium={(amount) => transferIronium(-amount).dest}

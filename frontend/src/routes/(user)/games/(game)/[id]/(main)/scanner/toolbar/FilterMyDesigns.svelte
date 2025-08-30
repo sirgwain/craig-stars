@@ -8,9 +8,9 @@
 <a
 	href="#show-idle-fleets-only"
 	title="Design Filter"
-	class:fill-accent={$settings.filterMyDesigns}
-	class:fill-current={!$settings.filterMyDesigns}
-	class="btn btn-ghost btn-xs w-full h-full"
+	class:btn-primary={$settings.filterMyDesigns}
+	class:btn-ghost={!$settings.filterMyDesigns}
+	class="btn btn-ghost fill-current btn-xs w-full h-full"
 	onclick={() => ($settings.filterMyDesigns = !$settings.filterMyDesigns)}
 	><FilterFleets class="w-6 h-6" /></a
 >

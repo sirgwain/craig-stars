@@ -5,8 +5,9 @@
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 
-	const { universe } = getGameContext();
+	const { universe, player, settings } = getGameContext();
 
 	type Props = {
 		planet: Planet;
@@ -55,7 +56,7 @@
 			}
 
 			if (planet.mapObject?.playerNum) {
-				flagColor = $universe.getPlayerColor(planet.mapObject.playerNum);
+				flagColor = getDisplayColor(planet.mapObject.playerNum, $player, $universe, $settings);
 			}
 		}
 

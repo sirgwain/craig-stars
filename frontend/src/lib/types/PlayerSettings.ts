@@ -25,6 +25,7 @@ export class PlayerSettings implements FilterOptions {
 	showAllyScanners = true;
 	showMinefields = true;
 	showMessagePane = false;
+	showPlayerColors = false;
 	scannerPercent = 100;
 	mineralScale = 5000;
 	messageTypeFilter = new Set<number>();

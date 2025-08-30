@@ -6,12 +6,13 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { MapObjectType, type Minefield } from '$lib/types/cs-proto';
 	import { equal, key } from '$lib/types/MapObject';
+	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import ScannerMinefield from './ScannerMinefield.svelte';
 
-	const { universe, selectedMapObject } = getGameContext();
+	const { player, universe, selectedMapObject, settings } = getGameContext();
 
 	function getColor(minefield: Minefield) {
-		return $universe.getPlayerColor(minefield.mapObject?.playerNum);
+		return getDisplayColor(minefield.mapObject?.playerNum, $player, $universe, $settings);
 	}
 
 	let minefields = $derived($universe.allMinefields);
