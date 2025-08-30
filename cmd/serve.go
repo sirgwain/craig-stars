@@ -19,7 +19,7 @@ func newServeCmd() *cobra.Command {
 			return nil
 		},
 	}
-	serveCmd.Flags().Bool("test-mode", false, "Use an in memory database")
+	serveCmd.Flags().Bool("test-mode", false, "Use a temporary file-based database for testing")
 
 	// bind this flag so config can pick it up for overrides
 	viper.BindPFlag("test-mode", serveCmd.Flags().Lookup("test-mode"))

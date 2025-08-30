@@ -1,5 +1,5 @@
-import { apiErrorsFailTest, expect, submitTurn, test } from './setup';
 import { WaypointTaskTransportAction } from '../src/lib/protogen/craig_stars/v1/fleet_pb';
+import { apiErrorsFailTest, expect, submitTurn, test } from './setup';
 
 test('create a new game', async ({ newGamePage }) => {
 	const { page, name } = newGamePage;
@@ -9,8 +9,8 @@ test('create a new game', async ({ newGamePage }) => {
 });
 
 test('submit turn', async ({ newGamePage }) => {
-	const { page, id, name } = newGamePage;
-	apiErrorsFailTest(page, id);
+	const { page, name } = newGamePage;
+	apiErrorsFailTest(page);
 
 	// start with a new game, ensure we have year 2400
 	const gameLink = await page.locator('[data-type="game-link"]').first();
@@ -24,8 +24,8 @@ test('submit turn', async ({ newGamePage }) => {
 });
 
 test('research page', async ({ newGamePage }) => {
-	const { page, id } = newGamePage;
-	apiErrorsFailTest(page, id);
+	const { page } = newGamePage;
+	apiErrorsFailTest(page);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Research' }).click();
@@ -60,7 +60,7 @@ test('research page', async ({ newGamePage }) => {
 
 test('relations page', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
-	apiErrorsFailTest(page, id);
+	apiErrorsFailTest(page);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Relations' }).click();
@@ -75,7 +75,7 @@ test('relations page', async ({ newGamePage }) => {
 test('battle plans page', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
 	const name = 'Test Battle Plan';
-	apiErrorsFailTest(page, id);
+	apiErrorsFailTest(page);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Battle Plans' }).click();
@@ -105,7 +105,7 @@ test('battle plans page', async ({ newGamePage }) => {
 test('production plans page', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
 	const name = 'Test Production Plan';
-	apiErrorsFailTest(page, id);
+	apiErrorsFailTest(page);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Production Plans' }).click();
@@ -146,7 +146,7 @@ test('production plans page', async ({ newGamePage }) => {
 test('transport plans page', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
 	const name = 'Test Transport Plan';
-	apiErrorsFailTest(page, id);
+	apiErrorsFailTest(page);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Transport Plans' }).click();

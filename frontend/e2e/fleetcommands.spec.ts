@@ -1,10 +1,10 @@
 import { WaypointTask } from '../src/lib/protogen/craig_stars/v1/fleet_pb';
 import { key, nearest } from '../src/lib/types/MapObject';
-import { apiErrorsFailTest, expect, loadGamePage, submitTurn, test } from './setup';
+import { apiErrorsFailTest, expect, submitTurn, test } from './setup';
 
 test('new game scout test', async ({ newGamePage }) => {
-	const { page, id, universe } = newGamePage;
-	apiErrorsFailTest(page, id);
+	const { page, universe } = newGamePage;
+	apiErrorsFailTest(page);
 
 	const homeworld = universe.planets?.find((p) => p.mapObject?.playerNum === 1 && p.homeworld);
 	if (!homeworld) {
@@ -43,9 +43,8 @@ test('new game scout test', async ({ newGamePage }) => {
 	).not.toBe(homeworld.mapObject?.num);
 });
 
-test('Scout Test', async ({ authenticatedPage }) => {
-	const { page, gameId, universe } = await loadGamePage(authenticatedPage, 'Scout Test');
-	apiErrorsFailTest(page, gameId);
+test('Scout Test', async ({ testGamePage }) => {
+	const { page, universe } = await testGamePage('Scout Test');
 
 	const homeworld = universe.planets?.find((p) => p.mapObject?.playerNum === 1 && p.homeworld);
 	if (!homeworld) {
@@ -87,12 +86,8 @@ test('Scout Test', async ({ authenticatedPage }) => {
 	).toBeVisible();
 });
 
-test('Colonizer Test', async ({ authenticatedPage }) => {
-	const { page, gameId, universe, player } = await loadGamePage(
-		authenticatedPage,
-		'Colonizer Test'
-	);
-	apiErrorsFailTest(page, gameId);
+test('Colonizer Test', async ({ testGamePage }) => {
+	const { page, universe, player } = await testGamePage('Colonizer Test');
 
 	const homeworld = universe.planets?.find((p) => p.mapObject?.playerNum === 1 && p.homeworld);
 	if (!homeworld) {
@@ -137,7 +132,7 @@ test('Colonizer Test', async ({ authenticatedPage }) => {
 	await page.locator(`[data-id="${key(planet2)}"]`).click({ force: true, modifiers: ['Meta'] });
 
 	await updateFleetOrderResponse;
-	
+
 	// waypoints tile should update
 	const fleetWaypointsTile = await page
 		.locator('[data-type="command-tile"][data-id="Fleet Waypoints"]')

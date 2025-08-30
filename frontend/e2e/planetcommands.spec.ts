@@ -1,8 +1,8 @@
 import { apiErrorsFailTest, expect, submitTurn, test } from './setup';
 
 test('production tile clear', async ({ newGamePage }) => {
-	const { page, id } = newGamePage;
-	apiErrorsFailTest(page, id);
+	const { page } = newGamePage;
+	apiErrorsFailTest(page);
 
 	// confirm delete
 	page.once('dialog', async (dialog) => {
@@ -19,8 +19,8 @@ test('production tile clear', async ({ newGamePage }) => {
 });
 
 test('production queue change', async ({ newGamePage }) => {
-	const { page, id, universe } = newGamePage;
-	apiErrorsFailTest(page, id);
+	const { page, universe } = newGamePage;
+	apiErrorsFailTest(page);
 
 	const homeworld = universe.planets.find((p) => p.homeworld);
 	if (!homeworld) {

@@ -1,7 +1,6 @@
 //go:build !wasi && !wasm
 
 // Package test contains some useful utility functions for testing.
-//
 package test
 
 import (

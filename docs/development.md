@@ -4,7 +4,7 @@ craig-stars is a web based game. The backend logic and server is written in [Go]
 
 ## Prerequisites:
 
-- Golang: 1.24 or higher, obtainable from [their website](https://go.dev/dl/)
+- Golang: 1.25 or higher, obtainable from [their website](https://go.dev/dl/)
 - npm: [how to install](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 - Respository forked and cloned on your device (instructions [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository))
 - The [GNU compiler collection](https://gcc.gnu.org/) built locally and inside your `$PATH`.
@@ -85,7 +85,7 @@ After writing new or updating existing tests, there are several options as for h
 - Run the various test tasks inside `tasks.json` (the green ones with icons). There's 4 in total, one for each of the above mage commands.
 - Run tests from VS Code's UI, via either the Test Explorer panel or the small buttons displayed within test files.
   - Unfortunately, `vscode-go` doesn't currently support running alternate test tools for UI commands, so running backend tests this way will just use plain old `go test`.
- 
+
 > [!TIP]
 > To run only test files matching a specific file name or regex, you can use the `--run=` flag for `go test` or simply enter the test file name for vitest & playwright.
 

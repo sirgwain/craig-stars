@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -48,19 +50,28 @@ type gameConfig struct {
 	InviteLinkSalt string `yaml:"InviteLinkSalt,omitempty"`
 }
 
-var testModeConfig = Config{
-	Database: databaseConfig{
-		Filename: ":memory:?cache=shared",
-	},
-	Auth: authConfig{
-		Secret:      "testSecret",
-		DisableXSRF: true,
-		URL:         "http://localhost:5173",
-	},
-	Game: gameConfig{
-		InviteLinkSalt: "salt",
-	},
-	Address: "localhost:8080",
+func getTestModeConfig() Config {
+	// Create a unique temporary database file for this test instance
+	tmpDir := os.TempDir()
+	timestamp := time.Now().UnixNano()
+	dbFile := filepath.Join(tmpDir, fmt.Sprintf("craigstars_test_%d.db", timestamp))
+	dbFileUsers := filepath.Join(tmpDir, fmt.Sprintf("craigstars_test_users_%d.db", timestamp))
+
+	return Config{
+		Database: databaseConfig{
+			Filename:      dbFile,
+			UsersFilename: dbFileUsers,
+		},
+		Auth: authConfig{
+			Secret:      "testSecret",
+			DisableXSRF: true,
+			URL:         "http://localhost:5173",
+		},
+		Game: gameConfig{
+			InviteLinkSalt: "salt",
+		},
+		Address: "localhost:8080",
+	}
 }
 
 var config *Config
@@ -68,8 +79,9 @@ var config *Config
 func GetConfig() *Config {
 	if config == nil {
 		if viper.GetBool("test-mode") {
-			// test mode uses an in memory db, no discord auth
-			config = &testModeConfig
+			// test mode uses a temporary file-based db, no discord auth
+			testConfig := getTestModeConfig()
+			config = &testConfig
 			slog.Debug("Config (test mode)", slog.Any("config", config))
 			return config
 		}
@@ -116,6 +128,26 @@ func GetConfig() *Config {
 		}
 	}
 	return config
+}
+
+// CleanupTestDatabase removes the temporary database file if in test mode
+func CleanupTestDatabase() {
+	if config != nil && viper.GetBool("test-mode") {
+		if config.Database.Filename != "" && config.Database.Filename != ":memory:?cache=shared" {
+			if err := os.Remove(config.Database.Filename); err != nil {
+				slog.Warn("Failed to cleanup test database file", "file", config.Database.Filename, "error", err)
+			} else {
+				slog.Debug("Cleaned up test database file", "file", config.Database.Filename)
+			}
+		}
+		if config.Database.UsersFilename != "" && config.Database.UsersFilename != ":memory:?cache=shared" {
+			if err := os.Remove(config.Database.UsersFilename); err != nil {
+				slog.Warn("Failed to cleanup test database file", "file", config.Database.UsersFilename, "error", err)
+			} else {
+				slog.Debug("Cleaned up test database file", "file", config.Database.UsersFilename)
+			}
+		}
+	}
 }
 
 func init() {

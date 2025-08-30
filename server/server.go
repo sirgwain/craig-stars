@@ -21,7 +21,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/sirgwain/craig-stars/config"
+	configpkg "github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/hash"
@@ -61,7 +61,7 @@ const (
 
 type server struct {
 	db              DBConnection
-	config          config.Config
+	config          configpkg.Config
 	sf              singleflight.Group
 	discordNotifier *discordNotifier
 }
@@ -69,7 +69,7 @@ type server struct {
 const userRejected = "rejected"
 
 // Start the webserver, expose all the routes, inject all the middleware, etc.
-func Start(config config.Config) error {
+func Start(config configpkg.Config) error {
 
 	dbConn := db.NewConn()
 	if err := dbConn.Connect(&config); err != nil {
@@ -283,6 +283,8 @@ func Start(config config.Config) error {
 	userInterceptors := []connect.Interceptor{newDbInterceptor(dbConn), newErrorLogInterceptor()}
 	gameInterceptors := []connect.Interceptor{newDbInterceptor(dbConn), newGameInterceptor(), newErrorLogInterceptor()}
 
+	grpc.Handle(craig_starsv1connect.NewAdminServiceHandler(NewAdminServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
+	grpc.Handle(craig_starsv1connect.NewTestServiceHandler(NewTestServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewTechServiceHandler(NewTechServiceHandler(), connect.WithInterceptors(newErrorLogInterceptor())))
 	grpc.Handle(craig_starsv1connect.NewUserServiceHandler(NewUserServiceHandler(dbConn, discordNotifier), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewRaceServiceHandler(NewRaceServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
@@ -295,7 +297,6 @@ func Start(config config.Config) error {
 	grpc.Handle(craig_starsv1connect.NewPlanetServiceHandler(NewPlanetServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewFleetServiceHandler(NewFleetServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewMinefieldServiceHandler(NewMinefieldServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
-	grpc.Handle(craig_starsv1connect.NewAdminServiceHandler(NewAdminServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewBattleServiceHandler(NewBattleServiceHandler(), connect.WithInterceptors(userInterceptors...)))
 
 	// Mount the grpc calls to /api/grpc
@@ -350,6 +351,10 @@ func Start(config config.Config) error {
 			slog.Error("close db failed", slog.Any("error", err))
 			os.Exit(1)
 		}
+
+		// cleanup temporary test database file if in test mode
+		configpkg.CleanupTestDatabase()
+
 		serverStopCtx()
 	}()
 
