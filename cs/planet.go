@@ -549,16 +549,15 @@ func (p *Planet) GetGrowthAmount(player *Player, maxPopulation int, populationOv
 func ComputePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
-	scanner := player.Spec.PlanetaryScanner
-	if scanner.Name == "" && !race.Spec.InnateScanner {
-		// player spec isn't computed, just look up the player's tech
-		scanner = *rules.techs.GetBestPlanetaryScanner(player)
+
+	// the player spec is computed at turn generation time, but when updating planets we won't have it
+	// so compute it on demand
+	if player.Spec.Terraform == nil {
+		player.Spec = ComputePlayerSpec(player, rules)
 	}
+
 	defense := player.Spec.Defense
-	if defense.Name == "" && race.Spec.CanBuildDefenses {
-		// player spec isn't computed, just look up the player's tech
-		defense = *rules.techs.GetBestDefense(player)
-	}
+	scanner := player.Spec.PlanetaryScanner
 
 	// hab/pop
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)

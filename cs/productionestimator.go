@@ -54,6 +54,12 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		return items, planet.Spec.ResourcesPerYear, nil
 	}
 
+	// the player spec is computed at turn generation time, but when updating planets we won't have it
+	// so compute it on demand
+	if player.Spec.Terraform == nil {
+		player.Spec = ComputePlayerSpec(player, rules)
+	}
+
 	// reset any estimates
 	for i := range items {
 		planet.ProductionQueue[i].index = i
