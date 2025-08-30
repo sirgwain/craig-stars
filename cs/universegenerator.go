@@ -75,6 +75,10 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 	for _, planet := range ug.Universe.Planets {
 		if planet.Owned() {
 			player := ug.Players[planet.PlayerNum-1]
+
+			if planet.Starbase != nil {
+				planet.Starbase.InjectDesigns(player.Designs)
+			}
 			planet.Spec = ComputePlanetSpec(&ug.Rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 				return fmt.Errorf("planet %s failed to populate queue design: %w", planet, err)
