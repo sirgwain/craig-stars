@@ -376,6 +376,18 @@ func (u *Universe) updateTokenCounts() {
 		if fleet.Delete {
 			continue
 		}
+
+		// one last check for deleted fleets.
+		if len(fleet.Tokens) == 0 {
+			u.log.Warn("fleet ended turn with no tokens, but wasn't deleted",
+				slog.Int("PlayerNum", fleet.PlayerNum),
+				slog.Int("Num", fleet.Num),
+				slog.Any("Name", fleet.Name),
+			)
+			u.deleteFleet(fleet)
+			continue
+		}
+
 		for _, token := range fleet.Tokens {
 			design := u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
 			design.Spec.NumInstances += token.Quantity
