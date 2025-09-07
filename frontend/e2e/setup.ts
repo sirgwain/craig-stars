@@ -1,11 +1,13 @@
-import { fromJson } from '@bufbuild/protobuf';
+import { create, fromJson } from '@bufbuild/protobuf';
 import { test as base, expect, Page } from '@playwright/test';
+// Import for direct HTTP calls instead of Connect client
+import { toJson } from '@bufbuild/protobuf';
 import { type GameWithPlayers } from '../src/lib/protogen/craig_stars/v1/game_pb';
 import {
 	CreateGameResponseJson,
 	CreateGameResponseSchema
 } from '../src/lib/protogen/craig_stars/v1/gameservice_pb';
-import { type PlayerUniverse } from '../src/lib/protogen/craig_stars/v1/player_pb';
+import { type Player, type PlayerUniverse } from '../src/lib/protogen/craig_stars/v1/player_pb';
 import {
 	GetPlayerResponseSchema,
 	GetUniverseResponseJson,
@@ -14,8 +16,44 @@ import {
 	type GetPlayerResponseJson,
 	type SubmitTurnResponseJson
 } from '../src/lib/protogen/craig_stars/v1/playerservice_pb';
+import {
+	CreateTestGameRequestSchema,
+	CreateTestGameResponseSchema
+} from '../src/lib/protogen/craig_stars/v1/testservice_pb';
 
 let gameNum = 1;
+
+// Helper function to create test games via authenticated page request
+export async function createTestGame(
+	page: Page,
+	testGameName: string,
+	gameName: string
+): Promise<GameWithPlayers> {
+	const request = create(CreateTestGameRequestSchema, {
+		testGameName: testGameName,
+		gameName: gameName
+	});
+
+	const response = await page.request.post('/api/grpc/craig_stars.v1.TestService/CreateTestGame', {
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		data: toJson(CreateTestGameRequestSchema, request)
+	});
+
+	if (!response.ok()) {
+		throw new Error(`Failed to create test game: ${response.status()} ${response.statusText()}`);
+	}
+
+	const responseJson = await response.json();
+	const createResponse = fromJson(CreateTestGameResponseSchema, responseJson);
+
+	if (!createResponse.game) {
+		throw new Error('No game returned from CreateTestGame');
+	}
+
+	return createResponse.game;
+}
 
 export const test = base.extend<{
 	authenticatedPage: Page;
@@ -27,18 +65,18 @@ export const test = base.extend<{
 		universe: PlayerUniverse;
 	};
 	newRacePage: { page: Page; id: string; name: string };
+	testGamePage: (testGameName: string) => Promise<{
+		page: Page;
+		gameId: bigint;
+		universe: PlayerUniverse;
+		player: Player;
+	}>;
 }>({
 	authenticatedPage: async ({ page }, use) => {
-		// Navigate to login page
+		// Navigate to homepage - authentication is already cached via storageState
 		await page.goto('/');
-		await page.getByRole('button', { name: "I'm an admin" }).click();
-		await page.getByRole('textbox', { name: 'Username' }).click();
-		await page.getByRole('textbox', { name: 'Username' }).fill('admin');
-		await page.getByRole('textbox', { name: 'Username' }).press('Tab');
-		await page.getByRole('textbox', { name: 'Password' }).fill('admin');
-		await page.getByRole('button', { name: 'Submit' }).click();
 
-		// Wait for the homepage to be visible
+		// Wait for the homepage to be visible to confirm we're logged in
 		await expect(page.getByRole('link', { name: 'Single Player' })).toBeVisible();
 
 		// Use this logged-in page in tests
@@ -156,16 +194,53 @@ export const test = base.extend<{
 		// delete race we created
 		await deleteButton.click();
 		await expect(deleteButton).not.toBeVisible();
+	},
+
+	testGamePage: async ({ authenticatedPage }, use) => {
+		const createdGames: bigint[] = [];
+
+		const loadTestGame = async (testGameName: string) => {
+			const result = await loadTestGamePage(authenticatedPage, testGameName);
+			createdGames.push(result.gameId);
+			return result;
+		};
+
+		await use(loadTestGame);
+
+		// cleanup all created test games
+		for (const gameId of createdGames) {
+			try {
+				await authenticatedPage.goto('/');
+				const deleteButton = await authenticatedPage.locator(
+					`[data-type="delete-button"][data-id="${gameId}"]`
+				);
+				if (await deleteButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+					// confirm delete
+					authenticatedPage.once('dialog', async (dialog) => {
+						await dialog.accept();
+					});
+
+					await deleteButton.click();
+					await expect(deleteButton).not.toBeVisible();
+				}
+			} catch (error) {
+				console.warn(`Failed to cleanup test game ${gameId}:`, error);
+			}
+		}
 	}
 });
 
-export async function loadGamePage(page: Page, name: string) {
-	const gameLink = page.getByRole('link', { name, exact: true });
-	await expect(gameLink).toBeVisible();
+export async function loadTestGamePage(page: Page, testGameName: string) {
+	const name = `Test Game ${gameNum++}`;
+
+	const game = await createTestGame(page, testGameName, name);
+
+	if (!game.game) {
+		throw new Error('failed to create test game');
+	}
 
 	// fail if any api calls to this game fail
-	const gameId = await gameLink.getAttribute('data-id');
-	apiErrorsFailTest(page, gameId);
+	apiErrorsFailTest(page);
 
 	// kick off the response waiters before clicking
 	const playerResponsePromise = page.waitForResponse(
@@ -182,9 +257,10 @@ export async function loadGamePage(page: Page, name: string) {
 	);
 
 	// open the game (this will trigger both requests)
-	await gameLink.click();
+	const gameId = game.game.id;
+	await page.goto(`/games/${gameId}`);
 
-	// wait for both to finish, order doesn’t matter
+	// wait for both to finish, order doesn't matter
 	const [playerResponse, universeResponse] = await Promise.all([
 		playerResponsePromise,
 		universeResponsePromise
@@ -210,12 +286,9 @@ export async function loadGamePage(page: Page, name: string) {
 	return { page, gameId, universe, player };
 }
 
-export async function apiErrorsFailTest(page: Page, gameId: string | null) {
-	if (gameId === null) {
-		throw new Error(`invalid gameId for page ${page.url()}`);
-	}
+export async function apiErrorsFailTest(page: Page) {
 	page.on('response', async (response) => {
-		if (response.url().includes(`/api/grpc/craig_stars.v1.GameService`) && !response.ok()) {
+		if (response.url().includes(`/api/grpc/craig_stars.v1`) && !response.ok()) {
 			// fail any api requests
 			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
 		}

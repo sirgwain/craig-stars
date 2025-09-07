@@ -695,11 +695,13 @@ var TestGames = []TestGame{
 	},
 }
 
+// CreateTestGames creates one of each test game for manual testing
+// for automated testing they should be created new each time
 func CreateTestGames(db db.Client) error {
 	ctx := context.Background()
 	for _, testGame := range TestGames {
 		var err error
-		game := createTestGame(testGame)
+		game := CreateTestGame(testGame)
 		err = db.SaveGame(ctx, game.Game)
 		if err != nil {
 			return err
@@ -748,7 +750,7 @@ var colors = []string{
 	"#F0FFF0",
 }
 
-func createTestGame(tg TestGame) *cs.FullGame {
+func CreateTestGame(tg TestGame) *cs.FullGame {
 	game := newGame(tg.Name)
 
 	for _, p := range tg.Planets {
@@ -764,8 +766,9 @@ func createTestGame(tg TestGame) *cs.FullGame {
 	}
 
 	for i, p := range tg.Players {
+		var testPlayerPlayer cs.Player
 		if p.Player == nil {
-			p.Player = &cs.Player{
+			testPlayerPlayer = cs.Player{
 				UserID:        1,
 				Race:          *cs.NewRace(),
 				TechLevels:    cs.TechLevel{Energy: 3, Weapons: 3, Propulsion: 3, Construction: 3, Electronics: 3, Biotechnology: 3},
@@ -778,9 +781,11 @@ func createTestGame(tg TestGame) *cs.FullGame {
 					CargoTransfers:    cs.CargoTransfers{},
 				},
 			}
+		} else {
+			testPlayerPlayer = *p.Player
 		}
-		player := addPlayer(game, p.WithNum(i+1))
-		if p.AIControlled {
+		player := addPlayer(game, testPlayerPlayer.WithNum(i+1))
+		if testPlayerPlayer.AIControlled {
 			player.SubmittedTurn = true
 		}
 
@@ -798,7 +803,7 @@ func createTestGame(tg TestGame) *cs.FullGame {
 
 		// add any starbases on this planet
 		for i, planet := range tg.Planets {
-			if planet.PlayerNum == p.Num && planet.Starbase != nil {
+			if planet.PlayerNum == player.Num && planet.Starbase != nil {
 				addStarbase(game, player, planet.Starbase, game.Planets[i])
 			}
 		}

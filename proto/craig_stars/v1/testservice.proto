@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/game.proto";
+
+service TestService {
+  rpc CreateTestGame(CreateTestGameRequest) returns (CreateTestGameResponse);
+  rpc GetTestGameNames(GetTestGameNamesRequest) returns (GetTestGameNamesResponse);
+}
+
+message CreateTestGameRequest {
+  string test_game_name = 1;
+  string game_name = 2;
+}
+
+message CreateTestGameResponse {
+  GameWithPlayers game = 1;
+}
+
+message GetTestGameNamesRequest {}
+
+message GetTestGameNamesResponse {
+  repeated string names = 1;
+}

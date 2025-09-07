@@ -3,7 +3,7 @@ import { CreateShipDesignResponseJson } from '../src/lib/protogen/craig_stars/v1
 
 test('ship designer - create', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
-	apiErrorsFailTest(page, id);
+	apiErrorsFailTest(page);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Ship Designer' }).click();

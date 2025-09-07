@@ -1,9 +1,12 @@
-import { apiErrorsFailTest, expect, loadGamePage, submitTurn, test } from './setup';
 import { MapObjectType } from '../src/lib/protogen/craig_stars/v1/common_pb';
+import {
+	expect,
+	submitTurn,
+	test
+} from './setup';
 
-test('Cargo Transfer Planet Owned', async ({ authenticatedPage }) => {
-	const { page, gameId } = await loadGamePage(authenticatedPage, 'Cargo Transfer Planet Owned');
-	apiErrorsFailTest(page, gameId);
+test('Cargo Transfer Planet Owned', async ({ testGamePage }) => {
+	const { page } = await testGamePage('Cargo Transfer Planet Owned');
 
 	let fleetsInOrbitTile = await page
 		.locator('[data-type="command-tile"][data-id="Fleets In Orbit"]')
@@ -68,9 +71,8 @@ test('Cargo Transfer Planet Owned', async ({ authenticatedPage }) => {
 	await expect(fuelAndCargoTile.getByText('Colonists 1kT').first()).toBeVisible();
 });
 
-test('Cargo Transfer Fleets', async ({ authenticatedPage }) => {
-	const { page, gameId } = await loadGamePage(authenticatedPage, 'Cargo Transfer Fleets');
-	apiErrorsFailTest(page, gameId);
+test('Cargo Transfer Fleets', async ({ testGamePage }) => {
+	const { page } = await testGamePage('Cargo Transfer Fleets');
 
 	const otherFleetsHereTile = await page
 		.locator('[data-type="command-tile"][data-id="Other Entities Here"]')
@@ -126,11 +128,11 @@ test('Cargo Transfer Fleets', async ({ authenticatedPage }) => {
 	await expect(fuelAndCargoTile.getByText('Germanium 6kT').first()).toBeVisible();
 	await expect(fuelAndCargoTile.getByText('Colonists 6kT').first()).toBeVisible();
 	await expect(fuelAndCargoTile.getByText('Fuel 11 of 200mg').first().first()).toBeVisible();
+
 });
 
-test('Cargo Transfer Split', async ({ authenticatedPage }) => {
-	const { page, gameId } = await loadGamePage(authenticatedPage, 'Cargo Transfer Split');
-	apiErrorsFailTest(page, gameId);
+test('Cargo Transfer Split', async ({ testGamePage }) => {
+	const { page } = await testGamePage('Cargo Transfer Split');
 
 	const fleetOrbitingTile = await page
 		.locator('[data-type="command-tile"][data-id="In Deep Space"]')
@@ -188,11 +190,11 @@ test('Cargo Transfer Split', async ({ authenticatedPage }) => {
 	await expect(fuelAndCargoTile.getByText('Ironium 14kT').first()).toBeVisible();
 	await expect(fuelAndCargoTile.getByText('Boranium 5kT').first()).toBeVisible();
 	await expect(fuelAndCargoTile.getByText('Germanium 5kT').first()).toBeVisible();
+
 });
 
-test('Cargo Transfer Jettison', async ({ authenticatedPage }) => {
-	const { page, gameId } = await loadGamePage(authenticatedPage, 'Cargo Transfer Jettison');
-	apiErrorsFailTest(page, gameId);
+test('Cargo Transfer Jettison', async ({ testGamePage }) => {
+	const { page } = await testGamePage('Cargo Transfer Jettison');
 
 	const fleetOrbitingTile = await page
 		.locator('[data-type="command-tile"][data-id="In Deep Space"]')
@@ -253,11 +255,11 @@ test('Cargo Transfer Jettison', async ({ authenticatedPage }) => {
 	await expect(mapObjectSummary.getByText('Ironium 0kT').first()).toBeVisible();
 	await expect(mapObjectSummary.getByText('Boranium 10kT').first()).toBeVisible();
 	await expect(mapObjectSummary.getByText('Germanium 20kT').first()).toBeVisible();
+
 });
 
-test('Cargo Transfer Salvage', async ({ authenticatedPage }) => {
-	const { page, gameId } = await loadGamePage(authenticatedPage, 'Cargo Transfer Salvage');
-	apiErrorsFailTest(page, gameId);
+test('Cargo Transfer Salvage', async ({ testGamePage }) => {
+	const { page } = await testGamePage('Cargo Transfer Salvage');
 
 	const fleetOrbitingTile = await page
 		.locator('[data-type="command-tile"][data-id="In Deep Space"]')
@@ -330,12 +332,12 @@ test('Cargo Transfer Salvage', async ({ authenticatedPage }) => {
 	await expect(mapObjectSummary.getByText('Ironium 41kT').first()).toBeVisible();
 	await expect(mapObjectSummary.getByText('Boranium 42kT').first()).toBeVisible();
 	await expect(mapObjectSummary.getByText('Germanium 43kT').first()).toBeVisible();
+
 });
 
-test('Cargo Transfer MineralPacket', async ({ authenticatedPage }) => {
+test('Cargo Transfer MineralPacket', async ({ testGamePage }) => {
 	const name = 'Cargo Transfer MineralPacket';
-	const { page, gameId } = await loadGamePage(authenticatedPage, name);
-	apiErrorsFailTest(page, gameId);
+	const { page } = await testGamePage(name);
 
 	const otherFleetsHereTile = await page
 		.locator('[data-type="command-tile"][data-id="Other Entities Here"]')

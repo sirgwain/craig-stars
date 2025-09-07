@@ -7,9 +7,35 @@ const port = 4173;
 // const port = 5173;
 
 export default defineConfig({
+	// Global setup to authenticate once
+	globalSetup: './e2e/global.setup.ts',
+
 	retries: process.env.CI ? 2 : 0, // set to 2 when running on CI
 	// single threaded or we need to use a non memory db
-	workers: 1,
+	workers: 5,
+
+	projects: [
+		{
+			name: 'login-tests',
+			testMatch: '**/login.spec.ts',
+			use: {
+				baseURL: `http://localhost:${port}`,
+				headless: true,
+				trace: 'on-first-retry',
+				// No storageState - these tests should start without authentication
+			},
+		},
+		{
+			name: 'authenticated-tests',
+			testIgnore: '**/login.spec.ts',
+			use: {
+				baseURL: `http://localhost:${port}`,
+				headless: true,
+				trace: 'on-first-retry',
+				storageState: '.auth/user.json' // Use cached authentication state
+			},
+		},
+	],
 
 	reporter: [
 		process.env.CI ? ['github'] : ['list'],
@@ -42,12 +68,6 @@ export default defineConfig({
 	],
 	expect: {
 		timeout: 15000
-	},
-	use: {
-		baseURL: `http://localhost:${port}`,
-		headless: true, // set to false to see cool popup windows
-		trace: 'on-first-retry' // record traces on first retry of each test
-		// video: 'on' // turn on for cool video recordings
 	},
 
 	testDir: 'e2e'

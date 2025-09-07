@@ -1,9 +1,8 @@
 import { key } from '../src/lib/types/MapObject';
-import { apiErrorsFailTest, expect, loadGamePage, submitTurn, test } from './setup';
+import { expect, submitTurn, test } from './setup';
 
-test('Kitchen Sink', async ({ authenticatedPage }) => {
-	const { page, gameId, universe } = await loadGamePage(authenticatedPage, 'Kitchen Sink');
-	apiErrorsFailTest(page, gameId);
+test('Kitchen Sink', async ({ testGamePage }) => {
+	const { page, universe } = await testGamePage('Kitchen Sink');
 
 	const mapObjectSummary = await page.locator('[data-type="map-object-summary"]').first();
 
