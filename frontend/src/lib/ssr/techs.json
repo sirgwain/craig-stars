@@ -3499,7 +3499,8 @@
 					"techLevel": {
 						"energy": 2,
 						"biotechnology": 4
-					}
+					},
+					"prtsDenied": ["PRT_WM"]
 				},
 				"ranking": 10,
 				"category": "TECH_CATEGORY_MINE_LAYER",

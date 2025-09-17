@@ -93,3 +93,14 @@ export function cargoPercent(cargo: Cargo, capacity: number | undefined): Cargo 
 
 	return percent;
 }
+
+export function cargoDescription(cargoType: CargoType, amount: number | undefined): string {
+	switch (cargoType) {
+		case ResourceType.FUEL:
+			return `${(amount ?? 0).toLocaleString()}mg`;
+		case ResourceType.COLONISTS:
+			return `${((amount ?? 0) * 100).toLocaleString()}`;
+		default:
+			return `${(amount ?? 0).toLocaleString()}kt`;
+	}
+}

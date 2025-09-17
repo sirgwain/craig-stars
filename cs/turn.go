@@ -521,7 +521,7 @@ func (t *turnGenerator) fleetUnload() {
 						slog.String("cargoType", result.cargoType.String()),
 						slog.Any("status", result.status),
 					)
-					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred)
+					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred, result.wanted, result.status)
 
 					continue
 				}
@@ -575,7 +575,7 @@ func (t *turnGenerator) fleetLoad() {
 						slog.String("cargoType", result.cargoType.String()),
 						slog.Any("status", result.status),
 					)
-					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred)
+					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred, result.wanted, result.status)
 
 					continue
 				}

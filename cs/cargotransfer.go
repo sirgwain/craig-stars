@@ -38,6 +38,7 @@ const (
 	CargoTransferStatusDestCargoCapacity
 	// if a starbase is present, you cannot drop invaders
 	CargoTransferStatusDestStarbase
+	CargoTransferStatusDestUnowned
 )
 
 func (r CargoTransferStatus) String() string {
@@ -665,7 +666,19 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 	// check for invasion
 	player := t.game.Players[fleet.PlayerNum-1]
 	planet, ok := dest.(*Planet)
-	if transferAmount > 0 && cargoType == Colonists && ok && planet.Owned() && !planet.OwnedBy(fleet.PlayerNum) {
+	if transferAmount > 0 && cargoType == Colonists && ok && !planet.OwnedBy(fleet.PlayerNum) {
+		if !planet.Owned() {
+			// planet is unowned, don't beam colonists to their death
+			// can't invade a planet with a starbase
+			t.log.Debug("fleet cannot unload colonists, planet is unoccupied",
+				slog.Int("Player", fleet.PlayerNum),
+				slog.String("Fleet", fleet.Name),
+				slog.String("Dest", dest.GetMapObject().Name),
+				slog.String("cargoType", cargoType.String()),
+				slog.Int("TransferAmount", transferAmount))
+			return 0, CargoTransferStatusDestUnowned
+		}
+
 		if planet.Spec.HasStarbase {
 			// can't invade a planet with a starbase
 			t.log.Debug("fleet cannot unload colonists, starbase is in orbit",
@@ -909,7 +922,6 @@ func (t *cargoTransferer) transferToDest(fleet *Fleet, dest CargoHolder, cargoTy
 			slog.String("cargoType", cargoType.String()),
 			slog.Int("TransferAmount", transferAmount))
 		return CargoTransferStatusDestCargoCapacity
-
 	}
 
 	// transfer the cargo
