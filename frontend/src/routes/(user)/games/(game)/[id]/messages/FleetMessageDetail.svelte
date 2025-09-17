@@ -196,13 +196,16 @@
 	{#if transfer}
 		{@const cargoType = enumToString(ResourceType, transfer.cargoType)}
 		{@const fromTo = transfer.wanted < 0 ? 'from' : 'to'}
-		{message.target?.targetName} has attempted to transfer {Math.abs(transfer.wanted)}kT of {cargoType}
+		{message.target?.targetName} has attempted to transfer {cargoDescription(
+			transfer.cargoType,
+			Math.abs(transfer.wanted)
+		)} of {cargoType}
 		{fromTo}
 		{message.spec?.mapObjectTarget?.targetName}, but was
 		{#if transfer.transfered === 0}
 			unable to transfer any cargo.
 		{:else}
-			only able to transfer {Math.abs(transfer.transfered)}kT.
+			only able to transfer {cargoDescription(transfer.cargoType, Math.abs(transfer.transfered))}.
 		{/if}
 		{#if transfer.status === CargoTransferStatus.CARGO}
 			{message.target?.targetName} did not have enough {cargoType}.
@@ -241,7 +244,7 @@
 		{#if transfer.transfered === 0}
 			unable to transfer any cargo.
 		{:else}
-			only able to transfer {Math.abs(transfer.transfered)}kT.
+			only able to transfer {cargoDescription(transfer.cargoType, Math.abs(transfer.transfered))}.
 		{/if}
 		{#if transfer.status === CargoTransferStatus.CARGO}
 			{message.target?.targetName} did not have enough {cargoType}.
