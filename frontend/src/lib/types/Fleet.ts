@@ -92,9 +92,15 @@ export class CommandedFleet implements Fleet {
 	}
 
 	getWaypointMapObjects(universe: Universe): MapObjectLike[] {
-		return this.fleetOrders?.waypoints
-			.map((wp) => universe.getMapObject(wp.mapObjectTarget))
+		const mos = this.fleetOrders?.waypoints
+			.map((wp) =>
+				(wp.mapObjectTarget?.targetType ?? MapObjectType.UNSPECIFIED) == MapObjectType.UNSPECIFIED
+					? { mapObject: { position: wp.position } }
+					: universe.getMapObject(wp.mapObjectTarget)
+			)
 			.filter((m): m is MapObjectLike => !!m);
+
+		return mos;
 	}
 
 	/**

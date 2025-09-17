@@ -274,8 +274,10 @@
 			$commandedFleet &&
 			$commandedFleet.fleetOrders.waypoints
 				.slice(1)
-				.find((wp) =>
-					equal(wp.position ?? emptyVector(), found.mapObject?.position ?? emptyVector())
+				.find(
+					(wp) =>
+						equal(wp.position ?? emptyVector(), found.mapObject?.position ?? emptyVector()) ||
+						equal(wp.position ?? emptyVector(), create(VectorSchema, position))
 				);
 		waypointHighlighted = !!fleetWaypoint;
 		if (waypointHighlighted) {
