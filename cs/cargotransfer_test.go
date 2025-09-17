@@ -6,8 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirgwain/craig-stars/test"
 	"log/slog"
+
+	"github.com/sirgwain/craig-stars/test"
 )
 
 func TestCargoTransfers_splitFleetCargoTransfers(t *testing.T) {
@@ -795,7 +796,7 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			game := &FullGame{
 				Game:      &Game{},
-				Universe:  &Universe{},
+				Universe:  &Universe{log: testLogger},
 				TechStore: &StaticTechStore,
 				Players:   []*Player{player},
 			}
@@ -966,7 +967,7 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			game := &FullGame{
 				Game:      &Game{},
-				Universe:  &Universe{},
+				Universe:  &Universe{log: testLogger},
 				TechStore: &StaticTechStore,
 				Players:   []*Player{player},
 			}

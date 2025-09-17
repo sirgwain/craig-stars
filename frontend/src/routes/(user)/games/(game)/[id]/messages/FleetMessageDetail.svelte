@@ -12,6 +12,7 @@
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
 	import { enumToString } from '$lib/types/Enums';
+	import { cargoDescription } from '$lib/types/Cargo';
 
 	const { game, universe, player } = getGameContext();
 
@@ -68,8 +69,8 @@
 	{#if message.spec?.amount === 1}
 		Your starbase at {message.spec.mapObjectTarget?.targetName} has built a new {message.spec.name}.
 	{:else}
-		Your starbase at {message.spec?.mapObjectTarget?.targetName} has built {message.spec?.amount ?? 'a'} new {message
-			.spec?.name} ships.
+		Your starbase at {message.spec?.mapObjectTarget?.targetName} has built {message.spec?.amount ??
+			'a'} new {message.spec?.name} ships.
 	{/if}
 	{#if routeTarget}
 		It will be routed to {routeTarget.mapObject?.name}.
@@ -95,7 +96,9 @@
 	{/if}
 {:else if message.type === PlayerMessageType.FLEET_MINEFIELD_HIT}
 	{@const damage = message.spec?.minefieldDamage}
-	{@const minefieldOwner = $universe.getPlayerPluralName(message.spec?.mapObjectTarget?.targetPlayerNum)}
+	{@const minefieldOwner = $universe.getPlayerPluralName(
+		message.spec?.mapObjectTarget?.targetPlayerNum
+	)}
 	{@const minefieldPosition = `(${message.spec?.mapObjectTarget?.targetPosition?.x ?? 0}, ${message.spec?.mapObjectTarget?.targetPosition?.y ?? 0})`}
 	{#if damage}
 		{#if message.target?.targetPlayerNum === $player.num}
@@ -150,11 +153,12 @@
 	{#if minefield?.numMines === message.spec?.amount}
 		{message.target?.targetName} has has dispensed {message.spec?.amount} mines.
 	{:else}
-		{message.target?.targetName} has increased {message.spec?.mapObjectTarget?.targetName} by {message.spec
-			?.amount} mines.
+		{message.target?.targetName} has increased {message.spec?.mapObjectTarget?.targetName} by {message
+			.spec?.amount} mines.
 	{/if}
 {:else if message.type === PlayerMessageType.FLEET_PATROL_TARGETED}
-	Your patrolling {message.target?.targetName} has targeted {message.spec?.mapObjectTarget?.targetName} to intercept.
+	Your patrolling {message.target?.targetName} has targeted {message.spec?.mapObjectTarget
+		?.targetName} to intercept.
 {:else if message.type === PlayerMessageType.FLEET_RADIATING_ENGINE_DIEOFF}
 	<!-- Colonist dieoff from engine radiation -->
 	Engine radiation has killed {(message.spec?.amount ?? 0).toLocaleString()} colonists traveling in {message
@@ -176,7 +180,8 @@
 		boranium: message.spec?.mineral?.boranium ?? 0,
 		germanium: message.spec?.mineral?.germanium ?? 0
 	}}
-	{message.target?.targetName} has remote mined {message.spec?.mapObjectTarget?.targetName} extracting {andCommaList(
+	{message.target?.targetName} has remote mined {message.spec?.mapObjectTarget?.targetName} extracting
+	{andCommaList(
 		[
 			minerals.ironium > 0 ? `${minerals.ironium}kT of Ironium` : '',
 			minerals.boranium > 0 ? `${minerals.boranium}kT of Boranium` : '',
@@ -191,13 +196,16 @@
 	{#if transfer}
 		{@const cargoType = enumToString(ResourceType, transfer.cargoType)}
 		{@const fromTo = transfer.wanted < 0 ? 'from' : 'to'}
-		{message.target?.targetName} has attempted to transfer {Math.abs(transfer.wanted)}kT of {cargoType}
+		{message.target?.targetName} has attempted to transfer {cargoDescription(
+			transfer.cargoType,
+			Math.abs(transfer.wanted)
+		)} of {cargoType}
 		{fromTo}
 		{message.spec?.mapObjectTarget?.targetName}, but was
 		{#if transfer.transfered === 0}
 			unable to transfer any cargo.
 		{:else}
-			only able to transfer {Math.abs(transfer.transfered)}kT.
+			only able to transfer {cargoDescription(transfer.cargoType, Math.abs(transfer.transfered))}.
 		{/if}
 		{#if transfer.status === CargoTransferStatus.CARGO}
 			{message.target?.targetName} did not have enough {cargoType}.
@@ -209,8 +217,51 @@
 			{message.spec?.mapObjectTarget?.targetName} did not have enough space in their hold.
 		{:else if transfer.status === CargoTransferStatus.DEST_STARBASE}
 			A starbase in orbit prevented the transfer.
+		{:else if transfer.status === CargoTransferStatus.DEST_UNOWNED}
+			The planet is unoccupied. Your colonists refuse to be beamed down without a colonization
+			module.
 		{:else if transfer.status === CargoTransferStatus.OWNED}
-			{message.spec?.mapObjectTarget?.targetName} is owned by another player and {message.target?.targetName}
+			{message.spec?.mapObjectTarget?.targetName} is owned by another player and {message.target
+				?.targetName}
+			does not have the required technology to bypass their sensors.
+		{/if}
+	{:else}
+		<!-- Generic failure message -->
+		{message.target?.targetName} has attempted to transfer cargo from {message.spec?.mapObjectTarget
+			?.targetName}, but the cargo transfer was unsuccessful.
+	{/if}
+{:else if message.type === PlayerMessageType.FLEET_TRANSPORT_INVALID}
+	{@const transfer = message.spec?.cargoTransfer}
+	{#if transfer}
+		{@const cargoType = enumToString(ResourceType, transfer.cargoType)}
+		{@const fromTo = transfer.wanted < 0 ? 'from' : 'to'}
+		{message.target?.targetName} has attempted to transfer {cargoDescription(
+			transfer.cargoType,
+			Math.abs(transfer.wanted)
+		)} of {cargoType}
+		{fromTo}
+		{message.spec?.mapObjectTarget?.targetName}, but was
+		{#if transfer.transfered === 0}
+			unable to transfer any cargo.
+		{:else}
+			only able to transfer {cargoDescription(transfer.cargoType, Math.abs(transfer.transfered))}.
+		{/if}
+		{#if transfer.status === CargoTransferStatus.CARGO}
+			{message.target?.targetName} did not have enough {cargoType}.
+		{:else if transfer.status === CargoTransferStatus.CARGO_CAPACITY}
+			{message.target?.targetName} did not have enough space in their hold.
+		{:else if transfer.status === CargoTransferStatus.DEST_CARGO}
+			{message.spec?.mapObjectTarget?.targetName} did not have enough {cargoType}.
+		{:else if transfer.status === CargoTransferStatus.DEST_CARGO_CAPACITY}
+			{message.spec?.mapObjectTarget?.targetName} did not have enough space in their hold.
+		{:else if transfer.status === CargoTransferStatus.DEST_STARBASE}
+			A starbase in orbit prevented the transfer.
+		{:else if transfer.status === CargoTransferStatus.DEST_UNOWNED}
+			The planet is unoccupied. Your colonists refuse to be beamed down without a colonization
+			module.
+		{:else if transfer.status === CargoTransferStatus.OWNED}
+			{message.spec?.mapObjectTarget?.targetName} is owned by another player and {message.target
+				?.targetName}
 			does not have the required technology to bypass their sensors.
 		{/if}
 	{:else}

@@ -218,6 +218,10 @@ func newMessage(messageType PlayerMessageType) PlayerMessage {
 	return PlayerMessage{Type: messageType}
 }
 
+func newPlayerMessage(messageType PlayerMessageType, targetPlayerNum int) PlayerMessage {
+	return PlayerMessage{Type: messageType, Target: PlayerMessageTarget{TargetPlayerNum: targetPlayerNum}}
+}
+
 // create a new message targeting a planet
 func newPlanetMessage(messageType PlayerMessageType, target *Planet) PlayerMessage {
 	return PlayerMessage{Type: messageType, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetName: target.Name, TargetNum: target.Num}}
@@ -659,9 +663,14 @@ func (m *messageClient) fleetByHandTransferIncomplete(player *Player, fleet *Fle
 			CargoTransfer:   &PlayerMessageSpecCargoTransfer{CargoType: cargoType, Transfered: transferAmount, Wanted: wanted, Status: status}}))
 }
 
-func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
-	text := fmt.Sprintf("%s attempted to load %dkT of %v from %s, but you do not own %s. The order has been canceled.", fleet.Name, -transferAmount, cargoType, dest.GetMapObject().Name, dest.GetMapObject().Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransportInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
+func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int, wanted int, status CargoTransferStatus) {
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetTransportInvalid, fleet).
+		withSpec(PlayerMessageSpec{
+			MapObjectTarget: dest.GetMapObject().ToTarget(),
+			CargoTransfer:   &PlayerMessageSpecCargoTransfer{CargoType: cargoType, Transfered: transferAmount, Wanted: wanted, Status: status},
+		}),
+	)
+
 }
 
 func (m *messageClient) fleetTargetLost(player *Player, fleet *Fleet, targetName string, targetType MapObjectType) {
@@ -1018,7 +1027,7 @@ func (m *messageClient) playerAcquirablePartGainedScrappedFleet(player *Player, 
 
 // tell a player they are dead. This always appears as the first message
 func (mc *messageClient) playerDead(player, deadPlayer *Player) {
-	player.Messages = append([]PlayerMessage{newMessage(PlayerMessagePlayerDead).withSpec(PlayerMessageSpec{MapObjectTarget: MapObjectTarget{TargetPlayerNum: deadPlayer.Num}})}, player.Messages...)
+	player.Messages = append([]PlayerMessage{newPlayerMessage(PlayerMessagePlayerDead, deadPlayer.Num)}, player.Messages...)
 }
 
 // tell a player they have no planets but still have colonists. This always appears as the first message

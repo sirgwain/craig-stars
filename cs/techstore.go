@@ -1489,7 +1489,7 @@ var MineDispenser40 = TechHullComponent{Tech: NewTech("Mine Dispenser 40", NewCo
 	HullSlotType:   HullSlotTypeMineLayer,
 }
 
-var MineDispenser50 = TechHullComponent{Tech: NewTech("Mine Dispenser 50", NewCost(2, 12, 10, 55), TechRequirements{TechLevel: TechLevel{Energy: 2, Biotechnology: 4}}, 10, TechCategoryMineLayer, TechTagMineLayer),
+var MineDispenser50 = TechHullComponent{Tech: NewTech("Mine Dispenser 50", NewCost(2, 12, 10, 55), TechRequirements{TechLevel: TechLevel{Energy: 2, Biotechnology: 4}, PRTsDenied: []PRT{WM}}, 10, TechCategoryMineLayer, TechTagMineLayer),
 
 	Mass:           30,
 	MinefieldType:  MinefieldTypeStandard,

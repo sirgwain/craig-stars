@@ -204,6 +204,8 @@ func CargoTransferStatusToCSCargoTransferStatus(m craig_starsv1.CargoTransferSta
 		return cs.CargoTransferStatusDestCargoCapacity
 	case craig_starsv1.CargoTransferStatus_CARGO_TRANSFER_STATUS_DEST_STARBASE:
 		return cs.CargoTransferStatusDestStarbase
+	case craig_starsv1.CargoTransferStatus_CARGO_TRANSFER_STATUS_DEST_UNOWNED:
+		return cs.CargoTransferStatusDestUnowned
 	default:
 		return cs.CargoTransferStatus(0)
 	}
@@ -225,6 +227,8 @@ func CSCargoTransferStatusToCargoTransferStatus(m cs.CargoTransferStatus) craig_
 		return craig_starsv1.CargoTransferStatus_CARGO_TRANSFER_STATUS_DEST_CARGO_CAPACITY
 	case cs.CargoTransferStatusDestStarbase:
 		return craig_starsv1.CargoTransferStatus_CARGO_TRANSFER_STATUS_DEST_STARBASE
+	case cs.CargoTransferStatusDestUnowned:
+		return craig_starsv1.CargoTransferStatus_CARGO_TRANSFER_STATUS_DEST_UNOWNED
 	default:
 		return craig_starsv1.CargoTransferStatus_CARGO_TRANSFER_STATUS_UNSPECIFIED
 	}

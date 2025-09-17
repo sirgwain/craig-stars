@@ -61,12 +61,12 @@ func (mo MapObject) GetPosition() Vector {
 }
 
 // Owned reports whether this MapObject is owned by a player (playerNum != 0)
-func (mo *MapObject) Owned() bool {
+func (mo MapObject) Owned() bool {
 	return mo.PlayerNum != Unowned
 }
 
 // return true if this MapObject is owned by this player number
-func (mo *MapObject) OwnedBy(num int) bool {
+func (mo MapObject) OwnedBy(num int) bool {
 	return mo.PlayerNum != Unowned && mo.PlayerNum == num
 }
 

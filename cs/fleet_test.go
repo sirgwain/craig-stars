@@ -844,7 +844,7 @@ func TestFleet_moveFleet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := tt.args.player
-			universe := Universe{Fleets: []*Fleet{tt.fleet}}
+			universe := Universe{log: testLogger, Fleets: []*Fleet{tt.fleet}}
 			if tt.args.planet != nil {
 				universe.Planets = []*Planet{tt.args.planet}
 			}
@@ -903,7 +903,7 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 				NewPositionWaypoint(Vector{0, 0}, 0),
 				NewPositionWaypoint(Vector{999, 0}, tt.warpSpeed),
 			)
-			universe := Universe{Fleets: []*Fleet{fleet}}
+			universe := Universe{log: testLogger, Fleets: []*Fleet{fleet}}
 			universe.buildMaps([]*Player{player})
 
 			rules := NewRules()
@@ -993,6 +993,7 @@ func TestFleet_gateFleet(t *testing.T) {
 				player.Designs = append(player.Designs, token.design)
 			}
 			universe := Universe{
+				log:          testLogger,
 				Fleets:       []*Fleet{tt.fleet},
 				Planets:      []*Planet{sourcePlanet, destPlanet},
 				designsByNum: map[playerObject]*ShipDesign{},
