@@ -8,9 +8,10 @@ import (
 	"slices"
 	"testing"
 
+	"log/slog"
+
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
-	"log/slog"
 )
 
 // many functions require a copy of the current game's rules.
@@ -310,8 +311,8 @@ func Test_turn_grow(t *testing.T) {
 	planet4.setPopulation(2_400_000) // should lose 4%
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 
 	turn.computeSpecs()
@@ -346,6 +347,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -380,6 +382,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -414,6 +417,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -445,6 +449,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -490,6 +495,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -526,6 +532,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -557,6 +564,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -592,6 +600,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -625,6 +634,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -662,6 +672,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -699,6 +710,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -732,6 +744,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -768,6 +781,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		}
 
 		turn := turnGenerator{
+			log:  testLogger,
 			game: game,
 		}
 		turn.game.Universe.buildMaps(game.Players)
@@ -1394,7 +1408,10 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 			planet.Spec = ComputePlanetSpec(&game.Rules, player, planet)
 			game.Planets = append(game.Planets, planet)
 
-			turn := turnGenerator{game: game}
+			turn := turnGenerator{
+				log:  testLogger,
+				game: game,
+			}
 			turn.game.Universe.buildMaps(game.Players)
 
 			// try and remote the planet
@@ -1458,8 +1475,8 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 			game.Planets = append(game.Planets, planet)
 
 			turn := turnGenerator{
-				game: game,
 				log:  testLogger,
+				game: game,
 			}
 			turn.game.Universe.buildMaps(game.Players)
 
@@ -1493,8 +1510,8 @@ func Test_turn_fleetLayMines(t *testing.T) {
 	fleet.Waypoints[0].Task = WaypointTaskLayMinefield
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -1543,8 +1560,8 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	minefieldPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -1582,8 +1599,8 @@ func Test_turn_instaform(t *testing.T) {
 	planet.TerraformedAmount = Hab{}
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -1613,8 +1630,8 @@ func Test_turn_instaformTakenPlanet(t *testing.T) {
 	planet.TerraformedAmount = Hab{}
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -1646,8 +1663,8 @@ func Test_turn_fleetRepair(t *testing.T) {
 	planet.Starbase = &starbase
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -1695,7 +1712,10 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	isFleet.Waypoints[0] = NewPlanetWaypoint(isPlanet.Position, isPlanet.Num, isPlanet.Name, 5)
 	isFleet.OrbitingPlanetNum = isPlanet.Num
 
-	turn := turnGenerator{game: game}
+	turn := turnGenerator{
+		log:  testLogger,
+		game: game,
+	}
 	turn.game.Universe.buildMaps(game.Players)
 
 	// don't generate a full turn, the planet will grow
@@ -1744,8 +1764,8 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 	game.Fleets[0] = fleet
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -1848,8 +1868,8 @@ func Test_turn_detonateMines(t *testing.T) {
 			}
 
 			turn := turnGenerator{
-				game: &fg,
 				log:  testLogger,
+				game: &fg,
 			}
 			turn.game.Universe.buildMaps(fg.Players)
 
@@ -1894,8 +1914,8 @@ func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 	packetPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -1938,8 +1958,8 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 	planet.Starbase = &starbase
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -1967,8 +1987,8 @@ func Test_turn_decayPackets(t *testing.T) {
 	game.MineralPackets = append(game.MineralPackets, packetSafe, packetTooFast, packetNewlyBuilt)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2010,8 +2030,8 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	enemyPlayer.initDefaultPlanetIntels(game.Planets)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2097,8 +2117,8 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	friendlyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2135,8 +2155,8 @@ func Test_turn_fleetRefuel(t *testing.T) {
 	planet.Starbase = &starbase
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2168,8 +2188,8 @@ func Test_turn_playerResearch(t *testing.T) {
 	planet.Factories = 500
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2207,8 +2227,8 @@ func Test_turn_buildStarbase(t *testing.T) {
 	planet.Factories = 1000
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2292,8 +2312,8 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2343,8 +2363,8 @@ func Test_turn_fleetBattle(t *testing.T) {
 	design2 := fleet2.Tokens[0].design
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2447,8 +2467,8 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 	}
 
 	turn := turnGenerator{
-		game: fg,
 		log:  testLogger,
+		game: fg,
 	}
 	turn.game.Universe.buildMaps(fg.Players)
 
@@ -2531,8 +2551,8 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 	game.Fleets = append(game.Fleets, fleet3)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2612,8 +2632,8 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 	game.Fleets = append(game.Fleets, fleet3)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2652,8 +2672,8 @@ func Test_turn_mysteryTraderSpawn(t *testing.T) {
 	game.Year = game.Year + game.Rules.MysteryTraderRules.MinYear
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2674,8 +2694,8 @@ func Test_turn_mysteryTraderMove(t *testing.T) {
 	mt := game.MysteryTraders[0]
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2695,8 +2715,8 @@ func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
 	mt := game.MysteryTraders[0]
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2718,8 +2738,8 @@ func Test_turn_mysteryTraderFinished(t *testing.T) {
 	mt := game.MysteryTraders[0]
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2739,8 +2759,8 @@ func Test_turn_mysteryTraderAgain(t *testing.T) {
 	mt := game.MysteryTraders[0]
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2771,8 +2791,8 @@ func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2802,8 +2822,8 @@ func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2832,8 +2852,8 @@ func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2865,8 +2885,8 @@ func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2896,8 +2916,8 @@ func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 
 	turn.game.Universe.buildMaps(game.Players)
@@ -2941,8 +2961,8 @@ func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
@@ -2969,8 +2989,8 @@ func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
 	planet.Factories = 1000
 
 	turn := turnGenerator{
-		game: game,
 		log:  testLogger,
+		game: game,
 	}
 	turn.game.Universe.buildMaps(game.Players)
 

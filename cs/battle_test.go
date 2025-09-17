@@ -6,8 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"log/slog"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func testStalwartDefender(player *Player) *Fleet {
@@ -747,8 +748,11 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &battle{rules: &rules,
-				record: newBattleRecord(1, None, Vector{}, []BattleRecordToken{})}
+			b := &battle{
+				rules:  &rules,
+				log:    testLogger,
+				record: newBattleRecord(1, None, Vector{}, []BattleRecordToken{}),
+			}
 			b.record.recordNewRound()
 
 			// setup this weapon's token based on shipQuantity and position
@@ -1019,7 +1023,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &battle{rules: &rules,
+			b := &battle{
+				rules:  &rules,
+				log:    testLogger,
 				record: newBattleRecord(1, None, Vector{}, []BattleRecordToken{})}
 			b.record.recordNewRound()
 
@@ -1507,7 +1513,10 @@ func Test_battle_buildMovementOrder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &battle{rules: &rules}
+			b := &battle{
+				rules: &rules,
+				log:   testLogger,
+			}
 			if gotMoveOrder := b.buildMovementOrder(tt.args.tokens); !reflect.DeepEqual(gotMoveOrder, tt.wantMoveOrder) {
 				for _, r := range gotMoveOrder {
 					for _, t := range r {
