@@ -1561,29 +1561,39 @@ func (f *Fleet) UpdateWaypoint(
 	dest WaypointDest,
 	currentSelectedWaypointIndex int,
 	fastestWaypoint bool,
-) bool {
+) UpdateWaypointResult {
 	info := f.getSelectedWaypointInfo(currentSelectedWaypointIndex)
 
 	selectedWaypoint := info.selectedWaypoint
 	previousWaypoint := info.previousWaypoint
+	nextWaypoint := info.nextWaypoint
 	waypointIndex := info.waypointIndex
 
 	if previousWaypoint == nil {
 		// can't update wp0
-		return false
+		return UpdateWaypointResultNone
 	}
 
 	f.computeFuelUsage(player)
 
 	// the position is either a position or the target's position
 	position := dest.Position
-	if position == (Vector{}) && dest.MO.Type != MapObjectTypeNone {
+	if dest.MO.Type != MapObjectTypeNone {
 		position = dest.MO.Position
 	}
 
-	if position == (Vector{}) || position == previousWaypoint.Position {
+	if position == (Vector{}) {
+		return UpdateWaypointResultNone
+	}
+
+	if position == previousWaypoint.Position {
 		// don't update a waypoint to be the same as a previous waypoint, this should just delete it
-		return false
+		return UpdateWaypointResultPreviousWaypoint
+	}
+
+	if nextWaypoint != nil && position == nextWaypoint.Position {
+		// don't update a waypoint to be the same as a previous waypoint, this should just delete it
+		return UpdateWaypointResultNextWaypoint
 	}
 
 	dist := math.Ceil(previousWaypoint.Position.DistanceTo(position))
@@ -1630,7 +1640,7 @@ func (f *Fleet) UpdateWaypoint(
 
 	selectedWaypoint.EstFuelUsage = f.GetFuelCost(player, selectedWaypoint.WarpSpeed, dist)
 
-	return true
+	return UpdateWaypointResultUpdated
 }
 
 // GetFuelAllocated gets the fuel allocated up to the waypointIndex accounting for any refueling

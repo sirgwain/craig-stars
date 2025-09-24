@@ -277,6 +277,10 @@
 		let commandedIndex = commandables.findIndex((mo) => mapObjectEqual($commandedMapObject, mo));
 		let selectedIndex = selectables.findIndex((mo) => mapObjectEqual($selectedMapObject, mo));
 
+		if (commandables.length === 0) {
+			return;
+		}
+
 		if (commandedIndex < commandables.length - 1) {
 			// we either havne't commanded anything yet (commandedIndex=-1) or there is a commandable object to cycle to
 			// if we are at the end of the commanded list, this will skip

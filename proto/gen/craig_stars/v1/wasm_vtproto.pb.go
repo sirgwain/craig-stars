@@ -1633,6 +1633,11 @@ func (m *UpdateWaypointResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.Result != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.Result))
+		i--
+		dAtA[i] = 0x18
+	}
 	if m.Updated {
 		i--
 		if m.Updated {
@@ -2191,6 +2196,9 @@ func (m *UpdateWaypointResponse) SizeVT() (n int) {
 	}
 	if m.Updated {
 		n += 2
+	}
+	if m.Result != 0 {
+		n += 1 + protohelpers.SizeOfVarint(uint64(m.Result))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -5420,6 +5428,25 @@ func (m *UpdateWaypointResponse) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.Updated = bool(v != 0)
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Result", wireType)
+			}
+			m.Result = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Result |= UpdateWaypointResult(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

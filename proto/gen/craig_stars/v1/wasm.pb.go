@@ -1674,9 +1674,11 @@ func (x *UpdateWaypointRequest) GetFastestWaypoint() bool {
 }
 
 type UpdateWaypointResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Fleet         *Fleet                 `protobuf:"bytes,1,opt,name=fleet,proto3" json:"fleet,omitempty"`
-	Updated       bool                   `protobuf:"varint,2,opt,name=updated,proto3" json:"updated,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Fleet *Fleet                 `protobuf:"bytes,1,opt,name=fleet,proto3" json:"fleet,omitempty"`
+	// Deprecated: Marked as deprecated in craig_stars/v1/wasm.proto.
+	Updated       bool                 `protobuf:"varint,2,opt,name=updated,proto3" json:"updated,omitempty"`
+	Result        UpdateWaypointResult `protobuf:"varint,3,opt,name=result,proto3,enum=craig_stars.v1.UpdateWaypointResult" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1718,6 +1720,7 @@ func (x *UpdateWaypointResponse) GetFleet() *Fleet {
 	return nil
 }
 
+// Deprecated: Marked as deprecated in craig_stars/v1/wasm.proto.
 func (x *UpdateWaypointResponse) GetUpdated() bool {
 	if x != nil {
 		return x.Updated
@@ -1725,11 +1728,18 @@ func (x *UpdateWaypointResponse) GetUpdated() bool {
 	return false
 }
 
+func (x *UpdateWaypointResponse) GetResult() UpdateWaypointResult {
+	if x != nil {
+		return x.Result
+	}
+	return UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_UNSPECIFIED
+}
+
 var File_craig_stars_v1_wasm_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\n" +
-	"\x19craig_stars/v1/wasm.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1acraig_stars/v1/fleet.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1bcraig_stars/v1/player.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\x1a\x19craig_stars/v1/tech.proto\"\xe5\x01\n" +
+	"\x19craig_stars/v1/wasm.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1acraig_stars/v1/fleet.proto\x1a!craig_stars/v1/fleetservice.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1bcraig_stars/v1/player.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\x1a\x19craig_stars/v1/tech.proto\"\xe5\x01\n" +
 	"\x12AddWaypointRequest\x12+\n" +
 	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x120\n" +
 	"\x04dest\x18\x02 \x01(\v2\x1c.craig_stars.v1.WaypointDestR\x04dest\x12E\n" +
@@ -1808,10 +1818,11 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x120\n" +
 	"\x04dest\x18\x02 \x01(\v2\x1c.craig_stars.v1.WaypointDestR\x04dest\x12E\n" +
 	"\x1fcurrent_selected_waypoint_index\x18\x03 \x01(\x05R\x1ccurrentSelectedWaypointIndex\x12)\n" +
-	"\x10fastest_waypoint\x18\x04 \x01(\bR\x0ffastestWaypoint\"_\n" +
+	"\x10fastest_waypoint\x18\x04 \x01(\bR\x0ffastestWaypoint\"\xa1\x01\n" +
 	"\x16UpdateWaypointResponse\x12+\n" +
-	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x12\x18\n" +
-	"\aupdated\x18\x02 \x01(\bR\aupdatedB\xbc\x01\n" +
+	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x12\x1c\n" +
+	"\aupdated\x18\x02 \x01(\bB\x02\x18\x01R\aupdated\x12<\n" +
+	"\x06result\x18\x03 \x01(\x0e2$.craig_stars.v1.UpdateWaypointResultR\x06resultB\xbc\x01\n" +
 	"\x12com.craig_stars.v1B\tWasmProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (
@@ -1883,6 +1894,7 @@ var file_craig_stars_v1_wasm_proto_goTypes = []any{
 	(*Tech)(nil),                              // 52: craig_stars.v1.Tech
 	(*Intels)(nil),                            // 53: craig_stars.v1.Intels
 	(*Player)(nil),                            // 54: craig_stars.v1.Player
+	(UpdateWaypointResult)(0),                 // 55: craig_stars.v1.UpdateWaypointResult
 }
 var file_craig_stars_v1_wasm_proto_depIdxs = []int32{
 	38, // 0: craig_stars.v1.AddWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
@@ -1916,11 +1928,12 @@ var file_craig_stars_v1_wasm_proto_depIdxs = []int32{
 	38, // 28: craig_stars.v1.UpdateWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
 	39, // 29: craig_stars.v1.UpdateWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
 	38, // 30: craig_stars.v1.UpdateWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
-	31, // [31:31] is the sub-list for method output_type
-	31, // [31:31] is the sub-list for method input_type
-	31, // [31:31] is the sub-list for extension type_name
-	31, // [31:31] is the sub-list for extension extendee
-	0,  // [0:31] is the sub-list for field type_name
+	55, // 31: craig_stars.v1.UpdateWaypointResponse.result:type_name -> craig_stars.v1.UpdateWaypointResult
+	32, // [32:32] is the sub-list for method output_type
+	32, // [32:32] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_wasm_proto_init() }
@@ -1930,6 +1943,7 @@ func file_craig_stars_v1_wasm_proto_init() {
 	}
 	file_craig_stars_v1_common_proto_init()
 	file_craig_stars_v1_fleet_proto_init()
+	file_craig_stars_v1_fleetservice_proto_init()
 	file_craig_stars_v1_minefield_proto_init()
 	file_craig_stars_v1_planet_proto_init()
 	file_craig_stars_v1_player_proto_init()

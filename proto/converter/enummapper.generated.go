@@ -2041,6 +2041,35 @@ func CSTerraformHabTypeToTerraformHabType(m cs.TerraformHabType) craig_starsv1.T
 		return craig_starsv1.TerraformHabType_TERRAFORM_HAB_TYPE_UNSPECIFIED
 	}
 }
+func UpdateWaypointResultToCSUpdateWaypointResult(m craig_starsv1.UpdateWaypointResult) cs.UpdateWaypointResult {
+	switch m {
+	case craig_starsv1.UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_UNSPECIFIED:
+		return cs.UpdateWaypointResultNone
+	case craig_starsv1.UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_PREVIOUS_WAYPOINT:
+		return cs.UpdateWaypointResultPreviousWaypoint
+	case craig_starsv1.UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_NEXT_WAYPOINT:
+		return cs.UpdateWaypointResultNextWaypoint
+	case craig_starsv1.UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_UPDATED:
+		return cs.UpdateWaypointResultUpdated
+	default:
+		return cs.UpdateWaypointResult(0)
+	}
+}
+
+func CSUpdateWaypointResultToUpdateWaypointResult(m cs.UpdateWaypointResult) craig_starsv1.UpdateWaypointResult {
+	switch m {
+	case cs.UpdateWaypointResultNone:
+		return craig_starsv1.UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_UNSPECIFIED
+	case cs.UpdateWaypointResultPreviousWaypoint:
+		return craig_starsv1.UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_PREVIOUS_WAYPOINT
+	case cs.UpdateWaypointResultNextWaypoint:
+		return craig_starsv1.UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_NEXT_WAYPOINT
+	case cs.UpdateWaypointResultUpdated:
+		return craig_starsv1.UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_UPDATED
+	default:
+		return craig_starsv1.UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_UNSPECIFIED
+	}
+}
 func UserRoleToCSUserRole(m craig_starsv1.UserRole) cs.UserRole {
 	switch m {
 	case craig_starsv1.UserRole_USER_ROLE_UNSPECIFIED:

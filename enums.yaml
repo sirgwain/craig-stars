@@ -39,6 +39,7 @@ enums:
   - name: TechOrigin
   - name: TechTag
   - name: TerraformHabType
+  - name: UpdateWaypointResult
   - name: UserRole
   - name: WaypointTask
   - name: WaypointTaskTransportAction

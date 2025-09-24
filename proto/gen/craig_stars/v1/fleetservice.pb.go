@@ -21,6 +21,58 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type UpdateWaypointResult int32
+
+const (
+	UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_UNSPECIFIED       UpdateWaypointResult = 0
+	UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_PREVIOUS_WAYPOINT UpdateWaypointResult = 1
+	UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_NEXT_WAYPOINT     UpdateWaypointResult = 2
+	UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_UPDATED           UpdateWaypointResult = 3
+)
+
+// Enum value maps for UpdateWaypointResult.
+var (
+	UpdateWaypointResult_name = map[int32]string{
+		0: "UPDATE_WAYPOINT_RESULT_UNSPECIFIED",
+		1: "UPDATE_WAYPOINT_RESULT_PREVIOUS_WAYPOINT",
+		2: "UPDATE_WAYPOINT_RESULT_NEXT_WAYPOINT",
+		3: "UPDATE_WAYPOINT_RESULT_UPDATED",
+	}
+	UpdateWaypointResult_value = map[string]int32{
+		"UPDATE_WAYPOINT_RESULT_UNSPECIFIED":       0,
+		"UPDATE_WAYPOINT_RESULT_PREVIOUS_WAYPOINT": 1,
+		"UPDATE_WAYPOINT_RESULT_NEXT_WAYPOINT":     2,
+		"UPDATE_WAYPOINT_RESULT_UPDATED":           3,
+	}
+)
+
+func (x UpdateWaypointResult) Enum() *UpdateWaypointResult {
+	p := new(UpdateWaypointResult)
+	*p = x
+	return p
+}
+
+func (x UpdateWaypointResult) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (UpdateWaypointResult) Descriptor() protoreflect.EnumDescriptor {
+	return file_craig_stars_v1_fleetservice_proto_enumTypes[0].Descriptor()
+}
+
+func (UpdateWaypointResult) Type() protoreflect.EnumType {
+	return &file_craig_stars_v1_fleetservice_proto_enumTypes[0]
+}
+
+func (x UpdateWaypointResult) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use UpdateWaypointResult.Descriptor instead.
+func (UpdateWaypointResult) EnumDescriptor() ([]byte, []int) {
+	return file_craig_stars_v1_fleetservice_proto_rawDescGZIP(), []int{0}
+}
+
 type GetFleetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	GameId        int64                  `protobuf:"varint,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
@@ -981,7 +1033,12 @@ const file_craig_stars_v1_fleetservice_proto_rawDesc = "" +
 	"\tfleet_num\x18\x02 \x01(\x05R\bfleetNum\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\"B\n" +
 	"\x13RenameFleetResponse\x12+\n" +
-	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet2\x8b\x05\n" +
+	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet*\xba\x01\n" +
+	"\x14UpdateWaypointResult\x12&\n" +
+	"\"UPDATE_WAYPOINT_RESULT_UNSPECIFIED\x10\x00\x12,\n" +
+	"(UPDATE_WAYPOINT_RESULT_PREVIOUS_WAYPOINT\x10\x01\x12(\n" +
+	"$UPDATE_WAYPOINT_RESULT_NEXT_WAYPOINT\x10\x02\x12\"\n" +
+	"\x1eUPDATE_WAYPOINT_RESULT_UPDATED\x10\x032\x8b\x05\n" +
 	"\fFleetService\x12M\n" +
 	"\bGetFleet\x12\x1f.craig_stars.v1.GetFleetRequest\x1a .craig_stars.v1.GetFleetResponse\x12h\n" +
 	"\x11UpdateFleetOrders\x12(.craig_stars.v1.UpdateFleetOrdersRequest\x1a).craig_stars.v1.UpdateFleetOrdersResponse\x12S\n" +
@@ -1005,76 +1062,78 @@ func file_craig_stars_v1_fleetservice_proto_rawDescGZIP() []byte {
 	return file_craig_stars_v1_fleetservice_proto_rawDescData
 }
 
+var file_craig_stars_v1_fleetservice_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_craig_stars_v1_fleetservice_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_craig_stars_v1_fleetservice_proto_goTypes = []any{
-	(*GetFleetRequest)(nil),           // 0: craig_stars.v1.GetFleetRequest
-	(*GetFleetResponse)(nil),          // 1: craig_stars.v1.GetFleetResponse
-	(*UpdateFleetOrdersRequest)(nil),  // 2: craig_stars.v1.UpdateFleetOrdersRequest
-	(*UpdateFleetOrdersResponse)(nil), // 3: craig_stars.v1.UpdateFleetOrdersResponse
-	(*SplitFleetRequest)(nil),         // 4: craig_stars.v1.SplitFleetRequest
-	(*SplitFleetResponse)(nil),        // 5: craig_stars.v1.SplitFleetResponse
-	(*SplitAllFleetsRequest)(nil),     // 6: craig_stars.v1.SplitAllFleetsRequest
-	(*SplitAllFleetsResponse)(nil),    // 7: craig_stars.v1.SplitAllFleetsResponse
-	(*MergeFleetsRequest)(nil),        // 8: craig_stars.v1.MergeFleetsRequest
-	(*MergeFleetsResponse)(nil),       // 9: craig_stars.v1.MergeFleetsResponse
-	(*TransferCargoRequest)(nil),      // 10: craig_stars.v1.TransferCargoRequest
-	(*TransferCargoResponse)(nil),     // 11: craig_stars.v1.TransferCargoResponse
-	(*RenameFleetRequest)(nil),        // 12: craig_stars.v1.RenameFleetRequest
-	(*RenameFleetResponse)(nil),       // 13: craig_stars.v1.RenameFleetResponse
-	nil,                               // 14: craig_stars.v1.SplitFleetResponse.CargoTransfersEntry
-	nil,                               // 15: craig_stars.v1.SplitAllFleetsResponse.CargoTransfersEntry
-	nil,                               // 16: craig_stars.v1.MergeFleetsResponse.CargoTransfersEntry
-	(*Fleet)(nil),                     // 17: craig_stars.v1.Fleet
-	(*FleetOrders)(nil),               // 18: craig_stars.v1.FleetOrders
-	(*ShipToken)(nil),                 // 19: craig_stars.v1.ShipToken
-	(*Cargo)(nil),                     // 20: craig_stars.v1.Cargo
-	(*MapObject)(nil),                 // 21: craig_stars.v1.MapObject
-	(*Planet)(nil),                    // 22: craig_stars.v1.Planet
-	(*MineralPacket)(nil),             // 23: craig_stars.v1.MineralPacket
-	(*Salvage)(nil),                   // 24: craig_stars.v1.Salvage
-	(*Player)(nil),                    // 25: craig_stars.v1.Player
-	(*CargoTransfers)(nil),            // 26: craig_stars.v1.CargoTransfers
+	(UpdateWaypointResult)(0),         // 0: craig_stars.v1.UpdateWaypointResult
+	(*GetFleetRequest)(nil),           // 1: craig_stars.v1.GetFleetRequest
+	(*GetFleetResponse)(nil),          // 2: craig_stars.v1.GetFleetResponse
+	(*UpdateFleetOrdersRequest)(nil),  // 3: craig_stars.v1.UpdateFleetOrdersRequest
+	(*UpdateFleetOrdersResponse)(nil), // 4: craig_stars.v1.UpdateFleetOrdersResponse
+	(*SplitFleetRequest)(nil),         // 5: craig_stars.v1.SplitFleetRequest
+	(*SplitFleetResponse)(nil),        // 6: craig_stars.v1.SplitFleetResponse
+	(*SplitAllFleetsRequest)(nil),     // 7: craig_stars.v1.SplitAllFleetsRequest
+	(*SplitAllFleetsResponse)(nil),    // 8: craig_stars.v1.SplitAllFleetsResponse
+	(*MergeFleetsRequest)(nil),        // 9: craig_stars.v1.MergeFleetsRequest
+	(*MergeFleetsResponse)(nil),       // 10: craig_stars.v1.MergeFleetsResponse
+	(*TransferCargoRequest)(nil),      // 11: craig_stars.v1.TransferCargoRequest
+	(*TransferCargoResponse)(nil),     // 12: craig_stars.v1.TransferCargoResponse
+	(*RenameFleetRequest)(nil),        // 13: craig_stars.v1.RenameFleetRequest
+	(*RenameFleetResponse)(nil),       // 14: craig_stars.v1.RenameFleetResponse
+	nil,                               // 15: craig_stars.v1.SplitFleetResponse.CargoTransfersEntry
+	nil,                               // 16: craig_stars.v1.SplitAllFleetsResponse.CargoTransfersEntry
+	nil,                               // 17: craig_stars.v1.MergeFleetsResponse.CargoTransfersEntry
+	(*Fleet)(nil),                     // 18: craig_stars.v1.Fleet
+	(*FleetOrders)(nil),               // 19: craig_stars.v1.FleetOrders
+	(*ShipToken)(nil),                 // 20: craig_stars.v1.ShipToken
+	(*Cargo)(nil),                     // 21: craig_stars.v1.Cargo
+	(*MapObject)(nil),                 // 22: craig_stars.v1.MapObject
+	(*Planet)(nil),                    // 23: craig_stars.v1.Planet
+	(*MineralPacket)(nil),             // 24: craig_stars.v1.MineralPacket
+	(*Salvage)(nil),                   // 25: craig_stars.v1.Salvage
+	(*Player)(nil),                    // 26: craig_stars.v1.Player
+	(*CargoTransfers)(nil),            // 27: craig_stars.v1.CargoTransfers
 }
 var file_craig_stars_v1_fleetservice_proto_depIdxs = []int32{
-	17, // 0: craig_stars.v1.GetFleetResponse.fleet:type_name -> craig_stars.v1.Fleet
-	18, // 1: craig_stars.v1.UpdateFleetOrdersRequest.fleet_orders:type_name -> craig_stars.v1.FleetOrders
-	17, // 2: craig_stars.v1.UpdateFleetOrdersResponse.fleet:type_name -> craig_stars.v1.Fleet
-	19, // 3: craig_stars.v1.SplitFleetRequest.source_tokens:type_name -> craig_stars.v1.ShipToken
-	19, // 4: craig_stars.v1.SplitFleetRequest.dest_tokens:type_name -> craig_stars.v1.ShipToken
-	20, // 5: craig_stars.v1.SplitFleetRequest.transfer_amount:type_name -> craig_stars.v1.Cargo
-	17, // 6: craig_stars.v1.SplitFleetResponse.source:type_name -> craig_stars.v1.Fleet
-	17, // 7: craig_stars.v1.SplitFleetResponse.dest:type_name -> craig_stars.v1.Fleet
-	14, // 8: craig_stars.v1.SplitFleetResponse.cargo_transfers:type_name -> craig_stars.v1.SplitFleetResponse.CargoTransfersEntry
-	17, // 9: craig_stars.v1.SplitAllFleetsResponse.fleets:type_name -> craig_stars.v1.Fleet
-	15, // 10: craig_stars.v1.SplitAllFleetsResponse.cargo_transfers:type_name -> craig_stars.v1.SplitAllFleetsResponse.CargoTransfersEntry
-	17, // 11: craig_stars.v1.MergeFleetsResponse.fleet:type_name -> craig_stars.v1.Fleet
-	16, // 12: craig_stars.v1.MergeFleetsResponse.cargo_transfers:type_name -> craig_stars.v1.MergeFleetsResponse.CargoTransfersEntry
-	21, // 13: craig_stars.v1.TransferCargoRequest.mo:type_name -> craig_stars.v1.MapObject
-	20, // 14: craig_stars.v1.TransferCargoRequest.transfer_amount:type_name -> craig_stars.v1.Cargo
-	17, // 15: craig_stars.v1.TransferCargoResponse.fleet:type_name -> craig_stars.v1.Fleet
-	17, // 16: craig_stars.v1.TransferCargoResponse.dest_fleet:type_name -> craig_stars.v1.Fleet
-	22, // 17: craig_stars.v1.TransferCargoResponse.dest_planet:type_name -> craig_stars.v1.Planet
-	23, // 18: craig_stars.v1.TransferCargoResponse.dest_mineral_packet:type_name -> craig_stars.v1.MineralPacket
-	24, // 19: craig_stars.v1.TransferCargoResponse.dest_salvage:type_name -> craig_stars.v1.Salvage
-	25, // 20: craig_stars.v1.TransferCargoResponse.player:type_name -> craig_stars.v1.Player
-	17, // 21: craig_stars.v1.RenameFleetResponse.fleet:type_name -> craig_stars.v1.Fleet
-	26, // 22: craig_stars.v1.SplitFleetResponse.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
-	26, // 23: craig_stars.v1.SplitAllFleetsResponse.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
-	26, // 24: craig_stars.v1.MergeFleetsResponse.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
-	0,  // 25: craig_stars.v1.FleetService.GetFleet:input_type -> craig_stars.v1.GetFleetRequest
-	2,  // 26: craig_stars.v1.FleetService.UpdateFleetOrders:input_type -> craig_stars.v1.UpdateFleetOrdersRequest
-	4,  // 27: craig_stars.v1.FleetService.SplitFleet:input_type -> craig_stars.v1.SplitFleetRequest
-	6,  // 28: craig_stars.v1.FleetService.SplitAllFleets:input_type -> craig_stars.v1.SplitAllFleetsRequest
-	8,  // 29: craig_stars.v1.FleetService.MergeFleets:input_type -> craig_stars.v1.MergeFleetsRequest
-	10, // 30: craig_stars.v1.FleetService.TransferCargo:input_type -> craig_stars.v1.TransferCargoRequest
-	12, // 31: craig_stars.v1.FleetService.RenameFleet:input_type -> craig_stars.v1.RenameFleetRequest
-	1,  // 32: craig_stars.v1.FleetService.GetFleet:output_type -> craig_stars.v1.GetFleetResponse
-	3,  // 33: craig_stars.v1.FleetService.UpdateFleetOrders:output_type -> craig_stars.v1.UpdateFleetOrdersResponse
-	5,  // 34: craig_stars.v1.FleetService.SplitFleet:output_type -> craig_stars.v1.SplitFleetResponse
-	7,  // 35: craig_stars.v1.FleetService.SplitAllFleets:output_type -> craig_stars.v1.SplitAllFleetsResponse
-	9,  // 36: craig_stars.v1.FleetService.MergeFleets:output_type -> craig_stars.v1.MergeFleetsResponse
-	11, // 37: craig_stars.v1.FleetService.TransferCargo:output_type -> craig_stars.v1.TransferCargoResponse
-	13, // 38: craig_stars.v1.FleetService.RenameFleet:output_type -> craig_stars.v1.RenameFleetResponse
+	18, // 0: craig_stars.v1.GetFleetResponse.fleet:type_name -> craig_stars.v1.Fleet
+	19, // 1: craig_stars.v1.UpdateFleetOrdersRequest.fleet_orders:type_name -> craig_stars.v1.FleetOrders
+	18, // 2: craig_stars.v1.UpdateFleetOrdersResponse.fleet:type_name -> craig_stars.v1.Fleet
+	20, // 3: craig_stars.v1.SplitFleetRequest.source_tokens:type_name -> craig_stars.v1.ShipToken
+	20, // 4: craig_stars.v1.SplitFleetRequest.dest_tokens:type_name -> craig_stars.v1.ShipToken
+	21, // 5: craig_stars.v1.SplitFleetRequest.transfer_amount:type_name -> craig_stars.v1.Cargo
+	18, // 6: craig_stars.v1.SplitFleetResponse.source:type_name -> craig_stars.v1.Fleet
+	18, // 7: craig_stars.v1.SplitFleetResponse.dest:type_name -> craig_stars.v1.Fleet
+	15, // 8: craig_stars.v1.SplitFleetResponse.cargo_transfers:type_name -> craig_stars.v1.SplitFleetResponse.CargoTransfersEntry
+	18, // 9: craig_stars.v1.SplitAllFleetsResponse.fleets:type_name -> craig_stars.v1.Fleet
+	16, // 10: craig_stars.v1.SplitAllFleetsResponse.cargo_transfers:type_name -> craig_stars.v1.SplitAllFleetsResponse.CargoTransfersEntry
+	18, // 11: craig_stars.v1.MergeFleetsResponse.fleet:type_name -> craig_stars.v1.Fleet
+	17, // 12: craig_stars.v1.MergeFleetsResponse.cargo_transfers:type_name -> craig_stars.v1.MergeFleetsResponse.CargoTransfersEntry
+	22, // 13: craig_stars.v1.TransferCargoRequest.mo:type_name -> craig_stars.v1.MapObject
+	21, // 14: craig_stars.v1.TransferCargoRequest.transfer_amount:type_name -> craig_stars.v1.Cargo
+	18, // 15: craig_stars.v1.TransferCargoResponse.fleet:type_name -> craig_stars.v1.Fleet
+	18, // 16: craig_stars.v1.TransferCargoResponse.dest_fleet:type_name -> craig_stars.v1.Fleet
+	23, // 17: craig_stars.v1.TransferCargoResponse.dest_planet:type_name -> craig_stars.v1.Planet
+	24, // 18: craig_stars.v1.TransferCargoResponse.dest_mineral_packet:type_name -> craig_stars.v1.MineralPacket
+	25, // 19: craig_stars.v1.TransferCargoResponse.dest_salvage:type_name -> craig_stars.v1.Salvage
+	26, // 20: craig_stars.v1.TransferCargoResponse.player:type_name -> craig_stars.v1.Player
+	18, // 21: craig_stars.v1.RenameFleetResponse.fleet:type_name -> craig_stars.v1.Fleet
+	27, // 22: craig_stars.v1.SplitFleetResponse.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
+	27, // 23: craig_stars.v1.SplitAllFleetsResponse.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
+	27, // 24: craig_stars.v1.MergeFleetsResponse.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
+	1,  // 25: craig_stars.v1.FleetService.GetFleet:input_type -> craig_stars.v1.GetFleetRequest
+	3,  // 26: craig_stars.v1.FleetService.UpdateFleetOrders:input_type -> craig_stars.v1.UpdateFleetOrdersRequest
+	5,  // 27: craig_stars.v1.FleetService.SplitFleet:input_type -> craig_stars.v1.SplitFleetRequest
+	7,  // 28: craig_stars.v1.FleetService.SplitAllFleets:input_type -> craig_stars.v1.SplitAllFleetsRequest
+	9,  // 29: craig_stars.v1.FleetService.MergeFleets:input_type -> craig_stars.v1.MergeFleetsRequest
+	11, // 30: craig_stars.v1.FleetService.TransferCargo:input_type -> craig_stars.v1.TransferCargoRequest
+	13, // 31: craig_stars.v1.FleetService.RenameFleet:input_type -> craig_stars.v1.RenameFleetRequest
+	2,  // 32: craig_stars.v1.FleetService.GetFleet:output_type -> craig_stars.v1.GetFleetResponse
+	4,  // 33: craig_stars.v1.FleetService.UpdateFleetOrders:output_type -> craig_stars.v1.UpdateFleetOrdersResponse
+	6,  // 34: craig_stars.v1.FleetService.SplitFleet:output_type -> craig_stars.v1.SplitFleetResponse
+	8,  // 35: craig_stars.v1.FleetService.SplitAllFleets:output_type -> craig_stars.v1.SplitAllFleetsResponse
+	10, // 36: craig_stars.v1.FleetService.MergeFleets:output_type -> craig_stars.v1.MergeFleetsResponse
+	12, // 37: craig_stars.v1.FleetService.TransferCargo:output_type -> craig_stars.v1.TransferCargoResponse
+	14, // 38: craig_stars.v1.FleetService.RenameFleet:output_type -> craig_stars.v1.RenameFleetResponse
 	32, // [32:39] is the sub-list for method output_type
 	25, // [25:32] is the sub-list for method input_type
 	25, // [25:25] is the sub-list for extension type_name
@@ -1104,13 +1163,14 @@ func file_craig_stars_v1_fleetservice_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_fleetservice_proto_rawDesc), len(file_craig_stars_v1_fleetservice_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_craig_stars_v1_fleetservice_proto_goTypes,
 		DependencyIndexes: file_craig_stars_v1_fleetservice_proto_depIdxs,
+		EnumInfos:         file_craig_stars_v1_fleetservice_proto_enumTypes,
 		MessageInfos:      file_craig_stars_v1_fleetservice_proto_msgTypes,
 	}.Build()
 	File_craig_stars_v1_fleetservice_proto = out.File

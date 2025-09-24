@@ -238,6 +238,10 @@ func (s *wasmService) UpdateWaypoint(ctx context.Context, req *craig_starsv1.Upd
 
 	fleet.InjectDesigns(s.player.Designs)
 
-	updated := fleet.UpdateWaypoint(s.player, dest, int(req.CurrentSelectedWaypointIndex), req.FastestWaypoint)
-	return &craig_starsv1.UpdateWaypointResponse{Updated: updated, Fleet: converter.C.ConvertCSFleet(fleet)}, nil
+	result := fleet.UpdateWaypoint(s.player, dest, int(req.CurrentSelectedWaypointIndex), req.FastestWaypoint)
+	return &craig_starsv1.UpdateWaypointResponse{
+		Updated: result != cs.UpdateWaypointResultNone, // Keep for backward compatibility
+		Result:  converter.CSUpdateWaypointResultToUpdateWaypointResult(result),
+		Fleet:   converter.C.ConvertCSFleet(fleet),
+	}, nil
 }

@@ -4,6 +4,7 @@ package craig_stars.v1;
 
 import "craig_stars/v1/common.proto";
 import "craig_stars/v1/fleet.proto";
+import "craig_stars/v1/fleetservice.proto";
 import "craig_stars/v1/minefield.proto";
 import "craig_stars/v1/planet.proto";
 import "craig_stars/v1/player.proto";
@@ -180,5 +181,6 @@ message UpdateWaypointRequest {
 
 message UpdateWaypointResponse {
   Fleet fleet = 1;
-  bool updated = 2;
+  bool updated = 2 [deprecated = true];
+  UpdateWaypointResult result = 3;
 }
