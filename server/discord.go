@@ -111,7 +111,11 @@ func (d *discordNotifier) SendNewTurnNotification(gameID int64) {
 			}
 		}
 
-		slog.Debug("notifying players of new turn", slog.Int64("gameID", gameID), slog.Int("webhooks", len(webhooks)))
+		slog.Debug("notifying players of new turn",
+			slog.Int64("gameID", gameID),
+			slog.Int("webhooks", len(webhooks)),
+			slog.Int("userAts", len(userAts)),
+		)
 		for _, hook := range webhooks {
 			d.sendWebhookMessage(ctx, hook, discord.NewWebhookMessageCreateBuilder().
 				SetContentf("**%s** has a new turn. \n%s", game.Name, strings.Join(userAts, ", ")).
