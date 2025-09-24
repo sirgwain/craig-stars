@@ -12,14 +12,9 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { enumToString } from '$lib/types/Enums';
 	import { get } from '$lib/types/TechLevel';
-	import {
-		NextResearchField,
-		TechField,
-		type TechLevelJson,
-		PlayerResearchSpecSchema
-	} from '$lib/types/cs-proto';
-	import FutureTechs from './FutureTechs.svelte';
+	import { NextResearchField, PlayerResearchSpecSchema, TechField } from '$lib/types/cs-proto';
 	import { create } from '@bufbuild/protobuf';
+	import FutureTechs from './FutureTechs.svelte';
 
 	const { cs, player } = getGameContext();
 
@@ -38,10 +33,7 @@
 		return get(player.techLevels, field);
 	};
 
-	let field: keyof TechLevelJson = $derived(
-		`${$player.playerOrders.researching}`.toLowerCase() as keyof TechLevelJson
-	);
-	let spent = $derived($player.techLevelsSpent[field] || 0);
+	let spent = $derived(get($player.techLevelsSpent, $player.playerOrders.researching) || 0);
 
 	let leftToSpend = $derived(spec.currentResearchCost - spent);
 	let yearsLeft = $derived(Math.ceil(leftToSpend / spec.resourcesPerYearResearchEstimated));

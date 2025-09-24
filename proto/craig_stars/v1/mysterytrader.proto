@@ -35,7 +35,9 @@ message MysteryTrader {
   map<int32, bool> players_rewarded = 8;
   MysteryTraderSpec spec = 9;
 }
-message MysteryTraderSpec {}
+message MysteryTraderSpec {
+  bool rewarded = 1;
+}
 
 message MysteryTraderReward {
   MysteryTraderRewardType type = 1;

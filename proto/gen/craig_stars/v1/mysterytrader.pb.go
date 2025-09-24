@@ -219,6 +219,7 @@ func (x *MysteryTrader) GetSpec() *MysteryTraderSpec {
 
 type MysteryTraderSpec struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rewarded      bool                   `protobuf:"varint,1,opt,name=rewarded,proto3" json:"rewarded,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -251,6 +252,13 @@ func (x *MysteryTraderSpec) ProtoReflect() protoreflect.Message {
 // Deprecated: Use MysteryTraderSpec.ProtoReflect.Descriptor instead.
 func (*MysteryTraderSpec) Descriptor() ([]byte, []int) {
 	return file_craig_stars_v1_mysterytrader_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *MysteryTraderSpec) GetRewarded() bool {
+	if x != nil {
+		return x.Rewarded
+	}
+	return false
 }
 
 type MysteryTraderReward struct {
@@ -349,8 +357,9 @@ const file_craig_stars_v1_mysterytrader_proto_rawDesc = "" +
 	"\x04spec\x18\t \x01(\v2!.craig_stars.v1.MysteryTraderSpecR\x04spec\x1aB\n" +
 	"\x14PlayersRewardedEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\"\x13\n" +
-	"\x11MysteryTraderSpec\"\xf1\x01\n" +
+	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\"/\n" +
+	"\x11MysteryTraderSpec\x12\x1a\n" +
+	"\brewarded\x18\x01 \x01(\bR\brewarded\"\xf1\x01\n" +
 	"\x13MysteryTraderReward\x12;\n" +
 	"\x04type\x18\x01 \x01(\x0e2'.craig_stars.v1.MysteryTraderRewardTypeR\x04type\x12:\n" +
 	"\vtech_levels\x18\x02 \x01(\v2\x19.craig_stars.v1.TechLevelR\n" +

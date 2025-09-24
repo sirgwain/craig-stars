@@ -2722,7 +2722,7 @@ func (c *ProtoConverter) csMysteryTraderRulesToPCraig_starsv1MysteryTraderRules(
 }
 func (c *ProtoConverter) csMysteryTraderSpecToPCraig_starsv1MysteryTraderSpec(source cs.MysteryTraderSpec) *v1.MysteryTraderSpec {
 	var craig_starsv1MysteryTraderSpec v1.MysteryTraderSpec
-	_ = source
+	craig_starsv1MysteryTraderSpec.Rewarded = source.Rewarded
 	return &craig_starsv1MysteryTraderSpec
 }
 func (c *ProtoConverter) csMysteryTraderTechBoonMineralsRewardToPCraig_starsv1MysteryTraderTechBoonMineralsReward(source cs.MysteryTraderTechBoonMineralsReward) *v1.MysteryTraderTechBoonMineralsReward {
@@ -3634,7 +3634,7 @@ func (c *ProtoConverter) pCraig_starsv1MysteryTraderSpecToCsMysteryTraderSpec(so
 	var csMysteryTraderSpec cs.MysteryTraderSpec
 	if source != nil {
 		var csMysteryTraderSpec2 cs.MysteryTraderSpec
-		_ = (*source)
+		csMysteryTraderSpec2.Rewarded = (*source).Rewarded
 		csMysteryTraderSpec = csMysteryTraderSpec2
 	}
 	return csMysteryTraderSpec

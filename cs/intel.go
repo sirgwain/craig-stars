@@ -668,6 +668,8 @@ func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
 	intel.Heading = mysteryTrader.Heading
 	intel.WarpSpeed = mysteryTrader.WarpSpeed
 	intel.RequestedBoon = mysteryTrader.RequestedBoon
+	// make sure the player knows if they were rewarded by this trader
+	intel.Spec.Rewarded = mysteryTrader.rewardedPlayer(player.Num)
 }
 
 // discover a player's race

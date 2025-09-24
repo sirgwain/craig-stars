@@ -17,12 +17,14 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col grow gap-y-1">
-		<div class="flex flex-row">
-			The trader requests interested parties to send it a feet with at least {mysteryTrader.requestedBoon}kT
-			of minerals on board to be absorbed into the trader. It offers technological assistance in
-			return.
-		</div>
+	<div class="flex flex-col grow gap-y-1 mx-1">
+		{#if !mysteryTrader.spec?.rewarded}
+			<div class="flex flex-row">
+				The trader requests interested parties to send it a feet with at least {mysteryTrader.requestedBoon}kT
+				of minerals on board to be absorbed into the trader. It offers technological assistance in
+				return.
+			</div>
+		{/if}
 		<div class="flex flex-row">
 			Trader is traveling at Warp {mysteryTrader.warpSpeed}.
 		</div>

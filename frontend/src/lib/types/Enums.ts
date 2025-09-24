@@ -37,3 +37,5 @@ export const GameStartModeFullNames: {
 	[GameStartMode.ACC_BBS]: 'Accelerated BBS Play',
 	[GameStartMode.MAX]: 'Max Start'
 };
+
+

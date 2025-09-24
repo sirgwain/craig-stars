@@ -17,6 +17,7 @@ type MysteryTrader struct {
 	Spec            MysteryTraderSpec       `json:"spec,omitzero"`
 }
 type MysteryTraderSpec struct {
+	Rewarded bool `json:"rewarded,omitempty"`
 }
 
 type MysteryTraderRewardType string
