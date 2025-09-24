@@ -19,6 +19,13 @@ service FleetService {
   rpc RenameFleet(RenameFleetRequest) returns (RenameFleetResponse);
 }
 
+enum UpdateWaypointResult {
+  UPDATE_WAYPOINT_RESULT_UNSPECIFIED = 0;
+  UPDATE_WAYPOINT_RESULT_PREVIOUS_WAYPOINT = 1;
+  UPDATE_WAYPOINT_RESULT_NEXT_WAYPOINT = 2;
+  UPDATE_WAYPOINT_RESULT_UPDATED = 3;
+}
+
 message GetFleetRequest {
   int64 game_id = 1;
   int32 fleet_num = 2;

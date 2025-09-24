@@ -368,8 +368,21 @@
 
 	// move the selected waypoint around snapping to targets
 	function dragWaypointMove(position: Position, mo: MapObjectLike | undefined) {
-		if ($selectedWaypoint && $currentSelectedWaypointIndex && $commandedFleet) {
-			// don't move the waypoint to any adjacent waypoints
+		if (!($selectedWaypoint && $currentSelectedWaypointIndex && $commandedFleet)) {
+			return;
+		}
+
+		const dest = create(WaypointDestSchema, {
+			mo: positionWaypoint || !mo?.mapObject ? emptyMapObject() : mo.mapObject,
+			position: { x: Number(position.x), y: Number(position.y) }
+		});
+		onUpdateWaypointDest(dest, fastestWaypoint, false);
+	}
+
+	async function dragWaypointDone(position: Position, mo: MapObjectLike | undefined) {
+		// reset waypoint dragging
+		if ($selectedWaypoint && $commandedFleet && draggingWaypoint) {
+			// don't move the waypoint to any adjacent waypoints (same check as dragWaypointMove)
 			if (mo && !positionWaypoint) {
 				const index = $commandedFleet.fleetOrders.waypoints.findIndex((wp) =>
 					equal(wp.position ?? emptyVector(), mo.mapObject?.position ?? emptyVector())
@@ -378,24 +391,14 @@
 					index == $currentSelectedWaypointIndex - 1 ||
 					index == $currentSelectedWaypointIndex + 1
 				) {
-					return;
+					// Don't call updateWaypoint - let the Go code handle the deletion logic
+					// Instead, still call it but the Go code will return the correct enum
 				}
 			}
 
 			const dest = create(WaypointDestSchema, {
-				mo: mo?.mapObject ?? emptyMapObject(),
-				position: !mo?.mapObject ? { x: Number(position.x), y: Number(position.y) } : undefined
-			});
-			onUpdateWaypointDest(dest, fastestWaypoint, false);
-		}
-	}
-
-	async function dragWaypointDone(position: Position, mo: MapObjectLike | undefined) {
-		// reset waypoint dragging
-		if ($selectedWaypoint && $commandedFleet && draggingWaypoint) {
-			const dest = create(WaypointDestSchema, {
-				mo: mo?.mapObject ?? emptyMapObject(),
-				position: !mo?.mapObject ? { x: Number(position.x), y: Number(position.y) } : undefined
+				mo: positionWaypoint || !mo?.mapObject ? emptyMapObject() : mo.mapObject,
+				position: { x: Number(position.x), y: Number(position.y) }
 			});
 			onUpdateWaypointDest(dest, fastestWaypoint, true);
 		}

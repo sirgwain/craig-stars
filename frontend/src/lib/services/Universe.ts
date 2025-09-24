@@ -138,8 +138,9 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.scoreIntels = playerUniverse?.scoreIntels;
 		this.planetIntels = playerUniverse.planets;
 		this.fleetIntels =
-			playerUniverse.fleets.filter((f) => f.mapObject && f.mapObject?.playerNum !== playerNum && !f.starbase) ??
-			[];
+			playerUniverse.fleets.filter(
+				(f) => f.mapObject && f.mapObject?.playerNum !== playerNum && !f.starbase
+			) ?? [];
 		this.minefieldIntels =
 			playerUniverse.minefields.filter((mo) => mo.mapObject?.playerNum !== playerNum) ?? [];
 		this.shipDesignIntels = playerUniverse.designs.filter((d) => d.playerNum !== playerNum) ?? [];
@@ -341,7 +342,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	getMapObjectsByPosition(position: Position) {
-		return this.mapObjectsByPosition[positionKey(position ?? create(VectorSchema))];
+		return this.mapObjectsByPosition[positionKey(position ?? create(VectorSchema))] ?? [];
 	}
 
 	getCargoDestsByPosition(position: Position): CargoDest[] {

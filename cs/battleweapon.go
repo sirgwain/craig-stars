@@ -386,8 +386,14 @@ func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, targ
 // get the accuracy of a torpedo against a target
 func (weapon *battleWeaponSlot) getAccuracy(torpedoJamming float64) float64 {
 	if torpedoJamming >= weapon.torpedoBonus {
+		// more jamming, for a jammer 20 accuracy is reduced to 80% of the normal accuracy
+		// 45% accurate torp against 20% jammer = 36% accurate torp
 		return weapon.accuracy * (1 - (torpedoJamming - weapon.torpedoBonus))
 	} else {
+		// more boosting than jamming
+		// 45% accurate torp has a 55% miss chance
+		// a BC 20% * 55% miss chance is 11%
+		// total accuracy is 45% + 11% bonus = 56% chance to hit
 		return weapon.accuracy + (1-(weapon.accuracy))*(weapon.torpedoBonus-torpedoJamming)
 	}
 }

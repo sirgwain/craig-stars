@@ -120,6 +120,8 @@ var C Converter
 // goverter:extend CSWaypointTaskTransportActionToWaypointTaskTransportAction
 // goverter:extend WormholeStabilityToCSWormholeStability
 // goverter:extend CSWormholeStabilityToWormholeStability
+// goverter:extend UpdateWaypointResultToCSUpdateWaypointResult
+// goverter:extend CSUpdateWaypointResultToUpdateWaypointResult
 //
 // goverter:extend MinefieldTypeMapToIntMap
 // goverter:extend IntMapToMinefieldTypeMap

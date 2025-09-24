@@ -12,6 +12,16 @@ type CargoTransferRequest struct {
 	Fuel int `json:"fuel,omitempty"`
 }
 
+// the result of an add/update waypoint call
+type UpdateWaypointResult int
+
+const (
+	UpdateWaypointResultNone UpdateWaypointResult = iota
+	UpdateWaypointResultPreviousWaypoint
+	UpdateWaypointResultNextWaypoint
+	UpdateWaypointResultUpdated
+)
+
 type SplitFleetRequest struct {
 	// The source fleet to split tokens from
 	Source *Fleet `json:"sourcefleet,omitempty"`

@@ -1,5 +1,6 @@
 import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
+import { emptyCargo } from '$lib/types/Cargo';
 import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 import { type CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 import { None } from '$lib/types/Consts';
@@ -33,6 +34,7 @@ import {
 	type Waypoint,
 	type WaypointDest
 } from '$lib/types/cs-proto';
+import { UpdateWaypointResult } from '$lib/protogen/craig_stars/v1/fleetservice_pb';
 import { CommandedFleet } from '$lib/types/Fleet';
 import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '$lib/types/Game';
 import { equal, key, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
@@ -40,6 +42,7 @@ import { getMapObjectTarget, getMapObjectTypeForMessageType } from '$lib/types/M
 import { CommandedPlanet } from '$lib/types/Planet';
 import { CommandedPlayer } from '$lib/types/Player';
 import { PlayerSettings } from '$lib/types/PlayerSettings';
+import { emptyVector } from '$lib/types/Vector';
 import type { CS } from '$lib/wasm';
 import { create } from '@bufbuild/protobuf';
 import { findIndex, kebabCase } from 'lodash-es';
@@ -66,8 +69,6 @@ import {
 import { FullGame } from './FullGame';
 import { rollover } from './Math';
 import { Universe } from './Universe';
-import { emptyVector } from '$lib/types/Vector';
-import { emptyCargo } from '$lib/types/Cargo';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -1015,38 +1016,43 @@ export async function createGameContext(
 			console.error('error updating fleet waypoint, no fleet returned from wasm');
 		}
 
-		if (result.updated) {
-			// update the selectedWaypoint while dragging
-			selectedWaypoint.update(() =>
-				Object.assign(sw, result.fleet?.fleetOrders?.waypoints[currentIndex])
-			);
-			// check if we are done updating this waypoint and should save it to the server
-			if (done) {
-				// don't dragging, update the fleet
-				(fleet as Fleet).fleetOrders =
-					result.fleet?.fleetOrders ??
-					// create a valid FleetOrders value with the correct shape
-					create(FleetOrdersSchema);
-				await updateFleetOrders(fleet);
+		// update the selectedWaypoint while dragging
+		selectedWaypoint.update(() =>
+			Object.assign(sw, result.fleet?.fleetOrders?.waypoints[currentIndex])
+		);
+		// trigger reaction
+		selectedWaypoint.update(() => sw);
 
-				// select the new waypoint
-				selectWaypoint(fleet.fleetOrders?.waypoints[currentIndex]);
-				if (sw && sw.mapObjectTarget?.targetType && sw.mapObjectTarget?.targetNum) {
-					const mo = u.getMapObject(sw.mapObjectTarget);
+		// don't do anything until we're done
+		if (!done) {
+			return;
+		}
 
-					if (mo) {
-						selectMapObject(mo);
-					}
+		if (
+			result.result === UpdateWaypointResult.PREVIOUS_WAYPOINT ||
+			result.result === UpdateWaypointResult.NEXT_WAYPOINT
+		) {
+			// we dragged a waypoint onto the previous or next waypoint, delete it
+			deleteWaypoint();
+			return;
+		}
+
+		if (result.result === UpdateWaypointResult.UPDATED) {
+			// don't dragging, update the fleet
+			(fleet as Fleet).fleetOrders =
+				result.fleet?.fleetOrders ??
+				// create a valid FleetOrders value with the correct shape
+				create(FleetOrdersSchema);
+			await updateFleetOrders(fleet);
+
+			// select the new waypoint
+			selectWaypoint(fleet.fleetOrders?.waypoints[currentIndex]);
+			if (sw && sw.mapObjectTarget?.targetType && sw.mapObjectTarget?.targetNum) {
+				const mo = u.getMapObject(sw.mapObjectTarget);
+
+				if (mo) {
+					selectMapObject(mo);
 				}
-			} else {
-				// trigger reaction
-				selectedWaypoint.update(() => sw);
-			}
-		} else {
-			// TODO: this logic is hard to follow with deletes and all that
-			if (done) {
-				// we dragged a waypoint to the previous position, delete it
-				deleteWaypoint();
 			}
 		}
 	}
