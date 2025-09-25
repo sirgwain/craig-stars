@@ -376,7 +376,15 @@ SELECT
 FROM
     users
 WHERE
-    game_id = ?
+    id IN (
+        SELECT
+            p.user_id
+        FROM
+            players p
+        WHERE
+            p.game_id = ?
+            AND p.user_id != 0 -- skip AI slots
+    )
 `
 
 func (q *Queries) GetUsersForGame(ctx context.Context, gameID int64) ([]User, error) {

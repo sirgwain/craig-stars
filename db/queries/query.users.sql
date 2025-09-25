@@ -54,7 +54,15 @@ SELECT
 FROM
     users
 WHERE
-    game_id = ?;
+    id IN (
+        SELECT
+            p.user_id
+        FROM
+            players p
+        WHERE
+            p.game_id = ?
+            AND p.user_id != 0 -- skip AI slots
+    );
 
 -- name: CreateUser :one
 INSERT INTO
