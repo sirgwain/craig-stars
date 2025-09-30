@@ -176,25 +176,50 @@ var positionsByPlayer = []BattleVector{
 	{1, 8},
 }
 
-var movementByRound = [9][4]int{
-	{1, 0, 1, 0},
-	{1, 1, 0, 1},
-	{1, 1, 1, 1},
-	{2, 1, 1, 1},
-	{2, 1, 2, 1},
-	{2, 2, 1, 2},
-	{2, 2, 2, 2},
-	{3, 2, 2, 2},
-	{3, 2, 3, 2},
+// BattleGetMovesForRound calculates how many moves a token with speed `spd` gets on a given round.
+// - spd: token speed (2 - 10).
+// - round: round number (0 to 15).
+// Returns: number of moves this token can make.
+func getMovesForRound(speed, round int) int {
+	base := (speed + 2) >> 2 // floor((spd)/4), 0..63 for uint8 input
+
+	switch speed & 0x3 {
+	case 0:
+		// +1 on even rounds
+		if round&0x1 == 0 {
+			return base + 1
+		}
+		return base
+	case 1:
+		// +1 except when (round % 4) == 2
+		if round&0x3 != 2 {
+			return base + 1
+		}
+		return base
+	case 2:
+		// never +1
+		return base
+	case 3:
+		// +1 when (round % 4) == 0
+		if round&0x3 == 0 {
+			return base + 1
+		}
+		return base
+	default:
+		// unreachable, but return base
+		return base
+	}
 }
 
 // get the movement of this design with additional cargo
-func getBattleMovement(movementMin, movementMax, idealEngineSpeed int, movementBonus float64, mass, numEngines int) int {
+func getBattleSpeed(movementMin, movementMax, idealEngineSpeed int, movementBonus float64, mass, numEngines int) int {
 	if numEngines == 0 {
 		return 0
 	}
 	mb := int(math.Ceil(movementBonus)) // round up fractional movement bonus
-	return Clamp(idealEngineSpeed-2-(mass/(numEngines*70))+mb, movementMin, movementMax)
+	speed := idealEngineSpeed + mb - 2
+	massPenalty := ((mass / 70) / numEngines)
+	return Clamp(speed-massPenalty, movementMin, movementMax)
 }
 
 // BuildBattle builds a battle recording with all the battle tokens for a list of fleets that contains more than one player.
@@ -265,7 +290,7 @@ func newBattler(log *slog.Logger, rules *Rules, battleNum int, players map[int]*
 			// we only dampen movement of ships that move, not starbases (obviously)
 			// and we can't go below 2
 			if token.Movement > 0 {
-				token.Movement = Clamp(token.Movement-dampening, 2, 10)
+				token.Movement = Clamp(token.Movement-dampening, rules.MovementMin, rules.MovementMax)
 			}
 		}
 	}
@@ -396,7 +421,8 @@ func (b *battle) buildMovementOrder(tokens []*battleToken) (moveOrder [4][]*batt
 				movement := token.Movement
 
 				// see if this token can move on this moveNum (i.e. move 1, 2, or 3)
-				if movementByRound[movement-2][roundBlock] > moveNum {
+				moves := getMovesForRound(movement-2, roundBlock)
+				if moves > moveNum {
 					moveOrder[roundBlock] = append(moveOrder[roundBlock], token)
 				}
 			}

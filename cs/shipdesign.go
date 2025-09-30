@@ -313,7 +313,7 @@ func (p ShipDesignPurpose) IsTorpedoShip() bool {
 
 // get the movement for this ship design, based on cargoMass
 func (d *ShipDesign) getMovement(rules *Rules, cargoMass int) int {
-	return getBattleMovement(rules.MovementMin, rules.MovementMax, d.Spec.Engine.IdealSpeed, float64(d.Spec.MovementBonus), d.Spec.Mass+cargoMass, d.Spec.NumEngines)
+	return getBattleSpeed(rules.MovementMin, rules.MovementMax, d.Spec.Engine.IdealSpeed, float64(d.Spec.MovementBonus), d.Spec.Mass+cargoMass, d.Spec.NumEngines)
 }
 
 // returns the new jamming/computing bonus
@@ -640,8 +640,8 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	if spec.NumEngines > 0 {
 		// Movement = (IdealEngineSpeed - 2) - (Mass / (70 * NumEngines)) + Move Bonus
 		// move bonus is rounded up before evaluation
-		spec.Movement = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass, spec.NumEngines)
-		spec.MovementFull = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass+spec.CargoCapacity, spec.NumEngines)
+		spec.Movement = getBattleSpeed(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass, spec.NumEngines)
+		spec.MovementFull = getBattleSpeed(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass+spec.CargoCapacity, spec.NumEngines)
 	} else {
 		spec.Movement = 0
 		spec.MovementFull = 0
@@ -1318,7 +1318,7 @@ func designWarship(rules *Rules, player *Player, hull *TechHull, name string, nu
 			// add them one by one to make sure we don't go overboard
 			for range hullSlot.Capacity {
 				slot.Quantity++
-				prevMovement := getBattleMovement(rules.MovementMin, rules.MovementMax, design.Spec.Engine.IdealSpeed, design.Spec.MovementBonus+jet.MovementBonus*float64(slot.Quantity), design.Spec.Mass+jet.Mass*slot.Quantity, design.Spec.NumEngines)
+				prevMovement := getBattleSpeed(rules.MovementMin, rules.MovementMax, design.Spec.Engine.IdealSpeed, design.Spec.MovementBonus+jet.MovementBonus*float64(slot.Quantity), design.Spec.Mass+jet.Mass*slot.Quantity, design.Spec.NumEngines)
 				if prevMovement >= rules.MovementMax {
 					// we are going brrr enough; stop
 					design.Slots = append(design.Slots, slot)

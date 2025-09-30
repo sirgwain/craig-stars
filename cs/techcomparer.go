@@ -390,7 +390,7 @@ tagLoop:
 		case tag == TechTagManeuveringJet && design.Spec.Movement < rules.MovementMax && !design.Spec.Starbase:
 			// add a smalsl, staple boost to jets
 			oldMove := float64(design.Spec.Movement)
-			moveBoost := float64(getBattleMovement(rules.MovementMin, rules.MovementMax, design.Spec.Engine.IdealSpeed, design.Spec.MovementBonus+hc.MovementBonus*float64(qty), design.Spec.Mass+hc.Mass*qty, design.Spec.NumEngines)) - oldMove
+			moveBoost := float64(getBattleSpeed(rules.MovementMin, rules.MovementMax, design.Spec.Engine.IdealSpeed, design.Spec.MovementBonus+hc.MovementBonus*float64(qty), design.Spec.Mass+hc.Mass*qty, design.Spec.NumEngines)) - oldMove
 			multi := 0.6
 			if design.Purpose.IsTorpedoShip() {
 				multi = 0.35 // reduce bonus multi for torp ships; they don't need it as much

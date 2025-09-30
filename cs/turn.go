@@ -1732,6 +1732,36 @@ func (t *turnGenerator) playerResearch() error {
 
 		for _, planet := range t.game.Planets {
 			if planet.RandomArtifact && planet.Owned() {
+				/*
+				   // must be owned, have an artifact, and random events must be allowed
+				   if (pl->iPlayer != -1 && pl->fArtifact && !game.fNoRandom) {
+				       // consume the artifact so it only fires once
+				       pl->fArtifact = 0;
+
+				       // pick a random tech field [0..5] and a base bonus [100..400]
+				       int tech  = Random(6);
+				       int bonus = Random(301) + 100;
+
+				       // small/early colonies get a proportionally smaller bonus
+				       if (colonyScale < 10) {
+				           bonus = (colonyScale * bonus) / 10;
+				       }
+
+				       // notify the player (message 94). params: (owner, id, from=-2, planet id, tech, bonus, 0..)
+				       FSendPlrMsg(pl->iPlayer, 94, -2, pl->id, tech, bonus, 0, 0, 0, 0);
+
+				       // apply the research bonus
+				       rgplr[(unsigned)pl->iPlayer].rgResSpent[tech] += (unsigned long)bonus;
+
+				       // some rule-sets halve the effective amount (original checked (game.wCrap & 0x0002) != 0)
+				       if (game.fSlowTech) {
+				           bonus >>= 1;
+				       }
+
+				       // (nothing else to do here; the “halved” value only affected the local shown/returned amount)
+				   }
+				*/
+
 				// score, we got a new artifact, but only once
 				planet.RandomArtifact = false
 

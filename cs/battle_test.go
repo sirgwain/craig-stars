@@ -158,6 +158,46 @@ func testPrivateer(player *Player, quantity int) *Fleet {
 
 }
 
+func Test_getMovesForRound(t *testing.T) {
+	tests := []struct {
+		spd   int
+		round int
+		want  int
+	}{
+		// spd % 4 == 0
+		{spd: 0, round: 0, want: 1}, // base=0, even -> +1
+		{spd: 0, round: 1, want: 0}, // odd -> no +1
+		{spd: 4, round: 2, want: 2}, // base=1, even
+		{spd: 4, round: 3, want: 1}, // odd
+
+		// spd % 4 == 1
+		{spd: 1, round: 0, want: 1}, // base=0, r%4=0 !=2 -> +1
+		{spd: 1, round: 1, want: 1}, // r%4=1 !=2 -> +1
+		{spd: 1, round: 2, want: 0}, // r%4=2 -> no +1
+		{spd: 1, round: 3, want: 1}, // r%4=3 !=2 -> +1
+		{spd: 5, round: 2, want: 1}, // base=1, r%4=2 -> no +1
+
+		// spd % 4 == 2
+		{spd: 2, round: 0, want: 1}, // base=1, no +1
+		{spd: 2, round: 1, want: 1},
+		{spd: 6, round: 3, want: 2}, // base=2, no +1
+
+		// spd % 4 == 3
+		{spd: 3, round: 0, want: 2}, // base=1, r%4=0 -> +1
+		{spd: 3, round: 1, want: 1}, // r%4=1 -> no +1
+		{spd: 3, round: 2, want: 1}, // r%4=2 -> no +1
+		{spd: 3, round: 3, want: 1}, // r%4=3 -> no +1
+		{spd: 7, round: 4, want: 3}, // base=2, r%4=0 -> +1
+	}
+
+	for _, tt := range tests {
+		if got := getMovesForRound(tt.spd, tt.round); got != tt.want {
+			t.Errorf("BattleGetMovesForRound(spd=%d, round=%d) = %d, want %d",
+				tt.spd, tt.round, got, tt.want)
+		}
+	}
+}
+
 func Test_battle_getBestFleeMoves(t *testing.T) {
 	type args struct {
 		token   *battleToken
@@ -1349,7 +1389,7 @@ func Test_updateMovesWithCenterPreference(t *testing.T) {
 	}
 }
 
-func Test_getBattleMovement(t *testing.T) {
+func Test_getBattleSpeed(t *testing.T) {
 	type args struct {
 		idealEngineSpeed int
 		mass             int
@@ -1361,14 +1401,16 @@ func Test_getBattleMovement(t *testing.T) {
 		args args
 		want int
 	}{
-		{"244 kT Destroyer + Trans Galactic Drive + thruster", args{idealEngineSpeed: 9, mass: 244, numEngines: 1, movementBonus: 1}, 5},
+		{"248 kT Destroyer + Trans Galactic Drive + thruster", args{idealEngineSpeed: 9, mass: 248, numEngines: 1, movementBonus: 1}, 5},
 		{"69 kT Destroyer + 1 Enigma Pulsar", args{idealEngineSpeed: 10, mass: 69, numEngines: 1, movementBonus: 0.5}, 9},
+		{"71 kT Destroyer + 1 Enigma Pulsar", args{idealEngineSpeed: 10, mass: 71, numEngines: 1, movementBonus: 0.5}, 8},
 		{"71 kT Destroyer + 1 Enigma Pulsar + WM", args{idealEngineSpeed: 10, mass: 71, numEngines: 1, movementBonus: 2.5}, 10},
 		{"71 kT Cruiser w/ 2 Enigma Pulsars", args{idealEngineSpeed: 10, mass: 71, numEngines: 2, movementBonus: 1}, 9},
+		{"572 kT Miner w/ Radiating Hydro Ram Scoop", args{idealEngineSpeed: 6, mass: 572, numEngines: 1, movementBonus: 0}, 2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getBattleMovement(rules.MovementMin, rules.MovementMax, tt.args.idealEngineSpeed, tt.args.movementBonus, tt.args.mass, tt.args.numEngines); got != tt.want {
+			if got := getBattleSpeed(rules.MovementMin, rules.MovementMax, tt.args.idealEngineSpeed, tt.args.movementBonus, tt.args.mass, tt.args.numEngines); got != tt.want {
 				t.Errorf("getBattleMovement() = %v, want %v", got, tt.want)
 			}
 		})
