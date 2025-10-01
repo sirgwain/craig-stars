@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BattleSpeed from '$lib/components/game/BattleSpeed.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
@@ -155,7 +156,7 @@
 				{:else if column.key === 'initiative'}
 					{row.spec?.initiative ?? ''}
 				{:else if column.key === 'movement'}
-					{row.spec?.movement ?? ''}
+					<BattleSpeed speed={row.spec?.movement ?? 0}></BattleSpeed>
 				{:else if column.key === 'hull'}
 					<button
 						class="w-full h-full cursor-help text-left"

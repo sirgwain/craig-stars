@@ -17,6 +17,7 @@
 	import { getContext } from 'svelte';
 	import { onShipDesignTooltip } from '../tooltips/ShipDesignTooltip.svelte';
 	import { getDisplayColor } from '$lib/utils/colorUtils';
+	import BattleSpeed from '../BattleSpeed.svelte';
 
 	const { player, universe, settings } = getGameContext();
 
@@ -81,9 +82,10 @@
 			<div>
 				Initiative: {token.initiative ?? 0}
 			</div>
-			<div>
-				Movement: {token.movement ?? 0}
-			</div>
+			{#if token.movement}
+				Movement: <BattleSpeed speed={token.movement ?? 0}></BattleSpeed>
+			{/if}
+			<div></div>
 		</div>
 		<div class="flex justify-between">
 			<div>

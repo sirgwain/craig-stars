@@ -301,8 +301,8 @@ func NewRulesWithSeed(seed int64) Rules {
 				Starbase: 0.75, // starbases have innate 0.75x jamming multipler by default
 				Ship:     1,    // ships have no innate jamming multipler
 			},
-			MovementMin:         2,  // minimum of 2 battle board movement (1, 0, 1, 0...)
-			MovementMax:         10, // minimum of 10 battle board movement (3, 2, 3, 2...)
+			MovementMin:         2, // movement is 2 to 10
+			MovementMax:         10,
 			MovesToRunAway:      7,
 			NumBattleRounds:     16,
 			TorpedoSplashDamage: 0.125,

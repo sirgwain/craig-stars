@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { MinefieldType, type ShipDesignSpec } from '$lib/types/cs-proto';
 	import { Infinite, NoScanner } from '$lib/types/Consts';
+	import BattleSpeed from './BattleSpeed.svelte';
 
 	type Props = {
 		spec: ShipDesignSpec | undefined;
@@ -100,7 +101,7 @@
 		{/if}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Initiative/Moves</div>
-			<div>{spec.initiative}/{spec.movement}</div>
+			<div>{spec.initiative}/<BattleSpeed speed={spec.movement}></BattleSpeed></div>
 		</div>
 		{#if spec.scanRange != NoScanner || spec.scanRangePen != NoScanner}
 			<div class="flex justify-between">
