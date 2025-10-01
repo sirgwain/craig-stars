@@ -47,7 +47,8 @@ export default {
 					...emerald,
 					primary: '#4D9A69',
 					'base-200': '#C3C3C3', // win31!
-					'--gauge': '#555555'
+					'--gauge': '#555555',
+					warning: '#B45309'
 				}
 			}
 		],
