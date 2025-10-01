@@ -3,20 +3,19 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import GameSettingsEditor from '$lib/components/game/newgame/GameSettingsEditor.svelte';
-	import { GameSettingsSchema, type GameSettings } from '$lib/types/cs-proto';
-	import type { Player } from '$lib/types/cs-proto';
-	import { PlayerType } from '$lib/types/cs-proto';
+	import { addError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { me } from '$lib/services/Stores';
 	import { gameClient, playerClient } from '$lib/services/connect';
+	import type { Player } from '$lib/types/cs-proto';
+	import { GameSettingsSchema, PlayerType, type GameSettings } from '$lib/types/cs-proto';
 	import { create } from '@bufbuild/protobuf';
+	import type { ConnectError } from '@connectrpc/connect';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, onMount } from 'svelte';
 	import RaceView from '../race/RaceView.svelte';
 	import GuestLink from './GuestLink.svelte';
-	import { addError } from '$lib/services/Errors';
-	import type { ConnectError } from '@connectrpc/connect';
 
 	const { game, cs, loadStatus, startPollingStatus, stopPollingStatus, updateGame } =
 		getGameContext();

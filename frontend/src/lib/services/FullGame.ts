@@ -59,6 +59,7 @@ export class FullGame implements Game {
 	public = false;
 	victorDeclared = false;
 	archived = false;
+	galaxyClumping = false;
 	rules = defaultRules;
 	players: PlayerStatus[] = [];
 
