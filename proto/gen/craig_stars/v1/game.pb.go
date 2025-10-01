@@ -49,6 +49,7 @@ type Game struct {
 	Year                         int32                  `protobuf:"varint,23,opt,name=year,proto3" json:"year,omitempty"`
 	VictorDeclared               bool                   `protobuf:"varint,24,opt,name=victor_declared,json=victorDeclared,proto3" json:"victor_declared,omitempty"`
 	Archived                     bool                   `protobuf:"varint,25,opt,name=archived,proto3" json:"archived,omitempty"`
+	GalaxyClumping               bool                   `protobuf:"varint,26,opt,name=galaxy_clumping,json=galaxyClumping,proto3" json:"galaxy_clumping,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -254,6 +255,13 @@ func (x *Game) GetVictorDeclared() bool {
 func (x *Game) GetArchived() bool {
 	if x != nil {
 		return x.Archived
+	}
+	return false
+}
+
+func (x *Game) GetGalaxyClumping() bool {
+	if x != nil {
+		return x.GalaxyClumping
 	}
 	return false
 }
@@ -473,6 +481,7 @@ type GameSettings struct {
 	StartMode                    GameStartMode          `protobuf:"varint,11,opt,name=start_mode,json=startMode,proto3,enum=craig_stars.v1.GameStartMode" json:"start_mode,omitempty"`
 	VictoryConditions            *VictoryConditions     `protobuf:"bytes,12,opt,name=victory_conditions,json=victoryConditions,proto3" json:"victory_conditions,omitempty"`
 	Players                      []*NewGamePlayer       `protobuf:"bytes,13,rep,name=players,proto3" json:"players,omitempty"`
+	GalaxyClumping               bool                   `protobuf:"varint,14,opt,name=galaxy_clumping,json=galaxyClumping,proto3" json:"galaxy_clumping,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -598,6 +607,13 @@ func (x *GameSettings) GetPlayers() []*NewGamePlayer {
 	return nil
 }
 
+func (x *GameSettings) GetGalaxyClumping() bool {
+	if x != nil {
+		return x.GalaxyClumping
+	}
+	return false
+}
+
 type GameWithPlayers struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Game          *Game                  `protobuf:"bytes,1,opt,name=game,proto3" json:"game,omitempty"`
@@ -654,7 +670,7 @@ var File_craig_stars_v1_game_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_game_proto_rawDesc = "" +
 	"\n" +
-	"\x19craig_stars/v1/game.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1bcraig_stars/v1/player.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa2\b\n" +
+	"\x19craig_stars/v1/game.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1bcraig_stars/v1/player.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xcb\b\n" +
 	"\x04Game\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x129\n" +
 	"\n" +
@@ -685,7 +701,8 @@ const file_craig_stars_v1_game_proto_rawDesc = "" +
 	"\x04area\x18\x16 \x01(\v2\x16.craig_stars.v1.VectorR\x04area\x12\x12\n" +
 	"\x04year\x18\x17 \x01(\x05R\x04year\x12'\n" +
 	"\x0fvictor_declared\x18\x18 \x01(\bR\x0evictorDeclared\x12\x1a\n" +
-	"\barchived\x18\x19 \x01(\bR\barchived\"\x91\x04\n" +
+	"\barchived\x18\x19 \x01(\bR\barchived\x12'\n" +
+	"\x0fgalaxy_clumping\x18\x1a \x01(\bR\x0egalaxyClumping\"\x91\x04\n" +
 	"\x11VictoryConditions\x12\x1e\n" +
 	"\n" +
 	"conditions\x18\x01 \x01(\rR\n" +
@@ -707,7 +724,7 @@ const file_craig_stars_v1_game_proto_rawDesc = "" +
 	"\rai_difficulty\x18\x02 \x01(\x0e2\x1c.craig_stars.v1.AiDifficultyR\faiDifficulty\x12\x14\n" +
 	"\x05color\x18\x03 \x01(\tR\x05color\x12(\n" +
 	"\x10default_hull_set\x18\x04 \x01(\x05R\x0edefaultHullSet\x12(\n" +
-	"\x04race\x18\x05 \x01(\v2\x14.craig_stars.v1.RaceR\x04race\"\x99\x05\n" +
+	"\x04race\x18\x05 \x01(\v2\x14.craig_stars.v1.RaceR\x04race\"\xc2\x05\n" +
 	"\fGameSettings\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
 	"\x06public\x18\x02 \x01(\bR\x06public\x12*\n" +
@@ -723,7 +740,8 @@ const file_craig_stars_v1_game_proto_rawDesc = "" +
 	"\n" +
 	"start_mode\x18\v \x01(\x0e2\x1d.craig_stars.v1.GameStartModeR\tstartMode\x12P\n" +
 	"\x12victory_conditions\x18\f \x01(\v2!.craig_stars.v1.VictoryConditionsR\x11victoryConditions\x127\n" +
-	"\aplayers\x18\r \x03(\v2\x1d.craig_stars.v1.NewGamePlayerR\aplayers\"s\n" +
+	"\aplayers\x18\r \x03(\v2\x1d.craig_stars.v1.NewGamePlayerR\aplayers\x12'\n" +
+	"\x0fgalaxy_clumping\x18\x0e \x01(\bR\x0egalaxyClumping\"s\n" +
 	"\x0fGameWithPlayers\x12(\n" +
 	"\x04game\x18\x01 \x01(\v2\x14.craig_stars.v1.GameR\x04game\x126\n" +
 	"\aplayers\x18\x02 \x03(\v2\x1c.craig_stars.v1.PlayerStatusR\aplayersB\xbc\x01\n" +

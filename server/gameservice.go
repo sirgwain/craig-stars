@@ -149,6 +149,7 @@ func (s *gameService) UpdateGame(ctx context.Context, req *connect.Request[craig
 	game.ComputerPlayersFormAlliances = req.Msg.Settings.ComputerPlayersFormAlliances
 	game.PublicPlayerScores = req.Msg.Settings.PublicPlayerScores
 	game.MaxMinerals = req.Msg.Settings.MaxMinerals
+	game.GalaxyClumping = req.Msg.Settings.GalaxyClumping
 	game.StartMode = converter.GameStartModeToCSGameStartMode(req.Msg.Settings.StartMode)
 	game.QuickStartTurns = int(req.Msg.Settings.QuickStartTurns)
 	game.VictoryConditions = converter.C.ConvertVictoryConditions(req.Msg.Settings.VictoryConditions)

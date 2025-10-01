@@ -1,0 +1,2 @@
+ALTER TABLE games
+ADD galaxy_clumping BOOLEAN NOT NULL DEFAULT 0;

@@ -48,13 +48,11 @@
 		},
 		"highRadMineralConcentrationBonusThreshold": 90,
 		"limitMineralConcentration": 30,
-		"maxExtraWorldDistance": 180,
 		"maxHab": 99,
 		"maxMineralConcentration": 200,
 		"maxStartingMineralConcentration": 121,
 		"maxStartingMineralSurface": 1000,
 		"minExtraPlanetMineralConcentration": 30,
-		"minExtraWorldDistance": 130,
 		"minHab": 1,
 		"minHomeworldMineralConcentration": 30,
 		"minMineralConcentration": 1,
@@ -68,7 +66,10 @@
 			"5": 10
 		},
 		"startingYear": 2400,
-		"wormholeMinPlanetDistance": 30
+		"wormholeMinPlanetDistance": 30,
+		"borderInset": 20,
+		"minPlanetSpacing": 12,
+		"sqLyPerPlanet": 5000
 	},
 	"createdAt": "0001-01-01T00:00:00Z",
 	"updatedAt": "0001-01-01T00:00:00Z",

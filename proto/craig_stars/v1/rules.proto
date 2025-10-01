@@ -85,13 +85,11 @@ message UniverseGenerationRules {
   Hab hab_dropoff_range = 1;
   int32 high_rad_mineral_concentration_bonus_threshold = 2;
   int32 limit_mineral_concentration = 3;
-  int32 max_extra_world_distance = 4;
   int32 max_hab = 5;
   int32 max_mineral_concentration = 6;
   int32 max_starting_mineral_concentration = 7;
   int32 max_starting_mineral_surface = 8;
   int32 min_extra_planet_mineral_concentration = 9;
-  int32 min_extra_world_distance = 10;
   int32 min_hab = 11;
   int32 min_homeworld_mineral_concentration = 12;
   int32 min_mineral_concentration = 13;
@@ -100,6 +98,9 @@ message UniverseGenerationRules {
   map<int32, int32> race_leftover_points_per_item = 16;
   int32 starting_year = 17;
   int32 wormhole_min_planet_distance = 18;
+  int32 border_inset = 19;
+  int32 min_planet_spacing = 20;
+  int32 sq_ly_per_planet = 21;
 }
 
 // ===== Mystery Trader =====

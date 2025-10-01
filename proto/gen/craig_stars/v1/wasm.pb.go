@@ -1674,11 +1674,9 @@ func (x *UpdateWaypointRequest) GetFastestWaypoint() bool {
 }
 
 type UpdateWaypointResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Fleet *Fleet                 `protobuf:"bytes,1,opt,name=fleet,proto3" json:"fleet,omitempty"`
-	// Deprecated: Marked as deprecated in craig_stars/v1/wasm.proto.
-	Updated       bool                 `protobuf:"varint,2,opt,name=updated,proto3" json:"updated,omitempty"`
-	Result        UpdateWaypointResult `protobuf:"varint,3,opt,name=result,proto3,enum=craig_stars.v1.UpdateWaypointResult" json:"result,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Fleet         *Fleet                 `protobuf:"bytes,1,opt,name=fleet,proto3" json:"fleet,omitempty"`
+	Result        UpdateWaypointResult   `protobuf:"varint,3,opt,name=result,proto3,enum=craig_stars.v1.UpdateWaypointResult" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1718,14 +1716,6 @@ func (x *UpdateWaypointResponse) GetFleet() *Fleet {
 		return x.Fleet
 	}
 	return nil
-}
-
-// Deprecated: Marked as deprecated in craig_stars/v1/wasm.proto.
-func (x *UpdateWaypointResponse) GetUpdated() bool {
-	if x != nil {
-		return x.Updated
-	}
-	return false
 }
 
 func (x *UpdateWaypointResponse) GetResult() UpdateWaypointResult {
@@ -1818,10 +1808,9 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x120\n" +
 	"\x04dest\x18\x02 \x01(\v2\x1c.craig_stars.v1.WaypointDestR\x04dest\x12E\n" +
 	"\x1fcurrent_selected_waypoint_index\x18\x03 \x01(\x05R\x1ccurrentSelectedWaypointIndex\x12)\n" +
-	"\x10fastest_waypoint\x18\x04 \x01(\bR\x0ffastestWaypoint\"\xa1\x01\n" +
+	"\x10fastest_waypoint\x18\x04 \x01(\bR\x0ffastestWaypoint\"\x83\x01\n" +
 	"\x16UpdateWaypointResponse\x12+\n" +
-	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x12\x1c\n" +
-	"\aupdated\x18\x02 \x01(\bB\x02\x18\x01R\aupdated\x12<\n" +
+	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x12<\n" +
 	"\x06result\x18\x03 \x01(\x0e2$.craig_stars.v1.UpdateWaypointResultR\x06resultB\xbc\x01\n" +
 	"\x12com.craig_stars.v1B\tWasmProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 

@@ -189,7 +189,8 @@ func Test_generateTurn(t *testing.T) {
 	assert.Greater(t, len(universe.Fleets), startingFleets)
 
 	// should have grown pop
-	assert.Greater(t, universe.Planets[0].exactPopulation(), player.Race.Spec.StartingPlanets[0].Population)
+	pmo = universe.GetPlayerMapObjects(player.Num)
+	assert.Greater(t, pmo.Planets[0].exactPopulation(), player.Race.Spec.StartingPlanets[0].Population)
 }
 
 func Test_generateTurns(t *testing.T) {
@@ -264,10 +265,11 @@ func Test_generateTurns(t *testing.T) {
 	assert.True(t, len(universe.Fleets) > 0)
 
 	// should have grown pop
-	assert.Greater(t, universe.Planets[0].exactPopulation(), player.Race.Spec.StartingPlanets[0].Population)
+	pmo := universe.GetPlayerMapObjects(player.Num)
+	assert.Greater(t, pmo.Planets[0].exactPopulation(), player.Race.Spec.StartingPlanets[0].Population)
 
 	// should have built factories
-	assert.Greater(t, universe.Planets[0].Factories, player.Race.Spec.StartingPlanets[0].Factories)
+	assert.Greater(t, pmo.Planets[0].Factories, player.Race.Spec.StartingPlanets[0].Factories)
 
 	// no victor
 	assert.False(t, player.Victor)

@@ -579,13 +579,11 @@ type UniverseGenerationRules struct {
 	HabDropoffRange                           *Hab                   `protobuf:"bytes,1,opt,name=hab_dropoff_range,json=habDropoffRange,proto3" json:"hab_dropoff_range,omitempty"`
 	HighRadMineralConcentrationBonusThreshold int32                  `protobuf:"varint,2,opt,name=high_rad_mineral_concentration_bonus_threshold,json=highRadMineralConcentrationBonusThreshold,proto3" json:"high_rad_mineral_concentration_bonus_threshold,omitempty"`
 	LimitMineralConcentration                 int32                  `protobuf:"varint,3,opt,name=limit_mineral_concentration,json=limitMineralConcentration,proto3" json:"limit_mineral_concentration,omitempty"`
-	MaxExtraWorldDistance                     int32                  `protobuf:"varint,4,opt,name=max_extra_world_distance,json=maxExtraWorldDistance,proto3" json:"max_extra_world_distance,omitempty"`
 	MaxHab                                    int32                  `protobuf:"varint,5,opt,name=max_hab,json=maxHab,proto3" json:"max_hab,omitempty"`
 	MaxMineralConcentration                   int32                  `protobuf:"varint,6,opt,name=max_mineral_concentration,json=maxMineralConcentration,proto3" json:"max_mineral_concentration,omitempty"`
 	MaxStartingMineralConcentration           int32                  `protobuf:"varint,7,opt,name=max_starting_mineral_concentration,json=maxStartingMineralConcentration,proto3" json:"max_starting_mineral_concentration,omitempty"`
 	MaxStartingMineralSurface                 int32                  `protobuf:"varint,8,opt,name=max_starting_mineral_surface,json=maxStartingMineralSurface,proto3" json:"max_starting_mineral_surface,omitempty"`
 	MinExtraPlanetMineralConcentration        int32                  `protobuf:"varint,9,opt,name=min_extra_planet_mineral_concentration,json=minExtraPlanetMineralConcentration,proto3" json:"min_extra_planet_mineral_concentration,omitempty"`
-	MinExtraWorldDistance                     int32                  `protobuf:"varint,10,opt,name=min_extra_world_distance,json=minExtraWorldDistance,proto3" json:"min_extra_world_distance,omitempty"`
 	MinHab                                    int32                  `protobuf:"varint,11,opt,name=min_hab,json=minHab,proto3" json:"min_hab,omitempty"`
 	MinHomeworldMineralConcentration          int32                  `protobuf:"varint,12,opt,name=min_homeworld_mineral_concentration,json=minHomeworldMineralConcentration,proto3" json:"min_homeworld_mineral_concentration,omitempty"`
 	MinMineralConcentration                   int32                  `protobuf:"varint,13,opt,name=min_mineral_concentration,json=minMineralConcentration,proto3" json:"min_mineral_concentration,omitempty"`
@@ -594,6 +592,9 @@ type UniverseGenerationRules struct {
 	RaceLeftoverPointsPerItem                 map[int32]int32        `protobuf:"bytes,16,rep,name=race_leftover_points_per_item,json=raceLeftoverPointsPerItem,proto3" json:"race_leftover_points_per_item,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	StartingYear                              int32                  `protobuf:"varint,17,opt,name=starting_year,json=startingYear,proto3" json:"starting_year,omitempty"`
 	WormholeMinPlanetDistance                 int32                  `protobuf:"varint,18,opt,name=wormhole_min_planet_distance,json=wormholeMinPlanetDistance,proto3" json:"wormhole_min_planet_distance,omitempty"`
+	BorderInset                               int32                  `protobuf:"varint,19,opt,name=border_inset,json=borderInset,proto3" json:"border_inset,omitempty"`
+	MinPlanetSpacing                          int32                  `protobuf:"varint,20,opt,name=min_planet_spacing,json=minPlanetSpacing,proto3" json:"min_planet_spacing,omitempty"`
+	SqLyPerPlanet                             int32                  `protobuf:"varint,21,opt,name=sq_ly_per_planet,json=sqLyPerPlanet,proto3" json:"sq_ly_per_planet,omitempty"`
 	unknownFields                             protoimpl.UnknownFields
 	sizeCache                                 protoimpl.SizeCache
 }
@@ -649,13 +650,6 @@ func (x *UniverseGenerationRules) GetLimitMineralConcentration() int32 {
 	return 0
 }
 
-func (x *UniverseGenerationRules) GetMaxExtraWorldDistance() int32 {
-	if x != nil {
-		return x.MaxExtraWorldDistance
-	}
-	return 0
-}
-
 func (x *UniverseGenerationRules) GetMaxHab() int32 {
 	if x != nil {
 		return x.MaxHab
@@ -687,13 +681,6 @@ func (x *UniverseGenerationRules) GetMaxStartingMineralSurface() int32 {
 func (x *UniverseGenerationRules) GetMinExtraPlanetMineralConcentration() int32 {
 	if x != nil {
 		return x.MinExtraPlanetMineralConcentration
-	}
-	return 0
-}
-
-func (x *UniverseGenerationRules) GetMinExtraWorldDistance() int32 {
-	if x != nil {
-		return x.MinExtraWorldDistance
 	}
 	return 0
 }
@@ -750,6 +737,27 @@ func (x *UniverseGenerationRules) GetStartingYear() int32 {
 func (x *UniverseGenerationRules) GetWormholeMinPlanetDistance() int32 {
 	if x != nil {
 		return x.WormholeMinPlanetDistance
+	}
+	return 0
+}
+
+func (x *UniverseGenerationRules) GetBorderInset() int32 {
+	if x != nil {
+		return x.BorderInset
+	}
+	return 0
+}
+
+func (x *UniverseGenerationRules) GetMinPlanetSpacing() int32 {
+	if x != nil {
+		return x.MinPlanetSpacing
+	}
+	return 0
+}
+
+func (x *UniverseGenerationRules) GetSqLyPerPlanet() int32 {
+	if x != nil {
+		return x.SqLyPerPlanet
 	}
 	return 0
 }
@@ -1539,20 +1547,17 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\fmovement_max\x18\x06 \x01(\x05R\vmovementMax\x12)\n" +
 	"\x11moves_to_run_away\x18\a \x01(\x05R\x0emovesToRunAway\x12*\n" +
 	"\x11num_battle_rounds\x18\b \x01(\x05R\x0fnumBattleRounds\x122\n" +
-	"\x15torpedo_splash_damage\x18\t \x01(\x01R\x13torpedoSplashDamage\"\x97\n" +
+	"\x15torpedo_splash_damage\x18\t \x01(\x01R\x13torpedoSplashDamage\"\x9f\n" +
 	"\n" +
 	"\x17UniverseGenerationRules\x12?\n" +
 	"\x11hab_dropoff_range\x18\x01 \x01(\v2\x13.craig_stars.v1.HabR\x0fhabDropoffRange\x12a\n" +
 	".high_rad_mineral_concentration_bonus_threshold\x18\x02 \x01(\x05R)highRadMineralConcentrationBonusThreshold\x12>\n" +
-	"\x1blimit_mineral_concentration\x18\x03 \x01(\x05R\x19limitMineralConcentration\x127\n" +
-	"\x18max_extra_world_distance\x18\x04 \x01(\x05R\x15maxExtraWorldDistance\x12\x17\n" +
+	"\x1blimit_mineral_concentration\x18\x03 \x01(\x05R\x19limitMineralConcentration\x12\x17\n" +
 	"\amax_hab\x18\x05 \x01(\x05R\x06maxHab\x12:\n" +
 	"\x19max_mineral_concentration\x18\x06 \x01(\x05R\x17maxMineralConcentration\x12K\n" +
 	"\"max_starting_mineral_concentration\x18\a \x01(\x05R\x1fmaxStartingMineralConcentration\x12?\n" +
 	"\x1cmax_starting_mineral_surface\x18\b \x01(\x05R\x19maxStartingMineralSurface\x12R\n" +
-	"&min_extra_planet_mineral_concentration\x18\t \x01(\x05R\"minExtraPlanetMineralConcentration\x127\n" +
-	"\x18min_extra_world_distance\x18\n" +
-	" \x01(\x05R\x15minExtraWorldDistance\x12\x17\n" +
+	"&min_extra_planet_mineral_concentration\x18\t \x01(\x05R\"minExtraPlanetMineralConcentration\x12\x17\n" +
 	"\amin_hab\x18\v \x01(\x05R\x06minHab\x12M\n" +
 	"#min_homeworld_mineral_concentration\x18\f \x01(\x05R minHomeworldMineralConcentration\x12:\n" +
 	"\x19min_mineral_concentration\x18\r \x01(\x05R\x17minMineralConcentration\x12K\n" +
@@ -1560,7 +1565,10 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\x1cmin_starting_mineral_surface\x18\x0f \x01(\x05R\x19minStartingMineralSurface\x12\x88\x01\n" +
 	"\x1drace_leftover_points_per_item\x18\x10 \x03(\v2F.craig_stars.v1.UniverseGenerationRules.RaceLeftoverPointsPerItemEntryR\x19raceLeftoverPointsPerItem\x12#\n" +
 	"\rstarting_year\x18\x11 \x01(\x05R\fstartingYear\x12?\n" +
-	"\x1cwormhole_min_planet_distance\x18\x12 \x01(\x05R\x19wormholeMinPlanetDistance\x1aL\n" +
+	"\x1cwormhole_min_planet_distance\x18\x12 \x01(\x05R\x19wormholeMinPlanetDistance\x12!\n" +
+	"\fborder_inset\x18\x13 \x01(\x05R\vborderInset\x12,\n" +
+	"\x12min_planet_spacing\x18\x14 \x01(\x05R\x10minPlanetSpacing\x12'\n" +
+	"\x10sq_ly_per_planet\x18\x15 \x01(\x05R\rsqLyPerPlanet\x1aL\n" +
 	"\x1eRaceLeftoverPointsPerItemEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"d\n" +

@@ -56,6 +56,7 @@ type Game struct {
 	Year                         int               `json:"year,omitempty"`
 	VictorDeclared               bool              `json:"victorDeclared"`
 	Archived                     bool              `json:"archived"`
+	GalaxyClumping               bool              `json:"galaxyClumping"`
 }
 
 // A new player in a game, only used during game setup
@@ -79,6 +80,7 @@ type GameSettings struct {
 	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances"`
 	PublicPlayerScores           bool              `json:"publicPlayerScores"`
 	MaxMinerals                  bool              `json:"maxMinerals"`
+	GalaxyClumping               bool              `json:"galaxyClumping"`
 	StartMode                    GameStartMode     `json:"startMode"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Players                      []NewGamePlayer   `json:"players"`
@@ -331,6 +333,7 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.ComputerPlayersFormAlliances = settings.ComputerPlayersFormAlliances
 	g.PublicPlayerScores = settings.PublicPlayerScores
 	g.MaxMinerals = settings.MaxMinerals
+	g.GalaxyClumping = settings.GalaxyClumping
 	g.StartMode = settings.StartMode
 	g.VictoryConditions = settings.VictoryConditions
 

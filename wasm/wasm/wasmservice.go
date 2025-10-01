@@ -240,8 +240,7 @@ func (s *wasmService) UpdateWaypoint(ctx context.Context, req *craig_starsv1.Upd
 
 	result := fleet.UpdateWaypoint(s.player, dest, int(req.CurrentSelectedWaypointIndex), req.FastestWaypoint)
 	return &craig_starsv1.UpdateWaypointResponse{
-		Updated: result != cs.UpdateWaypointResultNone, // Keep for backward compatibility
-		Result:  converter.CSUpdateWaypointResultToUpdateWaypointResult(result),
-		Fleet:   converter.C.ConvertCSFleet(fleet),
+		Result: converter.CSUpdateWaypointResultToUpdateWaypointResult(result),
+		Fleet:  converter.C.ConvertCSFleet(fleet),
 	}, nil
 }

@@ -181,6 +181,5 @@ message UpdateWaypointRequest {
 
 message UpdateWaypointResponse {
   Fleet fleet = 1;
-  bool updated = 2 [deprecated = true];
   UpdateWaypointResult result = 3;
 }

@@ -3,6 +3,8 @@ package cs
 import (
 	"fmt"
 	"math"
+	"slices"
+	"sort"
 
 	"log/slog"
 )
@@ -140,7 +142,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	}
 	ug.generatePlayerRelations()
 
-	if err := ug.generatePlayerStartingPlanets(ug.area); err != nil {
+	if err := ug.generatePlayerStartingPlanets(); err != nil {
 		return nil, err
 	}
 
@@ -187,6 +189,442 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	return ug.Universe, nil
 }
 
+// placePlanets generates planet positions
+// Mirrors the original game
+// 1) seed extra candidates in a bordered rectangle
+// 2) enforce a minimum spacing via sweep-by-x
+// 3) randomly cull to exact target
+// 4) optional “clumping” pass nudging points toward nearest neighbor
+func (ug *universeGenerator) placePlanets(numPlanets, width, height, minSpacing, borderInset int) ([]VectorInt, error) {
+	if numPlanets <= 0 {
+		return nil, fmt.Errorf("placePlanets: numPlanets must be > 0")
+	}
+	if minSpacing < 0 || borderInset < 0 {
+		return nil, fmt.Errorf("placePlanets: minSpacing and borderInset must be >= 0")
+	}
+
+	if width <= 0 || height <= 0 {
+		return nil, fmt.Errorf("placePlanets: invalid area (%v x %v)", ug.area.X, ug.area.Y)
+	}
+
+	// start with extra planets to we can cull them later
+	numStartingPlanets := numPlanets + numPlanets/7
+
+	// Guard against tiny maps where border exceeds available space.
+	const extraMargin = 10 // original code used +10 and -20 band; we keep a small safety pad
+	xMin := borderInset + extraMargin
+	yMin := borderInset + extraMargin
+	xMax := width - borderInset - extraMargin
+	yMax := height - borderInset - extraMargin
+	if xMax <= xMin || yMax <= yMin {
+		return nil, fmt.Errorf("placePlanets: area too small after inset; (%d,%d)-(%d,%d)", xMin, yMin, xMax, yMax)
+	}
+	xSpan := xMax - xMin
+	ySpan := yMax - yMin
+
+	// Seed candidate points uniformly in the bordered rectangle
+	candidates := make([]VectorInt, numStartingPlanets)
+	for i := range numStartingPlanets {
+		// Your rules.random provides Intn; mirror C's uniform Random().
+		x := xMin + ug.Rules.random.Intn(xSpan)
+		y := yMin + ug.Rules.random.Intn(ySpan)
+		candidates[i] = VectorInt{X: x, Y: y}
+	}
+
+	// Sort by X
+	slices.SortFunc(candidates, VectorCompareX)
+
+	// Cull points that violate minimum spacing (sweep by x)
+	minSq := minSpacing * minSpacing
+	killed := make([]bool, numStartingPlanets)
+
+	for i := range numStartingPlanets {
+		if killed[i] {
+			continue
+		}
+		ix := candidates[i].X
+		iy := candidates[i].Y
+		xStop := ix + minSpacing
+
+		// Check only forward points whose X is within ix + minSpacing
+		for j := i + 1; j < numStartingPlanets; j++ {
+			if killed[j] {
+				continue
+			}
+			jx := candidates[j].X
+			if jx > xStop {
+				break // remaining have larger X; safe to stop inner loop
+			}
+			jy := candidates[j].Y
+
+			ady := Abs(iy - jy)
+			if ady > minSpacing {
+				continue
+			}
+
+			adx := ix - jx
+			dist2 := adx*adx + ady*ady
+			if dist2 <= minSq {
+				// Kill the later point
+				killed[j] = true
+			}
+		}
+	}
+
+	// Randomly mark more for deletion if still over capacity
+	aliveIdx := make([]int, 0, numStartingPlanets)
+	for i := range numStartingPlanets {
+		if !killed[i] {
+			aliveIdx = append(aliveIdx, i)
+		}
+	}
+	// If we ended under (can happen on very dense spacing requests),
+	// we’ll just accept the shortfall rather than re-seed (faithful to original “just place” step).
+	over := max(len(aliveIdx)-numPlanets, 0)
+	for c := 0; c < over; {
+		r := ug.Rules.random.Intn(len(aliveIdx))
+		i := aliveIdx[r]
+		if !killed[i] {
+			killed[i] = true
+			c++
+		}
+	}
+
+	// Compact survivors to front (collect final positions)
+	pos := make([]VectorInt, 0, numPlanets)
+	for i := 0; i < numStartingPlanets && len(pos) < numPlanets; i++ {
+		if !killed[i] {
+			pos = append(pos, candidates[i])
+		}
+	}
+
+	return pos, nil
+}
+
+// clump positions together
+func (ug *universeGenerator) clump(pos []VectorInt, width, height, borderInset, extraMargin int) {
+
+	xMin := borderInset + extraMargin
+	yMin := borderInset + extraMargin
+	xMax := width - borderInset - extraMargin
+	yMax := height - borderInset - extraMargin
+
+	// Optional clumping pass
+	// We mimic the original thresholds and movement fractions, but work in a rectangular map.
+	// After clumping we re-sort by X
+	count := len(pos)
+	// One sweep: pick a random point each time, nudge toward its nearest neighbor
+	for range count {
+		j := ug.Rules.random.Intn(count)
+		pj := pos[j]
+
+		// find nearest neighbor of j
+		bestK := -1
+		bestD2 := math.MaxInt32
+		jx, jy := pj.X, pj.Y
+		for k := range count {
+			if k == j {
+				continue
+			}
+			dx := jx - pos[k].X
+			dy := jy - pos[k].Y
+			d2 := int(dx*dx + dy*dy)
+			if d2 < bestD2 {
+				bestD2 = d2
+				bestK = k
+			}
+		}
+		if bestK < 0 {
+			continue
+		}
+
+		// Mirror the decompile thresholds:
+		// > 40^2: move 2/3 toward nearest
+		// > 25^2: move 1/2 toward nearest
+		// > 18^2: move 1/3 toward nearest
+		// else (but still > 12^2): move 1/5 toward nearest
+		if bestD2 > 12*12 {
+			n := pos[bestK]
+			switch {
+			case bestD2 > 40*40:
+				pos[j].X = (pj.X + 2*n.X) / 3
+				pos[j].Y = (pj.Y + 2*n.Y) / 3
+			case bestD2 > 25*25:
+				pos[j].X = (pj.X + n.X) / 2
+				pos[j].Y = (pj.Y + n.Y) / 2
+			case bestD2 > 18*18:
+				pos[j].X = (2*pj.X + n.X) / 3
+				pos[j].Y = (2*pj.Y + n.Y) / 3
+			default:
+				pos[j].X = (4*pj.X + n.X) / 5
+				pos[j].Y = (4*pj.Y + n.Y) / 5
+			}
+
+			// Keep within bordered rectangle just in case nudging crosses the border
+			if pos[j].X < xMin {
+				pos[j].X = xMin
+			} else if pos[j].X >= xMax {
+				pos[j].X = xMax - 1
+			}
+			if pos[j].Y < yMin {
+				pos[j].Y = yMin
+			} else if pos[j].Y >= yMax {
+				pos[j].Y = yMax - 1
+			}
+		}
+	}
+	// sort again by x for consistency
+	slices.SortFunc(pos, VectorCompareX)
+
+}
+
+// getPlayerPlanets picks homeworld planet indices for the first N players.
+// It only chooses positions; naming/initial setup can happen later.
+// Returns indices into ug.Universe.Planets in player order [0..N-1].
+func (ug *universeGenerator) getPlayerPlanets() ([]int, error) {
+	numPlayers := len(ug.Players)
+	if numPlayers <= 0 {
+		return nil, fmt.Errorf("getPlayerPlanets: NumPlayers must be > 0")
+	}
+	numPlanets := len(ug.Universe.Planets)
+	if numPlanets < numPlayers {
+		return nil, fmt.Errorf("getPlayerPlanets: not enough planets (%d) for %d players", numPlanets, numPlayers)
+	}
+
+	// Gather planet coordinates in a sortable slice (stable index mapping to Universe.Planets)
+	type pxy struct {
+		x, y int
+		i    int // original index
+	}
+	pts := make([]pxy, numPlanets)
+	for i, p := range ug.Universe.Planets {
+		pts[i] = pxy{int(p.Position.X), int(p.Position.Y), i}
+	}
+	// Sort by X
+	sort.Slice(pts, func(i, j int) bool {
+		if pts[i].x == pts[j].x {
+			return pts[i].y < pts[j].y
+		}
+		return pts[i].x < pts[j].x
+	})
+
+	width := int(ug.area.X)
+	height := int(ug.area.Y)
+	if width <= 0 || height <= 0 {
+		return nil, fmt.Errorf("getPlayerPlanets: invalid area (%v x %v)", width, height)
+	}
+
+	// ----- Distance band calculations -----
+	// area in the original was the (square) side; on a rectangle we use the limiting dimension.
+	area := min(width, height)
+
+	// Linear guard term
+	l := area * 6
+
+	// Ideal area-per-player term, shaved 10%
+	distIdeal := (width*height)/numPlayers - l
+	if distIdeal < 0 {
+		distIdeal = 0
+	} else {
+		distIdeal = distIdeal * 90 / 100
+	}
+
+	// Bias by start-distance setting, then re-add the linear guard.
+	// Original used mdStartDist/3 with 3 levels. Your enum has 4 levels; extend linearly:
+	// Close=1/3, Moderate=2/3, Farther=1.0, Distant=4/3.
+	switch ug.Game.PlayerPositions {
+	case PlayerPositionsClose:
+		distIdeal = distIdeal / 3
+	case PlayerPositionsModerate:
+		distIdeal = distIdeal * 2 / 3
+	case PlayerPositionsDistant:
+		distIdeal = distIdeal * 4 / 3
+
+	case PlayerPositionsFarther:
+		fallthrough
+	default:
+		// no op
+	}
+
+	distIdeal += l
+
+	// Acceptable band: *0.9 low, *7/6 high
+	distMinSquared := distIdeal * 90 / 100
+	distMaxSquared := distIdeal * 70 / 60
+
+	// Allowed box (percent of span) depends on player count, applied independently to X and Y.
+	var innerFrac, outerFrac int
+	switch {
+	case numPlayers < 3:
+		innerFrac, outerFrac = 15, 85
+	case numPlayers < 5:
+		innerFrac, outerFrac = 10, 90
+	default:
+		innerFrac, outerFrac = 5, 95
+	}
+	inBx := func(x, min, max int) bool { return x >= min && x <= max }
+	innerX, outerX := width*innerFrac/100, width*outerFrac/100
+	innerY, outerY := height*innerFrac/100, height*outerFrac/100
+
+	// Helpers
+	distSquared := func(ax, ay, bx, by int) int {
+		dx := ax - bx
+		dy := ay - by
+		return dx*dx + dy*dy
+	}
+	edgeDistSquared := func(x, y, xmin, xmax, ymin, ymax int) int {
+		var dx, dy int
+		if x < xmin {
+			dx = xmin - x
+		} else if x > xmax {
+			dx = x - xmax
+		}
+		if y < ymin {
+			dy = ymin - y
+		} else if y > ymax {
+			dy = y - ymax
+		}
+		return dx*dx + dy*dy
+	}
+
+retryFullPlacement:
+	chosen := make([]int, 0, numPlayers) // indices into pts
+	used := make([]bool, numPlanets)
+
+	// ---- 1) Pick the first index inside allowed box (or closest to it) ----
+	{
+		bestIdx := 0
+		bestEdge := math.MaxInt32
+		var idx int
+		tries := 0
+		for ; tries < 50; tries++ {
+			idx = ug.Rules.random.Intn(numPlanets)
+			if used[idx] {
+				continue
+			}
+			p := pts[idx]
+			if inBx(p.x, innerX, outerX) && inBx(p.y, innerY, outerY) {
+				// inside; take it
+				break
+			}
+			e2 := edgeDistSquared(p.x, p.y, innerX, outerX, innerY, outerY)
+			if e2 < bestEdge {
+				bestEdge = e2
+				bestIdx = idx
+			}
+		}
+		if tries == 50 {
+			idx = bestIdx
+		}
+		chosen = append(chosen, idx)
+		used[idx] = true
+	}
+
+	// ---- 2) Pick the remaining players honoring the distance band ----
+	for i := 1; i < numPlayers; i++ {
+		ok := false
+
+		// Random tries
+		for j := 0; j < 50 && !ok; j++ {
+			idx := ug.Rules.random.Intn(numPlanets)
+			if used[idx] {
+				continue
+			}
+			p := pts[idx]
+			if !inBx(p.x, innerX, outerX) || !inBx(p.y, innerY, outerY) {
+				continue
+			}
+
+			anyWithinMax := false
+			valid := true
+			for _, ck := range chosen {
+				q := pts[ck]
+				dist2 := distSquared(p.x, p.y, q.x, q.y)
+				if dist2 < distMinSquared {
+					valid = false
+					break
+				}
+				if dist2 <= distMaxSquared {
+					anyWithinMax = true
+				}
+			}
+			if valid && anyWithinMax {
+				chosen = append(chosen, idx)
+				used[idx] = true
+				ok = true
+				break
+			}
+		}
+
+		// Circular scan fallback
+		if !ok {
+			start := ug.Rules.random.Intn(numPlanets)
+			idx := start
+			for {
+				idx++
+				if idx >= numPlanets {
+					idx = 0
+				}
+				if idx == start {
+					break // wrapped without success
+				}
+				if used[idx] {
+					continue
+				}
+				p := pts[idx]
+				if !inBx(p.x, innerX, outerX) || !inBx(p.y, innerY, outerY) {
+					continue
+				}
+				anyWithinMax := false
+				valid := true
+				for _, ck := range chosen {
+					q := pts[ck]
+					dist2 := distSquared(p.x, p.y, q.x, q.y)
+					if dist2 < distMinSquared {
+						valid = false
+						break
+					}
+					if dist2 <= distMaxSquared {
+						anyWithinMax = true
+					}
+				}
+				if valid && anyWithinMax {
+					chosen = append(chosen, idx)
+					used[idx] = true
+					ok = true
+					break
+				}
+			}
+		}
+
+		// If we still couldn't place player i, relax the band and restart.
+		if !ok {
+			// Matches the “-35/+35” flavor from the decompile (units here are squared).
+			distMinSquared -= 35
+			if distMinSquared < 0 {
+				distMinSquared = 0
+			}
+			distMaxSquared += 35
+			goto retryFullPlacement
+		}
+	}
+
+	// Map back to Universe.Planets indices in the original (unsorted) order.
+	out := make([]int, numPlayers)
+	for i := 0; i < numPlayers; i++ {
+		out[i] = pts[chosen[i]].i
+	}
+
+	// // (Optional) mark the planets; comment out if you prefer to do this later.
+	// for pi, idx := range out {
+	// 	pl := ug.Universe.Planets[idx]
+	// 	pl.Homeworld = true
+	// 	pl.MapObject.PlayerNum = pi + 1 // or your own player ordering/IDs
+	// }
+
+	return out, nil
+}
+
 func (ug *universeGenerator) generatePlanets() error {
 
 	numPlanets, err := ug.Rules.GetNumPlanets(ug.Size, ug.Density)
@@ -203,30 +641,29 @@ func (ug *universeGenerator) generatePlanets() error {
 	rules := &ug.Rules
 	rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
 
+	// place planets in the universe
+	positions, err := ug.placePlanets(numPlanets, int(ug.area.X), int(ug.area.Y), ug.Rules.MinPlanetSpacing, ug.Rules.BorderInset)
+	if err != nil {
+		return err
+	}
+
+	// if clumping enabled, clump up the planets
+	if ug.GalaxyClumping {
+		ug.clump(positions, int(ug.area.X), int(ug.area.Y), ug.Rules.MinPlanetSpacing, ug.Rules.BorderInset)
+	}
+
+	// in case we don't have quite as many planets as we thought
+	numPlanets = len(positions)
+
+	// Create Planet objects with positions only (names/spec/etc. handled later)
 	ug.Universe.Planets = make([]*Planet, numPlanets)
 
-	planetsByPosition := make(map[Vector]*Planet, numPlanets)
-	occupiedLocations := make([]Vector, numPlanets)
-	width, height := int(ug.area.X), int(ug.area.Y)
-
 	for i := range numPlanets {
-
-		// find a valid position for the planet
-		posCheckCount := 0
-		pos := Vector{X: float64(rules.random.Intn(width)), Y: float64(rules.random.Intn(height))}
-		for !ug.Universe.isPositionValid(pos, &occupiedLocations, float64(rules.PlanetMinDistance)) {
-			pos = Vector{X: float64(rules.random.Intn(width)), Y: float64(rules.random.Intn(height))}
-			posCheckCount++
-			if posCheckCount > 1000 {
-				return fmt.Errorf("valid position for planet was not in 1000 tries;\n min distance: %d, numPlanets: %d, area: %v", rules.PlanetMinDistance, numPlanets, ug.area)
-			}
-		}
-
 		// we found a good position; setup a new planet
 		planet := NewPlanet()
 		planet.Name = names[i]
 		planet.Num = i + 1
-		planet.Position = pos
+		planet.Position = Vector{float64(positions[i].X), float64(positions[i].Y)}
 		planet.randomize(rules, ug.StartMode == GameStartModeAccBBS)
 
 		if ug.MaxMinerals {
@@ -238,8 +675,6 @@ func (ug *universeGenerator) generatePlanets() error {
 		}
 
 		ug.Universe.Planets[i] = planet
-		planetsByPosition[pos] = planet
-		occupiedLocations = append(occupiedLocations, pos)
 	}
 
 	// TODO: to make it easier to develop and troubleshoot data, currently leaving this unshuffled
@@ -368,9 +803,8 @@ func (ug *universeGenerator) generatePlayerPlanetReports() error {
 }
 
 // generate player starting positions in the given area
-func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
+func (ug *universeGenerator) generatePlayerStartingPlanets() error {
 
-	ownedPlanets := []*Planet{}
 	rules := &ug.Rules
 	random := rules.random
 
@@ -398,8 +832,13 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 		Germanium: rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
 	}
 
+	// get a planet index for each player
+	playerPlanetsIndexes, err := ug.getPlayerPlanets()
+	if err != nil {
+		return err
+	}
+
 	for _, player := range ug.Players {
-		minPlayerDistance := float64(area.X+area.Y) / (2.0 * float64(len(ug.Players)+1))
 		fleetNum := 1
 		var homeworld *Planet
 		extraPoints, pointsType := player.Race.ComputeLeftoverRacePoints(rules.RaceStartingPoints)
@@ -419,17 +858,15 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 			var playerPlanet *Planet
 			if startingPlanet.Homeworld && homeworld == nil {
 				// place homeworld and track it so we know where to base extra world placement on
-				playerPlanet = ug.placeHomeworld(ownedPlanets, minPlayerDistance)
+				playerPlanet = ug.getPlanet(playerPlanetsIndexes[player.Num-1] + 1)
 				homeworld = playerPlanet
 			} else {
-				playerPlanet = ug.placeExtraWorld(homeworld.Position)
+				secondPlanetIndex, err := ug.placeExtraPlayerPlanet(homeworld.Num-1, 12, 35)
+				playerPlanet = ug.getPlanet(secondPlanetIndex + 1)
+				if err != nil {
+					return err
+				}
 			}
-
-			if playerPlanet == nil {
-				return fmt.Errorf("homeworld for player %v was not found among %d planets;\nminDistance: %0.1f", player, len(ug.Universe.Planets), minPlayerDistance)
-			}
-
-			ownedPlanets = append(ownedPlanets, playerPlanet)
 
 			var surface Mineral
 			if startingPlanet.Homeworld {
@@ -471,67 +908,59 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 	return nil
 }
 
-// place a homeworld during universe generation
-func (ug *universeGenerator) placeHomeworld(ownedPlanets []*Planet, minPlanetDistance float64) (homeworld *Planet) {
-	farthestDistance := float64(math.MinInt)
-
-	// homeworld should be distant from other players' planets
-	for _, planet := range ug.Universe.Planets {
-		if planet.Owned() {
-			// can't re-assign owned planets
-			continue
-		}
-
-		if len(ownedPlanets) == 0 {
-			// no owned planets means we grab the first one we see
-			return planet
-		}
-
-		// figure out how far we are from other players' planets
-		shortestDistanceToPlanets := planet.shortestDistanceToPlanets(ownedPlanets)
-
-		// if the planet we find is within tolerance, use it;
-		// otherwise, keep track of the furthest one away as a failsafe
-		if shortestDistanceToPlanets >= minPlanetDistance {
-			return planet
-		}
-
-		if shortestDistanceToPlanets >= farthestDistance {
-			farthestDistance = shortestDistanceToPlanets
-			homeworld = planet
-		}
-
+// placeExtraPlayerPlanet chooses a planet near a given homeworld.
+// It prefers planets whose distance from the home is within [pctLo, pctHi] * dGal,
+// falling back to the nearest planet outside that band.
+// Returns the index into ug.Universe.Planets.
+func (ug *universeGenerator) placeExtraPlayerPlanet(homeIdx int, pctLo, pctHi int) (int, error) {
+	if homeIdx < 0 || homeIdx >= len(ug.Universe.Planets) {
+		return -1, fmt.Errorf("pickSecondPlanetNearHome: invalid home index %d", homeIdx)
 	}
-	return homeworld
-}
+	if pctLo < 0 || pctHi < 0 || pctLo > pctHi {
+		return -1, fmt.Errorf("pickSecondPlanetNearHome: bad ring percentages lo=%d hi=%d", pctLo, pctHi)
+	}
 
-// place an extra world during universe generation
-func (ug *universeGenerator) placeExtraWorld(homeworldPos Vector) (extraPlanet *Planet) {
-	rules := ug.Rules
-	var closestDistance float64
-	for _, planet := range ug.Universe.Planets {
+	// dGal analog: original used a square side; on wide maps we use the limiting dimension.
+	dGal := int(min(ug.area.X, ug.area.Y))
+
+	rLo := dGal * pctLo / 100
+	rHi := dGal * pctHi / 100
+	distMin := rLo * rLo
+	distMax := rHi * rHi
+	distBest := math.MaxInt32
+	numFound := 0
+
+	hw := ug.Universe.Planets[homeIdx]
+
+	var picked *Planet
+	var closest *Planet
+
+	for _, planet := range ug.Planets {
 		if planet.Owned() {
 			continue
 		}
-
-		// check how close this planet is to our homeworld
-		distToHomeworld := planet.Position.DistanceSquaredTo(homeworldPos)
-
-		// if it's within tolerances, use it
-		if distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) &&
-			distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance) {
-			return planet
-		}
-
-		// if we can't find a planet within tolerances, track the closest one
-		// and default to it if none are found
-		if distToHomeworld < closestDistance {
-			closestDistance = distToHomeworld
-			extraPlanet = planet
+		dx := int(planet.Position.X - hw.Position.X)
+		dy := int(planet.Position.X - hw.Position.X)
+		dist := dx*dx + dy*dy
+		if dist >= distMin && dist <= distMax {
+			numFound++
+			if ug.Rules.random.Intn(numFound) == 0 {
+				picked = planet
+			}
+		} else if picked == nil && dist < distBest {
+			distBest = dist
+			closest = planet
 		}
 	}
 
-	return extraPlanet
+	if picked != nil {
+		return picked.Num, nil
+	}
+	if closest != nil {
+		return closest.Num, nil
+	}
+
+	return -1, fmt.Errorf("pickSecondPlanetNearHome: no eligible planets")
 }
 
 // Assign race starting point bonuses to a player's homeworld.
@@ -685,7 +1114,8 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 
 // create initial starbase designs for a player
 func (ug *universeGenerator) createStartingStarbaseDesigns(techStore *TechStore, player *Player, designNum int) []*ShipDesign {
-	designs := make([]*ShipDesign, len(player.Race.Spec.StartingPlanets))
+	numStartingPlanets := len(player.Race.Spec.StartingPlanets)
+	designs := make([]*ShipDesign, numStartingPlanets)
 
 	for i, startingPlanet := range player.Race.Spec.StartingPlanets {
 		var starbase *ShipDesign

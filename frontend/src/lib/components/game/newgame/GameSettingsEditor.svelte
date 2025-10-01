@@ -44,6 +44,11 @@
 		name="computerPlayersFormAlliances"
 		bind:checked={settings.computerPlayersFormAlliances}
 	/>
+	<CheckboxInput
+		title="Galaxy Clumping"
+		name="galaxyClumping"
+		bind:checked={settings.galaxyClumping}
+	/>
 	<EnumSelect
 		name="startMode"
 		enumType={GameStartMode}
