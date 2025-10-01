@@ -1638,16 +1638,6 @@ func (m *UpdateWaypointResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error
 		i--
 		dAtA[i] = 0x18
 	}
-	if m.Updated {
-		i--
-		if m.Updated {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x10
-	}
 	if m.Fleet != nil {
 		size, err := m.Fleet.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -2193,9 +2183,6 @@ func (m *UpdateWaypointResponse) SizeVT() (n int) {
 	if m.Fleet != nil {
 		l = m.Fleet.SizeVT()
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
-	}
-	if m.Updated {
-		n += 2
 	}
 	if m.Result != 0 {
 		n += 1 + protohelpers.SizeOfVarint(uint64(m.Result))
@@ -5408,26 +5395,6 @@ func (m *UpdateWaypointResponse) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Updated", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protohelpers.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Updated = bool(v != 0)
 		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Result", wireType)

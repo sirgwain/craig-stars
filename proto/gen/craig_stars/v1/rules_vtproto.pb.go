@@ -383,6 +383,27 @@ func (m *UniverseGenerationRules) MarshalToSizedBufferVT(dAtA []byte) (int, erro
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.SqLyPerPlanet != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.SqLyPerPlanet))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xa8
+	}
+	if m.MinPlanetSpacing != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.MinPlanetSpacing))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xa0
+	}
+	if m.BorderInset != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.BorderInset))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x98
+	}
 	if m.WormholeMinPlanetDistance != 0 {
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.WormholeMinPlanetDistance))
 		i--
@@ -439,11 +460,6 @@ func (m *UniverseGenerationRules) MarshalToSizedBufferVT(dAtA []byte) (int, erro
 		i--
 		dAtA[i] = 0x58
 	}
-	if m.MinExtraWorldDistance != 0 {
-		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.MinExtraWorldDistance))
-		i--
-		dAtA[i] = 0x50
-	}
 	if m.MinExtraPlanetMineralConcentration != 0 {
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.MinExtraPlanetMineralConcentration))
 		i--
@@ -468,11 +484,6 @@ func (m *UniverseGenerationRules) MarshalToSizedBufferVT(dAtA []byte) (int, erro
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.MaxHab))
 		i--
 		dAtA[i] = 0x28
-	}
-	if m.MaxExtraWorldDistance != 0 {
-		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.MaxExtraWorldDistance))
-		i--
-		dAtA[i] = 0x20
 	}
 	if m.LimitMineralConcentration != 0 {
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.LimitMineralConcentration))
@@ -1483,9 +1494,6 @@ func (m *UniverseGenerationRules) SizeVT() (n int) {
 	if m.LimitMineralConcentration != 0 {
 		n += 1 + protohelpers.SizeOfVarint(uint64(m.LimitMineralConcentration))
 	}
-	if m.MaxExtraWorldDistance != 0 {
-		n += 1 + protohelpers.SizeOfVarint(uint64(m.MaxExtraWorldDistance))
-	}
 	if m.MaxHab != 0 {
 		n += 1 + protohelpers.SizeOfVarint(uint64(m.MaxHab))
 	}
@@ -1500,9 +1508,6 @@ func (m *UniverseGenerationRules) SizeVT() (n int) {
 	}
 	if m.MinExtraPlanetMineralConcentration != 0 {
 		n += 1 + protohelpers.SizeOfVarint(uint64(m.MinExtraPlanetMineralConcentration))
-	}
-	if m.MinExtraWorldDistance != 0 {
-		n += 1 + protohelpers.SizeOfVarint(uint64(m.MinExtraWorldDistance))
 	}
 	if m.MinHab != 0 {
 		n += 1 + protohelpers.SizeOfVarint(uint64(m.MinHab))
@@ -1532,6 +1537,15 @@ func (m *UniverseGenerationRules) SizeVT() (n int) {
 	}
 	if m.WormholeMinPlanetDistance != 0 {
 		n += 2 + protohelpers.SizeOfVarint(uint64(m.WormholeMinPlanetDistance))
+	}
+	if m.BorderInset != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.BorderInset))
+	}
+	if m.MinPlanetSpacing != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.MinPlanetSpacing))
+	}
+	if m.SqLyPerPlanet != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.SqLyPerPlanet))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -2852,25 +2866,6 @@ func (m *UniverseGenerationRules) UnmarshalVT(dAtA []byte) error {
 					break
 				}
 			}
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MaxExtraWorldDistance", wireType)
-			}
-			m.MaxExtraWorldDistance = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protohelpers.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.MaxExtraWorldDistance |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		case 5:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field MaxHab", wireType)
@@ -2962,25 +2957,6 @@ func (m *UniverseGenerationRules) UnmarshalVT(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.MinExtraPlanetMineralConcentration |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 10:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MinExtraWorldDistance", wireType)
-			}
-			m.MinExtraWorldDistance = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protohelpers.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.MinExtraWorldDistance |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -3213,6 +3189,63 @@ func (m *UniverseGenerationRules) UnmarshalVT(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.WormholeMinPlanetDistance |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 19:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BorderInset", wireType)
+			}
+			m.BorderInset = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.BorderInset |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 20:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinPlanetSpacing", wireType)
+			}
+			m.MinPlanetSpacing = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.MinPlanetSpacing |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 21:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SqLyPerPlanet", wireType)
+			}
+			m.SqLyPerPlanet = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SqLyPerPlanet |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

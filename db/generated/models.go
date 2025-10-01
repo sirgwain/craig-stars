@@ -83,6 +83,7 @@ type Game struct {
 	VictorDeclared                            bool
 	MaxMinerals                               bool
 	Archived                                  bool
+	GalaxyClumping                            bool
 }
 
 type GamePlayer struct {

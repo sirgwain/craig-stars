@@ -5,11 +5,22 @@ import (
 	"math"
 )
 
+type VectorGeneric[T number] struct {
+	X T `json:"x"`
+	Y T `json:"y"`
+}
+
 // A simple 2D vector with handy functions for moving things in space, calculating distance, etc
 // Many of these functions were taken from Godot source, thanks Godot folks.
-type Vector struct {
-	X float64 `json:"x"`
-	Y float64 `json:"y"`
+type Vector VectorGeneric[float64]
+type VectorInt VectorGeneric[int]
+
+// compare int vectors by their x coord
+func VectorCompareX(a, b VectorInt) int {
+	if a.X == b.X {
+		return a.Y - b.Y
+	}
+	return a.X - b.X
 }
 
 func (v Vector) String() string {

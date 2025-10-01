@@ -73,21 +73,22 @@ type Rules struct {
 }
 
 type UniverseGenerationRules struct {
+	BorderInset                               int                           `json:"borderInset"`
 	HabDropoffRange                           Hab                           `json:"habDropoffRange"` // Controls up to how many clicks (inclusive) away from MinHab & MaxHab planet habs become linearly less likely
 	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold"`
 	LimitMineralConcentration                 int                           `json:"limitMineralConcentration"`
-	MaxExtraWorldDistance                     int                           `json:"maxExtraWorldDistance"`
 	MaxHab                                    int                           `json:"maxHab"`
 	MaxMineralConcentration                   int                           `json:"maxMineralConcentration"`
 	MaxStartingMineralConcentration           int                           `json:"maxStartingMineralConcentration"`
 	MaxStartingMineralSurface                 int                           `json:"maxStartingMineralSurface"`
 	MinExtraPlanetMineralConcentration        int                           `json:"minExtraPlanetMineralConcentration"`
-	MinExtraWorldDistance                     int                           `json:"minExtraWorldDistance"`
 	MinHab                                    int                           `json:"minHab"`
 	MinHomeworldMineralConcentration          int                           `json:"minHomeworldMineralConcentration"`
 	MinMineralConcentration                   int                           `json:"minMineralConcentration"`
+	MinPlanetSpacing                          int                           `json:"minPlanetSpacing"`
 	MinStartingMineralConcentration           int                           `json:"minStartingMineralConcentration"`
 	MinStartingMineralSurface                 int                           `json:"minStartingMineralSurface"`
+	SqLyPerPlanet                             int                           `json:"planetsPerSqLy"`
 	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem"` // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT/point
 	StartingYear                              int                           `json:"startingYear"`
 	WormholeMinPlanetDistance                 int                           `json:"wormholeMinPlanetDistance"`
@@ -307,6 +308,7 @@ func NewRulesWithSeed(seed int64) Rules {
 			TorpedoSplashDamage: 0.125,
 		},
 		UniverseGenerationRules: UniverseGenerationRules{
+			BorderInset: 20,
 			// The first 9 Grav/Temp hab values from either edge (1-9 & 91-99) are linearly less likely to generate.
 			// More specifically, a hab value N clicks away from MinHab/MaxHab with dropoff range of H
 			// becomes (N+1/H+1)x as likely as a normal mid-value hab
@@ -318,19 +320,19 @@ func NewRulesWithSeed(seed int64) Rules {
 				Rad:  0,
 			},
 			HighRadMineralConcentrationBonusThreshold: 90,
-			MaxExtraWorldDistance:                     180,
-			MinExtraWorldDistance:                     130,
-			MinHomeworldMineralConcentration:          30,
-			MinExtraPlanetMineralConcentration:        30,
-			MinMineralConcentration:                   1,
-			MaxMineralConcentration:                   200,
-			MinHab:                                    1,
-			MaxHab:                                    99,
-			MinStartingMineralConcentration:           1,
-			MaxStartingMineralConcentration:           121,
-			LimitMineralConcentration:                 30,
-			MaxStartingMineralSurface:                 1000,
-			MinStartingMineralSurface:                 300,
+			MinPlanetSpacing:                   12,
+			MinHomeworldMineralConcentration:   30,
+			MinExtraPlanetMineralConcentration: 30,
+			MinMineralConcentration:            1,
+			MaxMineralConcentration:            200,
+			MinHab:                             1,
+			MaxHab:                             99,
+			MinStartingMineralConcentration:    1,
+			MaxStartingMineralConcentration:    121,
+			LimitMineralConcentration:          30,
+			MaxStartingMineralSurface:          1000,
+			MinStartingMineralSurface:          300,
+			SqLyPerPlanet:                      5000, // base numplanets is area / 5000
 			RaceLeftoverPointsPerItem: map[SpendLeftoverPointsOn]int{
 				SpendLeftoverPointsOnMines:                 2,
 				SpendLeftoverPointsOnFactories:             5,
@@ -650,63 +652,24 @@ func NewRulesWithSeed(seed int64) Rules {
 
 // Get the number of planets for a universe based on size and density
 func (rules *Rules) GetNumPlanets(size Size, density Density) (int, error) {
-	switch size {
-	case SizeTiny, SizeTinyWide:
-		switch density {
-		case DensitySparse:
-			return 24, nil
-		case DensityNormal:
-			return 32, nil
-		case DensityDense:
-			return 40, nil
-		case DensityPacked:
-			return 60, nil
-		}
-	case SizeSmall, SizeSmallWide:
-		switch density {
-		case DensitySparse:
-			return 96, nil
-		case DensityNormal:
-			return 128, nil
-		case DensityDense:
-			return 160, nil
-		case DensityPacked:
-			return 240, nil
-		}
-	case SizeMedium, SizeMediumWide:
-		switch density {
-		case DensitySparse:
-			return 216, nil
-		case DensityNormal:
-			return 288, nil
-		case DensityDense:
-			return 360, nil
-		case DensityPacked:
-			return 540, nil
-		}
-	case SizeLarge, SizeLargeWide:
-		switch density {
-		case DensitySparse:
-			return 384, nil
-		case DensityNormal:
-			return 512, nil
-		case DensityDense:
-			return 640, nil
-		case DensityPacked:
-			return 910, nil
-		}
-	case SizeHuge, SizeHugeWide:
-		switch density {
-		case DensitySparse:
-			return 600, nil
-		case DensityNormal:
-			return 800, nil
-		case DensityDense:
-			return 940, nil
-		case DensityPacked:
-			return 945, nil
-		}
+	dim, err := rules.GetArea(size)
+	if err != nil {
+		return 0, err
+	}
 
+	// start with something like 1200/5000 for medium
+	base := int(dim.X*dim.Y) / rules.SqLyPerPlanet
+
+	// add 25% less increments of more planets based on density
+	switch density {
+	case DensitySparse:
+		return base - base/4, nil
+	case DensityNormal:
+		return base, nil
+	case DensityDense:
+		return base + base/4, nil
+	case DensityPacked:
+		return base + base*3/4, nil
 	}
 
 	return 0, fmt.Errorf("unable to GetNumPlanets for Size: %v, Density: %v", size, density)

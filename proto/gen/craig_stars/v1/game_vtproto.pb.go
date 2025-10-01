@@ -50,6 +50,18 @@ func (m *Game) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.GalaxyClumping {
+		i--
+		if m.GalaxyClumping {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xd0
+	}
 	if m.Archived {
 		i--
 		if m.Archived {
@@ -440,6 +452,16 @@ func (m *GameSettings) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.GalaxyClumping {
+		i--
+		if m.GalaxyClumping {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x70
+	}
 	if len(m.Players) > 0 {
 		for iNdEx := len(m.Players) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Players[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -689,6 +711,9 @@ func (m *Game) SizeVT() (n int) {
 	if m.Archived {
 		n += 3
 	}
+	if m.GalaxyClumping {
+		n += 3
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -812,6 +837,9 @@ func (m *GameSettings) SizeVT() (n int) {
 			l = e.SizeVT()
 			n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 		}
+	}
+	if m.GalaxyClumping {
+		n += 2
 	}
 	n += len(m.unknownFields)
 	return n
@@ -1442,6 +1470,26 @@ func (m *Game) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.Archived = bool(v != 0)
+		case 26:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GalaxyClumping", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.GalaxyClumping = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])
@@ -2226,6 +2274,26 @@ func (m *GameSettings) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 14:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GalaxyClumping", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.GalaxyClumping = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

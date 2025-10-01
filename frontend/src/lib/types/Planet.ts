@@ -305,6 +305,8 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 	switch (key) {
 		case 'name':
 			return (a, b) => (a.mapObject?.name ?? '').localeCompare(b.mapObject?.name ?? '');
+		case 'owner':
+			return (a, b) => (a.mapObject?.playerNum ?? 0) - (b.mapObject?.playerNum ?? 0);
 		case 'production':
 			return (a, b) => {
 				const aItem =

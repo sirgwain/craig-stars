@@ -66,6 +66,7 @@ func (c *GameConverter) ConvertGame(source generated.Game) cs.Game {
 	csGame.Year = Int64ToInt(source.Year)
 	csGame.VictorDeclared = source.VictorDeclared
 	csGame.Archived = source.Archived
+	csGame.GalaxyClumping = source.GalaxyClumping
 	return csGame
 }
 func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) generated.Fleet {
@@ -250,6 +251,7 @@ func (c *GameConverter) ConvertGameGame(source *cs.Game) generated.Game {
 		generatedGame2.VictorDeclared = (*source).VictorDeclared
 		generatedGame2.MaxMinerals = (*source).MaxMinerals
 		generatedGame2.Archived = (*source).Archived
+		generatedGame2.GalaxyClumping = (*source).GalaxyClumping
 		generatedGame = generatedGame2
 	}
 	return generatedGame
@@ -291,6 +293,7 @@ func (c *GameConverter) ConvertGameGameToCreateParams(source *cs.Game) generated
 		generatedCreateGameParams2.Year = IntToInt64((*source).Year)
 		generatedCreateGameParams2.VictorDeclared = (*source).VictorDeclared
 		generatedCreateGameParams2.Archived = (*source).Archived
+		generatedCreateGameParams2.GalaxyClumping = (*source).GalaxyClumping
 		generatedCreateGameParams = generatedCreateGameParams2
 	}
 	return generatedCreateGameParams
@@ -332,6 +335,7 @@ func (c *GameConverter) ConvertGameGameToUpdateParams(source *cs.Game) generated
 		generatedUpdateGameParams2.Year = IntToInt64((*source).Year)
 		generatedUpdateGameParams2.VictorDeclared = (*source).VictorDeclared
 		generatedUpdateGameParams2.Archived = (*source).Archived
+		generatedUpdateGameParams2.GalaxyClumping = (*source).GalaxyClumping
 		generatedUpdateGameParams2.ID = (*source).DBObject.ID
 		generatedUpdateGameParams = generatedUpdateGameParams2
 	}

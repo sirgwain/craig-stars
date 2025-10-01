@@ -2417,7 +2417,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 		name         string
 		fleet        *Fleet
 		args         args
-		want         bool
+		want         UpdateWaypointResult
 		wantWaypoint Waypoint
 	}{
 		{
@@ -2428,7 +2428,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 				dest:                         WaypointDest{Position: Vector{36, 0}},
 				currentSelectedWaypointIndex: 0,
 			},
-			want: false,
+			want: UpdateWaypointResultNone,
 		},
 		{
 			name: "no update onto prev waypoint",
@@ -2441,7 +2441,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 				dest:                         WaypointDest{Position: Vector{}},
 				currentSelectedWaypointIndex: 1,
 			},
-			want: false,
+			want: UpdateWaypointResultNone,
 		},
 		{
 			name: "update 25ly w5 to 36ly w6 waypoint",
@@ -2454,7 +2454,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 				dest:                         WaypointDest{Position: Vector{36, 0}},
 				currentSelectedWaypointIndex: 1,
 			},
-			want: true,
+			want: UpdateWaypointResultUpdated,
 			wantWaypoint: Waypoint{
 				Position: Vector{36, 0},
 				MapObjectTarget: MapObjectTarget{
@@ -2486,7 +2486,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 				},
 				currentSelectedWaypointIndex: 1,
 			},
-			want: true,
+			want: UpdateWaypointResultUpdated,
 			wantWaypoint: Waypoint{
 				Position: Vector{49, 0},
 				MapObjectTarget: MapObjectTarget{
@@ -2544,7 +2544,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 				},
 				currentSelectedWaypointIndex: 1,
 			},
-			want: true,
+			want: UpdateWaypointResultUpdated,
 			wantWaypoint: Waypoint{
 				Position: Vector{100, 0},
 				MapObjectTarget: MapObjectTarget{
@@ -2563,7 +2563,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("Fleet.UpdateWaypoint() = %v, want %v", got, tt.want)
 			}
-			if got {
+			if got != UpdateWaypointResultNone {
 				test.CompareAsJSON(t, tt.fleet.Waypoints[tt.args.currentSelectedWaypointIndex], tt.wantWaypoint)
 			}
 		})

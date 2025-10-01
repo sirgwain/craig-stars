@@ -96,7 +96,7 @@
 	const minZoom = 0.75;
 	const maxZoom = 10;
 	const minObjectZoom = 2;
-	const scale = writable(3); // default 3x zoom
+	const scale = writable(1.5); // default 3x zoom
 	const objectScale = derivedStore([scale], ([s]) => clamp(s, minObjectZoom, maxZoom));
 	setScannerContext({ scale, objectScale });
 
@@ -246,6 +246,13 @@
 			return;
 		}
 		select(root).call(zoomBehavior.scaleTo, scaleTo);
+		const scaled: Vector = create(VectorSchema, {
+			x: scaler.x(Number($zoomTarget?.mapObject?.position?.x ?? 0)),
+			y: scaler.y(Number($zoomTarget?.mapObject?.position?.y ?? 0))
+		});
+		select(root)
+			.call(zoomBehavior.translateTo, scaled.x, scaled.y)
+			.call(zoomBehavior.scaleTo, $scale);
 	}
 
 	// turn off dragging

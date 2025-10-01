@@ -235,6 +235,7 @@ func (c *ProtoConverter) ConvertCSGame(source cs.Game) *v1.Game {
 	craig_starsv1Game.Year = IntToInt32(source.Year)
 	craig_starsv1Game.VictorDeclared = source.VictorDeclared
 	craig_starsv1Game.Archived = source.Archived
+	craig_starsv1Game.GalaxyClumping = source.GalaxyClumping
 	return &craig_starsv1Game
 }
 func (c *ProtoConverter) ConvertCSGameWithPlayers(source *cs.GameWithPlayers) *v1.GameWithPlayers {
@@ -1378,6 +1379,7 @@ func (c *ProtoConverter) ConvertGame(source *v1.Game) *cs.Game {
 		csGame.Year = Int32ToInt((*source).Year)
 		csGame.VictorDeclared = (*source).VictorDeclared
 		csGame.Archived = (*source).Archived
+		csGame.GalaxyClumping = (*source).GalaxyClumping
 		pCsGame = &csGame
 	}
 	return pCsGame
@@ -1396,6 +1398,7 @@ func (c *ProtoConverter) ConvertGameSettings(source *v1.GameSettings) cs.GameSet
 		csGameSettings2.ComputerPlayersFormAlliances = (*source).ComputerPlayersFormAlliances
 		csGameSettings2.PublicPlayerScores = (*source).PublicPlayerScores
 		csGameSettings2.MaxMinerals = (*source).MaxMinerals
+		csGameSettings2.GalaxyClumping = (*source).GalaxyClumping
 		csGameSettings2.StartMode = GameStartModeToCSGameStartMode((*source).StartMode)
 		csGameSettings2.VictoryConditions = c.ConvertVictoryConditions((*source).VictoryConditions)
 		if (*source).Players != nil {
@@ -3113,13 +3116,11 @@ func (c *ProtoConverter) csUniverseGenerationRulesToPCraig_starsv1UniverseGenera
 	craig_starsv1UniverseGenerationRules.HabDropoffRange = CSHabToHab(source.HabDropoffRange)
 	craig_starsv1UniverseGenerationRules.HighRadMineralConcentrationBonusThreshold = IntToInt32(source.HighRadMineralConcentrationBonusThreshold)
 	craig_starsv1UniverseGenerationRules.LimitMineralConcentration = IntToInt32(source.LimitMineralConcentration)
-	craig_starsv1UniverseGenerationRules.MaxExtraWorldDistance = IntToInt32(source.MaxExtraWorldDistance)
 	craig_starsv1UniverseGenerationRules.MaxHab = IntToInt32(source.MaxHab)
 	craig_starsv1UniverseGenerationRules.MaxMineralConcentration = IntToInt32(source.MaxMineralConcentration)
 	craig_starsv1UniverseGenerationRules.MaxStartingMineralConcentration = IntToInt32(source.MaxStartingMineralConcentration)
 	craig_starsv1UniverseGenerationRules.MaxStartingMineralSurface = IntToInt32(source.MaxStartingMineralSurface)
 	craig_starsv1UniverseGenerationRules.MinExtraPlanetMineralConcentration = IntToInt32(source.MinExtraPlanetMineralConcentration)
-	craig_starsv1UniverseGenerationRules.MinExtraWorldDistance = IntToInt32(source.MinExtraWorldDistance)
 	craig_starsv1UniverseGenerationRules.MinHab = IntToInt32(source.MinHab)
 	craig_starsv1UniverseGenerationRules.MinHomeworldMineralConcentration = IntToInt32(source.MinHomeworldMineralConcentration)
 	craig_starsv1UniverseGenerationRules.MinMineralConcentration = IntToInt32(source.MinMineralConcentration)
@@ -3128,6 +3129,9 @@ func (c *ProtoConverter) csUniverseGenerationRulesToPCraig_starsv1UniverseGenera
 	craig_starsv1UniverseGenerationRules.RaceLeftoverPointsPerItem = SpendLeftoverPointsOnMapToIntMap(source.RaceLeftoverPointsPerItem)
 	craig_starsv1UniverseGenerationRules.StartingYear = IntToInt32(source.StartingYear)
 	craig_starsv1UniverseGenerationRules.WormholeMinPlanetDistance = IntToInt32(source.WormholeMinPlanetDistance)
+	craig_starsv1UniverseGenerationRules.BorderInset = IntToInt32(source.BorderInset)
+	craig_starsv1UniverseGenerationRules.MinPlanetSpacing = IntToInt32(source.MinPlanetSpacing)
+	craig_starsv1UniverseGenerationRules.SqLyPerPlanet = IntToInt32(source.SqLyPerPlanet)
 	return &craig_starsv1UniverseGenerationRules
 }
 func (c *ProtoConverter) csVictoryConditionsToPCraig_starsv1VictoryConditions(source cs.VictoryConditions) *v1.VictoryConditions {
@@ -4184,21 +4188,22 @@ func (c *ProtoConverter) pCraig_starsv1UniverseGenerationRulesToCsUniverseGenera
 	var csUniverseGenerationRules cs.UniverseGenerationRules
 	if source != nil {
 		var csUniverseGenerationRules2 cs.UniverseGenerationRules
+		csUniverseGenerationRules2.BorderInset = Int32ToInt((*source).BorderInset)
 		csUniverseGenerationRules2.HabDropoffRange = c.ConvertHab((*source).HabDropoffRange)
 		csUniverseGenerationRules2.HighRadMineralConcentrationBonusThreshold = Int32ToInt((*source).HighRadMineralConcentrationBonusThreshold)
 		csUniverseGenerationRules2.LimitMineralConcentration = Int32ToInt((*source).LimitMineralConcentration)
-		csUniverseGenerationRules2.MaxExtraWorldDistance = Int32ToInt((*source).MaxExtraWorldDistance)
 		csUniverseGenerationRules2.MaxHab = Int32ToInt((*source).MaxHab)
 		csUniverseGenerationRules2.MaxMineralConcentration = Int32ToInt((*source).MaxMineralConcentration)
 		csUniverseGenerationRules2.MaxStartingMineralConcentration = Int32ToInt((*source).MaxStartingMineralConcentration)
 		csUniverseGenerationRules2.MaxStartingMineralSurface = Int32ToInt((*source).MaxStartingMineralSurface)
 		csUniverseGenerationRules2.MinExtraPlanetMineralConcentration = Int32ToInt((*source).MinExtraPlanetMineralConcentration)
-		csUniverseGenerationRules2.MinExtraWorldDistance = Int32ToInt((*source).MinExtraWorldDistance)
 		csUniverseGenerationRules2.MinHab = Int32ToInt((*source).MinHab)
 		csUniverseGenerationRules2.MinHomeworldMineralConcentration = Int32ToInt((*source).MinHomeworldMineralConcentration)
 		csUniverseGenerationRules2.MinMineralConcentration = Int32ToInt((*source).MinMineralConcentration)
+		csUniverseGenerationRules2.MinPlanetSpacing = Int32ToInt((*source).MinPlanetSpacing)
 		csUniverseGenerationRules2.MinStartingMineralConcentration = Int32ToInt((*source).MinStartingMineralConcentration)
 		csUniverseGenerationRules2.MinStartingMineralSurface = Int32ToInt((*source).MinStartingMineralSurface)
+		csUniverseGenerationRules2.SqLyPerPlanet = Int32ToInt((*source).SqLyPerPlanet)
 		csUniverseGenerationRules2.RaceLeftoverPointsPerItem = IntMapToSpendLeftoverPointsOnMap((*source).RaceLeftoverPointsPerItem)
 		csUniverseGenerationRules2.StartingYear = Int32ToInt((*source).StartingYear)
 		csUniverseGenerationRules2.WormholeMinPlanetDistance = Int32ToInt((*source).WormholeMinPlanetDistance)

@@ -119,12 +119,14 @@ INSERT INTO
         area_y,
         year,
         victor_declared,
-        archived
+        archived,
+        galaxy_clumping
     )
 VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
+        ?,
         ?,
         ?,
         ?,
@@ -196,7 +198,8 @@ SET
     area_y = ?,
     year = ?,
     victor_declared = ?,
-    archived = ?
+    archived = ?,
+    galaxy_clumping = ?
 WHERE
     id = ?;
 

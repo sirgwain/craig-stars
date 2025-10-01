@@ -34,6 +34,7 @@ message Game {
   int32 year = 23;
   bool victor_declared = 24;
   bool archived = 25;
+  bool galaxy_clumping = 26;
 }
 
 message VictoryConditions {
@@ -72,6 +73,7 @@ message GameSettings {
   GameStartMode start_mode = 11;
   VictoryConditions victory_conditions = 12;
   repeated NewGamePlayer players = 13;
+  bool galaxy_clumping = 14;
 }
 
 message GameWithPlayers {

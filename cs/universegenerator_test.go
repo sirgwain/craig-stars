@@ -10,6 +10,35 @@ import (
 )
 
 func TestGenerateUniverse(t *testing.T) {
+	t.Run("Medium Packed", func(t *testing.T) {
+		client := NewGamer()
+		game := client.CreateGame(1, *NewGameSettings())
+		game.Size = SizeMedium
+		game.Density = DensityPacked
+		game.GalaxyClumping = true
+
+		numPlanets, err := game.Rules.GetNumPlanets(game.Size, game.Density)
+		if err != nil {
+			t.Error(err)
+		}
+		player := client.NewPlayer(1, *NewRace(), &game.Rules)
+		players := []*Player{player}
+		player.AIControlled = true
+		player.Num = 1
+		universe, err := client.GenerateUniverse(game, players)
+		assert.NoError(t, err)
+
+		assert.Equal(t, numPlanets, len(universe.Planets))
+		assert.Greater(t, len(universe.Fleets), 0)
+		assert.Greater(t, len(player.Designs), 0)
+		assert.Greater(t, len(universe.Wormholes), 0)
+
+		pmo := universe.GetPlayerMapObjects(player.Num)
+		assert.Equal(t, 1, len(pmo.Planets))
+		homeworld := pmo.Planets[0]
+		assert.Equal(t, 25_000, homeworld.GetPopulation())
+		assert.True(t, homeworld.Spec.HasStarbase)
+	})
 	t.Run("Normal", func(t *testing.T) {
 		client := NewGamer()
 		game := client.CreateGame(1, *NewGameSettings())
@@ -35,6 +64,31 @@ func TestGenerateUniverse(t *testing.T) {
 		homeworld := pmo.Planets[0]
 		assert.Equal(t, 25_000, homeworld.GetPopulation())
 		assert.True(t, homeworld.Spec.HasStarbase)
+	})
+
+	t.Run("Multiple Players, multiple planets", func(t *testing.T) {
+		client := NewGamer()
+		game := client.CreateGame(1, *NewGameSettings())
+
+		player1 := client.NewPlayer(1, *NewRace().WithPRT(IT), &game.Rules).WithAIControlled(true)
+		player1.Num = 1
+		player2 := client.NewPlayer(1, *NewRace(), &game.Rules).WithAIControlled(true)
+		player2.Num = 2
+		player3 := client.NewPlayer(1, *NewRace().WithPRT(PP), &game.Rules).WithAIControlled(true)
+		player3.Num = 2
+
+		players := []*Player{player1, player2, player3}
+		universe, err := client.GenerateUniverse(game, players)
+		assert.NoError(t, err)
+
+		assert.Greater(t, len(universe.Fleets), 0)
+		assert.Greater(t, len(player1.Designs), 0)
+		assert.Greater(t, len(universe.Wormholes), 0)
+
+		pmo := universe.GetPlayerMapObjects(player1.Num)
+		assert.Equal(t, 2, len(pmo.Planets))
+		assert.True(t, pmo.Planets[0].Spec.HasStarbase)
+		assert.True(t, pmo.Planets[1].Spec.HasStarbase)
 	})
 
 	t.Run("Acc BBS Pop Test", func(t *testing.T) {
@@ -66,8 +120,13 @@ func TestGenerateUniverse(t *testing.T) {
 			planets := universe.getPlanets(playerNum)
 			popPerPlanet := popPerPlayerPerPlanet[playerNum-1]
 			assert.Equal(t, len(popPerPlanet), len(planets))
-			for i, p := range planets {
-				assert.Equal(t, popPerPlanet[i], p.GetPopulation())
+			for _, p := range planets {
+				if p.Homeworld {
+					assert.Equal(t, popPerPlanet[0], p.GetPopulation())
+				} else {
+					assert.Equal(t, popPerPlanet[1], p.GetPopulation())
+
+				}
 			}
 		}
 	})
@@ -329,7 +388,14 @@ func Test_universeGenerator_getStartingStarbaseDesigns(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ug := universeGenerator{}
+			ug := universeGenerator{
+				FullGame: &FullGame{
+					Game: &Game{
+						Size: SizeSmall,
+					},
+				},
+			}
+
 			tt.player.Name = tt.name
 			got := ug.createStartingStarbaseDesigns(&StaticTechStore, tt.player, 1)
 
