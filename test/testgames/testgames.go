@@ -693,6 +693,56 @@ var TestGames = []TestGame{
 				Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
 			}},
 	},
+	{
+		Name: "Battle 1",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Destroyer",
+						Hull:  cs.Destroyer.Name,
+						Slots: destroyerDeltaSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName:          "Destroyer Delta",
+						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						OrbitingPlanetNum: 1,
+					},
+				},
+			},
+			{
+				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace()},
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Santa Maria",
+						Hull:  cs.ColonyShip.Name,
+						Slots: santaMariaSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName:          "Santa Maria",
+						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 2}},
+						OrbitingPlanetNum: 1,
+					},
+				},
+			},
+		},
+
+		Planets: []cs.Planet{
+			{
+				MapObject: cs.MapObject{
+					Name:      "Planet 1",
+					PlayerNum: 1,
+				},
+				Hab:                  cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+				MineralConcentration: cs.NewMineral(100, 100, 100),
+				Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
+			},
+		},
+	},
 }
 
 // CreateTestGames creates one of each test game for manual testing
