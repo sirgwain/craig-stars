@@ -318,7 +318,7 @@ func (m *messageClient) error(player *Player, err error) {
 }
 
 func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRecord) {
-	location := fmt.Sprintf("Space (%0f, %0f)", battle.Position.X, battle.Position.Y)
+	location := fmt.Sprintf("Space (%d, %d)", battle.Position.X, battle.Position.Y)
 	if planet != nil {
 		location = planet.Name
 	}
@@ -329,7 +329,7 @@ func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRec
 }
 
 func (m *messageClient) battleAlly(player *Player, planet *Planet, battle *BattleRecord) {
-	location := fmt.Sprintf("Space (%0f, %0f)", battle.Position.X, battle.Position.Y)
+	location := fmt.Sprintf("Space (%d, %d)", battle.Position.X, battle.Position.Y)
 	if planet != nil {
 		location = planet.Name
 	}

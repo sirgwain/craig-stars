@@ -160,12 +160,12 @@ message TechHull {
   int32 fuel_capacity = 6;
   int32 fuel_generation = 7;
   int32 cargo_capacity = 8;
-  Vector cargo_slot_position = 9;
-  Vector cargo_slot_size = 10;
+  VectorFloat64 cargo_slot_position = 9;
+  VectorFloat64 cargo_slot_size = 10;
   bool cargo_slot_circle = 11;
   int32 space_dock = 12;
-  Vector space_dock_slot_position = 13;
-  Vector space_dock_slot_size = 14;
+  VectorFloat64 space_dock_slot_position = 13;
+  VectorFloat64 space_dock_slot_size = 14;
   bool space_dock_slot_circle = 15;
   double mine_laying_bonus = 16;
   int32 initiative = 17;
@@ -202,7 +202,7 @@ message TechHullSlot {
   uint32 type = 1;
   int32 capacity = 2;
   bool required = 3;
-  Vector position = 4;
+  VectorFloat64 position = 4;
 }
 
 message TechPlanetary {

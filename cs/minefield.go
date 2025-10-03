@@ -263,9 +263,9 @@ func checkForMinefieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 		stats := rules.MinefieldStatsByType[minefield.MinefieldType]
 		if dest.WarpSpeed > stats.MaxSpeed+safeWarpBonus {
 			// this is not our minefield, and we are going fast, check if we intersect.
-			from := fleet.Position
-			to := (dest.Position.Subtract(fleet.Position).Normalized()).Scale(distance).Add(from)
-			collision := segmentIntersectsCircle(from, to, minefield.Position, minefield.Radius())
+			from := fleet.Position.ToFloat64()
+			to := (dest.Position.ToFloat64().Subtract(from).Normalized()).Scale(distance).Add(from)
+			collision := segmentIntersectsCircle(from, to, minefield.Position.ToFloat64(), minefield.Radius())
 			if collision == -1 {
 				// miss! phew, that was close!
 				continue
@@ -311,5 +311,5 @@ func (minefield *Minefield) moveTowardsMineLayer(position Vector, minesLaid int)
 	heading := position.Subtract(minefield.Position).Normalized()
 
 	// move the minefield towards the fleet
-	minefield.Position = minefield.Position.Add(heading.Normalized().Scale(totalDist * moveTowardsFactor)).Round()
+	minefield.Position = minefield.Position.ToFloat64().Add(heading.Normalized().Scale(totalDist * moveTowardsFactor)).ToInt(true)
 }

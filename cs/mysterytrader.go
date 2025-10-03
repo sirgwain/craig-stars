@@ -12,7 +12,7 @@ type MysteryTrader struct {
 	Destination     Vector                  `json:"destination"`
 	RequestedBoon   int                     `json:"requestedBoon,omitempty"`
 	RewardType      MysteryTraderRewardType `json:"rewardType"`
-	Heading         Vector                  `json:"heading,omitempty"`
+	Heading         VectorFloat64           `json:"heading,omitempty"`
 	PlayersRewarded map[int]bool            `json:"playersRewarded,omitzero"`
 	Spec            MysteryTraderSpec       `json:"spec,omitzero"`
 }
@@ -255,11 +255,11 @@ func generateRandomMysteryTraderCoords(rules *Rules, game *Game) (coords Vector)
 	// our position/dest always uses one edge coord, one random coord
 	// the edge coord is either 0 or the max size, based on some randomness
 	if rules.random.Intn(2) == 0 {
-		coords.X = float64(randomXYCoords[0])
-		coords.Y = float64(yEdgeCoords[rules.random.Intn(2)])
+		coords.X = randomXYCoords[0]
+		coords.Y = yEdgeCoords[rules.random.Intn(2)]
 	} else {
-		coords.X = float64(xEdgeCoords[rules.random.Intn(2)])
-		coords.Y = float64(randomXYCoords[1])
+		coords.X = xEdgeCoords[rules.random.Intn(2)]
+		coords.Y = randomXYCoords[1]
 	}
 	return coords
 }
@@ -269,8 +269,8 @@ func generateRandomMysteryTraderDestination(rules *Rules, game *Game, position V
 
 	// start with a random dest
 	randCoords := Vector{
-		float64(20 + rules.random.Intn(int(game.Area.X)-39)),
-		float64(20 + rules.random.Intn(int(game.Area.Y)-39)),
+		20 + rules.random.Intn(game.Area.X-39),
+		20 + rules.random.Intn(game.Area.Y-39),
 	}
 
 	var yEdgeCoords, xEdgeCoords [2]int
@@ -286,13 +286,13 @@ func generateRandomMysteryTraderDestination(rules *Rules, game *Game, position V
 
 	// make destinations on each side of the map, with the other coord being random on the other axis
 	// i.e. right is the far right edge of the map, and some random point on the Y
-	left := Vector{float64(xEdgeCoords[0]), randCoords.Y}
-	right := Vector{float64(xEdgeCoords[1]), randCoords.Y}
-	top := Vector{randCoords.X, float64(yEdgeCoords[0])}
-	bottom := Vector{randCoords.X, float64(yEdgeCoords[1])}
+	left := Vector{xEdgeCoords[0], randCoords.Y}
+	right := Vector{xEdgeCoords[1], randCoords.Y}
+	top := Vector{randCoords.X, yEdgeCoords[0]}
+	bottom := Vector{randCoords.X, yEdgeCoords[1]}
 
 	// find the edge that is farthest from our current point and go there
-	maxDist := -1.
+	maxDist := -1
 	for _, dest := range [4]Vector{left, right, top, bottom} {
 		dist := position.DistanceSquaredTo(dest)
 		if dist > maxDist {
@@ -382,7 +382,7 @@ func (mt *MysteryTrader) move() {
 	} else {
 		// move along the heading...
 		mt.Heading = (mt.Destination.Subtract(mt.Position)).Normalized()
-		mt.Position = mt.Position.Add(mt.Heading.Scale(dist))
+		mt.Position = mt.Position.ToFloat64().Add(mt.Heading.Scale(dist)).ToInt(true)
 		mt.Position = mt.Position.Round()
 	}
 }
@@ -734,16 +734,16 @@ var MiniMorph = TechHull{Tech: NewTechWithOrigin("Mini Morph", NewCost(30, 8, 8,
 	Initiative:        2,
 	FuelCapacity:      400,
 	CargoCapacity:     150,
-	CargoSlotPosition: Vector{0, -0.5},
-	CargoSlotSize:     Vector{1, 2},
+	CargoSlotPosition: VectorFloat64{0, -0.5},
+	CargoSlotSize:     VectorFloat64{1, 2},
 	Slots: []TechHullSlot{
-		{Position: Vector{-2, 0}, Type: HullSlotTypeEngine, Capacity: 2, Required: true},
-		{Position: Vector{-1, 0}, Type: HullSlotTypeGeneral, Capacity: 3},
-		{Position: Vector{1, -0.5}, Type: HullSlotTypeGeneral, Capacity: 1},
-		{Position: Vector{1, 0.5}, Type: HullSlotTypeGeneral, Capacity: 1},
-		{Position: Vector{2, 0}, Type: HullSlotTypeGeneral, Capacity: 1},
-		{Position: Vector{-1, -1}, Type: HullSlotTypeGeneral, Capacity: 2},
-		{Position: Vector{-1, 1}, Type: HullSlotTypeGeneral, Capacity: 2},
+		{Position: VectorFloat64{-2, 0}, Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Position: VectorFloat64{-1, 0}, Type: HullSlotTypeGeneral, Capacity: 3},
+		{Position: VectorFloat64{1, -0.5}, Type: HullSlotTypeGeneral, Capacity: 1},
+		{Position: VectorFloat64{1, 0.5}, Type: HullSlotTypeGeneral, Capacity: 1},
+		{Position: VectorFloat64{2, 0}, Type: HullSlotTypeGeneral, Capacity: 1},
+		{Position: VectorFloat64{-1, -1}, Type: HullSlotTypeGeneral, Capacity: 2},
+		{Position: VectorFloat64{-1, 1}, Type: HullSlotTypeGeneral, Capacity: 2},
 	},
 }
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { FleetSchema, VectorSchema } from '$lib/types/cs-proto';
+	import { FleetSchema, VectorFloat64Schema } from '$lib/types/cs-proto';
 	import { CommandedFleet } from '$lib/types/Fleet';
 	import type { MapObjectLike } from '$lib/types/MapObject';
 	import { normalized } from '$lib/types/Vector';
@@ -88,7 +88,7 @@
 						}
 					],
 					heading: normalized(
-						create(VectorSchema, {
+						create(VectorFloat64Schema, {
 							x: fp.headingX,
 							y: fp.headingY
 						})

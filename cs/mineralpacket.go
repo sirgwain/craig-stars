@@ -9,13 +9,13 @@ import (
 type MineralPacket struct {
 	GameDBObject
 	MapObject
-	TargetPlanetNum   int    `json:"targetPlanetNum"`
-	Cargo             Cargo  `json:"cargo"`
-	WarpSpeed         int    `json:"warpSpeed"`
-	SafeWarpSpeed     int    `json:"safeWarpSpeed"`
-	Heading           Vector `json:"heading"`
-	ScanRange         int    `json:"scanRange"`
-	ScanRangePen      int    `json:"scanRangePen"`
+	TargetPlanetNum   int           `json:"targetPlanetNum"`
+	Cargo             Cargo         `json:"cargo"`
+	WarpSpeed         int           `json:"warpSpeed"`
+	SafeWarpSpeed     int           `json:"safeWarpSpeed"`
+	Heading           VectorFloat64 `json:"heading"`
+	ScanRange         int           `json:"scanRange"`
+	ScanRangePen      int           `json:"scanRangePen"`
 	distanceTravelled float64
 	builtThisTurn     bool
 }
@@ -104,8 +104,7 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 		// move this packet closer to the next planet
 		packet.distanceTravelled = dist
 		packet.Heading = target.Position.Subtract(packet.Position).Normalized()
-		packet.Position = packet.Position.Add(packet.Heading.Scale(dist))
-		packet.Position = packet.Position.Round()
+		packet.Position = packet.Position.ToFloat64().Add(packet.Heading.Scale(dist)).ToInt(true)
 	}
 }
 

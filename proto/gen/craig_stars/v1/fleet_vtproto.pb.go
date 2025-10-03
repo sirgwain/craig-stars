@@ -1206,7 +1206,7 @@ func (m *Fleet) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Heading == nil {
-				m.Heading = &Vector{}
+				m.Heading = &VectorFloat64{}
 			}
 			if err := m.Heading.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

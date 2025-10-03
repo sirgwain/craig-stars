@@ -32,8 +32,8 @@ func (c *ProtoConverter) ConvertBattleRecordTokenAction(source *v1.BattleRecordT
 		csBattleRecordTokenAction2.Type = BattleRecordTokenActionTypeToCSBattleRecordTokenActionType((*source).Type)
 		csBattleRecordTokenAction2.TokenNum = Int32ToInt((*source).TokenNum)
 		csBattleRecordTokenAction2.Round = Int32ToInt((*source).Round)
-		csBattleRecordTokenAction2.From = c.pCraig_starsv1BattleVectorToCsBattleVector((*source).From)
-		csBattleRecordTokenAction2.To = c.pCraig_starsv1BattleVectorToCsBattleVector((*source).To)
+		csBattleRecordTokenAction2.From = c.ConvertVector((*source).From)
+		csBattleRecordTokenAction2.To = c.ConvertVector((*source).To)
 		csBattleRecordTokenAction2.Slot = Int32ToInt((*source).Slot)
 		csBattleRecordTokenAction2.TargetNum = Int32ToInt((*source).TargetNum)
 		csBattleRecordTokenAction2.Target = c.pCraig_starsv1ShipTokenToPCsShipToken((*source).Target)
@@ -99,8 +99,8 @@ func (c *ProtoConverter) ConvertCSBattleRecordTokenAction(source cs.BattleRecord
 	craig_starsv1BattleRecordTokenAction.Type = CSBattleRecordTokenActionTypeToBattleRecordTokenActionType(source.Type)
 	craig_starsv1BattleRecordTokenAction.TokenNum = IntToInt32(source.TokenNum)
 	craig_starsv1BattleRecordTokenAction.Round = IntToInt32(source.Round)
-	craig_starsv1BattleRecordTokenAction.From = c.csBattleVectorToPCraig_starsv1BattleVector(source.From)
-	craig_starsv1BattleRecordTokenAction.To = c.csBattleVectorToPCraig_starsv1BattleVector(source.To)
+	craig_starsv1BattleRecordTokenAction.From = CSVectorToVector(source.From)
+	craig_starsv1BattleRecordTokenAction.To = CSVectorToVector(source.To)
 	craig_starsv1BattleRecordTokenAction.Slot = IntToInt32(source.Slot)
 	craig_starsv1BattleRecordTokenAction.TargetNum = IntToInt32(source.TargetNum)
 	craig_starsv1BattleRecordTokenAction.Target = c.pCsShipTokenToPCraig_starsv1ShipToken(source.Target)
@@ -177,9 +177,9 @@ func (c *ProtoConverter) ConvertCSFleet(source *cs.Fleet) *v1.Fleet {
 				craig_starsv1Fleet.Tokens[i] = c.csShipTokenToPCraig_starsv1ShipToken((*source).Tokens[i])
 			}
 		}
-		craig_starsv1Fleet.Heading = CSVectorToVector((*source).Heading)
+		craig_starsv1Fleet.Heading = CSVectorFloat64ToVectorFloat64((*source).Heading)
 		craig_starsv1Fleet.WarpSpeed = IntToInt32((*source).WarpSpeed)
-		craig_starsv1Fleet.PreviousPosition = c.pCsVectorToPCraig_starsv1Vector((*source).PreviousPosition)
+		craig_starsv1Fleet.PreviousPosition = c.pCsVectorGenericToPCraig_starsv1Vector((*source).PreviousPosition)
 		craig_starsv1Fleet.OrbitingPlanetNum = IntToInt32((*source).OrbitingPlanetNum)
 		craig_starsv1Fleet.Starbase = (*source).Starbase
 		craig_starsv1Fleet.Spec = c.ConvertCSFleetSpec((*source).Spec)
@@ -367,7 +367,7 @@ func (c *ProtoConverter) ConvertCSMineralPacket(source *cs.MineralPacket) *v1.Mi
 		craig_starsv1MineralPacket.Cargo = CSCargoToCargo((*source).Cargo)
 		craig_starsv1MineralPacket.WarpSpeed = IntToInt32((*source).WarpSpeed)
 		craig_starsv1MineralPacket.SafeWarpSpeed = IntToInt32((*source).SafeWarpSpeed)
-		craig_starsv1MineralPacket.Heading = CSVectorToVector((*source).Heading)
+		craig_starsv1MineralPacket.Heading = CSVectorFloat64ToVectorFloat64((*source).Heading)
 		craig_starsv1MineralPacket.ScanRange = IntToInt32((*source).ScanRange)
 		craig_starsv1MineralPacket.ScanRangePen = IntToInt32((*source).ScanRangePen)
 		pCraig_starsv1MineralPacket = &craig_starsv1MineralPacket
@@ -1009,12 +1009,12 @@ func (c *ProtoConverter) ConvertCSTechHull(source *cs.TechHull) *v1.TechHull {
 		craig_starsv1TechHull.FuelCapacity = IntToInt32((*source).FuelCapacity)
 		craig_starsv1TechHull.FuelGeneration = IntToInt32((*source).FuelGeneration)
 		craig_starsv1TechHull.CargoCapacity = IntToInt32((*source).CargoCapacity)
-		craig_starsv1TechHull.CargoSlotPosition = CSVectorToVector((*source).CargoSlotPosition)
-		craig_starsv1TechHull.CargoSlotSize = CSVectorToVector((*source).CargoSlotSize)
+		craig_starsv1TechHull.CargoSlotPosition = CSVectorFloat64ToVectorFloat64((*source).CargoSlotPosition)
+		craig_starsv1TechHull.CargoSlotSize = CSVectorFloat64ToVectorFloat64((*source).CargoSlotSize)
 		craig_starsv1TechHull.CargoSlotCircle = (*source).CargoSlotCircle
 		craig_starsv1TechHull.SpaceDock = IntToInt32((*source).SpaceDock)
-		craig_starsv1TechHull.SpaceDockSlotPosition = CSVectorToVector((*source).SpaceDockSlotPosition)
-		craig_starsv1TechHull.SpaceDockSlotSize = CSVectorToVector((*source).SpaceDockSlotSize)
+		craig_starsv1TechHull.SpaceDockSlotPosition = CSVectorFloat64ToVectorFloat64((*source).SpaceDockSlotPosition)
+		craig_starsv1TechHull.SpaceDockSlotSize = CSVectorFloat64ToVectorFloat64((*source).SpaceDockSlotSize)
 		craig_starsv1TechHull.SpaceDockSlotCircle = (*source).SpaceDockSlotCircle
 		craig_starsv1TechHull.MineLayingBonus = (*source).MineLayingBonus
 		craig_starsv1TechHull.Initiative = IntToInt32((*source).Initiative)
@@ -1310,9 +1310,9 @@ func (c *ProtoConverter) ConvertFleet(source *v1.Fleet) *cs.Fleet {
 		csFleet.Fuel = Int32ToInt((*source).Fuel)
 		csFleet.Age = Int32ToInt((*source).Age)
 		csFleet.Tokens = c.ConvertShipTokens((*source).Tokens)
-		csFleet.Heading = c.ConvertVector((*source).Heading)
+		csFleet.Heading = c.ConvertVectorFloat64((*source).Heading)
 		csFleet.WarpSpeed = Int32ToInt((*source).WarpSpeed)
-		csFleet.PreviousPosition = c.pCraig_starsv1VectorToPCsVector((*source).PreviousPosition)
+		csFleet.PreviousPosition = c.pCraig_starsv1VectorToPCsVectorGeneric((*source).PreviousPosition)
 		csFleet.OrbitingPlanetNum = Int32ToInt((*source).OrbitingPlanetNum)
 		csFleet.Starbase = (*source).Starbase
 		csFleet.Spec = c.ConvertFleetSpec((*source).Spec)
@@ -1590,7 +1590,7 @@ func (c *ProtoConverter) ConvertMineralPacket(source *v1.MineralPacket) *cs.Mine
 		csMineralPacket.Cargo = c.ConvertCargo((*source).Cargo)
 		csMineralPacket.WarpSpeed = Int32ToInt((*source).WarpSpeed)
 		csMineralPacket.SafeWarpSpeed = Int32ToInt((*source).SafeWarpSpeed)
-		csMineralPacket.Heading = c.ConvertVector((*source).Heading)
+		csMineralPacket.Heading = c.ConvertVectorFloat64((*source).Heading)
 		csMineralPacket.ScanRange = Int32ToInt((*source).ScanRange)
 		csMineralPacket.ScanRangePen = Int32ToInt((*source).ScanRangePen)
 		pCsMineralPacket = &csMineralPacket
@@ -2209,12 +2209,12 @@ func (c *ProtoConverter) ConvertTechHull(source *v1.TechHull) *cs.TechHull {
 		csTechHull.FuelCapacity = Int32ToInt((*source).FuelCapacity)
 		csTechHull.FuelGeneration = Int32ToInt((*source).FuelGeneration)
 		csTechHull.CargoCapacity = Int32ToInt((*source).CargoCapacity)
-		csTechHull.CargoSlotPosition = c.ConvertVector((*source).CargoSlotPosition)
-		csTechHull.CargoSlotSize = c.ConvertVector((*source).CargoSlotSize)
+		csTechHull.CargoSlotPosition = c.ConvertVectorFloat64((*source).CargoSlotPosition)
+		csTechHull.CargoSlotSize = c.ConvertVectorFloat64((*source).CargoSlotSize)
 		csTechHull.CargoSlotCircle = (*source).CargoSlotCircle
 		csTechHull.SpaceDock = Int32ToInt((*source).SpaceDock)
-		csTechHull.SpaceDockSlotPosition = c.ConvertVector((*source).SpaceDockSlotPosition)
-		csTechHull.SpaceDockSlotSize = c.ConvertVector((*source).SpaceDockSlotSize)
+		csTechHull.SpaceDockSlotPosition = c.ConvertVectorFloat64((*source).SpaceDockSlotPosition)
+		csTechHull.SpaceDockSlotSize = c.ConvertVectorFloat64((*source).SpaceDockSlotSize)
 		csTechHull.SpaceDockSlotCircle = (*source).SpaceDockSlotCircle
 		csTechHull.MineLayingBonus = (*source).MineLayingBonus
 		csTechHull.Initiative = Int32ToInt((*source).Initiative)
@@ -2384,15 +2384,25 @@ func (c *ProtoConverter) ConvertUserSettings(source *v1.UserSettings) cs.UserSet
 	}
 	return csUserSettings
 }
-func (c *ProtoConverter) ConvertVector(source *v1.Vector) cs.Vector {
-	var csVector cs.Vector
+func (c *ProtoConverter) ConvertVector(source *v1.Vector) cs.VectorGeneric[int] {
+	var csVectorGeneric cs.VectorGeneric[int]
 	if source != nil {
-		var csVector2 cs.Vector
-		csVector2.X = (*source).X
-		csVector2.Y = (*source).Y
-		csVector = csVector2
+		var csVectorGeneric2 cs.VectorGeneric[int]
+		csVectorGeneric2.X = Int32ToInt((*source).X)
+		csVectorGeneric2.Y = Int32ToInt((*source).Y)
+		csVectorGeneric = csVectorGeneric2
 	}
-	return csVector
+	return csVectorGeneric
+}
+func (c *ProtoConverter) ConvertVectorFloat64(source *v1.VectorFloat64) cs.VectorGeneric[float64] {
+	var csVectorGeneric cs.VectorGeneric[float64]
+	if source != nil {
+		var csVectorGeneric2 cs.VectorGeneric[float64]
+		csVectorGeneric2.X = (*source).X
+		csVectorGeneric2.Y = (*source).Y
+		csVectorGeneric = csVectorGeneric2
+	}
+	return csVectorGeneric
 }
 func (c *ProtoConverter) ConvertVictoryConditions(source *v1.VictoryConditions) cs.VictoryConditions {
 	var csVictoryConditions cs.VictoryConditions
@@ -2538,7 +2548,7 @@ func (c *ProtoConverter) csBattleRecordTokenToPCraig_starsv1BattleRecordToken(so
 	craig_starsv1BattleRecordToken.Num = IntToInt32(source.Num)
 	craig_starsv1BattleRecordToken.PlayerNum = IntToInt32(source.PlayerNum)
 	craig_starsv1BattleRecordToken.DesignNum = IntToInt32(source.DesignNum)
-	craig_starsv1BattleRecordToken.Position = c.csBattleVectorToPCraig_starsv1BattleVector(source.Position)
+	craig_starsv1BattleRecordToken.Position = CSVectorToVector(source.Position)
 	craig_starsv1BattleRecordToken.Initiative = IntToInt32(source.Initiative)
 	craig_starsv1BattleRecordToken.Mass = IntToInt32(source.Mass)
 	craig_starsv1BattleRecordToken.Armor = IntToInt32(source.Armor)
@@ -2565,12 +2575,6 @@ func (c *ProtoConverter) csBattleRulesToPCraig_starsv1BattleRules(source cs.Batt
 	craig_starsv1BattleRules.NumBattleRounds = IntToInt32(source.NumBattleRounds)
 	craig_starsv1BattleRules.TorpedoSplashDamage = source.TorpedoSplashDamage
 	return &craig_starsv1BattleRules
-}
-func (c *ProtoConverter) csBattleVectorToPCraig_starsv1BattleVector(source cs.BattleVector) *v1.BattleVector {
-	var craig_starsv1BattleVector v1.BattleVector
-	craig_starsv1BattleVector.X = IntToInt32(source.X)
-	craig_starsv1BattleVector.Y = IntToInt32(source.Y)
-	return &craig_starsv1BattleVector
 }
 func (c *ProtoConverter) csBombToPCraig_starsv1Bomb(source cs.Bomb) *v1.Bomb {
 	var craig_starsv1Bomb v1.Bomb
@@ -3009,7 +3013,7 @@ func (c *ProtoConverter) csTechHullSlotToPCraig_starsv1TechHullSlot(source cs.Te
 	craig_starsv1TechHullSlot.Type = uint32(source.Type)
 	craig_starsv1TechHullSlot.Capacity = IntToInt32(source.Capacity)
 	craig_starsv1TechHullSlot.Required = source.Required
-	craig_starsv1TechHullSlot.Position = CSVectorToVector(source.Position)
+	craig_starsv1TechHullSlot.Position = CSVectorFloat64ToVectorFloat64(source.Position)
 	return &craig_starsv1TechHullSlot
 }
 func (c *ProtoConverter) csTechHullToPCraig_starsv1TechHull(source cs.TechHull) *v1.TechHull {
@@ -3022,12 +3026,12 @@ func (c *ProtoConverter) csTechHullToPCraig_starsv1TechHull(source cs.TechHull) 
 	craig_starsv1TechHull.FuelCapacity = IntToInt32(source.FuelCapacity)
 	craig_starsv1TechHull.FuelGeneration = IntToInt32(source.FuelGeneration)
 	craig_starsv1TechHull.CargoCapacity = IntToInt32(source.CargoCapacity)
-	craig_starsv1TechHull.CargoSlotPosition = CSVectorToVector(source.CargoSlotPosition)
-	craig_starsv1TechHull.CargoSlotSize = CSVectorToVector(source.CargoSlotSize)
+	craig_starsv1TechHull.CargoSlotPosition = CSVectorFloat64ToVectorFloat64(source.CargoSlotPosition)
+	craig_starsv1TechHull.CargoSlotSize = CSVectorFloat64ToVectorFloat64(source.CargoSlotSize)
 	craig_starsv1TechHull.CargoSlotCircle = source.CargoSlotCircle
 	craig_starsv1TechHull.SpaceDock = IntToInt32(source.SpaceDock)
-	craig_starsv1TechHull.SpaceDockSlotPosition = CSVectorToVector(source.SpaceDockSlotPosition)
-	craig_starsv1TechHull.SpaceDockSlotSize = CSVectorToVector(source.SpaceDockSlotSize)
+	craig_starsv1TechHull.SpaceDockSlotPosition = CSVectorFloat64ToVectorFloat64(source.SpaceDockSlotPosition)
+	craig_starsv1TechHull.SpaceDockSlotSize = CSVectorFloat64ToVectorFloat64(source.SpaceDockSlotSize)
 	craig_starsv1TechHull.SpaceDockSlotCircle = source.SpaceDockSlotCircle
 	craig_starsv1TechHull.MineLayingBonus = source.MineLayingBonus
 	craig_starsv1TechHull.Initiative = IntToInt32(source.Initiative)
@@ -3330,7 +3334,7 @@ func (c *ProtoConverter) pCraig_starsv1BattleRecordTokenToCsBattleRecordToken(so
 		csBattleRecordToken2.Num = Int32ToInt((*source).Num)
 		csBattleRecordToken2.PlayerNum = Int32ToInt((*source).PlayerNum)
 		csBattleRecordToken2.DesignNum = Int32ToInt((*source).DesignNum)
-		csBattleRecordToken2.Position = c.pCraig_starsv1BattleVectorToCsBattleVector((*source).Position)
+		csBattleRecordToken2.Position = c.ConvertVector((*source).Position)
 		csBattleRecordToken2.Initiative = Int32ToInt((*source).Initiative)
 		csBattleRecordToken2.Mass = Int32ToInt((*source).Mass)
 		csBattleRecordToken2.Armor = Int32ToInt((*source).Armor)
@@ -3363,16 +3367,6 @@ func (c *ProtoConverter) pCraig_starsv1BattleRulesToCsBattleRules(source *v1.Bat
 		csBattleRules = csBattleRules2
 	}
 	return csBattleRules
-}
-func (c *ProtoConverter) pCraig_starsv1BattleVectorToCsBattleVector(source *v1.BattleVector) cs.BattleVector {
-	var csBattleVector cs.BattleVector
-	if source != nil {
-		var csBattleVector2 cs.BattleVector
-		csBattleVector2.X = Int32ToInt((*source).X)
-		csBattleVector2.Y = Int32ToInt((*source).Y)
-		csBattleVector = csBattleVector2
-	}
-	return csBattleVector
 }
 func (c *ProtoConverter) pCraig_starsv1BombToCsBomb(source *v1.Bomb) cs.Bomb {
 	var csBomb cs.Bomb
@@ -3678,7 +3672,7 @@ func (c *ProtoConverter) pCraig_starsv1MysteryTraderToPCsMysteryTrader(source *v
 		csMysteryTrader.Destination = c.ConvertVector((*source).Destination)
 		csMysteryTrader.RequestedBoon = Int32ToInt((*source).RequestedBoon)
 		csMysteryTrader.RewardType = MysteryTraderRewardTypeToCSMysteryTraderRewardType((*source).RewardType)
-		csMysteryTrader.Heading = c.ConvertVector((*source).Heading)
+		csMysteryTrader.Heading = c.ConvertVectorFloat64((*source).Heading)
 		if (*source).PlayersRewarded != nil {
 			csMysteryTrader.PlayersRewarded = make(map[int]bool, len((*source).PlayersRewarded))
 			for key, value := range (*source).PlayersRewarded {
@@ -4153,7 +4147,7 @@ func (c *ProtoConverter) pCraig_starsv1TechHullSlotToCsTechHullSlot(source *v1.T
 		csTechHullSlot2.Type = cs.HullSlotType((*source).Type)
 		csTechHullSlot2.Capacity = Int32ToInt((*source).Capacity)
 		csTechHullSlot2.Required = (*source).Required
-		csTechHullSlot2.Position = c.ConvertVector((*source).Position)
+		csTechHullSlot2.Position = c.ConvertVectorFloat64((*source).Position)
 		csTechHullSlot = csTechHullSlot2
 	}
 	return csTechHullSlot
@@ -4211,15 +4205,15 @@ func (c *ProtoConverter) pCraig_starsv1UniverseGenerationRulesToCsUniverseGenera
 	}
 	return csUniverseGenerationRules
 }
-func (c *ProtoConverter) pCraig_starsv1VectorToPCsVector(source *v1.Vector) *cs.Vector {
-	var pCsVector *cs.Vector
+func (c *ProtoConverter) pCraig_starsv1VectorToPCsVectorGeneric(source *v1.Vector) *cs.VectorGeneric[int] {
+	var pCsVectorGeneric *cs.VectorGeneric[int]
 	if source != nil {
-		var csVector cs.Vector
-		csVector.X = (*source).X
-		csVector.Y = (*source).Y
-		pCsVector = &csVector
+		var csVectorGeneric cs.VectorGeneric[int]
+		csVectorGeneric.X = Int32ToInt((*source).X)
+		csVectorGeneric.Y = Int32ToInt((*source).Y)
+		pCsVectorGeneric = &csVectorGeneric
 	}
-	return pCsVector
+	return pCsVectorGeneric
 }
 func (c *ProtoConverter) pCraig_starsv1WaypointToCsWaypoint(source *v1.Waypoint) cs.Waypoint {
 	var csWaypoint cs.Waypoint
@@ -4389,7 +4383,7 @@ func (c *ProtoConverter) pCsMysteryTraderToPCraig_starsv1MysteryTrader(source *c
 		craig_starsv1MysteryTrader.Destination = CSVectorToVector((*source).Destination)
 		craig_starsv1MysteryTrader.RequestedBoon = IntToInt32((*source).RequestedBoon)
 		craig_starsv1MysteryTrader.RewardType = CSMysteryTraderRewardTypeToMysteryTraderRewardType((*source).RewardType)
-		craig_starsv1MysteryTrader.Heading = CSVectorToVector((*source).Heading)
+		craig_starsv1MysteryTrader.Heading = CSVectorFloat64ToVectorFloat64((*source).Heading)
 		if (*source).PlayersRewarded != nil {
 			craig_starsv1MysteryTrader.PlayersRewarded = make(map[int32]bool, len((*source).PlayersRewarded))
 			for key, value := range (*source).PlayersRewarded {
@@ -4477,12 +4471,12 @@ func (c *ProtoConverter) pCsTargetToPCraig_starsv1MapObjectTarget(source *cs.Tar
 	}
 	return pCraig_starsv1MapObjectTarget
 }
-func (c *ProtoConverter) pCsVectorToPCraig_starsv1Vector(source *cs.Vector) *v1.Vector {
+func (c *ProtoConverter) pCsVectorGenericToPCraig_starsv1Vector(source *cs.VectorGeneric[int]) *v1.Vector {
 	var pCraig_starsv1Vector *v1.Vector
 	if source != nil {
 		var craig_starsv1Vector v1.Vector
-		craig_starsv1Vector.X = (*source).X
-		craig_starsv1Vector.Y = (*source).Y
+		craig_starsv1Vector.X = IntToInt32((*source).X)
+		craig_starsv1Vector.Y = IntToInt32((*source).Y)
 		pCraig_starsv1Vector = &craig_starsv1Vector
 	}
 	return pCraig_starsv1Vector

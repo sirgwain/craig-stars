@@ -21,21 +21,21 @@ type scanner struct {
 const NoCloakFactor = 1
 
 // RangeSquared returns the cloak adjusted RangeSquared value
-func (s scanner) RangeSquared(cloakFactor float64) float64 {
+func (s scanner) RangeSquared(cloakFactor float64) int {
 	if cloakFactor == NoCloakFactor {
-		return float64(s.Range * s.Range)
+		return s.Range * s.Range
 	}
 	r := float64(s.Range) * cloakFactor
-	return math.Ceil(r * r)
+	return int(math.Ceil(r * r))
 }
 
 // RangeSquared returns the cloak adjusted RangeSquared value
-func (s scanner) RangePenSquared(cloakFactor float64) float64 {
+func (s scanner) RangePenSquared(cloakFactor float64) int {
 	if cloakFactor == 1 {
-		return float64(s.RangePen * s.RangePen)
+		return s.RangePen * s.RangePen
 	}
 	r := float64(s.RangePen) * cloakFactor
-	return math.Ceil(r * r)
+	return int(math.Ceil(r * r))
 }
 
 type playerScanner struct {
@@ -155,7 +155,7 @@ func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scann
 
 // scan this planet
 func (scan *playerScanner) scanPlanet(planet *Planet, scanner scanner) (scanned bool, err error) {
-	if scanner.RangePen != NoScanner && float64(scanner.RangePenSquared(NoCloakFactor)) >= scanner.Position.DistanceSquaredTo(planet.Position) {
+	if scanner.RangePen != NoScanner && scanner.RangePenSquared(NoCloakFactor) >= scanner.Position.DistanceSquaredTo(planet.Position) {
 		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
 		}
@@ -691,7 +691,7 @@ func (scan *playerScanner) updateFleetTargets() {
 				fleet.Waypoints = []Waypoint{NewPositionWaypoint(fleet.Position, fleet.WarpSpeed), wp0}
 			} else {
 				fleet.WarpSpeed = 0
-				fleet.Heading = Vector{}
+				fleet.Heading = VectorFloat64{}
 			}
 		}
 

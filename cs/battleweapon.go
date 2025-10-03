@@ -127,7 +127,7 @@ func (slot *battleWeaponSlot) isInRange(target *battleToken) bool {
 	return slot.isInRangePosition(target.Position)
 }
 
-func (slot *battleWeaponSlot) isInRangePosition(position BattleVector) bool {
+func (slot *battleWeaponSlot) isInRangePosition(position Vector) bool {
 	// diagonal shots count as one move, so we take the max distance on the x or y as our actual distance away
 	// i.e. 4 over, 1 up is 4 range away, 3 over 2 up is 3 range away, etc.
 	return slot.token.getDistanceAway(position) <= slot.weaponRange

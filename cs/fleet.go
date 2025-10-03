@@ -29,18 +29,18 @@ type Fleet struct {
 	GameDBObject
 	MapObject
 	FleetOrders
-	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
-	BaseName          string      `json:"baseName"`
-	Cargo             Cargo       `json:"cargo,omitzero"`
-	Fuel              int         `json:"fuel"`
-	Age               int         `json:"age"`
-	Tokens            []ShipToken `json:"tokens"`
-	Heading           Vector      `json:"heading"`
-	WarpSpeed         int         `json:"warpSpeed,omitempty"`
-	PreviousPosition  *Vector     `json:"previousPosition,omitempty"`
-	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
-	Starbase          bool        `json:"starbase,omitempty"`
-	Spec              FleetSpec   `json:"spec"`
+	PlanetNum         int           `json:"planetNum"` // for starbase fleets that are owned by a planet
+	BaseName          string        `json:"baseName"`
+	Cargo             Cargo         `json:"cargo,omitzero"`
+	Fuel              int           `json:"fuel"`
+	Age               int           `json:"age"`
+	Tokens            []ShipToken   `json:"tokens"`
+	Heading           VectorFloat64 `json:"heading"`
+	WarpSpeed         int           `json:"warpSpeed,omitempty"`
+	PreviousPosition  *Vector       `json:"previousPosition,omitempty"`
+	OrbitingPlanetNum int           `json:"orbitingPlanetNum,omitempty"`
+	Starbase          bool          `json:"starbase,omitempty"`
+	Spec              FleetSpec     `json:"spec"`
 	battlePlan        *BattlePlan
 	struckMinefield   bool
 	remoteMined       bool
@@ -888,13 +888,12 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		wp0.TargetName = ""
 		wp0.PartiallyComplete = true
 
-		fleet.Position = fleet.Position.Add(fleet.Heading.Scale(dist))
-		fleet.Position = fleet.Position.Round()
+		fleet.Position = fleet.Position.ToFloat64().Add(fleet.Heading.Scale(dist)).ToInt(true)
 		wp0.Position = fleet.Position
 
 		if fleet.struckMinefield {
 			fleet.WarpSpeed = 0
-			fleet.Heading = Vector{}
+			fleet.Heading = VectorFloat64{}
 		}
 
 		// don't do any transport in mid space, reset this
@@ -1193,7 +1192,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 	// we arrived, process the current task (the previous waypoint)
 	if len(fleet.Waypoints) == 1 {
 		fleet.WarpSpeed = 0
-		fleet.Heading = Vector{}
+		fleet.Heading = VectorFloat64{}
 	} else {
 		wp1 = fleet.Waypoints[1]
 		fleet.WarpSpeed = wp1.WarpSpeed

@@ -38,7 +38,7 @@ func Test_getBeamDamageAtDistance(t *testing.T) {
 
 func Test_battleWeaponSlot_isInRangePosition(t *testing.T) {
 	type args struct {
-		position BattleVector
+		position Vector
 	}
 	tests := []struct {
 		name   string
@@ -46,9 +46,9 @@ func Test_battleWeaponSlot_isInRangePosition(t *testing.T) {
 		args   args
 		want   bool
 	}{
-		{"no distance, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}}, args{BattleVector{0, 0}}, true},
-		{"distance 1, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}, weaponRange: 1}, args{BattleVector{1, 1}}, true},
-		{"distance 2, out of range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}, weaponRange: 1}, args{BattleVector{1, 2}}, false},
+		{"no distance, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}}, args{Vector{0, 0}}, true},
+		{"distance 1, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}, weaponRange: 1}, args{Vector{1, 1}}, true},
+		{"distance 2, out of range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}, weaponRange: 1}, args{Vector{1, 2}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -229,7 +229,7 @@ func Test_battleWeaponSlot_getDamage(t *testing.T) {
 
 func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 	type fields struct {
-		position           BattleVector
+		position           Vector
 		shipQuantity       int
 		slotQuantity       int
 		weaponRange        int
@@ -238,7 +238,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 	}
 	type args struct {
 		damage               int
-		position             BattleVector
+		position             Vector
 		armor                int
 		shields              int
 		beamDefense          float64
@@ -267,7 +267,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 			name:   "1 laser, 1 range away, 20dp target, 9 damage done",
 			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
 			args: args{
-				position:      BattleVector{1, 0},
+				position:      Vector{1, 0},
 				damage:        10,
 				tokenQuantity: 1,
 				armor:         20,
@@ -279,7 +279,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 			name:   "1 laser, 1 range away, 1 deflector, 20dp target, 8 damage done",
 			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
 			args: args{
-				position:      BattleVector{1, 0},
+				position:      Vector{1, 0},
 				damage:        10,
 				tokenQuantity: 1,
 				armor:         20,
@@ -292,7 +292,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 			name:   "1 gattling, 1 range away, 1 deflector, 20dp target, 9 damage done",
 			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1, hitsAllTargets: true},
 			args: args{
-				position:      BattleVector{1, 0},
+				position:      Vector{1, 0},
 				damage:        10,
 				tokenQuantity: 1,
 				armor:         20,
@@ -349,8 +349,8 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 			name:   "2 ships, 3 lasers, 2 targets 1sq away with 20x2 shields 20dp, damage both",
 			fields: fields{shipQuantity: 2, slotQuantity: 3, weaponRange: 1},
 			args: args{
-				position:      BattleVector{1, 0}, // 1 away
-				damage:        60,                 // 3 lasers * 2 ships * 10 damage each
+				position:      Vector{1, 0}, // 1 away
+				damage:        60,           // 3 lasers * 2 ships * 10 damage each
 				tokenQuantity: 2,
 				armor:         20,
 				shields:       40,

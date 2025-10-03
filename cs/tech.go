@@ -157,12 +157,12 @@ type TechHull struct {
 	FuelCapacity             int            `json:"fuelCapacity"`
 	FuelGeneration           int            `json:"fuelGeneration,omitempty"`
 	CargoCapacity            int            `json:"cargoCapacity,omitempty"`
-	CargoSlotPosition        Vector         `json:"cargoSlotPosition,omitempty"`
-	CargoSlotSize            Vector         `json:"cargoSlotSize,omitempty"`
+	CargoSlotPosition        VectorFloat64  `json:"cargoSlotPosition,omitempty"`
+	CargoSlotSize            VectorFloat64  `json:"cargoSlotSize,omitempty"`
 	CargoSlotCircle          bool           `json:"cargoSlotCircle,omitempty"`
 	SpaceDock                int            `json:"spaceDock,omitempty"`
-	SpaceDockSlotPosition    Vector         `json:"spaceDockSlotPosition,omitempty"`
-	SpaceDockSlotSize        Vector         `json:"spaceDockSlotSize,omitempty"`
+	SpaceDockSlotPosition    VectorFloat64  `json:"spaceDockSlotPosition,omitempty"`
+	SpaceDockSlotSize        VectorFloat64  `json:"spaceDockSlotSize,omitempty"`
 	SpaceDockSlotCircle      bool           `json:"spaceDockSlotCircle,omitempty"`
 	MineLayingBonus          float64        `json:"mineLayingBonus,omitempty"`
 	Initiative               int            `json:"initiative"`
@@ -179,10 +179,10 @@ type TechHull struct {
 }
 
 type TechHullSlot struct {
-	Type     HullSlotType `json:"type"`
-	Capacity int          `json:"capacity"`
-	Required bool         `json:"required,omitempty"`
-	Position Vector       `json:"position"`
+	Type     HullSlotType  `json:"type"`
+	Capacity int           `json:"capacity"`
+	Required bool          `json:"required,omitempty"`
+	Position VectorFloat64 `json:"position"`
 }
 
 type TechHullType string

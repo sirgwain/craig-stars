@@ -205,7 +205,7 @@ func Test_battle_getBestFleeMoves(t *testing.T) {
 	}
 
 	// generate a fleeing token at a position with 10dp
-	fleeingToken := func(position BattleVector) *battleToken {
+	fleeingToken := func(position Vector) *battleToken {
 		return &battleToken{
 			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: 1},
 			ShipToken:         &ShipToken{Quantity: 1},
@@ -214,7 +214,7 @@ func Test_battle_getBestFleeMoves(t *testing.T) {
 	}
 
 	// generate an enemy weapon at a position with a single laser
-	enemyWeapon := func(position BattleVector) *battleWeaponSlot {
+	enemyWeapon := func(position Vector) *battleWeaponSlot {
 		return &battleWeaponSlot{
 			token: &battleToken{
 				BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: 2, Tactic: BattleTacticMaximizeDamage, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny},
@@ -232,28 +232,28 @@ func Test_battle_getBestFleeMoves(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []BattleVector
+		want []Vector
 	}{
 		{
 			name: "token at 1,4 move randomly 1st option",
 			args: args{
-				token: fleeingToken(BattleVector{1, 4}),
+				token: fleeingToken(Vector{1, 4}),
 			},
 			// randomly pick from all moves
-			want: []BattleVector{{0, 3}, {0, 4}, {0, 5}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5}},
+			want: []Vector{{0, 3}, {0, 4}, {0, 5}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5}},
 		},
 		{
 			name: "token at 1,4 move away from surrounding weapons",
 			args: args{
-				token: fleeingToken(BattleVector{1, 4}),
+				token: fleeingToken(Vector{1, 4}),
 				// make three weapons adjacent so we have to move straight back
 				weapons: []*battleWeaponSlot{
-					enemyWeapon(BattleVector{1, 5}),
-					enemyWeapon(BattleVector{2, 4}),
-					enemyWeapon(BattleVector{1, 3}),
+					enemyWeapon(Vector{1, 5}),
+					enemyWeapon(Vector{2, 4}),
+					enemyWeapon(Vector{1, 3}),
 				},
 			},
-			want: []BattleVector{{0, 3}, {0, 5}},
+			want: []Vector{{0, 3}, {0, 5}},
 		},
 	}
 	for _, tt := range tests {
@@ -285,7 +285,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 	}
 
 	// generate a fleeing token at a position with 10dp
-	attackingToken := func(position BattleVector, tactic BattleTactic, weapon battleWeaponSlot) *battleToken {
+	attackingToken := func(position Vector, tactic BattleTactic, weapon battleWeaponSlot) *battleToken {
 		player := testPlayer().WithNum(1)
 		token := battleToken{
 			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: player.Num, Tactic: tactic, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny, Movement: 4},
@@ -304,7 +304,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 	}
 
 	// generate an enemy weapon at a position with a single laser
-	enemyToken := func(position BattleVector, weapon *battleWeaponSlot) *battleToken {
+	enemyToken := func(position Vector, weapon *battleWeaponSlot) *battleToken {
 		player := testPlayer().WithNum(2)
 		token := battleToken{
 			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: player.Num, Tactic: BattleTacticMaximizeDamage, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny, Movement: 4},
@@ -328,7 +328,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []BattleVector
+		want []Vector
 	}{
 		{
 			// attacker should move over, or over and up/down
@@ -337,13 +337,13 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * * *
 			name: "move towards enemy",
 			args: args{
-				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeDamage, laser),
+				token: attackingToken(Vector{0, 1}, BattleTacticMaximizeDamage, laser),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
-					enemyToken(BattleVector{4, 1}, nil),
+					enemyToken(Vector{4, 1}, nil),
 				},
 			},
-			want: []BattleVector{{1, 0}, {1, 1}, {1, 2}},
+			want: []Vector{{1, 0}, {1, 1}, {1, 2}},
 		},
 		{
 			// attacker should move over, or over and down
@@ -352,13 +352,13 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * * T
 			name: "move towards enemy right or right/down",
 			args: args{
-				token: attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
+				token: attackingToken(Vector{0, 0}, BattleTacticMaximizeDamage, laser),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
-					enemyToken(BattleVector{3, 2}, nil),
+					enemyToken(Vector{3, 2}, nil),
 				},
 			},
-			want: []BattleVector{{1, 0}, {1, 1}},
+			want: []Vector{{1, 0}, {1, 1}},
 		},
 		{
 			// attacker should move on top to maximize damage
@@ -367,13 +367,13 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * * *
 			name: "maximize beam damage one target",
 			args: args{
-				token: attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
+				token: attackingToken(Vector{0, 0}, BattleTacticMaximizeDamage, laser),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
-					enemyToken(BattleVector{1, 0}, nil),
+					enemyToken(Vector{1, 0}, nil),
 				},
 			},
-			want: []BattleVector{{1, 0}},
+			want: []Vector{{1, 0}},
 		},
 		{
 			// attacker should move to cause the most damage vs damage taken
@@ -383,16 +383,16 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * * *
 			name: "maximize damage ratio strong and weak target",
 			args: args{
-				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeDamageRatio, laser),
+				token: attackingToken(Vector{0, 1}, BattleTacticMaximizeDamageRatio, laser),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
 					// strong 100 power beamer
-					enemyToken(BattleVector{1, 0}, &battleWeaponSlot{weaponType: battleWeaponTypeBeam, power: 100, slotQuantity: 1, weaponRange: 1}),
+					enemyToken(Vector{1, 0}, &battleWeaponSlot{weaponType: battleWeaponTypeBeam, power: 100, slotQuantity: 1, weaponRange: 1}),
 					// weak 10 power beamer
-					enemyToken(BattleVector{1, 1}, &laser),
+					enemyToken(Vector{1, 1}, &laser),
 				},
 			},
-			want: []BattleVector{{1, 2}}, // best damage ratio, and towards center
+			want: []Vector{{1, 2}}, // best damage ratio, and towards center
 		},
 		{
 			// attacker has torpedoes and wants to stay out of range of those lasers
@@ -402,16 +402,16 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * 2 *
 			name: "maximize damage ratio, prefer no damage",
 			args: args{
-				token: attackingToken(BattleVector{1, 1}, BattleTacticMaximizeDamageRatio, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 3, weaponRange: 2}),
+				token: attackingToken(Vector{1, 1}, BattleTacticMaximizeDamageRatio, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 3, weaponRange: 2}),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
-					enemyToken(BattleVector{2, 0}, &laser),
+					enemyToken(Vector{2, 0}, &laser),
 					// put two tokens here
-					enemyToken(BattleVector{2, 2}, &laser),
-					enemyToken(BattleVector{2, 2}, &laser),
+					enemyToken(Vector{2, 2}, &laser),
+					enemyToken(Vector{2, 2}, &laser),
 				},
 			},
-			want: []BattleVector{{0, 0}, {0, 1}, {0, 2}},
+			want: []Vector{{0, 0}, {0, 1}, {0, 2}},
 		},
 		{
 			// attacker has torpedoes and wants to stay out of range of those lasers
@@ -421,16 +421,16 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * 2 *
 			name: "maximize damage ratio, prefer no damage, start in center (5,5)",
 			args: args{
-				token: attackingToken(BattleVector{5, 5}, BattleTacticMaximizeDamageRatio, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 3, weaponRange: 2}),
+				token: attackingToken(Vector{5, 5}, BattleTacticMaximizeDamageRatio, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 3, weaponRange: 2}),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
-					enemyToken(BattleVector{6, 4}, &laser),
+					enemyToken(Vector{6, 4}, &laser),
 					// put two tokens here
-					enemyToken(BattleVector{6, 6}, &laser),
-					enemyToken(BattleVector{6, 6}, &laser),
+					enemyToken(Vector{6, 6}, &laser),
+					enemyToken(Vector{6, 6}, &laser),
 				},
 			},
-			want: []BattleVector{{4, 4}, {4, 5}}, // we pick the 0 damageTaken options that keep us near center
+			want: []Vector{{4, 4}, {4, 5}}, // we pick the 0 damageTaken options that keep us near center
 		},
 		{
 			// attacker wants to cause the largest difference in damage
@@ -442,16 +442,16 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * 2 * *
 			name: "maximize net damage",
 			args: args{
-				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeNetDamage, battleWeaponSlot{weaponType: battleWeaponTypeBeam, power: 20, slotQuantity: 1, weaponRange: 1}),
+				token: attackingToken(Vector{0, 1}, BattleTacticMaximizeNetDamage, battleWeaponSlot{weaponType: battleWeaponTypeBeam, power: 20, slotQuantity: 1, weaponRange: 1}),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
-					enemyToken(BattleVector{1, 0}, &laser),
+					enemyToken(Vector{1, 0}, &laser),
 					// tokens at this spot
-					enemyToken(BattleVector{1, 2}, nil),
-					enemyToken(BattleVector{1, 2}, &laser),
+					enemyToken(Vector{1, 2}, nil),
+					enemyToken(Vector{1, 2}, &laser),
 				},
 			},
-			want: []BattleVector{{1, 2}}, // best net damage, move to two token square
+			want: []Vector{{1, 2}}, // best net damage, move to two token square
 		},
 		{
 			// attacker has torpedoes and wants to stay out of range of those lasers
@@ -461,14 +461,14 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * L *
 			name: "minimize damage to self",
 			args: args{
-				token: attackingToken(BattleVector{1, 1}, BattleTacticMinimizeDamageToSelf, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 2, weaponRange: 2}),
+				token: attackingToken(Vector{1, 1}, BattleTacticMinimizeDamageToSelf, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 2, weaponRange: 2}),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
-					enemyToken(BattleVector{2, 0}, &laser),
-					enemyToken(BattleVector{2, 2}, &laser),
+					enemyToken(Vector{2, 0}, &laser),
+					enemyToken(Vector{2, 2}, &laser),
 				},
 			},
-			want: []BattleVector{{0, 0}, {0, 1}, {0, 2}}, // min damage, move out of range
+			want: []Vector{{0, 0}, {0, 1}, {0, 2}}, // min damage, move out of range
 		},
 	}
 	for _, tt := range tests {
@@ -498,7 +498,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 	type weapon struct {
 		weaponSlot   *battleWeaponSlot
 		shipQuantity int
-		position     BattleVector
+		position     Vector
 	}
 	type args struct {
 		weapon  weapon
@@ -570,7 +570,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 						weaponRange:  2,
 					},
 					shipQuantity: 1,
-					position:     BattleVector{2, 0}, // 1 away from target
+					position:     Vector{2, 0}, // 1 away from target
 				},
 				targets: []*battleToken{
 					{
@@ -579,7 +579,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 							design:   &ShipDesign{Name: "defender"}, // for logging
 						},
 						BattleRecordToken: BattleRecordToken{
-							Position: BattleVector{0, 0},
+							Position: Vector{0, 0},
 						},
 						armor: 20,
 					},
@@ -833,7 +833,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 	type weapon struct {
 		weaponSlot   *battleWeaponSlot
 		shipQuantity int
-		position     BattleVector
+		position     Vector
 	}
 	type args struct {
 		weapon  weapon
@@ -1336,48 +1336,48 @@ func Test_battle_runBattleError(t *testing.T) {
 func Test_updateMovesWithCenterPreference(t *testing.T) {
 	type args struct {
 		better      bool
-		newPosition BattleVector
-		bestMoves   []BattleVector
+		newPosition Vector
+		bestMoves   []Vector
 	}
 	tests := []struct {
 		name string
 		args args
-		want []BattleVector
+		want []Vector
 	}{
 		{
 			name: "better move 1,0, pick it",
-			args: args{better: true, newPosition: BattleVector{1, 0}, bestMoves: []BattleVector{{0, 0}}},
-			want: []BattleVector{{1, 0}},
+			args: args{better: true, newPosition: Vector{1, 0}, bestMoves: []Vector{{0, 0}}},
+			want: []Vector{{1, 0}},
 		},
 		{
 			name: "better move away from center, pick it",
-			args: args{better: true, newPosition: BattleVector{3, 3}, bestMoves: []BattleVector{{4, 4}, {4, 5}}},
-			want: []BattleVector{{3, 3}},
+			args: args{better: true, newPosition: Vector{3, 3}, bestMoves: []Vector{{4, 4}, {4, 5}}},
+			want: []Vector{{3, 3}},
 		},
 		{
 			name: "equivalent damage move, but newPosition is closer to center",
-			args: args{better: false, newPosition: BattleVector{4, 4}, bestMoves: []BattleVector{{4, 3}}},
-			want: []BattleVector{{4, 4}},
+			args: args{better: false, newPosition: Vector{4, 4}, bestMoves: []Vector{{4, 3}}},
+			want: []Vector{{4, 4}},
 		},
 		{
 			name: "equivalent damage move, newPosition is closer to center",
-			args: args{better: false, newPosition: BattleVector{4, 5}, bestMoves: []BattleVector{{4, 3}}},
-			want: []BattleVector{{4, 5}},
+			args: args{better: false, newPosition: Vector{4, 5}, bestMoves: []Vector{{4, 3}}},
+			want: []Vector{{4, 5}},
 		},
 		{
 			name: "equivalent damage move, newPosition is same distance to center",
-			args: args{better: false, newPosition: BattleVector{4, 5}, bestMoves: []BattleVector{{4, 4}}},
-			want: []BattleVector{{4, 4}, {4, 5}},
+			args: args{better: false, newPosition: Vector{4, 5}, bestMoves: []Vector{{4, 4}}},
+			want: []Vector{{4, 4}, {4, 5}},
 		},
 		{
 			name: "equivalent damage move, newPosition is same distance to center",
-			args: args{better: false, newPosition: BattleVector{5, 5}, bestMoves: []BattleVector{{4, 4}, {4, 5}}},
-			want: []BattleVector{{4, 4}, {4, 5}, {5, 5}},
+			args: args{better: false, newPosition: Vector{5, 5}, bestMoves: []Vector{{4, 4}, {4, 5}}},
+			want: []Vector{{4, 4}, {4, 5}, {5, 5}},
 		},
 		{
 			name: "equivalent damage move, newPosition is farther from center, discard it",
-			args: args{better: false, newPosition: BattleVector{6, 5}, bestMoves: []BattleVector{{4, 4}, {4, 5}}},
-			want: []BattleVector{{4, 4}, {4, 5}},
+			args: args{better: false, newPosition: Vector{6, 5}, bestMoves: []Vector{{4, 4}, {4, 5}}},
+			want: []Vector{{4, 4}, {4, 5}},
 		},
 	}
 	for _, tt := range tests {

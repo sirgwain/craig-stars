@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Cargo, CargoJson, GameDBObject, GameDBObjectJson, MapObject, MapObjectJson, Vector, VectorJson } from "./common_pb";
+import type { Cargo, CargoJson, GameDBObject, GameDBObjectJson, MapObject, MapObjectJson, VectorFloat64, VectorFloat64Json } from "./common_pb";
 import { file_craig_stars_v1_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file craig_stars/v1/mineralpacket.proto.
  */
 export const file_craig_stars_v1_mineralpacket: GenFile = /*@__PURE__*/
-  fileDesc("CiJjcmFpZ19zdGFycy92MS9taW5lcmFscGFja2V0LnByb3RvEg5jcmFpZ19zdGFycy52MSK3AgoNTWluZXJhbFBhY2tldBI0Cg5nYW1lX2RiX29iamVjdBgBIAEoCzIcLmNyYWlnX3N0YXJzLnYxLkdhbWVEQk9iamVjdBItCgptYXBfb2JqZWN0GAIgASgLMhkuY3JhaWdfc3RhcnMudjEuTWFwT2JqZWN0EhkKEXRhcmdldF9wbGFuZXRfbnVtGAMgASgFEiQKBWNhcmdvGAQgASgLMhUuY3JhaWdfc3RhcnMudjEuQ2FyZ28SEgoKd2FycF9zcGVlZBgFIAEoBRIXCg9zYWZlX3dhcnBfc3BlZWQYBiABKAUSJwoHaGVhZGluZxgHIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlZlY3RvchISCgpzY2FuX3JhbmdlGAggASgFEhYKDnNjYW5fcmFuZ2VfcGVuGAkgASgFIlMKE01pbmVyYWxQYWNrZXREYW1hZ2USDgoGa2lsbGVkGAEgASgFEhoKEmRlZmVuc2VzX2Rlc3Ryb3llZBgCIAEoBRIQCgh1bmNhdWdodBgDIAEoBWIGcHJvdG8z", [file_craig_stars_v1_common]);
+  fileDesc("CiJjcmFpZ19zdGFycy92MS9taW5lcmFscGFja2V0LnByb3RvEg5jcmFpZ19zdGFycy52MSK+AgoNTWluZXJhbFBhY2tldBI0Cg5nYW1lX2RiX29iamVjdBgBIAEoCzIcLmNyYWlnX3N0YXJzLnYxLkdhbWVEQk9iamVjdBItCgptYXBfb2JqZWN0GAIgASgLMhkuY3JhaWdfc3RhcnMudjEuTWFwT2JqZWN0EhkKEXRhcmdldF9wbGFuZXRfbnVtGAMgASgFEiQKBWNhcmdvGAQgASgLMhUuY3JhaWdfc3RhcnMudjEuQ2FyZ28SEgoKd2FycF9zcGVlZBgFIAEoBRIXCg9zYWZlX3dhcnBfc3BlZWQYBiABKAUSLgoHaGVhZGluZxgHIAEoCzIdLmNyYWlnX3N0YXJzLnYxLlZlY3RvckZsb2F0NjQSEgoKc2Nhbl9yYW5nZRgIIAEoBRIWCg5zY2FuX3JhbmdlX3BlbhgJIAEoBSJTChNNaW5lcmFsUGFja2V0RGFtYWdlEg4KBmtpbGxlZBgBIAEoBRIaChJkZWZlbnNlc19kZXN0cm95ZWQYAiABKAUSEAoIdW5jYXVnaHQYAyABKAViBnByb3RvMw", [file_craig_stars_v1_common]);
 
 /**
  * @generated from message craig_stars.v1.MineralPacket
@@ -49,9 +49,9 @@ export type MineralPacket = Message<"craig_stars.v1.MineralPacket"> & {
   safeWarpSpeed: number;
 
   /**
-   * @generated from field: craig_stars.v1.Vector heading = 7;
+   * @generated from field: craig_stars.v1.VectorFloat64 heading = 7;
    */
-  heading?: Vector;
+  heading?: VectorFloat64;
 
   /**
    * @generated from field: int32 scan_range = 8;
@@ -99,9 +99,9 @@ export type MineralPacketJson = {
   safeWarpSpeed?: number;
 
   /**
-   * @generated from field: craig_stars.v1.Vector heading = 7;
+   * @generated from field: craig_stars.v1.VectorFloat64 heading = 7;
    */
-  heading?: VectorJson;
+  heading?: VectorFloat64Json;
 
   /**
    * @generated from field: int32 scan_range = 8;

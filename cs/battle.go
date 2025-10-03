@@ -165,7 +165,7 @@ type battle struct {
 	log      *slog.Logger
 }
 
-var positionsByPlayer = []BattleVector{
+var positionsByPlayer = []Vector{
 	{1, 4},
 	{8, 5},
 	{4, 1},
@@ -239,7 +239,7 @@ func newBattler(log *slog.Logger, rules *Rules, battleNum int, players map[int]*
 	}
 	sort.Ints(sortedPlayerNums)
 
-	playerStartingPositions := make(map[int]BattleVector)
+	playerStartingPositions := make(map[int]Vector)
 	for i, num := range sortedPlayerNums {
 		if i >= len(positionsByPlayer) {
 			battleLogger.Warn("Oh noes! We have a battle with more players than we have positions for")
@@ -341,7 +341,7 @@ func (b *battle) runBattle() *BattleRecord {
 	if b.planet != nil {
 		b.log.Info("Running a battle at planet", slog.String("planet", b.planet.Name), slog.Int("players", len(b.players)), slog.Int("tokens", len(b.tokens)))
 	} else {
-		b.log.Info("Running a battle at position", slog.Float64("x", b.position.X), slog.Float64("y", b.position.Y), slog.Int("players", len(b.players)), slog.Int("tokens", len(b.tokens)))
+		b.log.Info("Running a battle at position", slog.Int("x", b.position.X), slog.Int("y", b.position.Y), slog.Int("players", len(b.players)), slog.Int("tokens", len(b.tokens)))
 	}
 
 	// movement order is set at the start of battle and doesn't change
@@ -465,7 +465,7 @@ func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) 
 
 	// assume we move nowhere
 	oldPosition := token.Position
-	var bestMoves []BattleVector
+	var bestMoves []Vector
 
 	if token.Tactic == BattleTacticDisengage {
 		if token.movesMade >= b.rules.MovesToRunAway {
@@ -497,14 +497,14 @@ func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) 
 
 // getEstimatedDamageForWeapons estimates the damage for a group of weapons against a target
 // if it were to move to a position
-func (b *battle) getEstimatedDamageForWeapons(weapons []*battleWeaponSlot, target *battleToken, position BattleVector) int {
+func (b *battle) getEstimatedDamageForWeapons(weapons []*battleWeaponSlot, target *battleToken, position Vector) int {
 	damageDone := 0
 	for _, weapon := range weapons {
 		if !weapon.token.willTarget(target) {
 			// this weapon wouldn't target the attacker, so don't add its damage
 			continue
 		}
-		distanceToWeapon := position.distance(weapon.token.Position)
+		distanceToWeapon := position.chebyshevDistance(weapon.token.Position)
 		damageDone += b.getEstimatedDamageForWeapon(weapon, target, distanceToWeapon)
 	}
 
@@ -535,7 +535,7 @@ func (b *battle) getEstimatedDamageForWeapon(weapon *battleWeaponSlot, target *b
 // if not better, but closer to center, take the new move and discard the others
 // if not better and farther away, keep the bestMoves as is
 // if equivalent and the same distance from center, add it to bestMoves
-func updateMovesWithCenterPreference(better bool, newPosition BattleVector, bestMoves []BattleVector) []BattleVector {
+func updateMovesWithCenterPreference(better bool, newPosition Vector, bestMoves []Vector) []Vector {
 	if len(bestMoves) == 0 {
 		// we have no moves at all, so this is newPosition is our best move
 		return append(bestMoves, newPosition)
@@ -543,12 +543,12 @@ func updateMovesWithCenterPreference(better bool, newPosition BattleVector, best
 
 	if better {
 		// this move is better, start over with it
-		return []BattleVector{newPosition}
+		return []Vector{newPosition}
 	}
 
 	// center of battle board is at (4.5, 4.5) so scale to 100x100 for 45,45 scaled center
-	newDistanceFromCenter := newPosition.scale(10).distance(BattleVector{45, 45})
-	oldDistanceFromCenter := bestMoves[0].scale(10).distance(BattleVector{45, 45})
+	newDistanceFromCenter := newPosition.scaleInt(10).chebyshevDistance(Vector{45, 45})
+	oldDistanceFromCenter := bestMoves[0].scaleInt(10).chebyshevDistance(Vector{45, 45})
 
 	if oldDistanceFromCenter == newDistanceFromCenter {
 		// move is equivalent in damage and closeness to center, add new move
@@ -556,7 +556,7 @@ func updateMovesWithCenterPreference(better bool, newPosition BattleVector, best
 	}
 	if oldDistanceFromCenter > newDistanceFromCenter {
 		// damage is the same, but new position is closer to center, use only new move
-		return []BattleVector{newPosition}
+		return []Vector{newPosition}
 	}
 
 	// damage is the same but farther from center, keep what we have but don't add this move
@@ -567,14 +567,14 @@ func updateMovesWithCenterPreference(better bool, newPosition BattleVector, best
 // this checks all the nearby squares and moves in the direction that gets the token
 // closer or does the best damage, according to the battle plan
 // i.e. max damage, max damage ratio, max net damage, etc
-func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponSlot) []BattleVector {
+func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponSlot) []Vector {
 
 	bestDamageDone := 0
 	bestDamageTaken := math.MaxInt
 	bestDamageRatio := 0.0
 	bestNetDamage := -math.MaxInt
-	bestDamageMoves := []BattleVector{}
-	bestMoveCloserMoves := []BattleVector{}
+	bestDamageMoves := []Vector{}
+	bestMoveCloserMoves := []Vector{}
 
 	// if no other options are presented, we move towards the moveTarget
 	target := token.moveTarget
@@ -582,19 +582,19 @@ func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponS
 
 	for dx := -1; dx <= 1; dx++ {
 		for dy := -1; dy <= 1; dy++ {
-			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
+			newPosition := Vector{token.Position.X + dx, token.Position.Y + dy}
 			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
 				// skip invalid squares
 				continue
 			}
 
 			// see if this move puts us closer to the target
-			distanceToTarget := newPosition.distance(target.Position)
+			distanceToTarget := newPosition.chebyshevDistance(target.Position)
 			if distanceToTarget == bestDistanceToTarget {
 				bestMoveCloserMoves = append(bestMoveCloserMoves, newPosition)
 			} else if distanceToTarget < bestDistanceToTarget {
 				bestDistanceToTarget = distanceToTarget
-				bestMoveCloserMoves = []BattleVector{newPosition}
+				bestMoveCloserMoves = []Vector{newPosition}
 			}
 
 			// figure out how much damage we will do if we move to this spot
@@ -602,7 +602,7 @@ func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponS
 			for _, weapon := range token.weaponSlots {
 				// each weapon will fire a volley at the most attractive target
 				for _, target := range weapon.targets {
-					distance := newPosition.distance(target.Position)
+					distance := newPosition.chebyshevDistance(target.Position)
 					weaponDamage := b.getEstimatedDamageForWeapon(weapon, target, distance)
 					if weaponDamage > 0 {
 						// targets are sorted by attractiveness and
@@ -680,9 +680,9 @@ func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponS
 }
 
 // get the best move this token should fleet to based on weapons on the board
-func (b *battle) getBestFleeMoves(token *battleToken, weapons []*battleWeaponSlot) []BattleVector {
+func (b *battle) getBestFleeMoves(token *battleToken, weapons []*battleWeaponSlot) []Vector {
 	// find the best move for running away
-	lowestDamageMoves := make([]BattleVector, 0, 9)
+	lowestDamageMoves := make([]Vector, 0, 9)
 
 	// if we stayed still, figure out our damage
 	damageTaken := b.getEstimatedDamageForWeapons(weapons, token, token.Position)
@@ -690,7 +690,7 @@ func (b *battle) getBestFleeMoves(token *battleToken, weapons []*battleWeaponSlo
 
 	for dx := -1; dx <= 1; dx++ {
 		for dy := -1; dy <= 1; dy++ {
-			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
+			newPosition := Vector{token.Position.X + dx, token.Position.Y + dy}
 			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
 				// skip invalid squares
 				continue
@@ -708,7 +708,7 @@ func (b *battle) getBestFleeMoves(token *battleToken, weapons []*battleWeaponSlo
 			// if this move is better, replace the list
 			if damageTaken < lowestDamage {
 				lowestDamage = damageTaken
-				lowestDamageMoves = []BattleVector{newPosition}
+				lowestDamageMoves = []Vector{newPosition}
 			}
 		}
 	}

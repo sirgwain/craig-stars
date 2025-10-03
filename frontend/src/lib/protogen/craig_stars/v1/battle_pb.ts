@@ -14,48 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file craig_stars/v1/battle.proto.
  */
 export const file_craig_stars_v1_battle: GenFile = /*@__PURE__*/
-  fileDesc("ChtjcmFpZ19zdGFycy92MS9iYXR0bGUucHJvdG8SDmNyYWlnX3N0YXJzLnYxIiQKDEJhdHRsZVZlY3RvchIJCgF4GAEgASgFEgkKAXkYAiABKAUiwAIKDEJhdHRsZVJlY29yZBILCgNudW0YASABKAUSEgoKcGxhbmV0X251bRgCIAEoBRIoCghwb3NpdGlvbhgDIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlZlY3RvchIxCgZ0b2tlbnMYBCADKAsyIS5jcmFpZ19zdGFycy52MS5CYXR0bGVSZWNvcmRUb2tlbhI6ChFhY3Rpb25zX3Blcl9yb3VuZBgFIAMoCzIfLmNyYWlnX3N0YXJzLnYxLkFjdGlvbnNQZXJSb3VuZBJEChBkZXN0cm95ZWRfdG9rZW5zGAYgAygLMiouY3JhaWdfc3RhcnMudjEuQmF0dGxlUmVjb3JkRGVzdHJveWVkVG9rZW4SMAoFc3RhdHMYByABKAsyIS5jcmFpZ19zdGFycy52MS5CYXR0bGVSZWNvcmRTdGF0cyJLCg9BY3Rpb25zUGVyUm91bmQSOAoHYWN0aW9ucxgBIAMoCzInLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVJlY29yZFRva2VuQWN0aW9uIpkFChFCYXR0bGVSZWNvcmRTdGF0cxITCgtudW1fcGxheWVycxgBIAEoBRJUChNudW1fc2hpcHNfYnlfcGxheWVyGAIgAygLMjcuY3JhaWdfc3RhcnMudjEuQmF0dGxlUmVjb3JkU3RhdHMuTnVtU2hpcHNCeVBsYXllckVudHJ5EmAKGXNoaXBzX2Rlc3Ryb3llZF9ieV9wbGF5ZXIYAyADKAsyPS5jcmFpZ19zdGFycy52MS5CYXR0bGVSZWNvcmRTdGF0cy5TaGlwc0Rlc3Ryb3llZEJ5UGxheWVyRW50cnkSWgoWZGFtYWdlX3Rha2VuX2J5X3BsYXllchgEIAMoCzI6LmNyYWlnX3N0YXJzLnYxLkJhdHRsZVJlY29yZFN0YXRzLkRhbWFnZVRha2VuQnlQbGF5ZXJFbnRyeRJWChRjYXJnb19sb3N0X2J5X3BsYXllchgFIAMoCzI4LmNyYWlnX3N0YXJzLnYxLkJhdHRsZVJlY29yZFN0YXRzLkNhcmdvTG9zdEJ5UGxheWVyRW50cnkaNwoVTnVtU2hpcHNCeVBsYXllckVudHJ5EgsKA2tleRgBIAEoBRINCgV2YWx1ZRgCIAEoBToCOAEaPQobU2hpcHNEZXN0cm95ZWRCeVBsYXllckVudHJ5EgsKA2tleRgBIAEoBRINCgV2YWx1ZRgCIAEoBToCOAEaOgoYRGFtYWdlVGFrZW5CeVBsYXllckVudHJ5EgsKA2tleRgBIAEoBRINCgV2YWx1ZRgCIAEoBToCOAEaTwoWQ2FyZ29Mb3N0QnlQbGF5ZXJFbnRyeRILCgNrZXkYASABKAUSJAoFdmFsdWUYAiABKAsyFS5jcmFpZ19zdGFycy52MS5DYXJnbzoCOAEi+gMKEUJhdHRsZVJlY29yZFRva2VuEgsKA251bRgBIAEoBRISCgpwbGF5ZXJfbnVtGAIgASgFEhIKCmRlc2lnbl9udW0YAyABKAUSLgoIcG9zaXRpb24YBCABKAsyHC5jcmFpZ19zdGFycy52MS5CYXR0bGVWZWN0b3ISEgoKaW5pdGlhdGl2ZRgFIAEoBRIMCgRtYXNzGAYgASgFEg0KBWFybW9yGAcgASgFEhUKDXN0YWNrX3NoaWVsZHMYCCABKAUSEAoIbW92ZW1lbnQYCSABKAUSGQoRc3RhcnRpbmdfcXVhbnRpdHkYCiABKAUSIQoZc3RhcnRpbmdfcXVhbnRpdHlfZGFtYWdlZBgLIAEoBRIXCg9zdGFydGluZ19kYW1hZ2UYDCABKAUSLAoGdGFjdGljGA0gASgOMhwuY3JhaWdfc3RhcnMudjEuQmF0dGxlVGFjdGljEjQKDnByaW1hcnlfdGFyZ2V0GA4gASgOMhwuY3JhaWdfc3RhcnMudjEuQmF0dGxlVGFyZ2V0EjYKEHNlY29uZGFyeV90YXJnZXQYDyABKA4yHC5jcmFpZ19zdGFycy52MS5CYXR0bGVUYXJnZXQSMwoKYXR0YWNrX3dobxgQIAEoDjIfLmNyYWlnX3N0YXJzLnYxLkJhdHRsZUF0dGFja1dobyJjChpCYXR0bGVSZWNvcmREZXN0cm95ZWRUb2tlbhILCgNudW0YASABKAUSEgoKcGxheWVyX251bRgCIAEoBRISCgpkZXNpZ25fbnVtGAMgASgFEhAKCHF1YW50aXR5GAQgASgFIpkDChdCYXR0bGVSZWNvcmRUb2tlbkFjdGlvbhI5CgR0eXBlGAEgASgOMisuY3JhaWdfc3RhcnMudjEuQmF0dGxlUmVjb3JkVG9rZW5BY3Rpb25UeXBlEhEKCXRva2VuX251bRgCIAEoBRINCgVyb3VuZBgDIAEoBRIqCgRmcm9tGAQgASgLMhwuY3JhaWdfc3RhcnMudjEuQmF0dGxlVmVjdG9yEigKAnRvGAUgASgLMhwuY3JhaWdfc3RhcnMudjEuQmF0dGxlVmVjdG9yEgwKBHNsb3QYBiABKAUSEgoKdGFyZ2V0X251bRgHIAEoBRIpCgZ0YXJnZXQYCCABKAsyGS5jcmFpZ19zdGFycy52MS5TaGlwVG9rZW4SGAoQdG9rZW5zX2Rlc3Ryb3llZBgJIAEoBRIbChNkYW1hZ2VfZG9uZV9zaGllbGRzGAogASgFEhkKEWRhbWFnZV9kb25lX2FybW9yGAsgASgFEhQKDHRvcnBlZG9faGl0cxgMIAEoBRIWCg50b3JwZWRvX21pc3NlcxgNIAEoBSqHAgobQmF0dGxlUmVjb3JkVG9rZW5BY3Rpb25UeXBlEi8KK0JBVFRMRV9SRUNPUkRfVE9LRU5fQUNUSU9OX1RZUEVfVU5TUEVDSUZJRUQQABItCilCQVRUTEVfUkVDT1JEX1RPS0VOX0FDVElPTl9UWVBFX0JFQU1fRklSRRABEjAKLEJBVFRMRV9SRUNPUkRfVE9LRU5fQUNUSU9OX1RZUEVfVE9SUEVET19GSVJFEAISKAokQkFUVExFX1JFQ09SRF9UT0tFTl9BQ1RJT05fVFlQRV9NT1ZFEAMSLAooQkFUVExFX1JFQ09SRF9UT0tFTl9BQ1RJT05fVFlQRV9SQU5fQVdBWRAEYgZwcm90bzM", [file_craig_stars_v1_common, file_craig_stars_v1_fleet]);
-
-/**
- * Common types
- *
- * @generated from message craig_stars.v1.BattleVector
- */
-export type BattleVector = Message<"craig_stars.v1.BattleVector"> & {
-  /**
-   * @generated from field: int32 x = 1;
-   */
-  x: number;
-
-  /**
-   * @generated from field: int32 y = 2;
-   */
-  y: number;
-};
-
-/**
- * Common types
- *
- * @generated from message craig_stars.v1.BattleVector
- */
-export type BattleVectorJson = {
-  /**
-   * @generated from field: int32 x = 1;
-   */
-  x?: number;
-
-  /**
-   * @generated from field: int32 y = 2;
-   */
-  y?: number;
-};
-
-/**
- * Describes the message craig_stars.v1.BattleVector.
- * Use `create(BattleVectorSchema)` to create a new message.
- */
-export const BattleVectorSchema: GenMessage<BattleVector, {jsonType: BattleVectorJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_battle, 0);
+  fileDesc("ChtjcmFpZ19zdGFycy92MS9iYXR0bGUucHJvdG8SDmNyYWlnX3N0YXJzLnYxIsACCgxCYXR0bGVSZWNvcmQSCwoDbnVtGAEgASgFEhIKCnBsYW5ldF9udW0YAiABKAUSKAoIcG9zaXRpb24YAyABKAsyFi5jcmFpZ19zdGFycy52MS5WZWN0b3ISMQoGdG9rZW5zGAQgAygLMiEuY3JhaWdfc3RhcnMudjEuQmF0dGxlUmVjb3JkVG9rZW4SOgoRYWN0aW9uc19wZXJfcm91bmQYBSADKAsyHy5jcmFpZ19zdGFycy52MS5BY3Rpb25zUGVyUm91bmQSRAoQZGVzdHJveWVkX3Rva2VucxgGIAMoCzIqLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVJlY29yZERlc3Ryb3llZFRva2VuEjAKBXN0YXRzGAcgASgLMiEuY3JhaWdfc3RhcnMudjEuQmF0dGxlUmVjb3JkU3RhdHMiSwoPQWN0aW9uc1BlclJvdW5kEjgKB2FjdGlvbnMYASADKAsyJy5jcmFpZ19zdGFycy52MS5CYXR0bGVSZWNvcmRUb2tlbkFjdGlvbiKZBQoRQmF0dGxlUmVjb3JkU3RhdHMSEwoLbnVtX3BsYXllcnMYASABKAUSVAoTbnVtX3NoaXBzX2J5X3BsYXllchgCIAMoCzI3LmNyYWlnX3N0YXJzLnYxLkJhdHRsZVJlY29yZFN0YXRzLk51bVNoaXBzQnlQbGF5ZXJFbnRyeRJgChlzaGlwc19kZXN0cm95ZWRfYnlfcGxheWVyGAMgAygLMj0uY3JhaWdfc3RhcnMudjEuQmF0dGxlUmVjb3JkU3RhdHMuU2hpcHNEZXN0cm95ZWRCeVBsYXllckVudHJ5EloKFmRhbWFnZV90YWtlbl9ieV9wbGF5ZXIYBCADKAsyOi5jcmFpZ19zdGFycy52MS5CYXR0bGVSZWNvcmRTdGF0cy5EYW1hZ2VUYWtlbkJ5UGxheWVyRW50cnkSVgoUY2FyZ29fbG9zdF9ieV9wbGF5ZXIYBSADKAsyOC5jcmFpZ19zdGFycy52MS5CYXR0bGVSZWNvcmRTdGF0cy5DYXJnb0xvc3RCeVBsYXllckVudHJ5GjcKFU51bVNoaXBzQnlQbGF5ZXJFbnRyeRILCgNrZXkYASABKAUSDQoFdmFsdWUYAiABKAU6AjgBGj0KG1NoaXBzRGVzdHJveWVkQnlQbGF5ZXJFbnRyeRILCgNrZXkYASABKAUSDQoFdmFsdWUYAiABKAU6AjgBGjoKGERhbWFnZVRha2VuQnlQbGF5ZXJFbnRyeRILCgNrZXkYASABKAUSDQoFdmFsdWUYAiABKAU6AjgBGk8KFkNhcmdvTG9zdEJ5UGxheWVyRW50cnkSCwoDa2V5GAEgASgFEiQKBXZhbHVlGAIgASgLMhUuY3JhaWdfc3RhcnMudjEuQ2FyZ286AjgBIvQDChFCYXR0bGVSZWNvcmRUb2tlbhILCgNudW0YASABKAUSEgoKcGxheWVyX251bRgCIAEoBRISCgpkZXNpZ25fbnVtGAMgASgFEigKCHBvc2l0aW9uGAQgASgLMhYuY3JhaWdfc3RhcnMudjEuVmVjdG9yEhIKCmluaXRpYXRpdmUYBSABKAUSDAoEbWFzcxgGIAEoBRINCgVhcm1vchgHIAEoBRIVCg1zdGFja19zaGllbGRzGAggASgFEhAKCG1vdmVtZW50GAkgASgFEhkKEXN0YXJ0aW5nX3F1YW50aXR5GAogASgFEiEKGXN0YXJ0aW5nX3F1YW50aXR5X2RhbWFnZWQYCyABKAUSFwoPc3RhcnRpbmdfZGFtYWdlGAwgASgFEiwKBnRhY3RpYxgNIAEoDjIcLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVRhY3RpYxI0Cg5wcmltYXJ5X3RhcmdldBgOIAEoDjIcLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVRhcmdldBI2ChBzZWNvbmRhcnlfdGFyZ2V0GA8gASgOMhwuY3JhaWdfc3RhcnMudjEuQmF0dGxlVGFyZ2V0EjMKCmF0dGFja193aG8YECABKA4yHy5jcmFpZ19zdGFycy52MS5CYXR0bGVBdHRhY2tXaG8iYwoaQmF0dGxlUmVjb3JkRGVzdHJveWVkVG9rZW4SCwoDbnVtGAEgASgFEhIKCnBsYXllcl9udW0YAiABKAUSEgoKZGVzaWduX251bRgDIAEoBRIQCghxdWFudGl0eRgEIAEoBSKNAwoXQmF0dGxlUmVjb3JkVG9rZW5BY3Rpb24SOQoEdHlwZRgBIAEoDjIrLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVJlY29yZFRva2VuQWN0aW9uVHlwZRIRCgl0b2tlbl9udW0YAiABKAUSDQoFcm91bmQYAyABKAUSJAoEZnJvbRgEIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlZlY3RvchIiCgJ0bxgFIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlZlY3RvchIMCgRzbG90GAYgASgFEhIKCnRhcmdldF9udW0YByABKAUSKQoGdGFyZ2V0GAggASgLMhkuY3JhaWdfc3RhcnMudjEuU2hpcFRva2VuEhgKEHRva2Vuc19kZXN0cm95ZWQYCSABKAUSGwoTZGFtYWdlX2RvbmVfc2hpZWxkcxgKIAEoBRIZChFkYW1hZ2VfZG9uZV9hcm1vchgLIAEoBRIUCgx0b3JwZWRvX2hpdHMYDCABKAUSFgoOdG9ycGVkb19taXNzZXMYDSABKAUqhwIKG0JhdHRsZVJlY29yZFRva2VuQWN0aW9uVHlwZRIvCitCQVRUTEVfUkVDT1JEX1RPS0VOX0FDVElPTl9UWVBFX1VOU1BFQ0lGSUVEEAASLQopQkFUVExFX1JFQ09SRF9UT0tFTl9BQ1RJT05fVFlQRV9CRUFNX0ZJUkUQARIwCixCQVRUTEVfUkVDT1JEX1RPS0VOX0FDVElPTl9UWVBFX1RPUlBFRE9fRklSRRACEigKJEJBVFRMRV9SRUNPUkRfVE9LRU5fQUNUSU9OX1RZUEVfTU9WRRADEiwKKEJBVFRMRV9SRUNPUkRfVE9LRU5fQUNUSU9OX1RZUEVfUkFOX0FXQVkQBGIGcHJvdG8z", [file_craig_stars_v1_common, file_craig_stars_v1_fleet]);
 
 /**
  * @generated from message craig_stars.v1.BattleRecord
@@ -142,7 +101,7 @@ export type BattleRecordJson = {
  * Use `create(BattleRecordSchema)` to create a new message.
  */
 export const BattleRecordSchema: GenMessage<BattleRecord, {jsonType: BattleRecordJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_battle, 1);
+  messageDesc(file_craig_stars_v1_battle, 0);
 
 /**
  * @generated from message craig_stars.v1.ActionsPerRound
@@ -169,7 +128,7 @@ export type ActionsPerRoundJson = {
  * Use `create(ActionsPerRoundSchema)` to create a new message.
  */
 export const ActionsPerRoundSchema: GenMessage<ActionsPerRound, {jsonType: ActionsPerRoundJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_battle, 2);
+  messageDesc(file_craig_stars_v1_battle, 1);
 
 /**
  * @generated from message craig_stars.v1.BattleRecordStats
@@ -236,7 +195,7 @@ export type BattleRecordStatsJson = {
  * Use `create(BattleRecordStatsSchema)` to create a new message.
  */
 export const BattleRecordStatsSchema: GenMessage<BattleRecordStats, {jsonType: BattleRecordStatsJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_battle, 3);
+  messageDesc(file_craig_stars_v1_battle, 2);
 
 /**
  * @generated from message craig_stars.v1.BattleRecordToken
@@ -258,9 +217,9 @@ export type BattleRecordToken = Message<"craig_stars.v1.BattleRecordToken"> & {
   designNum: number;
 
   /**
-   * @generated from field: craig_stars.v1.BattleVector position = 4;
+   * @generated from field: craig_stars.v1.Vector position = 4;
    */
-  position?: BattleVector;
+  position?: Vector;
 
   /**
    * @generated from field: int32 initiative = 5;
@@ -343,9 +302,9 @@ export type BattleRecordTokenJson = {
   designNum?: number;
 
   /**
-   * @generated from field: craig_stars.v1.BattleVector position = 4;
+   * @generated from field: craig_stars.v1.Vector position = 4;
    */
-  position?: BattleVectorJson;
+  position?: VectorJson;
 
   /**
    * @generated from field: int32 initiative = 5;
@@ -413,7 +372,7 @@ export type BattleRecordTokenJson = {
  * Use `create(BattleRecordTokenSchema)` to create a new message.
  */
 export const BattleRecordTokenSchema: GenMessage<BattleRecordToken, {jsonType: BattleRecordTokenJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_battle, 4);
+  messageDesc(file_craig_stars_v1_battle, 3);
 
 /**
  * @generated from message craig_stars.v1.BattleRecordDestroyedToken
@@ -470,7 +429,7 @@ export type BattleRecordDestroyedTokenJson = {
  * Use `create(BattleRecordDestroyedTokenSchema)` to create a new message.
  */
 export const BattleRecordDestroyedTokenSchema: GenMessage<BattleRecordDestroyedToken, {jsonType: BattleRecordDestroyedTokenJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_battle, 5);
+  messageDesc(file_craig_stars_v1_battle, 4);
 
 /**
  * @generated from message craig_stars.v1.BattleRecordTokenAction
@@ -492,14 +451,14 @@ export type BattleRecordTokenAction = Message<"craig_stars.v1.BattleRecordTokenA
   round: number;
 
   /**
-   * @generated from field: craig_stars.v1.BattleVector from = 4;
+   * @generated from field: craig_stars.v1.Vector from = 4;
    */
-  from?: BattleVector;
+  from?: Vector;
 
   /**
-   * @generated from field: craig_stars.v1.BattleVector to = 5;
+   * @generated from field: craig_stars.v1.Vector to = 5;
    */
-  to?: BattleVector;
+  to?: Vector;
 
   /**
    * @generated from field: int32 slot = 6;
@@ -562,14 +521,14 @@ export type BattleRecordTokenActionJson = {
   round?: number;
 
   /**
-   * @generated from field: craig_stars.v1.BattleVector from = 4;
+   * @generated from field: craig_stars.v1.Vector from = 4;
    */
-  from?: BattleVectorJson;
+  from?: VectorJson;
 
   /**
-   * @generated from field: craig_stars.v1.BattleVector to = 5;
+   * @generated from field: craig_stars.v1.Vector to = 5;
    */
-  to?: BattleVectorJson;
+  to?: VectorJson;
 
   /**
    * @generated from field: int32 slot = 6;
@@ -617,7 +576,7 @@ export type BattleRecordTokenActionJson = {
  * Use `create(BattleRecordTokenActionSchema)` to create a new message.
  */
 export const BattleRecordTokenActionSchema: GenMessage<BattleRecordTokenAction, {jsonType: BattleRecordTokenActionJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_battle, 6);
+  messageDesc(file_craig_stars_v1_battle, 5);
 
 /**
  * @generated from enum craig_stars.v1.BattleRecordTokenActionType

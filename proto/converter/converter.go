@@ -46,6 +46,7 @@ var C Converter
 // goverter:extend CSCostToCost
 // goverter:extend CSMapObjectTargetToMapObjectTarget
 // goverter:extend CSVectorToVector
+// goverter:extend CSVectorFloat64ToVectorFloat64
 // goverter:extend CSTechLevelToTechLevel
 //
 // goverter:extend AIDifficultyToCSAIDifficulty
@@ -166,6 +167,7 @@ type Converter interface {
 	ConvertRules(source *craig_starsv1.Rules) *cs.Rules
 	ConvertCSRules(source *cs.Rules) *craig_starsv1.Rules
 	ConvertVector(source *craig_starsv1.Vector) cs.Vector
+	ConvertVectorFloat64(source *craig_starsv1.VectorFloat64) cs.VectorFloat64
 	ConvertWaypointDest(source *craig_starsv1.WaypointDest) cs.WaypointDest
 
 	// goverter:ignore Delete
@@ -517,8 +519,8 @@ func CSMapObjectTargetToMapObjectTarget(c Converter, source cs.MapObjectTarget) 
 	}
 	return &craig_starsv1.MapObjectTarget{
 		TargetPosition: &craig_starsv1.Vector{
-			X: source.TargetPosition.X,
-			Y: source.TargetPosition.Y,
+			X: int32(source.TargetPosition.X),
+			Y: int32(source.TargetPosition.Y),
 		},
 		TargetType:      CSMapObjectTypeToMapObjectType(source.TargetType),
 		TargetName:      source.TargetName,
@@ -532,6 +534,16 @@ func CSVectorToVector(source cs.Vector) *craig_starsv1.Vector {
 		return nil
 	}
 	return &craig_starsv1.Vector{
+		X: int32(source.X),
+		Y: int32(source.Y),
+	}
+}
+
+func CSVectorFloat64ToVectorFloat64(source cs.VectorFloat64) *craig_starsv1.VectorFloat64 {
+	if source == (cs.VectorFloat64{}) {
+		return nil
+	}
+	return &craig_starsv1.VectorFloat64{
 		X: source.X,
 		Y: source.Y,
 	}

@@ -906,8 +906,8 @@ func (ResourceType) EnumDescriptor() ([]byte, []int) {
 
 type Vector struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	X             float64                `protobuf:"fixed64,1,opt,name=x,proto3" json:"x,omitempty"`
-	Y             float64                `protobuf:"fixed64,2,opt,name=y,proto3" json:"y,omitempty"`
+	X             int32                  `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
+	Y             int32                  `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -942,14 +942,66 @@ func (*Vector) Descriptor() ([]byte, []int) {
 	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Vector) GetX() float64 {
+func (x *Vector) GetX() int32 {
 	if x != nil {
 		return x.X
 	}
 	return 0
 }
 
-func (x *Vector) GetY() float64 {
+func (x *Vector) GetY() int32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
+type VectorFloat64 struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	X             float64                `protobuf:"fixed64,1,opt,name=x,proto3" json:"x,omitempty"`
+	Y             float64                `protobuf:"fixed64,2,opt,name=y,proto3" json:"y,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VectorFloat64) Reset() {
+	*x = VectorFloat64{}
+	mi := &file_craig_stars_v1_common_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VectorFloat64) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VectorFloat64) ProtoMessage() {}
+
+func (x *VectorFloat64) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_common_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VectorFloat64.ProtoReflect.Descriptor instead.
+func (*VectorFloat64) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *VectorFloat64) GetX() float64 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *VectorFloat64) GetY() float64 {
 	if x != nil {
 		return x.Y
 	}
@@ -967,7 +1019,7 @@ type Hab struct {
 
 func (x *Hab) Reset() {
 	*x = Hab{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[1]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -979,7 +1031,7 @@ func (x *Hab) String() string {
 func (*Hab) ProtoMessage() {}
 
 func (x *Hab) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[1]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -992,7 +1044,7 @@ func (x *Hab) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Hab.ProtoReflect.Descriptor instead.
 func (*Hab) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{1}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Hab) GetGrav() int32 {
@@ -1027,7 +1079,7 @@ type Mineral struct {
 
 func (x *Mineral) Reset() {
 	*x = Mineral{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[2]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1039,7 +1091,7 @@ func (x *Mineral) String() string {
 func (*Mineral) ProtoMessage() {}
 
 func (x *Mineral) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[2]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1052,7 +1104,7 @@ func (x *Mineral) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Mineral.ProtoReflect.Descriptor instead.
 func (*Mineral) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{2}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Mineral) GetIronium() int32 {
@@ -1088,7 +1140,7 @@ type Cargo struct {
 
 func (x *Cargo) Reset() {
 	*x = Cargo{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[3]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1100,7 +1152,7 @@ func (x *Cargo) String() string {
 func (*Cargo) ProtoMessage() {}
 
 func (x *Cargo) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[3]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1113,7 +1165,7 @@ func (x *Cargo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Cargo.ProtoReflect.Descriptor instead.
 func (*Cargo) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{3}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Cargo) GetIronium() int32 {
@@ -1156,7 +1208,7 @@ type Cost struct {
 
 func (x *Cost) Reset() {
 	*x = Cost{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[4]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1168,7 +1220,7 @@ func (x *Cost) String() string {
 func (*Cost) ProtoMessage() {}
 
 func (x *Cost) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[4]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1181,7 +1233,7 @@ func (x *Cost) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Cost.ProtoReflect.Descriptor instead.
 func (*Cost) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{4}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Cost) GetIronium() int32 {
@@ -1223,7 +1275,7 @@ type DBObject struct {
 
 func (x *DBObject) Reset() {
 	*x = DBObject{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[5]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1235,7 +1287,7 @@ func (x *DBObject) String() string {
 func (*DBObject) ProtoMessage() {}
 
 func (x *DBObject) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[5]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1248,7 +1300,7 @@ func (x *DBObject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DBObject.ProtoReflect.Descriptor instead.
 func (*DBObject) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{5}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *DBObject) GetId() int64 {
@@ -1284,7 +1336,7 @@ type GameDBObject struct {
 
 func (x *GameDBObject) Reset() {
 	*x = GameDBObject{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[6]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1296,7 +1348,7 @@ func (x *GameDBObject) String() string {
 func (*GameDBObject) ProtoMessage() {}
 
 func (x *GameDBObject) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[6]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1309,7 +1361,7 @@ func (x *GameDBObject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameDBObject.ProtoReflect.Descriptor instead.
 func (*GameDBObject) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{6}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GameDBObject) GetId() int64 {
@@ -1355,7 +1407,7 @@ type MapObject struct {
 
 func (x *MapObject) Reset() {
 	*x = MapObject{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[7]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1367,7 +1419,7 @@ func (x *MapObject) String() string {
 func (*MapObject) ProtoMessage() {}
 
 func (x *MapObject) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[7]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1380,7 +1432,7 @@ func (x *MapObject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapObject.ProtoReflect.Descriptor instead.
 func (*MapObject) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{7}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *MapObject) GetType() MapObjectType {
@@ -1445,7 +1497,7 @@ type MapObjectTarget struct {
 
 func (x *MapObjectTarget) Reset() {
 	*x = MapObjectTarget{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[8]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1457,7 +1509,7 @@ func (x *MapObjectTarget) String() string {
 func (*MapObjectTarget) ProtoMessage() {}
 
 func (x *MapObjectTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[8]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1470,7 +1522,7 @@ func (x *MapObjectTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapObjectTarget.ProtoReflect.Descriptor instead.
 func (*MapObjectTarget) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{8}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *MapObjectTarget) GetTargetPosition() *Vector {
@@ -1522,7 +1574,7 @@ type TechLevel struct {
 
 func (x *TechLevel) Reset() {
 	*x = TechLevel{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[9]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1534,7 +1586,7 @@ func (x *TechLevel) String() string {
 func (*TechLevel) ProtoMessage() {}
 
 func (x *TechLevel) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[9]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1547,7 +1599,7 @@ func (x *TechLevel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TechLevel.ProtoReflect.Descriptor instead.
 func (*TechLevel) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{9}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *TechLevel) GetEnergy() int32 {
@@ -1602,7 +1654,7 @@ type WaypointDest struct {
 
 func (x *WaypointDest) Reset() {
 	*x = WaypointDest{}
-	mi := &file_craig_stars_v1_common_proto_msgTypes[10]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1614,7 +1666,7 @@ func (x *WaypointDest) String() string {
 func (*WaypointDest) ProtoMessage() {}
 
 func (x *WaypointDest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_common_proto_msgTypes[10]
+	mi := &file_craig_stars_v1_common_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1627,7 +1679,7 @@ func (x *WaypointDest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaypointDest.ProtoReflect.Descriptor instead.
 func (*WaypointDest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{10}
+	return file_craig_stars_v1_common_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *WaypointDest) GetMo() *MapObject {
@@ -1650,6 +1702,9 @@ const file_craig_stars_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"\x1bcraig_stars/v1/common.proto\x12\x0ecraig_stars.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"$\n" +
 	"\x06Vector\x12\f\n" +
+	"\x01x\x18\x01 \x01(\x05R\x01x\x12\f\n" +
+	"\x01y\x18\x02 \x01(\x05R\x01y\"+\n" +
+	"\rVectorFloat64\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x01R\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\x01R\x01y\"?\n" +
 	"\x03Hab\x12\x12\n" +
@@ -1845,7 +1900,7 @@ func file_craig_stars_v1_common_proto_rawDescGZIP() []byte {
 }
 
 var file_craig_stars_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 15)
-var file_craig_stars_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_craig_stars_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_craig_stars_v1_common_proto_goTypes = []any{
 	(MapObjectType)(0),            // 0: craig_stars.v1.MapObjectType
 	(GameState)(0),                // 1: craig_stars.v1.GameState
@@ -1863,30 +1918,31 @@ var file_craig_stars_v1_common_proto_goTypes = []any{
 	(BattleAttackWho)(0),          // 13: craig_stars.v1.BattleAttackWho
 	(ResourceType)(0),             // 14: craig_stars.v1.ResourceType
 	(*Vector)(nil),                // 15: craig_stars.v1.Vector
-	(*Hab)(nil),                   // 16: craig_stars.v1.Hab
-	(*Mineral)(nil),               // 17: craig_stars.v1.Mineral
-	(*Cargo)(nil),                 // 18: craig_stars.v1.Cargo
-	(*Cost)(nil),                  // 19: craig_stars.v1.Cost
-	(*DBObject)(nil),              // 20: craig_stars.v1.DBObject
-	(*GameDBObject)(nil),          // 21: craig_stars.v1.GameDBObject
-	(*MapObject)(nil),             // 22: craig_stars.v1.MapObject
-	(*MapObjectTarget)(nil),       // 23: craig_stars.v1.MapObjectTarget
-	(*TechLevel)(nil),             // 24: craig_stars.v1.TechLevel
-	(*WaypointDest)(nil),          // 25: craig_stars.v1.WaypointDest
-	nil,                           // 26: craig_stars.v1.MapObject.TagsEntry
-	(*timestamppb.Timestamp)(nil), // 27: google.protobuf.Timestamp
+	(*VectorFloat64)(nil),         // 16: craig_stars.v1.VectorFloat64
+	(*Hab)(nil),                   // 17: craig_stars.v1.Hab
+	(*Mineral)(nil),               // 18: craig_stars.v1.Mineral
+	(*Cargo)(nil),                 // 19: craig_stars.v1.Cargo
+	(*Cost)(nil),                  // 20: craig_stars.v1.Cost
+	(*DBObject)(nil),              // 21: craig_stars.v1.DBObject
+	(*GameDBObject)(nil),          // 22: craig_stars.v1.GameDBObject
+	(*MapObject)(nil),             // 23: craig_stars.v1.MapObject
+	(*MapObjectTarget)(nil),       // 24: craig_stars.v1.MapObjectTarget
+	(*TechLevel)(nil),             // 25: craig_stars.v1.TechLevel
+	(*WaypointDest)(nil),          // 26: craig_stars.v1.WaypointDest
+	nil,                           // 27: craig_stars.v1.MapObject.TagsEntry
+	(*timestamppb.Timestamp)(nil), // 28: google.protobuf.Timestamp
 }
 var file_craig_stars_v1_common_proto_depIdxs = []int32{
-	27, // 0: craig_stars.v1.DBObject.created_at:type_name -> google.protobuf.Timestamp
-	27, // 1: craig_stars.v1.DBObject.updated_at:type_name -> google.protobuf.Timestamp
-	27, // 2: craig_stars.v1.GameDBObject.created_at:type_name -> google.protobuf.Timestamp
-	27, // 3: craig_stars.v1.GameDBObject.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 0: craig_stars.v1.DBObject.created_at:type_name -> google.protobuf.Timestamp
+	28, // 1: craig_stars.v1.DBObject.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 2: craig_stars.v1.GameDBObject.created_at:type_name -> google.protobuf.Timestamp
+	28, // 3: craig_stars.v1.GameDBObject.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: craig_stars.v1.MapObject.type:type_name -> craig_stars.v1.MapObjectType
 	15, // 5: craig_stars.v1.MapObject.position:type_name -> craig_stars.v1.Vector
-	26, // 6: craig_stars.v1.MapObject.tags:type_name -> craig_stars.v1.MapObject.TagsEntry
+	27, // 6: craig_stars.v1.MapObject.tags:type_name -> craig_stars.v1.MapObject.TagsEntry
 	15, // 7: craig_stars.v1.MapObjectTarget.target_position:type_name -> craig_stars.v1.Vector
 	0,  // 8: craig_stars.v1.MapObjectTarget.target_type:type_name -> craig_stars.v1.MapObjectType
-	22, // 9: craig_stars.v1.WaypointDest.mo:type_name -> craig_stars.v1.MapObject
+	23, // 9: craig_stars.v1.WaypointDest.mo:type_name -> craig_stars.v1.MapObject
 	15, // 10: craig_stars.v1.WaypointDest.position:type_name -> craig_stars.v1.Vector
 	11, // [11:11] is the sub-list for method output_type
 	11, // [11:11] is the sub-list for method input_type
@@ -1906,7 +1962,7 @@ func file_craig_stars_v1_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_common_proto_rawDesc), len(file_craig_stars_v1_common_proto_rawDesc)),
 			NumEnums:      15,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

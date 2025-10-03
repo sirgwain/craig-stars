@@ -117,7 +117,7 @@ type MysteryTrader struct {
 	Destination     *Vector                 `protobuf:"bytes,4,opt,name=destination,proto3" json:"destination,omitempty"`
 	RequestedBoon   int32                   `protobuf:"varint,5,opt,name=requested_boon,json=requestedBoon,proto3" json:"requested_boon,omitempty"`
 	RewardType      MysteryTraderRewardType `protobuf:"varint,6,opt,name=reward_type,json=rewardType,proto3,enum=craig_stars.v1.MysteryTraderRewardType" json:"reward_type,omitempty"`
-	Heading         *Vector                 `protobuf:"bytes,7,opt,name=heading,proto3" json:"heading,omitempty"`
+	Heading         *VectorFloat64          `protobuf:"bytes,7,opt,name=heading,proto3" json:"heading,omitempty"`
 	PlayersRewarded map[int32]bool          `protobuf:"bytes,8,rep,name=players_rewarded,json=playersRewarded,proto3" json:"players_rewarded,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	Spec            *MysteryTraderSpec      `protobuf:"bytes,9,opt,name=spec,proto3" json:"spec,omitempty"`
 	unknownFields   protoimpl.UnknownFields
@@ -196,7 +196,7 @@ func (x *MysteryTrader) GetRewardType() MysteryTraderRewardType {
 	return MysteryTraderRewardType_MYSTERY_TRADER_REWARD_TYPE_UNSPECIFIED
 }
 
-func (x *MysteryTrader) GetHeading() *Vector {
+func (x *MysteryTrader) GetHeading() *VectorFloat64 {
 	if x != nil {
 		return x.Heading
 	}
@@ -341,7 +341,7 @@ var File_craig_stars_v1_mysterytrader_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_mysterytrader_proto_rawDesc = "" +
 	"\n" +
-	"\"craig_stars/v1/mysterytrader.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\"\xe3\x04\n" +
+	"\"craig_stars/v1/mysterytrader.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\"\xea\x04\n" +
 	"\rMysteryTrader\x12B\n" +
 	"\x0egame_db_object\x18\x01 \x01(\v2\x1c.craig_stars.v1.GameDBObjectR\fgameDbObject\x128\n" +
 	"\n" +
@@ -351,8 +351,8 @@ const file_craig_stars_v1_mysterytrader_proto_rawDesc = "" +
 	"\vdestination\x18\x04 \x01(\v2\x16.craig_stars.v1.VectorR\vdestination\x12%\n" +
 	"\x0erequested_boon\x18\x05 \x01(\x05R\rrequestedBoon\x12H\n" +
 	"\vreward_type\x18\x06 \x01(\x0e2'.craig_stars.v1.MysteryTraderRewardTypeR\n" +
-	"rewardType\x120\n" +
-	"\aheading\x18\a \x01(\v2\x16.craig_stars.v1.VectorR\aheading\x12]\n" +
+	"rewardType\x127\n" +
+	"\aheading\x18\a \x01(\v2\x1d.craig_stars.v1.VectorFloat64R\aheading\x12]\n" +
 	"\x10players_rewarded\x18\b \x03(\v22.craig_stars.v1.MysteryTrader.PlayersRewardedEntryR\x0fplayersRewarded\x125\n" +
 	"\x04spec\x18\t \x01(\v2!.craig_stars.v1.MysteryTraderSpecR\x04spec\x1aB\n" +
 	"\x14PlayersRewardedEntry\x12\x10\n" +
@@ -411,20 +411,21 @@ var file_craig_stars_v1_mysterytrader_proto_goTypes = []any{
 	(*GameDBObject)(nil),         // 5: craig_stars.v1.GameDBObject
 	(*MapObject)(nil),            // 6: craig_stars.v1.MapObject
 	(*Vector)(nil),               // 7: craig_stars.v1.Vector
-	(*TechLevel)(nil),            // 8: craig_stars.v1.TechLevel
-	(*ShipDesign)(nil),           // 9: craig_stars.v1.ShipDesign
+	(*VectorFloat64)(nil),        // 8: craig_stars.v1.VectorFloat64
+	(*TechLevel)(nil),            // 9: craig_stars.v1.TechLevel
+	(*ShipDesign)(nil),           // 10: craig_stars.v1.ShipDesign
 }
 var file_craig_stars_v1_mysterytrader_proto_depIdxs = []int32{
 	5,  // 0: craig_stars.v1.MysteryTrader.game_db_object:type_name -> craig_stars.v1.GameDBObject
 	6,  // 1: craig_stars.v1.MysteryTrader.map_object:type_name -> craig_stars.v1.MapObject
 	7,  // 2: craig_stars.v1.MysteryTrader.destination:type_name -> craig_stars.v1.Vector
 	0,  // 3: craig_stars.v1.MysteryTrader.reward_type:type_name -> craig_stars.v1.MysteryTraderRewardType
-	7,  // 4: craig_stars.v1.MysteryTrader.heading:type_name -> craig_stars.v1.Vector
+	8,  // 4: craig_stars.v1.MysteryTrader.heading:type_name -> craig_stars.v1.VectorFloat64
 	4,  // 5: craig_stars.v1.MysteryTrader.players_rewarded:type_name -> craig_stars.v1.MysteryTrader.PlayersRewardedEntry
 	2,  // 6: craig_stars.v1.MysteryTrader.spec:type_name -> craig_stars.v1.MysteryTraderSpec
 	0,  // 7: craig_stars.v1.MysteryTraderReward.type:type_name -> craig_stars.v1.MysteryTraderRewardType
-	8,  // 8: craig_stars.v1.MysteryTraderReward.tech_levels:type_name -> craig_stars.v1.TechLevel
-	9,  // 9: craig_stars.v1.MysteryTraderReward.ship:type_name -> craig_stars.v1.ShipDesign
+	9,  // 8: craig_stars.v1.MysteryTraderReward.tech_levels:type_name -> craig_stars.v1.TechLevel
+	10, // 9: craig_stars.v1.MysteryTraderReward.ship:type_name -> craig_stars.v1.ShipDesign
 	10, // [10:10] is the sub-list for method output_type
 	10, // [10:10] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name

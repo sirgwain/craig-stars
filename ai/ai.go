@@ -540,7 +540,7 @@ func (p *aiPlayer) getPlanet(num int) *cs.Planet {
 
 // get the closest planet to this fleet from a list of unknown planets
 func (ai *aiPlayer) getClosestPlanetIntel(position cs.Vector, planetIntelsByNum map[int]*cs.Planet) *cs.Planet {
-	shortestDist := math.MaxFloat64
+	shortestDist := math.MaxInt
 	var closest *cs.Planet = nil
 
 	for num := range planetIntelsByNum {
@@ -558,7 +558,7 @@ func (ai *aiPlayer) getClosestPlanetIntel(position cs.Vector, planetIntelsByNum 
 
 // get the farthest planet to this fleet from a list of unknown planets
 func (ai *aiPlayer) getFarthestPlanetIntel(position cs.Vector, planetIntelsByNum map[int]*cs.Planet) *cs.Planet {
-	var longestDistance float64 = -1
+	var longestDistance = -1
 	var farthest *cs.Planet = nil
 
 	for _, intel := range planetIntelsByNum {
@@ -574,7 +574,7 @@ func (ai *aiPlayer) getFarthestPlanetIntel(position cs.Vector, planetIntelsByNum
 
 // get the closest planet to this fleet from a list of unknown planets
 func (ai *aiPlayer) getClosestPlanet(fleet *cs.Fleet, planetsByNum map[int]*cs.Planet) *cs.Planet {
-	shortestDist := math.MaxFloat64
+	shortestDist := math.MaxInt
 	var closest *cs.Planet = nil
 
 	for _, planet := range planetsByNum {
@@ -590,7 +590,7 @@ func (ai *aiPlayer) getClosestPlanet(fleet *cs.Fleet, planetsByNum map[int]*cs.P
 
 // get the closest planet we own with a starbase
 func (ai *aiPlayer) getClosestStarbasePlanet(fleet *cs.Fleet) *cs.Planet {
-	shortestDist := math.MaxFloat64
+	shortestDist := math.MaxInt32
 	var closest *cs.Planet = nil
 
 	for _, planet := range ai.Planets {
