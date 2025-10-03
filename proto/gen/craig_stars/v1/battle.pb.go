@@ -76,59 +76,6 @@ func (BattleRecordTokenActionType) EnumDescriptor() ([]byte, []int) {
 	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{0}
 }
 
-// Common types
-type BattleVector struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	X             int32                  `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
-	Y             int32                  `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BattleVector) Reset() {
-	*x = BattleVector{}
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BattleVector) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BattleVector) ProtoMessage() {}
-
-func (x *BattleVector) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BattleVector.ProtoReflect.Descriptor instead.
-func (*BattleVector) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *BattleVector) GetX() int32 {
-	if x != nil {
-		return x.X
-	}
-	return 0
-}
-
-func (x *BattleVector) GetY() int32 {
-	if x != nil {
-		return x.Y
-	}
-	return 0
-}
-
 type BattleRecord struct {
 	state           protoimpl.MessageState        `protogen:"open.v1"`
 	Num             int32                         `protobuf:"varint,1,opt,name=num,proto3" json:"num,omitempty"`
@@ -144,7 +91,7 @@ type BattleRecord struct {
 
 func (x *BattleRecord) Reset() {
 	*x = BattleRecord{}
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[1]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -156,7 +103,7 @@ func (x *BattleRecord) String() string {
 func (*BattleRecord) ProtoMessage() {}
 
 func (x *BattleRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[1]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -169,7 +116,7 @@ func (x *BattleRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleRecord.ProtoReflect.Descriptor instead.
 func (*BattleRecord) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{1}
+	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *BattleRecord) GetNum() int32 {
@@ -230,7 +177,7 @@ type ActionsPerRound struct {
 
 func (x *ActionsPerRound) Reset() {
 	*x = ActionsPerRound{}
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[2]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -242,7 +189,7 @@ func (x *ActionsPerRound) String() string {
 func (*ActionsPerRound) ProtoMessage() {}
 
 func (x *ActionsPerRound) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[2]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,7 +202,7 @@ func (x *ActionsPerRound) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActionsPerRound.ProtoReflect.Descriptor instead.
 func (*ActionsPerRound) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{2}
+	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ActionsPerRound) GetActions() []*BattleRecordTokenAction {
@@ -278,7 +225,7 @@ type BattleRecordStats struct {
 
 func (x *BattleRecordStats) Reset() {
 	*x = BattleRecordStats{}
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[3]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -290,7 +237,7 @@ func (x *BattleRecordStats) String() string {
 func (*BattleRecordStats) ProtoMessage() {}
 
 func (x *BattleRecordStats) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[3]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -303,7 +250,7 @@ func (x *BattleRecordStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleRecordStats.ProtoReflect.Descriptor instead.
 func (*BattleRecordStats) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{3}
+	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *BattleRecordStats) GetNumPlayers() int32 {
@@ -346,7 +293,7 @@ type BattleRecordToken struct {
 	Num                     int32                  `protobuf:"varint,1,opt,name=num,proto3" json:"num,omitempty"`
 	PlayerNum               int32                  `protobuf:"varint,2,opt,name=player_num,json=playerNum,proto3" json:"player_num,omitempty"`
 	DesignNum               int32                  `protobuf:"varint,3,opt,name=design_num,json=designNum,proto3" json:"design_num,omitempty"`
-	Position                *BattleVector          `protobuf:"bytes,4,opt,name=position,proto3" json:"position,omitempty"`
+	Position                *Vector                `protobuf:"bytes,4,opt,name=position,proto3" json:"position,omitempty"`
 	Initiative              int32                  `protobuf:"varint,5,opt,name=initiative,proto3" json:"initiative,omitempty"`
 	Mass                    int32                  `protobuf:"varint,6,opt,name=mass,proto3" json:"mass,omitempty"`
 	Armor                   int32                  `protobuf:"varint,7,opt,name=armor,proto3" json:"armor,omitempty"`
@@ -365,7 +312,7 @@ type BattleRecordToken struct {
 
 func (x *BattleRecordToken) Reset() {
 	*x = BattleRecordToken{}
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[4]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -377,7 +324,7 @@ func (x *BattleRecordToken) String() string {
 func (*BattleRecordToken) ProtoMessage() {}
 
 func (x *BattleRecordToken) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[4]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -390,7 +337,7 @@ func (x *BattleRecordToken) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleRecordToken.ProtoReflect.Descriptor instead.
 func (*BattleRecordToken) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{4}
+	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *BattleRecordToken) GetNum() int32 {
@@ -414,7 +361,7 @@ func (x *BattleRecordToken) GetDesignNum() int32 {
 	return 0
 }
 
-func (x *BattleRecordToken) GetPosition() *BattleVector {
+func (x *BattleRecordToken) GetPosition() *Vector {
 	if x != nil {
 		return x.Position
 	}
@@ -517,7 +464,7 @@ type BattleRecordDestroyedToken struct {
 
 func (x *BattleRecordDestroyedToken) Reset() {
 	*x = BattleRecordDestroyedToken{}
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[5]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -529,7 +476,7 @@ func (x *BattleRecordDestroyedToken) String() string {
 func (*BattleRecordDestroyedToken) ProtoMessage() {}
 
 func (x *BattleRecordDestroyedToken) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[5]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -542,7 +489,7 @@ func (x *BattleRecordDestroyedToken) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleRecordDestroyedToken.ProtoReflect.Descriptor instead.
 func (*BattleRecordDestroyedToken) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{5}
+	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *BattleRecordDestroyedToken) GetNum() int32 {
@@ -578,8 +525,8 @@ type BattleRecordTokenAction struct {
 	Type              BattleRecordTokenActionType `protobuf:"varint,1,opt,name=type,proto3,enum=craig_stars.v1.BattleRecordTokenActionType" json:"type,omitempty"`
 	TokenNum          int32                       `protobuf:"varint,2,opt,name=token_num,json=tokenNum,proto3" json:"token_num,omitempty"`
 	Round             int32                       `protobuf:"varint,3,opt,name=round,proto3" json:"round,omitempty"`
-	From              *BattleVector               `protobuf:"bytes,4,opt,name=from,proto3" json:"from,omitempty"`
-	To                *BattleVector               `protobuf:"bytes,5,opt,name=to,proto3" json:"to,omitempty"`
+	From              *Vector                     `protobuf:"bytes,4,opt,name=from,proto3" json:"from,omitempty"`
+	To                *Vector                     `protobuf:"bytes,5,opt,name=to,proto3" json:"to,omitempty"`
 	Slot              int32                       `protobuf:"varint,6,opt,name=slot,proto3" json:"slot,omitempty"`
 	TargetNum         int32                       `protobuf:"varint,7,opt,name=target_num,json=targetNum,proto3" json:"target_num,omitempty"`
 	Target            *ShipToken                  `protobuf:"bytes,8,opt,name=target,proto3" json:"target,omitempty"`
@@ -594,7 +541,7 @@ type BattleRecordTokenAction struct {
 
 func (x *BattleRecordTokenAction) Reset() {
 	*x = BattleRecordTokenAction{}
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[6]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -606,7 +553,7 @@ func (x *BattleRecordTokenAction) String() string {
 func (*BattleRecordTokenAction) ProtoMessage() {}
 
 func (x *BattleRecordTokenAction) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_battle_proto_msgTypes[6]
+	mi := &file_craig_stars_v1_battle_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -619,7 +566,7 @@ func (x *BattleRecordTokenAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleRecordTokenAction.ProtoReflect.Descriptor instead.
 func (*BattleRecordTokenAction) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{6}
+	return file_craig_stars_v1_battle_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *BattleRecordTokenAction) GetType() BattleRecordTokenActionType {
@@ -643,14 +590,14 @@ func (x *BattleRecordTokenAction) GetRound() int32 {
 	return 0
 }
 
-func (x *BattleRecordTokenAction) GetFrom() *BattleVector {
+func (x *BattleRecordTokenAction) GetFrom() *Vector {
 	if x != nil {
 		return x.From
 	}
 	return nil
 }
 
-func (x *BattleRecordTokenAction) GetTo() *BattleVector {
+func (x *BattleRecordTokenAction) GetTo() *Vector {
 	if x != nil {
 		return x.To
 	}
@@ -717,10 +664,7 @@ var File_craig_stars_v1_battle_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_battle_proto_rawDesc = "" +
 	"\n" +
-	"\x1bcraig_stars/v1/battle.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1acraig_stars/v1/fleet.proto\"*\n" +
-	"\fBattleVector\x12\f\n" +
-	"\x01x\x18\x01 \x01(\x05R\x01x\x12\f\n" +
-	"\x01y\x18\x02 \x01(\x05R\x01y\"\x8b\x03\n" +
+	"\x1bcraig_stars/v1/battle.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1acraig_stars/v1/fleet.proto\"\x8b\x03\n" +
 	"\fBattleRecord\x12\x10\n" +
 	"\x03num\x18\x01 \x01(\x05R\x03num\x12\x1d\n" +
 	"\n" +
@@ -750,14 +694,14 @@ const file_craig_stars_v1_battle_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\x1a[\n" +
 	"\x16CargoLostByPlayerEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x12+\n" +
-	"\x05value\x18\x02 \x01(\v2\x15.craig_stars.v1.CargoR\x05value:\x028\x01\"\xbe\x05\n" +
+	"\x05value\x18\x02 \x01(\v2\x15.craig_stars.v1.CargoR\x05value:\x028\x01\"\xb8\x05\n" +
 	"\x11BattleRecordToken\x12\x10\n" +
 	"\x03num\x18\x01 \x01(\x05R\x03num\x12\x1d\n" +
 	"\n" +
 	"player_num\x18\x02 \x01(\x05R\tplayerNum\x12\x1d\n" +
 	"\n" +
-	"design_num\x18\x03 \x01(\x05R\tdesignNum\x128\n" +
-	"\bposition\x18\x04 \x01(\v2\x1c.craig_stars.v1.BattleVectorR\bposition\x12\x1e\n" +
+	"design_num\x18\x03 \x01(\x05R\tdesignNum\x122\n" +
+	"\bposition\x18\x04 \x01(\v2\x16.craig_stars.v1.VectorR\bposition\x12\x1e\n" +
 	"\n" +
 	"initiative\x18\x05 \x01(\x05R\n" +
 	"initiative\x12\x12\n" +
@@ -780,13 +724,13 @@ const file_craig_stars_v1_battle_proto_rawDesc = "" +
 	"player_num\x18\x02 \x01(\x05R\tplayerNum\x12\x1d\n" +
 	"\n" +
 	"design_num\x18\x03 \x01(\x05R\tdesignNum\x12\x1a\n" +
-	"\bquantity\x18\x04 \x01(\x05R\bquantity\"\xa4\x04\n" +
+	"\bquantity\x18\x04 \x01(\x05R\bquantity\"\x98\x04\n" +
 	"\x17BattleRecordTokenAction\x12?\n" +
 	"\x04type\x18\x01 \x01(\x0e2+.craig_stars.v1.BattleRecordTokenActionTypeR\x04type\x12\x1b\n" +
 	"\ttoken_num\x18\x02 \x01(\x05R\btokenNum\x12\x14\n" +
-	"\x05round\x18\x03 \x01(\x05R\x05round\x120\n" +
-	"\x04from\x18\x04 \x01(\v2\x1c.craig_stars.v1.BattleVectorR\x04from\x12,\n" +
-	"\x02to\x18\x05 \x01(\v2\x1c.craig_stars.v1.BattleVectorR\x02to\x12\x12\n" +
+	"\x05round\x18\x03 \x01(\x05R\x05round\x12*\n" +
+	"\x04from\x18\x04 \x01(\v2\x16.craig_stars.v1.VectorR\x04from\x12&\n" +
+	"\x02to\x18\x05 \x01(\v2\x16.craig_stars.v1.VectorR\x02to\x12\x12\n" +
 	"\x04slot\x18\x06 \x01(\x05R\x04slot\x12\x1d\n" +
 	"\n" +
 	"target_num\x18\a \x01(\x05R\ttargetNum\x121\n" +
@@ -818,48 +762,47 @@ func file_craig_stars_v1_battle_proto_rawDescGZIP() []byte {
 }
 
 var file_craig_stars_v1_battle_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_craig_stars_v1_battle_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_craig_stars_v1_battle_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_craig_stars_v1_battle_proto_goTypes = []any{
 	(BattleRecordTokenActionType)(0),   // 0: craig_stars.v1.BattleRecordTokenActionType
-	(*BattleVector)(nil),               // 1: craig_stars.v1.BattleVector
-	(*BattleRecord)(nil),               // 2: craig_stars.v1.BattleRecord
-	(*ActionsPerRound)(nil),            // 3: craig_stars.v1.ActionsPerRound
-	(*BattleRecordStats)(nil),          // 4: craig_stars.v1.BattleRecordStats
-	(*BattleRecordToken)(nil),          // 5: craig_stars.v1.BattleRecordToken
-	(*BattleRecordDestroyedToken)(nil), // 6: craig_stars.v1.BattleRecordDestroyedToken
-	(*BattleRecordTokenAction)(nil),    // 7: craig_stars.v1.BattleRecordTokenAction
-	nil,                                // 8: craig_stars.v1.BattleRecordStats.NumShipsByPlayerEntry
-	nil,                                // 9: craig_stars.v1.BattleRecordStats.ShipsDestroyedByPlayerEntry
-	nil,                                // 10: craig_stars.v1.BattleRecordStats.DamageTakenByPlayerEntry
-	nil,                                // 11: craig_stars.v1.BattleRecordStats.CargoLostByPlayerEntry
-	(*Vector)(nil),                     // 12: craig_stars.v1.Vector
-	(BattleTactic)(0),                  // 13: craig_stars.v1.BattleTactic
-	(BattleTarget)(0),                  // 14: craig_stars.v1.BattleTarget
-	(BattleAttackWho)(0),               // 15: craig_stars.v1.BattleAttackWho
-	(*ShipToken)(nil),                  // 16: craig_stars.v1.ShipToken
-	(*Cargo)(nil),                      // 17: craig_stars.v1.Cargo
+	(*BattleRecord)(nil),               // 1: craig_stars.v1.BattleRecord
+	(*ActionsPerRound)(nil),            // 2: craig_stars.v1.ActionsPerRound
+	(*BattleRecordStats)(nil),          // 3: craig_stars.v1.BattleRecordStats
+	(*BattleRecordToken)(nil),          // 4: craig_stars.v1.BattleRecordToken
+	(*BattleRecordDestroyedToken)(nil), // 5: craig_stars.v1.BattleRecordDestroyedToken
+	(*BattleRecordTokenAction)(nil),    // 6: craig_stars.v1.BattleRecordTokenAction
+	nil,                                // 7: craig_stars.v1.BattleRecordStats.NumShipsByPlayerEntry
+	nil,                                // 8: craig_stars.v1.BattleRecordStats.ShipsDestroyedByPlayerEntry
+	nil,                                // 9: craig_stars.v1.BattleRecordStats.DamageTakenByPlayerEntry
+	nil,                                // 10: craig_stars.v1.BattleRecordStats.CargoLostByPlayerEntry
+	(*Vector)(nil),                     // 11: craig_stars.v1.Vector
+	(BattleTactic)(0),                  // 12: craig_stars.v1.BattleTactic
+	(BattleTarget)(0),                  // 13: craig_stars.v1.BattleTarget
+	(BattleAttackWho)(0),               // 14: craig_stars.v1.BattleAttackWho
+	(*ShipToken)(nil),                  // 15: craig_stars.v1.ShipToken
+	(*Cargo)(nil),                      // 16: craig_stars.v1.Cargo
 }
 var file_craig_stars_v1_battle_proto_depIdxs = []int32{
-	12, // 0: craig_stars.v1.BattleRecord.position:type_name -> craig_stars.v1.Vector
-	5,  // 1: craig_stars.v1.BattleRecord.tokens:type_name -> craig_stars.v1.BattleRecordToken
-	3,  // 2: craig_stars.v1.BattleRecord.actions_per_round:type_name -> craig_stars.v1.ActionsPerRound
-	6,  // 3: craig_stars.v1.BattleRecord.destroyed_tokens:type_name -> craig_stars.v1.BattleRecordDestroyedToken
-	4,  // 4: craig_stars.v1.BattleRecord.stats:type_name -> craig_stars.v1.BattleRecordStats
-	7,  // 5: craig_stars.v1.ActionsPerRound.actions:type_name -> craig_stars.v1.BattleRecordTokenAction
-	8,  // 6: craig_stars.v1.BattleRecordStats.num_ships_by_player:type_name -> craig_stars.v1.BattleRecordStats.NumShipsByPlayerEntry
-	9,  // 7: craig_stars.v1.BattleRecordStats.ships_destroyed_by_player:type_name -> craig_stars.v1.BattleRecordStats.ShipsDestroyedByPlayerEntry
-	10, // 8: craig_stars.v1.BattleRecordStats.damage_taken_by_player:type_name -> craig_stars.v1.BattleRecordStats.DamageTakenByPlayerEntry
-	11, // 9: craig_stars.v1.BattleRecordStats.cargo_lost_by_player:type_name -> craig_stars.v1.BattleRecordStats.CargoLostByPlayerEntry
-	1,  // 10: craig_stars.v1.BattleRecordToken.position:type_name -> craig_stars.v1.BattleVector
-	13, // 11: craig_stars.v1.BattleRecordToken.tactic:type_name -> craig_stars.v1.BattleTactic
-	14, // 12: craig_stars.v1.BattleRecordToken.primary_target:type_name -> craig_stars.v1.BattleTarget
-	14, // 13: craig_stars.v1.BattleRecordToken.secondary_target:type_name -> craig_stars.v1.BattleTarget
-	15, // 14: craig_stars.v1.BattleRecordToken.attack_who:type_name -> craig_stars.v1.BattleAttackWho
+	11, // 0: craig_stars.v1.BattleRecord.position:type_name -> craig_stars.v1.Vector
+	4,  // 1: craig_stars.v1.BattleRecord.tokens:type_name -> craig_stars.v1.BattleRecordToken
+	2,  // 2: craig_stars.v1.BattleRecord.actions_per_round:type_name -> craig_stars.v1.ActionsPerRound
+	5,  // 3: craig_stars.v1.BattleRecord.destroyed_tokens:type_name -> craig_stars.v1.BattleRecordDestroyedToken
+	3,  // 4: craig_stars.v1.BattleRecord.stats:type_name -> craig_stars.v1.BattleRecordStats
+	6,  // 5: craig_stars.v1.ActionsPerRound.actions:type_name -> craig_stars.v1.BattleRecordTokenAction
+	7,  // 6: craig_stars.v1.BattleRecordStats.num_ships_by_player:type_name -> craig_stars.v1.BattleRecordStats.NumShipsByPlayerEntry
+	8,  // 7: craig_stars.v1.BattleRecordStats.ships_destroyed_by_player:type_name -> craig_stars.v1.BattleRecordStats.ShipsDestroyedByPlayerEntry
+	9,  // 8: craig_stars.v1.BattleRecordStats.damage_taken_by_player:type_name -> craig_stars.v1.BattleRecordStats.DamageTakenByPlayerEntry
+	10, // 9: craig_stars.v1.BattleRecordStats.cargo_lost_by_player:type_name -> craig_stars.v1.BattleRecordStats.CargoLostByPlayerEntry
+	11, // 10: craig_stars.v1.BattleRecordToken.position:type_name -> craig_stars.v1.Vector
+	12, // 11: craig_stars.v1.BattleRecordToken.tactic:type_name -> craig_stars.v1.BattleTactic
+	13, // 12: craig_stars.v1.BattleRecordToken.primary_target:type_name -> craig_stars.v1.BattleTarget
+	13, // 13: craig_stars.v1.BattleRecordToken.secondary_target:type_name -> craig_stars.v1.BattleTarget
+	14, // 14: craig_stars.v1.BattleRecordToken.attack_who:type_name -> craig_stars.v1.BattleAttackWho
 	0,  // 15: craig_stars.v1.BattleRecordTokenAction.type:type_name -> craig_stars.v1.BattleRecordTokenActionType
-	1,  // 16: craig_stars.v1.BattleRecordTokenAction.from:type_name -> craig_stars.v1.BattleVector
-	1,  // 17: craig_stars.v1.BattleRecordTokenAction.to:type_name -> craig_stars.v1.BattleVector
-	16, // 18: craig_stars.v1.BattleRecordTokenAction.target:type_name -> craig_stars.v1.ShipToken
-	17, // 19: craig_stars.v1.BattleRecordStats.CargoLostByPlayerEntry.value:type_name -> craig_stars.v1.Cargo
+	11, // 16: craig_stars.v1.BattleRecordTokenAction.from:type_name -> craig_stars.v1.Vector
+	11, // 17: craig_stars.v1.BattleRecordTokenAction.to:type_name -> craig_stars.v1.Vector
+	15, // 18: craig_stars.v1.BattleRecordTokenAction.target:type_name -> craig_stars.v1.ShipToken
+	16, // 19: craig_stars.v1.BattleRecordStats.CargoLostByPlayerEntry.value:type_name -> craig_stars.v1.Cargo
 	20, // [20:20] is the sub-list for method output_type
 	20, // [20:20] is the sub-list for method input_type
 	20, // [20:20] is the sub-list for extension type_name
@@ -880,7 +823,7 @@ func file_craig_stars_v1_battle_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_battle_proto_rawDesc), len(file_craig_stars_v1_battle_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

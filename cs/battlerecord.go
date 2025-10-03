@@ -29,7 +29,7 @@ type BattleRecordToken struct {
 	Num                     int             `json:"num"`
 	PlayerNum               int             `json:"playerNum"`
 	DesignNum               int             `json:"designNum"`
-	Position                BattleVector    `json:"position"`
+	Position                Vector          `json:"position"`
 	Initiative              int             `json:"initiative"`
 	Mass                    int             `json:"mass"`
 	Armor                   int             `json:"armor"`
@@ -57,8 +57,8 @@ type BattleRecordTokenAction struct {
 	Type              BattleRecordTokenActionType `json:"type"`
 	TokenNum          int                         `json:"tokenNum"`
 	Round             int                         `json:"round"`
-	From              BattleVector                `json:"from"`
-	To                BattleVector                `json:"to"`
+	From              Vector                      `json:"from"`
+	To                Vector                      `json:"to"`
 	Slot              int                         `json:"slot,omitempty"`
 	TargetNum         int                         `json:"targetNum,omitempty"`
 	Target            *ShipToken                  `json:"target,omitempty"`
@@ -94,32 +94,6 @@ func (t BattleRecordTokenActionType) String() string {
 	default:
 		return fmt.Sprintf("Unknown BattleRecordTokenActionType (%d)", t)
 	}
-}
-
-type BattleVector struct {
-	X int `json:"x"`
-	Y int `json:"y"`
-}
-
-var BattleVectorRight BattleVector = BattleVector{1, 0}
-var BattleVectorLeft BattleVector = BattleVector{-1, 0}
-var BattleVectorUp BattleVector = BattleVector{0, 1}
-var BattleVectorDown BattleVector = BattleVector{0, -1}
-var BattleVectorUpRight BattleVector = BattleVector{1, 1}
-var BattleVectorUpLeft BattleVector = BattleVector{-1, 1}
-var BattleVectorDownRight BattleVector = BattleVector{1, -1}
-var BattleVectorDownLeft BattleVector = BattleVector{-1, -1}
-
-func (v1 BattleVector) Add(v2 BattleVector) BattleVector {
-	return BattleVector{v1.X + v2.X, v1.Y + v2.Y}
-}
-
-func (v1 BattleVector) chebyshevDistance(v2 BattleVector) int {
-	return max(Abs(v1.X-v2.X), Abs(v1.Y-v2.Y))
-}
-
-func (v BattleVector) scaleInt(scale int) BattleVector {
-	return BattleVector{v.X * scale, v.Y * scale}
 }
 
 // SetupRecord populates a lookup table of items by guid.
@@ -174,7 +148,7 @@ func (b *BattleRecord) recordNewRound() {
 }
 
 // Record a move
-func (b *BattleRecord) recordMove(round int, token *battleToken, from, to BattleVector) BattleRecordTokenAction {
+func (b *BattleRecord) recordMove(round int, token *battleToken, from, to Vector) BattleRecordTokenAction {
 	targetNum := 0
 	if token.moveTarget != nil {
 		targetNum = token.moveTarget.Num
@@ -197,7 +171,7 @@ func (b *BattleRecord) recordRunAway(round int, token *battleToken) BattleRecord
 }
 
 // Record a token firing a beam weapon
-func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from BattleVector, to BattleVector, slot int, target battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int) {
+func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Vector, to Vector, slot int, target battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken
 
@@ -212,7 +186,7 @@ func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Battle
 }
 
 // Record a token firing a salvo of torpedoes
-func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from BattleVector, to BattleVector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
+func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from Vector, to Vector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken
 	action := BattleRecordTokenAction{

@@ -32,8 +32,8 @@ func (c *ProtoConverter) ConvertBattleRecordTokenAction(source *v1.BattleRecordT
 		csBattleRecordTokenAction2.Type = BattleRecordTokenActionTypeToCSBattleRecordTokenActionType((*source).Type)
 		csBattleRecordTokenAction2.TokenNum = Int32ToInt((*source).TokenNum)
 		csBattleRecordTokenAction2.Round = Int32ToInt((*source).Round)
-		csBattleRecordTokenAction2.From = c.pCraig_starsv1BattleVectorToCsBattleVector((*source).From)
-		csBattleRecordTokenAction2.To = c.pCraig_starsv1BattleVectorToCsBattleVector((*source).To)
+		csBattleRecordTokenAction2.From = c.ConvertVector((*source).From)
+		csBattleRecordTokenAction2.To = c.ConvertVector((*source).To)
 		csBattleRecordTokenAction2.Slot = Int32ToInt((*source).Slot)
 		csBattleRecordTokenAction2.TargetNum = Int32ToInt((*source).TargetNum)
 		csBattleRecordTokenAction2.Target = c.pCraig_starsv1ShipTokenToPCsShipToken((*source).Target)
@@ -99,8 +99,8 @@ func (c *ProtoConverter) ConvertCSBattleRecordTokenAction(source cs.BattleRecord
 	craig_starsv1BattleRecordTokenAction.Type = CSBattleRecordTokenActionTypeToBattleRecordTokenActionType(source.Type)
 	craig_starsv1BattleRecordTokenAction.TokenNum = IntToInt32(source.TokenNum)
 	craig_starsv1BattleRecordTokenAction.Round = IntToInt32(source.Round)
-	craig_starsv1BattleRecordTokenAction.From = c.csBattleVectorToPCraig_starsv1BattleVector(source.From)
-	craig_starsv1BattleRecordTokenAction.To = c.csBattleVectorToPCraig_starsv1BattleVector(source.To)
+	craig_starsv1BattleRecordTokenAction.From = CSVectorToVector(source.From)
+	craig_starsv1BattleRecordTokenAction.To = CSVectorToVector(source.To)
 	craig_starsv1BattleRecordTokenAction.Slot = IntToInt32(source.Slot)
 	craig_starsv1BattleRecordTokenAction.TargetNum = IntToInt32(source.TargetNum)
 	craig_starsv1BattleRecordTokenAction.Target = c.pCsShipTokenToPCraig_starsv1ShipToken(source.Target)
@@ -2548,7 +2548,7 @@ func (c *ProtoConverter) csBattleRecordTokenToPCraig_starsv1BattleRecordToken(so
 	craig_starsv1BattleRecordToken.Num = IntToInt32(source.Num)
 	craig_starsv1BattleRecordToken.PlayerNum = IntToInt32(source.PlayerNum)
 	craig_starsv1BattleRecordToken.DesignNum = IntToInt32(source.DesignNum)
-	craig_starsv1BattleRecordToken.Position = c.csBattleVectorToPCraig_starsv1BattleVector(source.Position)
+	craig_starsv1BattleRecordToken.Position = CSVectorToVector(source.Position)
 	craig_starsv1BattleRecordToken.Initiative = IntToInt32(source.Initiative)
 	craig_starsv1BattleRecordToken.Mass = IntToInt32(source.Mass)
 	craig_starsv1BattleRecordToken.Armor = IntToInt32(source.Armor)
@@ -2575,12 +2575,6 @@ func (c *ProtoConverter) csBattleRulesToPCraig_starsv1BattleRules(source cs.Batt
 	craig_starsv1BattleRules.NumBattleRounds = IntToInt32(source.NumBattleRounds)
 	craig_starsv1BattleRules.TorpedoSplashDamage = source.TorpedoSplashDamage
 	return &craig_starsv1BattleRules
-}
-func (c *ProtoConverter) csBattleVectorToPCraig_starsv1BattleVector(source cs.BattleVector) *v1.BattleVector {
-	var craig_starsv1BattleVector v1.BattleVector
-	craig_starsv1BattleVector.X = IntToInt32(source.X)
-	craig_starsv1BattleVector.Y = IntToInt32(source.Y)
-	return &craig_starsv1BattleVector
 }
 func (c *ProtoConverter) csBombToPCraig_starsv1Bomb(source cs.Bomb) *v1.Bomb {
 	var craig_starsv1Bomb v1.Bomb
@@ -3340,7 +3334,7 @@ func (c *ProtoConverter) pCraig_starsv1BattleRecordTokenToCsBattleRecordToken(so
 		csBattleRecordToken2.Num = Int32ToInt((*source).Num)
 		csBattleRecordToken2.PlayerNum = Int32ToInt((*source).PlayerNum)
 		csBattleRecordToken2.DesignNum = Int32ToInt((*source).DesignNum)
-		csBattleRecordToken2.Position = c.pCraig_starsv1BattleVectorToCsBattleVector((*source).Position)
+		csBattleRecordToken2.Position = c.ConvertVector((*source).Position)
 		csBattleRecordToken2.Initiative = Int32ToInt((*source).Initiative)
 		csBattleRecordToken2.Mass = Int32ToInt((*source).Mass)
 		csBattleRecordToken2.Armor = Int32ToInt((*source).Armor)
@@ -3373,16 +3367,6 @@ func (c *ProtoConverter) pCraig_starsv1BattleRulesToCsBattleRules(source *v1.Bat
 		csBattleRules = csBattleRules2
 	}
 	return csBattleRules
-}
-func (c *ProtoConverter) pCraig_starsv1BattleVectorToCsBattleVector(source *v1.BattleVector) cs.BattleVector {
-	var csBattleVector cs.BattleVector
-	if source != nil {
-		var csBattleVector2 cs.BattleVector
-		csBattleVector2.X = Int32ToInt((*source).X)
-		csBattleVector2.Y = Int32ToInt((*source).Y)
-		csBattleVector = csBattleVector2
-	}
-	return csBattleVector
 }
 func (c *ProtoConverter) pCraig_starsv1BombToCsBomb(source *v1.Bomb) cs.Bomb {
 	var csBomb cs.Bomb

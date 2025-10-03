@@ -45,7 +45,7 @@ type battleToken struct {
 }
 
 // newBattleToken creates a new battle token from a shipToken.
-func newBattleToken(rules *Rules, num int, position BattleVector, cargoMass int, token *ShipToken, battlePlan BattlePlan, player *Player) *battleToken {
+func newBattleToken(rules *Rules, num int, position Vector, cargoMass int, token *ShipToken, battlePlan BattlePlan, player *Player) *battleToken {
 	battleToken := battleToken{
 		BattleRecordToken: BattleRecordToken{
 			Num:                     num,
@@ -167,7 +167,7 @@ func (token *battleToken) isStillInBattle() bool {
 	return !token.destroyed && !token.ranAway
 }
 
-func (token *battleToken) getDistanceAway(position BattleVector) int {
+func (token *battleToken) getDistanceAway(position Vector) int {
 	return max(Abs(token.Position.X-position.X), Abs(token.Position.Y-position.Y))
 }
 

@@ -13,12 +13,6 @@ enum BattleRecordTokenActionType {
   BATTLE_RECORD_TOKEN_ACTION_TYPE_RAN_AWAY = 4;
 }
 
-// Common types
-message BattleVector {
-  int32 x = 1;
-  int32 y = 2;
-}
-
 message BattleRecord {
   int32 num = 1;
   int32 planet_num = 2;
@@ -45,7 +39,7 @@ message BattleRecordToken {
   int32 num = 1;
   int32 player_num = 2;
   int32 design_num = 3;
-  BattleVector position = 4;
+  Vector position = 4;
   int32 initiative = 5;
   int32 mass = 6;
   int32 armor = 7;
@@ -71,8 +65,8 @@ message BattleRecordTokenAction {
   BattleRecordTokenActionType type = 1;
   int32 token_num = 2;
   int32 round = 3;
-  BattleVector from = 4;
-  BattleVector to = 5;
+  Vector from = 4;
+  Vector to = 5;
   int32 slot = 6;
   int32 target_num = 7;
   ShipToken target = 8;

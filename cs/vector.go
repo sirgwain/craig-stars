@@ -139,3 +139,11 @@ func segmentIntersectsCircle[T number](segmentFrom, segmentTo, circlePosition Ve
 func isPointInCircle[T number](point, circlePosition VectorGeneric[T], circleRadius float64) bool {
 	return float64(point.DistanceSquaredTo(circlePosition)) <= circleRadius*circleRadius
 }
+
+func (v1 VectorGeneric[T]) chebyshevDistance(v2 VectorGeneric[T]) T {
+	return max(Abs(v1.X-v2.X), Abs(v1.Y-v2.Y))
+}
+
+func (v VectorGeneric[T]) scaleInt(scale int) Vector {
+	return Vector{int(v.X) * scale, int(v.Y) * scale}
+}

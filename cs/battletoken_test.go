@@ -9,7 +9,7 @@ import (
 func Test_battleToken_getDistanceAway(t *testing.T) {
 
 	type args struct {
-		position BattleVector
+		position Vector
 	}
 	tests := []struct {
 		name string
@@ -17,11 +17,11 @@ func Test_battleToken_getDistanceAway(t *testing.T) {
 		args args
 		want int
 	}{
-		{"no distance", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}, args{BattleVector{0, 0}}, 0},
-		{"x distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{2, 1}}}, args{BattleVector{4, 2}}, 2},
-		{"y distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 2}}}, args{BattleVector{2, 5}}, 3},
-		{"negative distance (token behind)", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 1}}}, args{BattleVector{0, 0}}, 1},
-		{"3,4 to 7,4", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{3, 4}}}, args{BattleVector{7, 4}}, 4},
+		{"no distance", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}, args{Vector{0, 0}}, 0},
+		{"x distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{2, 1}}}, args{Vector{4, 2}}, 2},
+		{"y distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{1, 2}}}, args{Vector{2, 5}}, 3},
+		{"negative distance (token behind)", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{1, 1}}}, args{Vector{0, 0}}, 1},
+		{"3,4 to 7,4", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{3, 4}}}, args{Vector{7, 4}}, 4},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
