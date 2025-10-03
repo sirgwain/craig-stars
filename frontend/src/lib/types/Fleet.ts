@@ -14,7 +14,7 @@ import {
 	type ShipToken,
 	type ShipTokenJson,
 	type Vector,
-	VectorSchema,
+	VectorFloat64Schema,
 	WaypointTask,
 	WaypointTaskTransportAction,
 	type WaypointTransportTasks,
@@ -74,7 +74,7 @@ export class CommandedFleet implements Fleet {
 	cargo = create(CargoSchema);
 	damage = 0;
 	fuel = 0;
-	heading = create(VectorSchema);
+	heading = create(VectorFloat64Schema);
 	mass = 0;
 	orbitingPlanetNum = None;
 	planetNum = 0;
