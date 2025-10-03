@@ -888,8 +888,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		wp0.TargetName = ""
 		wp0.PartiallyComplete = true
 
-		fleet.Position = fleet.Position.ToInt(false).Add(fleet.Heading.Scale(dist).ToInt(true))
-		fleet.Position = fleet.Position.Round()
+		fleet.Position = fleet.Position.ToFloat64().Add(fleet.Heading.Scale(dist)).ToInt(true)
 		wp0.Position = fleet.Position
 
 		if fleet.struckMinefield {

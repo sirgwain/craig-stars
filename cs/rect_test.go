@@ -90,7 +90,8 @@ func TestRect_PointInRotatedRectangle(t *testing.T) {
 		want   bool
 	}{
 		{"0, 0 in", fields{-1, -1, 2, 2}, args{Vector{0, 0}, math.Pi / 4}, true},
-		{"1, 0 in", fields{-1, -1, 2, 2}, args{Vector{1, 0}, -math.Pi / 4}, true},
+		{"141, 0 in", fields{-100, -100, 200, 200}, args{Vector{141, 0}, -math.Pi / 4}, true},
+		{"142, 0 out", fields{-100, -100, 200, 200}, args{Vector{142, 0}, -math.Pi / 4}, false},
 		{"out", fields{-1, -1, 2, 2}, args{Vector{1, 1}, math.Pi / 4}, false},
 		{"out", fields{-1, -1, 2, 2}, args{Vector{-1, 1}, math.Pi / 4}, false},
 		{"out", fields{-1, -1, 2, 2}, args{Vector{1, 1}, math.Pi / 4}, false},
