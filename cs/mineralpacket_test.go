@@ -207,7 +207,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			args{
 				race:              NewRace().WithSpec(&rules),
 				planetDriverSpeed: 0,
-				planetPosition:    Vector{21.333333, 0},
+				planetPosition:    Vector{21, 0}, // was Vector{21.333333, 0},
 				planetDefCoverage: 0,
 				targetRace:        NewRace().WithSpec(&rules),
 				planetPop:         1000000,

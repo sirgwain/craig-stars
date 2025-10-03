@@ -3,10 +3,10 @@ package cs
 import "math"
 
 type Rect struct {
-	X      float64 `json:"x"`
-	Y      float64 `json:"y"`
-	Width  float64 `json:"width,omitempty"`
-	Height float64 `json:"height,omitempty"`
+	X      int `json:"x"`
+	Y      int `json:"y"`
+	Width  int `json:"width,omitempty"`
+	Height int `json:"height,omitempty"`
 }
 
 func (rect Rect) Center() Vector {
@@ -27,13 +27,13 @@ func (rect Rect) PointInRotatedRectangle(point Vector, rectAngle float64) bool {
 
 	// set origin to rect center
 	center := rect.Center()
-	newPoint := point.Subtract(center)
+	newPoint := point.Subtract(center).ToFloat64()
 	// rotate
-	newPoint = Vector{newPoint.X*c - newPoint.Y*s, newPoint.X*s + newPoint.Y*c}
+	newPoint = VectorFloat64{float64(newPoint.X)*c - float64(newPoint.Y)*s, float64(newPoint.X)*s + float64(newPoint.Y)*c}
 	// put origin back
-	newPoint = newPoint.Add(center)
+	newPoint = newPoint.Add(center.ToFloat64())
 
 	// check if our transformed point is in the rectangle, which is no longer
 	// rotated relative to the point
-	return rect.PointInRectangle(newPoint)
+	return newPoint.X >= float64(rect.X) && newPoint.X <= float64(rect.X+rect.Width) && newPoint.Y >= float64(rect.Y) && newPoint.Y <= float64(rect.Y+rect.Height)
 }

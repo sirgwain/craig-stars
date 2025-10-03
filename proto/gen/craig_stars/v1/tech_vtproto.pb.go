@@ -3875,7 +3875,7 @@ func (m *TechHull) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.CargoSlotPosition == nil {
-				m.CargoSlotPosition = &Vector{}
+				m.CargoSlotPosition = &VectorFloat64{}
 			}
 			if err := m.CargoSlotPosition.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3911,7 +3911,7 @@ func (m *TechHull) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.CargoSlotSize == nil {
-				m.CargoSlotSize = &Vector{}
+				m.CargoSlotSize = &VectorFloat64{}
 			}
 			if err := m.CargoSlotSize.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3986,7 +3986,7 @@ func (m *TechHull) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.SpaceDockSlotPosition == nil {
-				m.SpaceDockSlotPosition = &Vector{}
+				m.SpaceDockSlotPosition = &VectorFloat64{}
 			}
 			if err := m.SpaceDockSlotPosition.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -4022,7 +4022,7 @@ func (m *TechHull) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.SpaceDockSlotSize == nil {
-				m.SpaceDockSlotSize = &Vector{}
+				m.SpaceDockSlotSize = &VectorFloat64{}
 			}
 			if err := m.SpaceDockSlotSize.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -4411,7 +4411,7 @@ func (m *TechHullSlot) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Position == nil {
-				m.Position = &Vector{}
+				m.Position = &VectorFloat64{}
 			}
 			if err := m.Position.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

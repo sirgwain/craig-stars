@@ -29,7 +29,7 @@ type MineralPacket struct {
 	Cargo           *Cargo                 `protobuf:"bytes,4,opt,name=cargo,proto3" json:"cargo,omitempty"`
 	WarpSpeed       int32                  `protobuf:"varint,5,opt,name=warp_speed,json=warpSpeed,proto3" json:"warp_speed,omitempty"`
 	SafeWarpSpeed   int32                  `protobuf:"varint,6,opt,name=safe_warp_speed,json=safeWarpSpeed,proto3" json:"safe_warp_speed,omitempty"`
-	Heading         *Vector                `protobuf:"bytes,7,opt,name=heading,proto3" json:"heading,omitempty"`
+	Heading         *VectorFloat64         `protobuf:"bytes,7,opt,name=heading,proto3" json:"heading,omitempty"`
 	ScanRange       int32                  `protobuf:"varint,8,opt,name=scan_range,json=scanRange,proto3" json:"scan_range,omitempty"`
 	ScanRangePen    int32                  `protobuf:"varint,9,opt,name=scan_range_pen,json=scanRangePen,proto3" json:"scan_range_pen,omitempty"`
 	unknownFields   protoimpl.UnknownFields
@@ -108,7 +108,7 @@ func (x *MineralPacket) GetSafeWarpSpeed() int32 {
 	return 0
 }
 
-func (x *MineralPacket) GetHeading() *Vector {
+func (x *MineralPacket) GetHeading() *VectorFloat64 {
 	if x != nil {
 		return x.Heading
 	}
@@ -193,7 +193,7 @@ var File_craig_stars_v1_mineralpacket_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_mineralpacket_proto_rawDesc = "" +
 	"\n" +
-	"\"craig_stars/v1/mineralpacket.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\"\xa4\x03\n" +
+	"\"craig_stars/v1/mineralpacket.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\"\xab\x03\n" +
 	"\rMineralPacket\x12B\n" +
 	"\x0egame_db_object\x18\x01 \x01(\v2\x1c.craig_stars.v1.GameDBObjectR\fgameDbObject\x128\n" +
 	"\n" +
@@ -202,8 +202,8 @@ const file_craig_stars_v1_mineralpacket_proto_rawDesc = "" +
 	"\x05cargo\x18\x04 \x01(\v2\x15.craig_stars.v1.CargoR\x05cargo\x12\x1d\n" +
 	"\n" +
 	"warp_speed\x18\x05 \x01(\x05R\twarpSpeed\x12&\n" +
-	"\x0fsafe_warp_speed\x18\x06 \x01(\x05R\rsafeWarpSpeed\x120\n" +
-	"\aheading\x18\a \x01(\v2\x16.craig_stars.v1.VectorR\aheading\x12\x1d\n" +
+	"\x0fsafe_warp_speed\x18\x06 \x01(\x05R\rsafeWarpSpeed\x127\n" +
+	"\aheading\x18\a \x01(\v2\x1d.craig_stars.v1.VectorFloat64R\aheading\x12\x1d\n" +
 	"\n" +
 	"scan_range\x18\b \x01(\x05R\tscanRange\x12$\n" +
 	"\x0escan_range_pen\x18\t \x01(\x05R\fscanRangePen\"x\n" +
@@ -232,13 +232,13 @@ var file_craig_stars_v1_mineralpacket_proto_goTypes = []any{
 	(*GameDBObject)(nil),        // 2: craig_stars.v1.GameDBObject
 	(*MapObject)(nil),           // 3: craig_stars.v1.MapObject
 	(*Cargo)(nil),               // 4: craig_stars.v1.Cargo
-	(*Vector)(nil),              // 5: craig_stars.v1.Vector
+	(*VectorFloat64)(nil),       // 5: craig_stars.v1.VectorFloat64
 }
 var file_craig_stars_v1_mineralpacket_proto_depIdxs = []int32{
 	2, // 0: craig_stars.v1.MineralPacket.game_db_object:type_name -> craig_stars.v1.GameDBObject
 	3, // 1: craig_stars.v1.MineralPacket.map_object:type_name -> craig_stars.v1.MapObject
 	4, // 2: craig_stars.v1.MineralPacket.cargo:type_name -> craig_stars.v1.Cargo
-	5, // 3: craig_stars.v1.MineralPacket.heading:type_name -> craig_stars.v1.Vector
+	5, // 3: craig_stars.v1.MineralPacket.heading:type_name -> craig_stars.v1.VectorFloat64
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name

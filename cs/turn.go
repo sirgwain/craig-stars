@@ -945,7 +945,7 @@ func (t *turnGenerator) fleetMove() {
 			t.moveFleet(fleet)
 		} else {
 			fleet.WarpSpeed = 0
-			fleet.Heading = Vector{}
+			fleet.Heading = VectorFloat64{}
 		}
 	}
 
@@ -2841,12 +2841,12 @@ func (t *turnGenerator) fleetPatrol(player *Player) {
 			continue
 		}
 
-		rangeDistanceSquared := float64(wp.PatrolRange * wp.PatrolRange)
+		rangeDistanceSquared := wp.PatrolRange * wp.PatrolRange
 		if wp.PatrolRange == PatrolRangeInfinite {
-			rangeDistanceSquared = math.MaxFloat64
+			rangeDistanceSquared = math.MaxInt
 		}
 
-		closestDistance := float64(math.MaxFloat32)
+		closestDistance := math.MaxInt
 		var closest *Fleet
 
 		for _, enemyFleet := range player.FleetIntels {

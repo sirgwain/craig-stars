@@ -31,7 +31,7 @@ message MysteryTrader {
   Vector destination = 4;
   int32 requested_boon = 5;
   MysteryTraderRewardType reward_type = 6;
-  Vector heading = 7;
+  VectorFloat64 heading = 7;
   map<int32, bool> players_rewarded = 8;
   MysteryTraderSpec spec = 9;
 }

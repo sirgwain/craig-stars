@@ -144,6 +144,11 @@ enum ResourceType {
 }
 
 message Vector {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message VectorFloat64 {
   double x = 1;
   double y = 2;
 }

@@ -114,11 +114,11 @@ func (v1 BattleVector) Add(v2 BattleVector) BattleVector {
 	return BattleVector{v1.X + v2.X, v1.Y + v2.Y}
 }
 
-func (v1 BattleVector) distance(v2 BattleVector) int {
+func (v1 BattleVector) chebyshevDistance(v2 BattleVector) int {
 	return max(Abs(v1.X-v2.X), Abs(v1.Y-v2.Y))
 }
 
-func (v BattleVector) scale(scale int) BattleVector {
+func (v BattleVector) scaleInt(scale int) BattleVector {
 	return BattleVector{v.X * scale, v.Y * scale}
 }
 

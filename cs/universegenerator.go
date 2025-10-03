@@ -195,7 +195,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 // 2) enforce a minimum spacing via sweep-by-x
 // 3) randomly cull to exact target
 // 4) optional “clumping” pass nudging points toward nearest neighbor
-func (ug *universeGenerator) placePlanets(numPlanets, width, height, minSpacing, borderInset int) ([]VectorInt, error) {
+func (ug *universeGenerator) placePlanets(numPlanets, width, height, minSpacing, borderInset int) ([]Vector, error) {
 	if numPlanets <= 0 {
 		return nil, fmt.Errorf("placePlanets: numPlanets must be > 0")
 	}
@@ -223,12 +223,12 @@ func (ug *universeGenerator) placePlanets(numPlanets, width, height, minSpacing,
 	ySpan := yMax - yMin
 
 	// Seed candidate points uniformly in the bordered rectangle
-	candidates := make([]VectorInt, numStartingPlanets)
+	candidates := make([]Vector, numStartingPlanets)
 	for i := range numStartingPlanets {
 		// Your rules.random provides Intn; mirror C's uniform Random().
 		x := xMin + ug.Rules.random.Intn(xSpan)
 		y := yMin + ug.Rules.random.Intn(ySpan)
-		candidates[i] = VectorInt{X: x, Y: y}
+		candidates[i] = Vector{X: x, Y: y}
 	}
 
 	// Sort by X
@@ -291,7 +291,7 @@ func (ug *universeGenerator) placePlanets(numPlanets, width, height, minSpacing,
 	}
 
 	// Compact survivors to front (collect final positions)
-	pos := make([]VectorInt, 0, numPlanets)
+	pos := make([]Vector, 0, numPlanets)
 	for i := 0; i < numStartingPlanets && len(pos) < numPlanets; i++ {
 		if !killed[i] {
 			pos = append(pos, candidates[i])
@@ -302,7 +302,7 @@ func (ug *universeGenerator) placePlanets(numPlanets, width, height, minSpacing,
 }
 
 // clump positions together
-func (ug *universeGenerator) clump(pos []VectorInt, width, height, borderInset, extraMargin int) {
+func (ug *universeGenerator) clump(pos []Vector, width, height, borderInset, extraMargin int) {
 
 	xMin := borderInset + extraMargin
 	yMin := borderInset + extraMargin
@@ -634,8 +634,8 @@ func (ug *universeGenerator) generatePlanets() error {
 
 	ug.log.Debug("Generating planets in universe",
 		slog.Int("numPlanets", numPlanets),
-		slog.Float64("areaX", ug.area.X),
-		slog.Float64("areaY", ug.area.Y))
+		slog.Int("areaX", ug.area.X),
+		slog.Int("areaY", ug.area.Y))
 
 	names := planetNames
 	rules := &ug.Rules
@@ -663,7 +663,7 @@ func (ug *universeGenerator) generatePlanets() error {
 		planet := NewPlanet()
 		planet.Name = names[i]
 		planet.Num = i + 1
-		planet.Position = Vector{float64(positions[i].X), float64(positions[i].Y)}
+		planet.Position = Vector{positions[i].X, positions[i].Y}
 		planet.randomize(rules, ug.StartMode == GameStartModeAccBBS)
 
 		if ug.MaxMinerals {
@@ -709,8 +709,8 @@ func (ug *universeGenerator) generateWormholes() error {
 		}
 		wormhole := ug.Universe.createWormhole(&ug.Rules, position, stability, companion)
 		ug.log.Debug("generated Wormhole",
-			slog.Float64("X", wormhole.Position.X),
-			slog.Float64("Y", wormhole.Position.Y))
+			slog.Int("X", wormhole.Position.X),
+			slog.Int("Y", wormhole.Position.Y))
 
 		wormholePositions[i] = wormhole.Position
 		wormholes[i] = wormhole

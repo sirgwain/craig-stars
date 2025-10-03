@@ -124,9 +124,9 @@ func (ai *aiPlayer) scoutPackets() error {
 		// (x,y)    *|>>>>>>>>>>>|* (x, y)
 		//           |           |
 		//           -------------
-		height := float64(packet.ScanRangePen * 2)
+		height := packet.ScanRangePen * 2
 		width := dist
-		rect := cs.Rect{X: packet.Position.X, Y: packet.Position.Y - height/2, Width: width, Height: height}
+		rect := cs.Rect{X: packet.Position.X, Y: packet.Position.Y - height/2, Width: int(width), Height: height}
 		for num, planet := range unknownPlanetsByNum {
 			// we will catch this in our scanners, remove it
 			if rect.PointInRotatedRectangle(planet.Position, angle) {

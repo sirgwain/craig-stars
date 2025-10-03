@@ -480,12 +480,12 @@ func innateScanner(innateScannerFactor float64, population int) int {
 
 // Find the shortest distance from one planet to a list of other planets
 func (p *Planet) shortestDistanceToPlanets(otherPlanets []*Planet) float64 {
-	minDistanceSquared := math.MaxFloat64
+	minDistanceSquared := math.MaxInt
 	for _, planet := range otherPlanets {
 		distSquared := p.Position.DistanceSquaredTo(planet.Position)
 		minDistanceSquared = min(minDistanceSquared, distSquared)
 	}
-	return math.Sqrt(minDistanceSquared)
+	return math.Sqrt(float64(minDistanceSquared))
 }
 
 // getMineralOutput returns the mineral output of this Planet

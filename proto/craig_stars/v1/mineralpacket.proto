@@ -12,7 +12,7 @@ message MineralPacket {
   Cargo cargo = 4;
   int32 warp_speed = 5;
   int32 safe_warp_speed = 6;
-  Vector heading = 7;
+  VectorFloat64 heading = 7;
   int32 scan_range = 8;
   int32 scan_range_pen = 9;
 }

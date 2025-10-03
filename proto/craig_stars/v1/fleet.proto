@@ -58,7 +58,7 @@ message Fleet {
   int32 fuel = 7;
   int32 age = 8;
   repeated ShipToken tokens = 9;
-  Vector heading = 10;
+  VectorFloat64 heading = 10;
   int32 warp_speed = 11;
   Vector previous_position = 12;
   int32 orbiting_planet_num = 13;

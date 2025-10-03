@@ -254,7 +254,7 @@ type Fleet struct {
 	Fuel              int32                  `protobuf:"varint,7,opt,name=fuel,proto3" json:"fuel,omitempty"`
 	Age               int32                  `protobuf:"varint,8,opt,name=age,proto3" json:"age,omitempty"`
 	Tokens            []*ShipToken           `protobuf:"bytes,9,rep,name=tokens,proto3" json:"tokens,omitempty"`
-	Heading           *Vector                `protobuf:"bytes,10,opt,name=heading,proto3" json:"heading,omitempty"`
+	Heading           *VectorFloat64         `protobuf:"bytes,10,opt,name=heading,proto3" json:"heading,omitempty"`
 	WarpSpeed         int32                  `protobuf:"varint,11,opt,name=warp_speed,json=warpSpeed,proto3" json:"warp_speed,omitempty"`
 	PreviousPosition  *Vector                `protobuf:"bytes,12,opt,name=previous_position,json=previousPosition,proto3" json:"previous_position,omitempty"`
 	OrbitingPlanetNum int32                  `protobuf:"varint,13,opt,name=orbiting_planet_num,json=orbitingPlanetNum,proto3" json:"orbiting_planet_num,omitempty"`
@@ -357,7 +357,7 @@ func (x *Fleet) GetTokens() []*ShipToken {
 	return nil
 }
 
-func (x *Fleet) GetHeading() *Vector {
+func (x *Fleet) GetHeading() *VectorFloat64 {
 	if x != nil {
 		return x.Heading
 	}
@@ -891,7 +891,7 @@ var File_craig_stars_v1_fleet_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_fleet_proto_rawDesc = "" +
 	"\n" +
-	"\x1acraig_stars/v1/fleet.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\"\x98\x05\n" +
+	"\x1acraig_stars/v1/fleet.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\"\x9f\x05\n" +
 	"\x05Fleet\x12B\n" +
 	"\x0egame_db_object\x18\x01 \x01(\v2\x1c.craig_stars.v1.GameDBObjectR\fgameDbObject\x128\n" +
 	"\n" +
@@ -903,9 +903,9 @@ const file_craig_stars_v1_fleet_proto_rawDesc = "" +
 	"\x05cargo\x18\x06 \x01(\v2\x15.craig_stars.v1.CargoR\x05cargo\x12\x12\n" +
 	"\x04fuel\x18\a \x01(\x05R\x04fuel\x12\x10\n" +
 	"\x03age\x18\b \x01(\x05R\x03age\x121\n" +
-	"\x06tokens\x18\t \x03(\v2\x19.craig_stars.v1.ShipTokenR\x06tokens\x120\n" +
+	"\x06tokens\x18\t \x03(\v2\x19.craig_stars.v1.ShipTokenR\x06tokens\x127\n" +
 	"\aheading\x18\n" +
-	" \x01(\v2\x16.craig_stars.v1.VectorR\aheading\x12\x1d\n" +
+	" \x01(\v2\x1d.craig_stars.v1.VectorFloat64R\aheading\x12\x1d\n" +
 	"\n" +
 	"warp_speed\x18\v \x01(\x05R\twarpSpeed\x12C\n" +
 	"\x11previous_position\x18\f \x01(\v2\x16.craig_stars.v1.VectorR\x10previousPosition\x12.\n" +
@@ -1031,9 +1031,10 @@ var file_craig_stars_v1_fleet_proto_goTypes = []any{
 	(*GameDBObject)(nil),             // 11: craig_stars.v1.GameDBObject
 	(*MapObject)(nil),                // 12: craig_stars.v1.MapObject
 	(*Cargo)(nil),                    // 13: craig_stars.v1.Cargo
-	(*Vector)(nil),                   // 14: craig_stars.v1.Vector
-	(*MapObjectTarget)(nil),          // 15: craig_stars.v1.MapObjectTarget
-	(*ShipDesignSpec)(nil),           // 16: craig_stars.v1.ShipDesignSpec
+	(*VectorFloat64)(nil),            // 14: craig_stars.v1.VectorFloat64
+	(*Vector)(nil),                   // 15: craig_stars.v1.Vector
+	(*MapObjectTarget)(nil),          // 16: craig_stars.v1.MapObjectTarget
+	(*ShipDesignSpec)(nil),           // 17: craig_stars.v1.ShipDesignSpec
 }
 var file_craig_stars_v1_fleet_proto_depIdxs = []int32{
 	11, // 0: craig_stars.v1.Fleet.game_db_object:type_name -> craig_stars.v1.GameDBObject
@@ -1041,13 +1042,13 @@ var file_craig_stars_v1_fleet_proto_depIdxs = []int32{
 	4,  // 2: craig_stars.v1.Fleet.fleet_orders:type_name -> craig_stars.v1.FleetOrders
 	13, // 3: craig_stars.v1.Fleet.cargo:type_name -> craig_stars.v1.Cargo
 	5,  // 4: craig_stars.v1.Fleet.tokens:type_name -> craig_stars.v1.ShipToken
-	14, // 5: craig_stars.v1.Fleet.heading:type_name -> craig_stars.v1.Vector
-	14, // 6: craig_stars.v1.Fleet.previous_position:type_name -> craig_stars.v1.Vector
+	14, // 5: craig_stars.v1.Fleet.heading:type_name -> craig_stars.v1.VectorFloat64
+	15, // 6: craig_stars.v1.Fleet.previous_position:type_name -> craig_stars.v1.Vector
 	9,  // 7: craig_stars.v1.Fleet.spec:type_name -> craig_stars.v1.FleetSpec
 	6,  // 8: craig_stars.v1.FleetOrders.waypoints:type_name -> craig_stars.v1.Waypoint
 	2,  // 9: craig_stars.v1.FleetOrders.purpose:type_name -> craig_stars.v1.FleetPurpose
-	15, // 10: craig_stars.v1.Waypoint.map_object_target:type_name -> craig_stars.v1.MapObjectTarget
-	14, // 11: craig_stars.v1.Waypoint.position:type_name -> craig_stars.v1.Vector
+	16, // 10: craig_stars.v1.Waypoint.map_object_target:type_name -> craig_stars.v1.MapObjectTarget
+	15, // 11: craig_stars.v1.Waypoint.position:type_name -> craig_stars.v1.Vector
 	0,  // 12: craig_stars.v1.Waypoint.task:type_name -> craig_stars.v1.WaypointTask
 	7,  // 13: craig_stars.v1.Waypoint.transport_tasks:type_name -> craig_stars.v1.WaypointTransportTasks
 	8,  // 14: craig_stars.v1.WaypointTransportTasks.fuel:type_name -> craig_stars.v1.WaypointTransportTask
@@ -1056,7 +1057,7 @@ var file_craig_stars_v1_fleet_proto_depIdxs = []int32{
 	8,  // 17: craig_stars.v1.WaypointTransportTasks.germanium:type_name -> craig_stars.v1.WaypointTransportTask
 	8,  // 18: craig_stars.v1.WaypointTransportTasks.colonists:type_name -> craig_stars.v1.WaypointTransportTask
 	1,  // 19: craig_stars.v1.WaypointTransportTask.action:type_name -> craig_stars.v1.WaypointTaskTransportAction
-	16, // 20: craig_stars.v1.FleetSpec.ship_design_spec:type_name -> craig_stars.v1.ShipDesignSpec
+	17, // 20: craig_stars.v1.FleetSpec.ship_design_spec:type_name -> craig_stars.v1.ShipDesignSpec
 	10, // 21: craig_stars.v1.FleetSpec.purposes:type_name -> craig_stars.v1.FleetSpec.PurposesEntry
 	22, // [22:22] is the sub-list for method output_type
 	22, // [22:22] is the sub-list for method input_type

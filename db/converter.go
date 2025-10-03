@@ -58,6 +58,10 @@ var c Converter
 // goverter:extend GameWormholeSpecToWormholeSpec
 // goverter:extend Int64ToInt
 // goverter:extend IntToInt64
+// goverter:extend Float64ToInt
+// goverter:extend IntToFloat64
+// goverter:extend NullFloat64ToInt
+// goverter:extend IntToNullFloat64
 // goverter:extend IntToNullInt64
 // goverter:extend MinefieldIntelsToGameMinefieldIntels
 // goverter:extend MineralPacketIntelsToGameMineralPacketIntels
@@ -650,12 +654,34 @@ func IntToNullInt64(source int) sql.NullInt64 {
 	}
 }
 
+func Float64ToInt(source float64) int {
+	return int(source)
+}
+
+func IntToFloat64(source int) float64 {
+	return float64(source)
+}
+
 func Int64ToInt(source int64) int {
 	return int(source)
 }
 
 func IntToInt64(source int) int64 {
 	return int64(source)
+}
+
+func NullFloat64ToInt(source sql.NullFloat64) int {
+	if source.Valid {
+		return int(source.Float64)
+	}
+	return 0
+}
+
+func IntToNullFloat64(source int) sql.NullFloat64 {
+	return sql.NullFloat64{
+		Valid:   true,
+		Float64: float64(source),
+	}
 }
 
 func TagsToGameTags(source *generated.Tags) cs.Tags {
@@ -1063,8 +1089,8 @@ func ExtendVictoryConditions(source generated.Game) cs.VictoryConditions {
 
 func ExtendArea(source generated.Game) cs.Vector {
 	return cs.Vector{
-		X: source.AreaX,
-		Y: source.AreaY,
+		X: int(source.AreaX),
+		Y: int(source.AreaY),
 	}
 }
 
@@ -1152,8 +1178,8 @@ func ExtendPlanetMapObject(source generated.Planet) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypePlanet,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: int(source.X),
+			Y: int(source.Y),
 		},
 		Name:      source.Name,
 		Num:       int(source.Num),
@@ -1198,8 +1224,8 @@ func ExtendFleetMapObject(source generated.Fleet) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeFleet,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: int(source.X),
+			Y: int(source.Y),
 		},
 		Name:      source.Name,
 		Num:       int(source.Num),
@@ -1217,8 +1243,8 @@ func ExtendFleetFleetOrders(source generated.Fleet) cs.FleetOrders {
 	}
 }
 
-func ExtendFleetHeading(source generated.Fleet) cs.Vector {
-	return cs.Vector{
+func ExtendFleetHeading(source generated.Fleet) cs.VectorFloat64 {
+	return cs.VectorFloat64{
 		X: source.HeadingX,
 		Y: source.HeadingY,
 	}
@@ -1229,8 +1255,8 @@ func ExtendFleetPreviousPosition(source generated.Fleet) *cs.Vector {
 		return nil
 	}
 	return &cs.Vector{
-		X: source.PreviousPositionX.Float64,
-		Y: source.PreviousPositionY.Float64,
+		X: int(source.PreviousPositionX.Float64),
+		Y: int(source.PreviousPositionY.Float64),
 	}
 }
 
@@ -1238,8 +1264,8 @@ func ExtendMysteryTraderMapObject(source generated.MysteryTrader) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeMysteryTrader,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: int(source.X),
+			Y: int(source.Y),
 		},
 		Name: source.Name,
 		Num:  int(source.Num),
@@ -1247,8 +1273,8 @@ func ExtendMysteryTraderMapObject(source generated.MysteryTrader) cs.MapObject {
 	}
 }
 
-func ExtendMysteryTraderHeading(source generated.MysteryTrader) cs.Vector {
-	return cs.Vector{
+func ExtendMysteryTraderHeading(source generated.MysteryTrader) cs.VectorFloat64 {
+	return cs.VectorFloat64{
 		X: source.HeadingX,
 		Y: source.HeadingY,
 	}
@@ -1256,8 +1282,8 @@ func ExtendMysteryTraderHeading(source generated.MysteryTrader) cs.Vector {
 
 func ExtendMysteryTraderDestination(source generated.MysteryTrader) cs.Vector {
 	return cs.Vector{
-		X: source.DestinationX,
-		Y: source.DestinationY,
+		X: int(source.DestinationX),
+		Y: int(source.DestinationY),
 	}
 }
 
@@ -1265,8 +1291,8 @@ func ExtendSalvageMapObject(source generated.Salvage) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeSalvage,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: int(source.X),
+			Y: int(source.Y),
 		},
 		Name:      source.Name,
 		Num:       int(source.Num),
@@ -1279,8 +1305,8 @@ func ExtendMinefieldMapObject(source generated.Minefield) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeMinefield,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: int(source.X),
+			Y: int(source.Y),
 		},
 		Name:      source.Name,
 		Num:       int(source.Num),
@@ -1289,8 +1315,8 @@ func ExtendMinefieldMapObject(source generated.Minefield) cs.MapObject {
 	}
 }
 
-func ExtendMineralPacketHeading(source generated.MineralPacket) cs.Vector {
-	return cs.Vector{
+func ExtendMineralPacketHeading(source generated.MineralPacket) cs.VectorFloat64 {
+	return cs.VectorFloat64{
 		X: source.HeadingX,
 		Y: source.HeadingY,
 	}
@@ -1300,8 +1326,8 @@ func ExtendMineralPacketMapObject(source generated.MineralPacket) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeMineralPacket,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: int(source.X),
+			Y: int(source.Y),
 		},
 		Name:      source.Name,
 		Num:       int(source.Num),

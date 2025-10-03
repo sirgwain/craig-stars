@@ -61,7 +61,7 @@ type mapObjectGetter interface {
 	getSalvage(num int) *Salvage
 	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool)
 	getMapObjectsAtPosition(position Vector) []interface{}
-	isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool
+	isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance int) bool
 	updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector)
 }
 
@@ -220,7 +220,7 @@ func (u *Universe) addMapObjectByPosition(mo interface{}, position Vector) {
 }
 
 // Check if a position vector is a mininum distance away from all other points
-func (u *Universe) isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool {
+func (u *Universe) isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance int) bool {
 	minDistanceSquared := minDistance * minDistance
 
 	for _, to := range *occupiedLocations {

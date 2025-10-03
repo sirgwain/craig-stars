@@ -1108,12 +1108,12 @@ type TechHull struct {
 	FuelCapacity             int32                  `protobuf:"varint,6,opt,name=fuel_capacity,json=fuelCapacity,proto3" json:"fuel_capacity,omitempty"`
 	FuelGeneration           int32                  `protobuf:"varint,7,opt,name=fuel_generation,json=fuelGeneration,proto3" json:"fuel_generation,omitempty"`
 	CargoCapacity            int32                  `protobuf:"varint,8,opt,name=cargo_capacity,json=cargoCapacity,proto3" json:"cargo_capacity,omitempty"`
-	CargoSlotPosition        *Vector                `protobuf:"bytes,9,opt,name=cargo_slot_position,json=cargoSlotPosition,proto3" json:"cargo_slot_position,omitempty"`
-	CargoSlotSize            *Vector                `protobuf:"bytes,10,opt,name=cargo_slot_size,json=cargoSlotSize,proto3" json:"cargo_slot_size,omitempty"`
+	CargoSlotPosition        *VectorFloat64         `protobuf:"bytes,9,opt,name=cargo_slot_position,json=cargoSlotPosition,proto3" json:"cargo_slot_position,omitempty"`
+	CargoSlotSize            *VectorFloat64         `protobuf:"bytes,10,opt,name=cargo_slot_size,json=cargoSlotSize,proto3" json:"cargo_slot_size,omitempty"`
 	CargoSlotCircle          bool                   `protobuf:"varint,11,opt,name=cargo_slot_circle,json=cargoSlotCircle,proto3" json:"cargo_slot_circle,omitempty"`
 	SpaceDock                int32                  `protobuf:"varint,12,opt,name=space_dock,json=spaceDock,proto3" json:"space_dock,omitempty"`
-	SpaceDockSlotPosition    *Vector                `protobuf:"bytes,13,opt,name=space_dock_slot_position,json=spaceDockSlotPosition,proto3" json:"space_dock_slot_position,omitempty"`
-	SpaceDockSlotSize        *Vector                `protobuf:"bytes,14,opt,name=space_dock_slot_size,json=spaceDockSlotSize,proto3" json:"space_dock_slot_size,omitempty"`
+	SpaceDockSlotPosition    *VectorFloat64         `protobuf:"bytes,13,opt,name=space_dock_slot_position,json=spaceDockSlotPosition,proto3" json:"space_dock_slot_position,omitempty"`
+	SpaceDockSlotSize        *VectorFloat64         `protobuf:"bytes,14,opt,name=space_dock_slot_size,json=spaceDockSlotSize,proto3" json:"space_dock_slot_size,omitempty"`
 	SpaceDockSlotCircle      bool                   `protobuf:"varint,15,opt,name=space_dock_slot_circle,json=spaceDockSlotCircle,proto3" json:"space_dock_slot_circle,omitempty"`
 	MineLayingBonus          float64                `protobuf:"fixed64,16,opt,name=mine_laying_bonus,json=mineLayingBonus,proto3" json:"mine_laying_bonus,omitempty"`
 	Initiative               int32                  `protobuf:"varint,17,opt,name=initiative,proto3" json:"initiative,omitempty"`
@@ -1217,14 +1217,14 @@ func (x *TechHull) GetCargoCapacity() int32 {
 	return 0
 }
 
-func (x *TechHull) GetCargoSlotPosition() *Vector {
+func (x *TechHull) GetCargoSlotPosition() *VectorFloat64 {
 	if x != nil {
 		return x.CargoSlotPosition
 	}
 	return nil
 }
 
-func (x *TechHull) GetCargoSlotSize() *Vector {
+func (x *TechHull) GetCargoSlotSize() *VectorFloat64 {
 	if x != nil {
 		return x.CargoSlotSize
 	}
@@ -1245,14 +1245,14 @@ func (x *TechHull) GetSpaceDock() int32 {
 	return 0
 }
 
-func (x *TechHull) GetSpaceDockSlotPosition() *Vector {
+func (x *TechHull) GetSpaceDockSlotPosition() *VectorFloat64 {
 	if x != nil {
 		return x.SpaceDockSlotPosition
 	}
 	return nil
 }
 
-func (x *TechHull) GetSpaceDockSlotSize() *Vector {
+func (x *TechHull) GetSpaceDockSlotSize() *VectorFloat64 {
 	if x != nil {
 		return x.SpaceDockSlotSize
 	}
@@ -1355,7 +1355,7 @@ type TechHullSlot struct {
 	Type          uint32                 `protobuf:"varint,1,opt,name=type,proto3" json:"type,omitempty"`
 	Capacity      int32                  `protobuf:"varint,2,opt,name=capacity,proto3" json:"capacity,omitempty"`
 	Required      bool                   `protobuf:"varint,3,opt,name=required,proto3" json:"required,omitempty"`
-	Position      *Vector                `protobuf:"bytes,4,opt,name=position,proto3" json:"position,omitempty"`
+	Position      *VectorFloat64         `protobuf:"bytes,4,opt,name=position,proto3" json:"position,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1411,7 +1411,7 @@ func (x *TechHullSlot) GetRequired() bool {
 	return false
 }
 
-func (x *TechHullSlot) GetPosition() *Vector {
+func (x *TechHullSlot) GetPosition() *VectorFloat64 {
 	if x != nil {
 		return x.Position
 	}
@@ -1883,7 +1883,7 @@ const file_craig_stars_v1_tech_proto_rawDesc = "" +
 	"free_speed\x189 \x01(\x05R\tfreeSpeed\x12$\n" +
 	"\x0emax_safe_speed\x18: \x01(\x05R\fmaxSafeSpeed\x12\x1d\n" +
 	"\n" +
-	"fuel_usage\x18; \x03(\x05R\tfuelUsage\"\xdb\t\n" +
+	"fuel_usage\x18; \x03(\x05R\tfuelUsage\"\xf7\t\n" +
 	"\bTechHull\x12(\n" +
 	"\x04tech\x18\x01 \x01(\v2\x14.craig_stars.v1.TechR\x04tech\x120\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1c.craig_stars.v1.TechHullTypeR\x04type\x12\x12\n" +
@@ -1892,15 +1892,15 @@ const file_craig_stars_v1_tech_proto_rawDesc = "" +
 	"\x06shield\x18\x05 \x01(\x05R\x06shield\x12#\n" +
 	"\rfuel_capacity\x18\x06 \x01(\x05R\ffuelCapacity\x12'\n" +
 	"\x0ffuel_generation\x18\a \x01(\x05R\x0efuelGeneration\x12%\n" +
-	"\x0ecargo_capacity\x18\b \x01(\x05R\rcargoCapacity\x12F\n" +
-	"\x13cargo_slot_position\x18\t \x01(\v2\x16.craig_stars.v1.VectorR\x11cargoSlotPosition\x12>\n" +
+	"\x0ecargo_capacity\x18\b \x01(\x05R\rcargoCapacity\x12M\n" +
+	"\x13cargo_slot_position\x18\t \x01(\v2\x1d.craig_stars.v1.VectorFloat64R\x11cargoSlotPosition\x12E\n" +
 	"\x0fcargo_slot_size\x18\n" +
-	" \x01(\v2\x16.craig_stars.v1.VectorR\rcargoSlotSize\x12*\n" +
+	" \x01(\v2\x1d.craig_stars.v1.VectorFloat64R\rcargoSlotSize\x12*\n" +
 	"\x11cargo_slot_circle\x18\v \x01(\bR\x0fcargoSlotCircle\x12\x1d\n" +
 	"\n" +
-	"space_dock\x18\f \x01(\x05R\tspaceDock\x12O\n" +
-	"\x18space_dock_slot_position\x18\r \x01(\v2\x16.craig_stars.v1.VectorR\x15spaceDockSlotPosition\x12G\n" +
-	"\x14space_dock_slot_size\x18\x0e \x01(\v2\x16.craig_stars.v1.VectorR\x11spaceDockSlotSize\x123\n" +
+	"space_dock\x18\f \x01(\x05R\tspaceDock\x12V\n" +
+	"\x18space_dock_slot_position\x18\r \x01(\v2\x1d.craig_stars.v1.VectorFloat64R\x15spaceDockSlotPosition\x12N\n" +
+	"\x14space_dock_slot_size\x18\x0e \x01(\v2\x1d.craig_stars.v1.VectorFloat64R\x11spaceDockSlotSize\x123\n" +
 	"\x16space_dock_slot_circle\x18\x0f \x01(\bR\x13spaceDockSlotCircle\x12*\n" +
 	"\x11mine_laying_bonus\x18\x10 \x01(\x01R\x0fmineLayingBonus\x12\x1e\n" +
 	"\n" +
@@ -1916,12 +1916,12 @@ const file_craig_stars_v1_tech_proto_rawDesc = "" +
 	"\x16double_mine_efficiency\x18\x18 \x01(\bR\x14doubleMineEfficiency\x12%\n" +
 	"\x0emax_population\x18\x19 \x01(\x05R\rmaxPopulation\x12>\n" +
 	"\x1cinnate_scan_range_pen_factor\x18\x1a \x01(\x01R\x18innateScanRangePenFactor\x122\n" +
-	"\x05slots\x18\x1b \x03(\v2\x1c.craig_stars.v1.TechHullSlotR\x05slots\"\x8e\x01\n" +
+	"\x05slots\x18\x1b \x03(\v2\x1c.craig_stars.v1.TechHullSlotR\x05slots\"\x95\x01\n" +
 	"\fTechHullSlot\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\rR\x04type\x12\x1a\n" +
 	"\bcapacity\x18\x02 \x01(\x05R\bcapacity\x12\x1a\n" +
-	"\brequired\x18\x03 \x01(\bR\brequired\x122\n" +
-	"\bposition\x18\x04 \x01(\v2\x16.craig_stars.v1.VectorR\bposition\"\\\n" +
+	"\brequired\x18\x03 \x01(\bR\brequired\x129\n" +
+	"\bposition\x18\x04 \x01(\v2\x1d.craig_stars.v1.VectorFloat64R\bposition\"\\\n" +
 	"\rTechPlanetary\x12(\n" +
 	"\x04tech\x18\x01 \x01(\v2\x14.craig_stars.v1.TechR\x04tech\x12!\n" +
 	"\freset_planet\x18\x02 \x01(\bR\vresetPlanet\"\x85\x01\n" +
@@ -2071,7 +2071,7 @@ var file_craig_stars_v1_tech_proto_goTypes = []any{
 	(*TechLevel)(nil),            // 18: craig_stars.v1.TechLevel
 	(Prt)(0),                     // 19: craig_stars.v1.Prt
 	(MinefieldType)(0),           // 20: craig_stars.v1.MinefieldType
-	(*Vector)(nil),               // 21: craig_stars.v1.Vector
+	(*VectorFloat64)(nil),        // 21: craig_stars.v1.VectorFloat64
 }
 var file_craig_stars_v1_tech_proto_depIdxs = []int32{
 	17, // 0: craig_stars.v1.Tech.cost:type_name -> craig_stars.v1.Cost
@@ -2086,12 +2086,12 @@ var file_craig_stars_v1_tech_proto_depIdxs = []int32{
 	20, // 9: craig_stars.v1.TechHullComponent.minefield_type:type_name -> craig_stars.v1.MinefieldType
 	5,  // 10: craig_stars.v1.TechHull.tech:type_name -> craig_stars.v1.Tech
 	3,  // 11: craig_stars.v1.TechHull.type:type_name -> craig_stars.v1.TechHullType
-	21, // 12: craig_stars.v1.TechHull.cargo_slot_position:type_name -> craig_stars.v1.Vector
-	21, // 13: craig_stars.v1.TechHull.cargo_slot_size:type_name -> craig_stars.v1.Vector
-	21, // 14: craig_stars.v1.TechHull.space_dock_slot_position:type_name -> craig_stars.v1.Vector
-	21, // 15: craig_stars.v1.TechHull.space_dock_slot_size:type_name -> craig_stars.v1.Vector
+	21, // 12: craig_stars.v1.TechHull.cargo_slot_position:type_name -> craig_stars.v1.VectorFloat64
+	21, // 13: craig_stars.v1.TechHull.cargo_slot_size:type_name -> craig_stars.v1.VectorFloat64
+	21, // 14: craig_stars.v1.TechHull.space_dock_slot_position:type_name -> craig_stars.v1.VectorFloat64
+	21, // 15: craig_stars.v1.TechHull.space_dock_slot_size:type_name -> craig_stars.v1.VectorFloat64
 	9,  // 16: craig_stars.v1.TechHull.slots:type_name -> craig_stars.v1.TechHullSlot
-	21, // 17: craig_stars.v1.TechHullSlot.position:type_name -> craig_stars.v1.Vector
+	21, // 17: craig_stars.v1.TechHullSlot.position:type_name -> craig_stars.v1.VectorFloat64
 	5,  // 18: craig_stars.v1.TechPlanetary.tech:type_name -> craig_stars.v1.Tech
 	5,  // 19: craig_stars.v1.TechPlanetaryScanner.tech:type_name -> craig_stars.v1.Tech
 	5,  // 20: craig_stars.v1.TechDefense.tech:type_name -> craig_stars.v1.Tech

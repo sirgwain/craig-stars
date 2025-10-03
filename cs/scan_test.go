@@ -305,7 +305,7 @@ func Test_scanWormholes(t *testing.T) {
 		},
 		{
 			name:   "wormhole 75%cloaked, out of range",
-			fields: fields{wormholes: []*Wormhole{newWormhole(Vector{math.Ceil(50 * .75), 0}, 1, WormholeStabilityStable)}},
+			fields: fields{wormholes: []*Wormhole{newWormhole(Vector{int(math.Ceil(50 * .75)), 0}, 1, WormholeStabilityStable)}},
 			args:   args{[]scanner{{Range: 50, CloakReductionFactor: 1}}}, // 50ly scanner
 			want:   nil,
 		},

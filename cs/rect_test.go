@@ -8,10 +8,10 @@ import (
 
 func TestRect_Center(t *testing.T) {
 	type fields struct {
-		X      float64
-		Y      float64
-		Width  float64
-		Height float64
+		X      int
+		Y      int
+		Width  int
+		Height int
 	}
 	tests := []struct {
 		name   string
@@ -37,10 +37,10 @@ func TestRect_Center(t *testing.T) {
 
 func TestRect_PointInRectangle(t *testing.T) {
 	type fields struct {
-		X      float64
-		Y      float64
-		Width  float64
-		Height float64
+		X      int
+		Y      int
+		Width  int
+		Height int
 	}
 	type args struct {
 		point Vector
@@ -74,10 +74,10 @@ func TestRect_PointInRectangle(t *testing.T) {
 
 func TestRect_PointInRotatedRectangle(t *testing.T) {
 	type fields struct {
-		X      float64
-		Y      float64
-		Width  float64
-		Height float64
+		X      int
+		Y      int
+		Width  int
+		Height int
 	}
 	type args struct {
 		point     Vector
@@ -90,7 +90,7 @@ func TestRect_PointInRotatedRectangle(t *testing.T) {
 		want   bool
 	}{
 		{"0, 0 in", fields{-1, -1, 2, 2}, args{Vector{0, 0}, math.Pi / 4}, true},
-		{"1.4ish, 0 in", fields{-1, -1, 2, 2}, args{Vector{math.Sqrt(2) - .01, 0}, -math.Pi / 4}, true},
+		{"1, 0 in", fields{-1, -1, 2, 2}, args{Vector{1, 0}, -math.Pi / 4}, true},
 		{"out", fields{-1, -1, 2, 2}, args{Vector{1, 1}, math.Pi / 4}, false},
 		{"out", fields{-1, -1, 2, 2}, args{Vector{-1, 1}, math.Pi / 4}, false},
 		{"out", fields{-1, -1, 2, 2}, args{Vector{1, 1}, math.Pi / 4}, false},

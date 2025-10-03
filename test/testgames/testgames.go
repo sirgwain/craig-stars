@@ -622,7 +622,7 @@ var TestGames = []TestGame{
 						Cargo:           cs.Cargo{Ironium: 50, Boranium: 50, Germanium: 50},
 						WarpSpeed:       5,
 						TargetPlanetNum: 1,
-						Heading:         cs.Vector{X: 1},
+						Heading:         cs.VectorFloat64{X: 1},
 					},
 				},
 			},

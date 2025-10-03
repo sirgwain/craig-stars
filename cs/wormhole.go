@@ -74,13 +74,13 @@ func computeWormholeSpec(w *Wormhole, rules *Rules) WormholeSpec {
 func generateWormhole(mapObjectGetter mapObjectGetter, area Vector, random rng, planetPositions []Vector, wormholePositions []Vector, minDistanceFromPlanets int) (position Vector, stability WormholeStability, err error) {
 	width, height := int(area.X), int(area.Y)
 
-	position = Vector{X: float64(random.Intn(width)), Y: float64(random.Intn(height))}
+	position = Vector{X: random.Intn(width), Y: random.Intn(height)}
 
 	minWormholeDistance := (height + width) / 2 / 4
 	posCheckCount := 0
-	for !mapObjectGetter.isPositionValid(position, &planetPositions, float64(minDistanceFromPlanets)) ||
-		!mapObjectGetter.isPositionValid(position, &wormholePositions, float64(minWormholeDistance)) {
-		position = Vector{X: float64(random.Intn(width)), Y: float64(random.Intn(height))}
+	for !mapObjectGetter.isPositionValid(position, &planetPositions, minDistanceFromPlanets) ||
+		!mapObjectGetter.isPositionValid(position, &wormholePositions, minWormholeDistance) {
+		position = Vector{X: random.Intn(width), Y: random.Intn(height)}
 		posCheckCount++
 		if posCheckCount > 1000 {
 			return Vector{}, WormholeStabilityNone, fmt.Errorf("find a valid position for a wormhole in 1000 tries, min: %d, numPlanets: %d, numWormholes: %d, area: %v", minDistanceFromPlanets, len(planetPositions), len(wormholePositions), area)
@@ -100,8 +100,8 @@ func (w *Wormhole) jiggle(area Vector, mapObjectGetter mapObjectGetter, random r
 	var newPosition Vector
 	for {
 		newPosition = Vector{
-			Clamp(w.Position.X+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.X),
-			Clamp(w.Position.Y+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.Y),
+			Clamp(w.Position.X+random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2, 0, area.X),
+			Clamp(w.Position.Y+random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2, 0, area.Y),
 		}
 		slog.Debug(fmt.Sprintf("%v jiggled to %v", w, newPosition))
 		jiggleCount++
