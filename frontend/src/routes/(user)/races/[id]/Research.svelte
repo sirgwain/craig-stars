@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Prt, type Race, TechField } from '$lib/types/cs-proto';
+	import { Prt, type Race, ResearchCostSchema, TechField } from '$lib/types/cs-proto';
+	import { create } from '@bufbuild/protobuf';
 	import ResearchCostField from './ResearchCostField.svelte';
 
 	type Props = {
@@ -7,18 +8,21 @@
 	};
 
 	let { race = $bindable() }: Props = $props();
+
+	let researchCost = $state(create(ResearchCostSchema, race.researchCost));
+
+	$effect(() => {
+		race.researchCost = researchCost;
+	});
 </script>
 
 <div class="flex flex-row flex-wrap justify-center gap-2">
-	<ResearchCostField bind:value={race.researchCost!.energy} field={TechField.ENERGY} />
-	<ResearchCostField bind:value={race.researchCost!.weapons} field={TechField.WEAPONS} />
-	<ResearchCostField bind:value={race.researchCost!.propulsion} field={TechField.PROPULSION} />
-	<ResearchCostField bind:value={race.researchCost!.construction} field={TechField.CONSTRUCTION} />
-	<ResearchCostField bind:value={race.researchCost!.electronics} field={TechField.ELECTRONICS} />
-	<ResearchCostField
-		bind:value={race.researchCost!.biotechnology}
-		field={TechField.BIOTECHNOLOGY}
-	/>
+	<ResearchCostField bind:value={researchCost.energy} field={TechField.ENERGY} />
+	<ResearchCostField bind:value={researchCost.weapons} field={TechField.WEAPONS} />
+	<ResearchCostField bind:value={researchCost.propulsion} field={TechField.PROPULSION} />
+	<ResearchCostField bind:value={researchCost.construction} field={TechField.CONSTRUCTION} />
+	<ResearchCostField bind:value={researchCost.electronics} field={TechField.ELECTRONICS} />
+	<ResearchCostField bind:value={researchCost.biotechnology} field={TechField.BIOTECHNOLOGY} />
 </div>
 
 <label class="label justify-start mt-2">
