@@ -9,10 +9,12 @@
 	let { title = '', children }: Props = $props();
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="md:w-[14rem] card bg-base-200 shadow rounded-sm border-2 border-base-300"
+	class="md:w-[14rem] card bg-base-200 shadow rounded-sm border-2 border-base-300 select-none"
 	data-type="command-tile"
 	data-id={title}
+	oncontextmenu={(e) => e.preventDefault()}
 >
 	<div class="card-body p-3 gap-0">
 		<button class="w-full">
