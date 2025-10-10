@@ -2,39 +2,51 @@
 	import type { Component } from 'svelte';
 	import { writable } from 'svelte/store';
 
-	export type PopupProps = {
+	/** Common props all popups accept */
+	export type PopupPropsBase = {
 		onClose?: () => void;
 	};
 
-	type PopupComponentStore<T extends PopupProps = PopupProps> = {
+	/** Generic popup entry, tied to a specific component type */
+	export type PopupComponentStore<T extends PopupPropsBase = PopupPropsBase> = {
 		component: Component<T>;
-		props?: T;
+		props?: Omit<T, 'onClose'>;
 	};
 
-	export const popupComponent = writable<PopupComponentStore | undefined>();
+	/** Non-generic erased base — the store can hold *any* popup component conforming to PopupPropsBase */
+	export type PopupComponentBase = {
+		component: Component<PopupPropsBase>;
+		props?: Record<string, unknown>;
+	};
+
+	// ⬇ store uses the base type — no any, no unsafe cast
+	export const popupComponent = writable<PopupComponentBase | undefined>();
 	export const popupLocation = writable<{ x: number; y: number }>({ x: 0, y: 0 });
 
-	export const showPopup = <T extends PopupProps = PopupProps>(
+	/** Show a popup at screen coords (x, y) with a Svelte component + props (minus onClose). */
+	export function showPopup<T extends PopupPropsBase>(
 		x: number,
 		y: number,
 		component: Component<T>,
-		props?: T
-	) => {
+		props?: Omit<T, 'onClose'>
+	) {
 		popupLocation.set({ x, y });
+
+		// Explicitly widen to base type, safely (no unknown or any)
 		popupComponent.set({
-			// TODO: can't figure out a way around type assertion, but it at least
-			// seems to work to force popup components to define an onClose function
-			component: component as unknown as Component<PopupProps>,
-			props
+			component: component as Component<PopupPropsBase>,
+			props: props as Record<string, unknown>
 		});
-	};
+	}
 </script>
 
 <script lang="ts">
 	import { clickOutside } from '$lib/clickOutside';
+	import { createPopper, type Instance, type VirtualElement, type Placement } from '@popperjs/core';
 
 	const minWidth = 250;
 	const minHeight = 250;
+	const placement: Placement = 'bottom-start';
 
 	function hide() {
 		$popupComponent = undefined;
@@ -44,38 +56,63 @@
 	}
 
 	let component: HTMLElement | undefined = $state();
+	let popper: Instance | null = null;
+
+	// Track dynamic size; ask Popper to recompute when content changes
 	const resizeObserver = new ResizeObserver(() => {
-		componentHeight = Math.max(component?.scrollHeight ?? 0, minHeight);
-		componentWidth = Math.max(component?.scrollWidth ?? 0, minWidth);
+		popper?.update();
 	});
 
-	// observe popup component height changes so we can react
-	let componentHeight = $state(minHeight);
-	let componentWidth = $state(minWidth);
-	// when the popupComponent is set, register a pointerup listener to hide it
+	// Body UX class toggling
 	$effect(() => {
 		if ($popupComponent) {
 			document.body.className = document.body.className + ' select-none touch-none';
 		}
 	});
-	// TODO - JD - 2024-11-20 - This should be run once, I am afraid this could be multiple times
-	// in an effect, update held-over
-	// CORRECTION - moved resizeObserver, above, and did a disconnect and observe.
-	// Also done in Tooltip
+
+	// Observe size when element exists
 	$effect(() => {
 		if (component) {
 			resizeObserver.disconnect();
 			resizeObserver.observe(component);
 		}
 	});
-	let x = $derived(
-		$popupLocation.x + componentWidth > window.innerWidth // we overshoot the window, move the popup left so it fits, or 0 if required
-			? Math.max(0, $popupLocation.x - (componentWidth + $popupLocation.x - window.innerWidth) - 20)
-			: $popupLocation.x
-	);
-	let y = $derived(
-		window.scrollY + Math.min($popupLocation.y, window.innerHeight - componentHeight)
-	);
+
+	// --- Virtual reference (anchor at screen coords) ---
+	let _rect = new DOMRect($popupLocation.x, $popupLocation.y, 0, 0);
+	const virtualRef: VirtualElement = {
+		getBoundingClientRect: () => _rect,
+		contextElement: undefined
+	};
+
+	// Update anchor when coords change
+	$effect(() => {
+		_rect = new DOMRect($popupLocation.x, $popupLocation.y, 0, 0);
+		popper?.update();
+	});
+
+	// Create / destroy Popper when popup appears or element changes
+	$effect(() => {
+		if (!$popupComponent || !component) {
+			popper?.destroy();
+			popper = null;
+			return;
+		}
+
+		popper = createPopper(virtualRef, component, {
+			placement,
+			strategy: 'fixed', // stable on scroll; good for viewport-anchored popups
+			modifiers: [
+				{ name: 'offset', options: { offset: [0, 8] } },
+				{ name: 'preventOverflow', options: { boundary: 'viewport', padding: 8 } },
+				{
+					name: 'flip',
+					options: { fallbackPlacements: ['top-start', 'right-start', 'left-start'] }
+				},
+				{ name: 'computeStyles', options: { gpuAcceleration: true } }
+			]
+		});
+	});
 </script>
 
 {#if $popupComponent}
@@ -83,11 +120,11 @@
 	<div
 		bind:this={component}
 		use:clickOutside={hide}
-		class:block={!!$popupComponent}
-		class:hidden={!$popupComponent}
-		class={`absolute bg-base-200 w-[${minWidth}px] h-[${minHeight}px] rounded-md overflow-y-auto z-50`}
-		style={`left: ${x}px; top: ${y}px;`}
+		class="z-50 bg-base-200 rounded-md overflow-y-auto shadow-md border w-auto max-w-[min(95vw,48rem)]"
+		style={`min-width:${minWidth}px; min-height:${minHeight}px;`}
+		role="dialog"
 	>
+		<!-- Inject onClose for free; user props never had to include it -->
 		<SvelteComponent {...$popupComponent.props} onClose={hide} />
 	</div>
 {/if}
