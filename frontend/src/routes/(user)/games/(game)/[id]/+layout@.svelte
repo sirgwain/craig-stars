@@ -11,7 +11,7 @@
 	import { Universe } from '$lib/services/Universe';
 	import { GameState } from '$lib/types/cs-proto';
 	import { getGameWithPlayersFlat } from '$lib/types/Game';
-	import { CommandedPlayer } from '$lib/types/Player';
+	import { CommandedPlayer, CommandedPlayerRace } from '$lib/types/Player';
 	import { wait } from '$lib/wait';
 	import { loadWasm } from '$lib/wasm';
 	import { Code, type ConnectError } from '@connectrpc/connect';
@@ -114,6 +114,7 @@
 
 			// update the player
 			Object.assign(p, player);
+			p.race = new CommandedPlayerRace(p.race);
 		}
 
 		return { game: fg, player: p, universe: u };

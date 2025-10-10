@@ -6,9 +6,10 @@
 	import { raceClient } from '$lib/services/connect';
 	import { addError } from '$lib/services/Errors';
 	import { notify } from '$lib/services/Notifications';
-	import type { Race } from '$lib/types/cs-proto';
+	import { HabSchema, ResearchCostSchema, type Race } from '$lib/types/cs-proto';
 	import { humanoid } from '$lib/types/Race';
 	import { loadWasm, type CS } from '$lib/wasm';
+	import { create } from '@bufbuild/protobuf';
 	import { ConnectError } from '@connectrpc/connect';
 	import { onMount } from 'svelte';
 	import RaceEditor from './RaceEditor.svelte';
@@ -17,6 +18,7 @@
 	let id = page.params.id;
 	let race: Race = $state(humanoid());
 	let cs: CS | undefined = $state();
+	let loaded = $state(false);
 
 	onMount(async () => {
 		loadWasm().then((res) => (cs = res));
@@ -25,6 +27,9 @@
 				const resp = await raceClient.getRace({ raceId: BigInt(id) });
 				if (resp.race) {
 					race = resp.race;
+					race.habLow = create(HabSchema, resp.race.habLow);
+					race.habHigh = create(HabSchema, resp.race.habHigh);
+					race.researchCost = create(ResearchCostSchema, resp.race.researchCost);
 				}
 			} catch (e) {
 				addError(e as ConnectError);
@@ -33,6 +38,7 @@
 			// create a new humanoid
 			race = humanoid();
 		}
+		loaded = true;
 	});
 
 	const onSubmit = async () => {
@@ -49,7 +55,7 @@
 	let saveDisabled = $state(false);
 </script>
 
-{#if race}
+{#if loaded}
 	<form
 		onsubmit={(e) => {
 			e.preventDefault();
