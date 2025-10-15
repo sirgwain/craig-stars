@@ -38,8 +38,8 @@
 </script>
 
 <script lang="ts">
-	import { computePosition, flip, offset, shift, type VirtualElement } from '@floating-ui/dom';
 	import { clickOutside } from '$lib/clickOutside';
+	import { computePosition, flip, offset, shift, type VirtualElement } from '@floating-ui/dom';
 
 	let component: HTMLElement | undefined = $state();
 
