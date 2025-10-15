@@ -355,7 +355,7 @@
 </script>
 
 <!-- for small mobile displays we put the scanner on top and the command pane below it-->
-<div class="flex flex-col h-full md:flex-row" data-type="game-view" data-id={$game.id}>
+<div class="flex flex-col h-full md:flex-row select-none" data-type="game-view" data-id={$game.id}>
 	<!-- for medium+ displays, command pane goes on the left -->
 	<div
 		class="hidden overflow-x-hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[30rem] overflow-y-auto md:max-h-[calc(100dvh-4rem)]"
@@ -465,43 +465,45 @@
 	</div>
 </div>
 
-<!-- dialog modals -->
-<ProductionQueueDialog
-	show={showProductionQueueDialog}
-	onNext={() => onNextPlanet(true)}
-	onPrev={() => onPrevPlanet(true)}
-	onOk={(planet) => {
-		showProductionQueueDialog = false;
-		updatePlanetOrders(planet);
-	}}
-	onCancel={() => (showProductionQueueDialog = false)}
-/>
-<CargoTranfserDialog
-	show={showCargoTransferDialog}
-	props={cargoTransferDialogEvent}
-	onOk={onTransferCargo}
-	onCancel={() => (showCargoTransferDialog = false)}
-/>
-<MergeFleetsDialog
-	show={showMergeFleetsDialog}
-	props={mergeFleetsDialogEvent}
-	onOk={onMergeFleets}
-	onCancel={() => (showMergeFleetsDialog = false)}
-/>
-<SplitFleetDialog
-	show={showSplitFleetDialog}
-	props={splitFleetDialogEvent}
-	onOk={onSplitFleet}
-	onCancel={() => (showSplitFleetDialog = false)}
-/>
-<TransportTasksDialog
-	show={showTransportTasksDialog}
-	props={transportTasksDialogEvent}
-	onOk={onUpdateTransportTasks}
-	onCancel={() => (showTransportTasksDialog = false)}
-/>
-<SearchDialog
-	show={showSearchDialog}
-	onOk={(e) => selectSearchResult(e)}
-	onCancel={() => (showSearchDialog = false)}
-/>
+<div class="select-none">
+	<!-- dialog modals -->
+	<ProductionQueueDialog
+		show={showProductionQueueDialog}
+		onNext={() => onNextPlanet(true)}
+		onPrev={() => onPrevPlanet(true)}
+		onOk={(planet) => {
+			showProductionQueueDialog = false;
+			updatePlanetOrders(planet);
+		}}
+		onCancel={() => (showProductionQueueDialog = false)}
+	/>
+	<CargoTranfserDialog
+		show={showCargoTransferDialog}
+		props={cargoTransferDialogEvent}
+		onOk={onTransferCargo}
+		onCancel={() => (showCargoTransferDialog = false)}
+	/>
+	<MergeFleetsDialog
+		show={showMergeFleetsDialog}
+		props={mergeFleetsDialogEvent}
+		onOk={onMergeFleets}
+		onCancel={() => (showMergeFleetsDialog = false)}
+	/>
+	<SplitFleetDialog
+		show={showSplitFleetDialog}
+		props={splitFleetDialogEvent}
+		onOk={onSplitFleet}
+		onCancel={() => (showSplitFleetDialog = false)}
+	/>
+	<TransportTasksDialog
+		show={showTransportTasksDialog}
+		props={transportTasksDialogEvent}
+		onOk={onUpdateTransportTasks}
+		onCancel={() => (showTransportTasksDialog = false)}
+	/>
+	<SearchDialog
+		show={showSearchDialog}
+		onOk={(e) => selectSearchResult(e)}
+		onCancel={() => (showSearchDialog = false)}
+	/>
+</div>
