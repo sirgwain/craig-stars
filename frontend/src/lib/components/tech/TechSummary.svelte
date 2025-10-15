@@ -26,9 +26,17 @@
 		cs?: CS | undefined;
 		showResearchCost?: boolean;
 		hideGraph?: boolean;
+		hideNew?: boolean;
 	};
 
-	let { tech: techLike, player, cs, showResearchCost = false, hideGraph = false }: Props = $props();
+	let {
+		tech: techLike,
+		player,
+		cs,
+		showResearchCost = false,
+		hideGraph = false,
+		hideNew
+	}: Props = $props();
 
 	let defense = $derived(
 		techLike.tech?.category == TechCategory.PLANETARY_DEFENSE
@@ -80,7 +88,7 @@
 		<div class="card-body p-3 gap-0">
 			<div class="text-lg font-semibold text-center mb-1 text-secondary">
 				<div class="indicator w-full">
-					{#if player?.hasTech(techLike)}
+					{#if player?.hasTech(techLike) && !hideNew}
 						<span class:hidden={above !== 0} class="indicator-item badge badge-accent">new </span>
 					{/if}
 					<div class="w-full">

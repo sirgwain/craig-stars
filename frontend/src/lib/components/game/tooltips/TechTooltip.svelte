@@ -17,7 +17,7 @@
 	}
 
 	export type TechTooltipProps = {
-		tech: TechLike;
+		tech: TechLike | undefined;
 		showResearchCost?: boolean;
 	};
 </script>
@@ -28,6 +28,8 @@
 	const { player, cs } = getGameContext();
 </script>
 
-<div class="md:w-[380px] h-[420px]">
-	<TechSummary {tech} {showResearchCost} player={$player} {cs} />
+<div class="max-w-[550px]">
+	{#if tech}
+		<TechSummary {tech} {showResearchCost} player={$player} hideNew={true} {cs} />
+	{/if}
 </div>
