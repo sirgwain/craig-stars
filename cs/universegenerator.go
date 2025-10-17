@@ -1222,17 +1222,17 @@ func (ug *universeGenerator) generatePlayerIntel() error {
 	// make sure our universe maps are up to date
 	ug.Universe.buildMaps(ug.Players)
 	for _, player := range ug.Players {
-
 		// discover other players
 		player.Intels.PlayerIntels = player.defaultPlayerIntels(ug.Players)
 		player.Intels.ScoreIntels = make([]ScoreIntel, len(ug.Players))
+	}
 
-		// do initial scans
+	// do initial scans (after play discoveries, since allied players "discover" eachother when scanning)
+	for _, player := range ug.Players {
 		scanner := newPlayerScanner(ug.Universe, ug.Players, &ug.Rules, player)
 		if err := scanner.scan(); err != nil {
 			return err
 		}
-
 	}
 
 	return nil
