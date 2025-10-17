@@ -65,7 +65,20 @@ func TestGenerateUniverse(t *testing.T) {
 		assert.Equal(t, 25_000, homeworld.GetPopulation())
 		assert.True(t, homeworld.Spec.HasStarbase)
 	})
+	t.Run("Computer Alliances", func(t *testing.T) {
+		client := NewGamer()
+		game := client.CreateGame(1, *NewGameSettings())
 
+		player1 := client.NewPlayer(1, *NewRace(), &game.Rules).WithNum(1)
+		player2 := client.NewPlayer(1, *NewRace(), &game.Rules).WithNum(2).WithAIControlled(true)
+		player3 := client.NewPlayer(1, *NewRace(), &game.Rules).WithNum(3).WithAIControlled(true)
+		player4 := client.NewPlayer(1, *NewRace(), &game.Rules).WithNum(4).WithAIControlled(true)
+		players := []*Player{player1, player2, player3, player4}
+
+		game.ComputerPlayersFormAlliances = true
+		_, err := client.GenerateUniverse(game, players)
+		assert.NoError(t, err)
+	})
 	t.Run("Multiple Players, multiple planets", func(t *testing.T) {
 		client := NewGamer()
 		game := client.CreateGame(1, *NewGameSettings())
