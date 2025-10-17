@@ -2006,6 +2006,62 @@ func Test_turn_decayPackets(t *testing.T) {
 	assert.Equal(t, packetNewlyBuilt.Cargo, Cargo{75, 75, 75, 0})
 }
 
+func Test_turn_randomCometStrikeOwnedPlanet(t *testing.T) {
+	game := createSingleUnitGame()
+	// make sure we are far enough along that comets will strike
+	// player worlds
+	game.Year += game.Rules.RandomCometMinYear + game.Rules.RandomCometMinYearPlayerWorld
+
+	// player := game.Players[0]
+	planet := game.Planets[0]
+
+	turn := turnGenerator{
+		log:  testLogger,
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	startingPop := planet.exactPopulation()
+	startingIronium := planet.Cargo.Ironium
+	// strike planet
+	turn.game.Rules.random = newFloat64Random(0) // 100% chance to strike planet
+	turn.randomCometStrike()
+
+	// comet hits, pop killed, minerals added
+	assert.NotEqual(t, startingPop, planet.exactPopulation())
+	assert.Greater(t, planet.Cargo.Ironium, startingIronium)
+
+}
+
+func Test_turn_randomCometStrikeOwnedPlanetAR(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+	player.Race.PRT = AR
+	player.Race.Spec = ComputeRaceSpec(&player.Race, &game.Rules)
+	// make sure we are far enough along that comets will strike
+	// player worlds
+	game.Year += game.Rules.RandomCometMinYear + game.Rules.RandomCometMinYearPlayerWorld
+
+	// player := game.Players[0]
+	planet := game.Planets[0]
+
+	turn := turnGenerator{
+		log:  testLogger,
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	startingPop := planet.exactPopulation()
+	startingIronium := planet.Cargo.Ironium
+	// strike planet
+	turn.game.Rules.random = newFloat64Random(0) // 100% chance to strike planet
+	turn.randomCometStrike()
+
+	// comet hits, pop not killed, minerals added
+	assert.Equal(t, startingPop, planet.exactPopulation())
+	assert.Greater(t, planet.Cargo.Ironium, startingIronium)
+}
+
 func Test_turn_fleetPatrol(t *testing.T) {
 	game := createSingleUnitGame()
 	rules := &game.Rules

@@ -184,7 +184,9 @@
 							</div>
 						{/if}
 						{#if message}
-							<MessageDetail {message} />
+							<span class="select-text">
+								<MessageDetail {message} />
+							</span>
 						{/if}
 					</div>
 				</div>

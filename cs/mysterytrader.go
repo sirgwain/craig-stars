@@ -496,8 +496,8 @@ func (mt *MysteryTrader) getTechLevelReward(rules *Rules, player *Player, gift i
 	for _, techLevelReward := range rules.MysteryTraderRules.TechBoon {
 		if numLevels <= techLevelReward.TechLevels {
 			// player tech level count is below threshold for this reward, grant some random levels
-			for _, reward := range techLevelReward.Rewards {
-				if gift <= reward.MineralsGiven {
+			for i, reward := range techLevelReward.Rewards {
+				if gift <= reward.MineralsGiven || i == len(techLevelReward.Rewards)-1 {
 					// minerals given is below this threshold, give this number of levels
 					for i := 0; i < reward.Reward; i++ {
 						availableFields := levels.LearnableTechFields(rules)
