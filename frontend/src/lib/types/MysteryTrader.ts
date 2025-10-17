@@ -11,6 +11,7 @@ export function isHullComponent(type: MysteryTraderRewardType): boolean {
 		case MysteryTraderRewardType.TORPEDO:
 		case MysteryTraderRewardType.MINE_ROBOT:
 		case MysteryTraderRewardType.BEAM_WEAPON:
+		case MysteryTraderRewardType.JUMP_GATE:
 			return true;
 	}
 	return false;

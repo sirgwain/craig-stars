@@ -2043,7 +2043,10 @@ func (t *turnGenerator) randomCometStrike() {
 	planet.MineralConcentration = planet.MineralConcentration.Add(mineralConcentrationIncreased).Clamp(t.game.Rules.MinMineralConcentration, t.game.Rules.MaxMineralConcentration)
 	planet.Hab = planet.Hab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
 	planet.BaseHab = planet.BaseHab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
-	if planet.Cargo.Colonists > 0 {
+
+	// kill planet bound colonists
+	player := t.game.getPlayer(planet.PlayerNum)
+	if player != nil && !player.Race.Spec.LivesOnStarbases && planet.Cargo.Colonists > 0 {
 		pop := planet.GetPopulation()
 		planet.Cargo.Colonists = int(float64(planet.Cargo.Colonists) * (1 - stats.PopKilledPercent))
 		colonistsKilled = pop - planet.GetPopulation()
@@ -2429,6 +2432,8 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 					token := ShipToken{design: design, DesignNum: design.Num, Quantity: reward.ShipCount}
 					design.Spec.NumInstances += token.Quantity
 					design.Spec.NumBuilt += token.Quantity
+					// make this design owned by another player
+					design.OriginalPlayerNum = len(t.game.Players) + 1
 
 					rewardFleet, err := t.addFleet(player, fleet.Position, token, Tags{})
 					if err != nil {

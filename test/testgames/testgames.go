@@ -635,6 +635,135 @@ var TestGames = []TestGame{
 		}},
 	},
 	{
+		Name: "Mystery Trader",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name: "Large Freighter",
+						Hull: cs.LargeFreighter.Name,
+						Slots: []cs.ShipDesignSlot{
+							{HullComponent: cs.TransStar10.Name, HullSlotIndex: 1, Quantity: 2},
+							{HullComponent: cs.SuperCargoPod.Name, HullSlotIndex: 2, Quantity: 2},
+						},
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						MapObject: cs.MapObject{
+							Position: cs.Vector{X: 100},
+						},
+						BaseName: "MT Meet-er",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 10}},
+						Cargo:    cs.Cargo{Ironium: 1400 * 10},
+						Fuel:     2600 * 10,
+					},
+					{
+						MapObject: cs.MapObject{
+							Position: cs.Vector{X: 100, Y: 25},
+						},
+						BaseName: "MT Meet-er",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 10}},
+						Cargo:    cs.Cargo{Ironium: 1400 * 10},
+						Fuel:     2600 * 10,
+					},
+					{
+						MapObject: cs.MapObject{
+							Position: cs.Vector{X: 100, Y: 50},
+						},
+						BaseName: "MT Meet-er",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 10}},
+						Cargo:    cs.Cargo{Ironium: 1400 * 10},
+						Fuel:     2600 * 10,
+					},
+					{
+						MapObject: cs.MapObject{
+							Position: cs.Vector{X: 100, Y: 75},
+						},
+						BaseName: "MT Meet-er",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 10}},
+						Cargo:    cs.Cargo{Ironium: 1400 * 10},
+						Fuel:     2600 * 10,
+					},
+					{
+						MapObject: cs.MapObject{
+							Position: cs.Vector{X: 100, Y: 100},
+						},
+						BaseName: "MT Meet-er",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 10}},
+						Cargo:    cs.Cargo{Ironium: 1400 * 10},
+						Fuel:     2600 * 10,
+					},
+					{
+						MapObject: cs.MapObject{
+							Position: cs.Vector{X: 100, Y: 125},
+						},
+						BaseName: "MT Meet-er",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 10}},
+						Cargo:    cs.Cargo{Ironium: 1400 * 10},
+						Fuel:     2600 * 10,
+					},
+				},
+			},
+		},
+		Planets: []cs.Planet{{
+			MapObject: cs.MapObject{
+				Name:      "Planet 1",
+				PlayerNum: 1,
+			},
+			Hab:                  cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+			MineralConcentration: cs.NewMineral(100, 100, 100),
+			Mines:                1000,
+			Factories:            1000,
+			Scanner:              true,
+			Cargo:                cs.Cargo{Ironium: 10000, Boranium: 10000, Germanium: 10000, Colonists: 10000},
+		}},
+		MysteryTraders: []cs.MysteryTrader{
+			{
+				MapObject:     cs.MapObject{Position: cs.Vector{X: 200}}, // meet our freighter on turn 2
+				WarpSpeed:     10,
+				Destination:   cs.Vector{X: 0},
+				RequestedBoon: 5000,
+				RewardType:    cs.MysteryTraderRewardResearch,
+			},
+			{
+				MapObject:     cs.MapObject{Position: cs.Vector{X: 200, Y: 25}},
+				WarpSpeed:     10,
+				Destination:   cs.Vector{X: 0, Y: 25},
+				RequestedBoon: 5000,
+				RewardType:    cs.MysteryTraderRewardLifeboat,
+			},
+			{
+				MapObject:     cs.MapObject{Position: cs.Vector{X: 200, Y: 50}},
+				WarpSpeed:     10,
+				Destination:   cs.Vector{X: 0, Y: 50},
+				RequestedBoon: 5000,
+				RewardType:    cs.MysteryTraderRewardArmor,
+			},
+			{
+				MapObject:     cs.MapObject{Position: cs.Vector{X: 200, Y: 75}},
+				WarpSpeed:     10,
+				Destination:   cs.Vector{X: 0, Y: 75},
+				RequestedBoon: 5000,
+				RewardType:    cs.MysteryTraderRewardGenesis,
+			},
+			{
+				MapObject:     cs.MapObject{Position: cs.Vector{X: 200, Y: 100}},
+				WarpSpeed:     10,
+				Destination:   cs.Vector{X: 0, Y: 100},
+				RequestedBoon: 5000,
+				RewardType:    cs.MysteryTraderRewardJumpGate,
+			},
+			{
+				MapObject:     cs.MapObject{Position: cs.Vector{X: 200, Y: 125}},
+				WarpSpeed:     10,
+				Destination:   cs.Vector{X: 0, Y: 125},
+				RequestedBoon: 5000,
+				RewardType:    cs.MysteryTraderRewardShipHull,
+			},
+		},
+	},
+	{
 		Name: "Two Player Game",
 		Players: []TestPlayer{
 			{
@@ -999,6 +1128,7 @@ func addMysteryTrader(game *cs.FullGame, mysteryTrader *cs.MysteryTrader) *cs.My
 	mysteryTrader.Num = len(game.MysteryTraders) + 1
 	mysteryTrader.Name = fmt.Sprintf("Mystery Trader #%d", mysteryTrader.Num)
 	mysteryTrader.Heading = (mysteryTrader.Destination.Subtract(mysteryTrader.Position)).Normalized()
+	mysteryTrader.PlayersRewarded = map[int]bool{}
 	game.MysteryTraders = append(game.MysteryTraders, mysteryTrader)
 	return mysteryTrader
 }
