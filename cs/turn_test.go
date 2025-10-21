@@ -2133,18 +2133,20 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 
 	// create a new enemy player and friendly player to own planets
 	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	friendlyPlayer := NewPlayer(3, NewRace().WithSpec(rules)).WithNum(3).withSpec(rules)
+	friendlyPlayer := NewPlayer(3, NewRace().WithSpec(rules)).WithNum(3).WithTechLevels(TechLevel{Propulsion: 1, Biotechnology: 1}).withSpec(rules)
 	game.Players = append(game.Players, enemyPlayer, friendlyPlayer)
 
 	// make two new remote terraformers, one over each planet to test deterraforming and terraforming
 	fleet1 := testRemoteTerraformer(player)
 	fleet2 := testRemoteTerraformer(player)
 	player.Designs[0] = fleet1.Tokens[0].design
-	game.Fleets = []*Fleet{fleet1, fleet2}
 
 	// give the friendly player a gifted fleet
 	fleet3 := testRemoteTerraformer(friendlyPlayer)
 	fleet3.Tokens[0].design.OriginalPlayerNum = player.Num
+	friendlyPlayer.Designs = []*ShipDesign{fleet3.Tokens[0].design}
+
+	game.Fleets = []*Fleet{fleet1, fleet2, fleet3}
 
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
@@ -2183,10 +2185,10 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	planet3.Spec = ComputePlanetSpec(&game.Rules, player, planet3)
 	fleet3.OrbitingPlanetNum = planet3.Num
 
-	game.Planets = []*Planet{planet1, planet2}
-	player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
-	enemyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2})
-	friendlyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2})
+	game.Planets = []*Planet{planet1, planet2, planet3}
+	player.initDefaultPlanetIntels([]*Planet{planet1, planet2, planet3})
+	enemyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2, planet3})
+	friendlyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2, planet3})
 
 	turn := turnGenerator{
 		log:  testLogger,
@@ -2206,7 +2208,7 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	assert.Equal(t, Hab{50, 50, 50}, planet2.Hab)
 
 	// should terraform planet3 2 points
-	assert.Equal(t, Hab{50, 50, 50}, planet2.Hab)
+	assert.Equal(t, Hab{50, 50, 50}, planet3.Hab)
 
 }
 
