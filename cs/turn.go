@@ -2802,7 +2802,7 @@ func (t *turnGenerator) fleetRemoteTerraform() {
 
 		// don't remote terraform an unowned planet or a planet owned by us
 		planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
-		if !planet.Owned() || planet.OwnedBy(fleet.PlayerNum) {
+		if !planet.Owned() {
 			continue
 		}
 
