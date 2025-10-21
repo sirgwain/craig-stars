@@ -2131,16 +2131,20 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	player.Race.LRTs |= Bitmask(TT)
 	player.Race.Spec = ComputeRaceSpec(&player.Race, rules)
 
+	// create a new enemy player and friendly player to own planets
+	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+	friendlyPlayer := NewPlayer(3, NewRace().WithSpec(rules)).WithNum(3).withSpec(rules)
+	game.Players = append(game.Players, enemyPlayer, friendlyPlayer)
+
 	// make two new remote terraformers, one over each planet to test deterraforming and terraforming
 	fleet1 := testRemoteTerraformer(player)
 	fleet2 := testRemoteTerraformer(player)
 	player.Designs[0] = fleet1.Tokens[0].design
 	game.Fleets = []*Fleet{fleet1, fleet2}
 
-	// create a new enemy player and friendly player to own planets
-	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	friendlyPlayer := NewPlayer(3, NewRace().WithSpec(rules)).WithNum(3).withSpec(rules)
-	game.Players = append(game.Players, enemyPlayer, friendlyPlayer)
+	// give the friendly player a gifted fleet
+	fleet3 := testRemoteTerraformer(friendlyPlayer)
+	fleet3.Tokens[0].design.OriginalPlayerNum = player.Num
 
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
@@ -2169,6 +2173,16 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	planet2.Spec = ComputePlanetSpec(&game.Rules, player, planet2)
 	fleet2.OrbitingPlanetNum = planet2.Num
 
+	// give planet3 to the friend and orbit it with fleet3
+	planet3 := &Planet{
+		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 3", Num: 3, PlayerNum: friendlyPlayer.Num},
+		Cargo:     Cargo{Colonists: 2500},
+		Hab:       Hab{48, 50, 50},
+		BaseHab:   Hab{48, 50, 50},
+	}
+	planet3.Spec = ComputePlanetSpec(&game.Rules, player, planet3)
+	fleet3.OrbitingPlanetNum = planet3.Num
+
 	game.Planets = []*Planet{planet1, planet2}
 	player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 	enemyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2})
@@ -2189,6 +2203,9 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	assert.Equal(t, Hab{52, 50, 50}, planet1.Hab)
 
 	// should terraform planet2 2 points
+	assert.Equal(t, Hab{50, 50, 50}, planet2.Hab)
+
+	// should terraform planet3 2 points
 	assert.Equal(t, Hab{50, 50, 50}, planet2.Hab)
 
 }
