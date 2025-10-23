@@ -6,9 +6,9 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { WaypointTask, type Fleet } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { fleetsSortBy, getEta, getLocation } from '$lib/types/Fleet';
+	import { type Fleet } from '$lib/types/cs-proto';
+	import { filterFleet } from '$lib/types/Filter';
+	import { fleetsSortBy, getDestination, getEta, getLocation, getTask } from '$lib/types/Fleet';
 	import { getMapObjectName } from '$lib/types/MapObject';
 
 	const {
@@ -56,6 +56,7 @@
 		$universe
 			.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
 			.filter((i) => i.mapObject?.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
+			.filter((i) => filterFleet($player, i, { showIdleFleetsOnly: $settings.showIdleFleetsOnly }))
 	);
 
 	type TableFleet = Fleet & {
@@ -142,7 +143,18 @@
 
 <div class="w-full">
 	<div class="flex flex-row justify-between m-2">
-		<TableSearchInput bind:value={search} />
+		<div><TableSearchInput bind:value={search} /></div>
+		<div class="form-control">
+			<label class="label cursor-pointer">
+				<span class="label-text mr-1">Idle Fleets Only</span>
+				<input
+					type="checkbox"
+					class="toggle"
+					class:toggle-accent={$settings.showIdleFleetsOnly}
+					bind:checked={$settings.showIdleFleetsOnly}
+				/>
+			</label>
+		</div>
 	</div>
 	<Table
 		{columns}
@@ -178,10 +190,7 @@
 						>{location}</button
 					>
 				{:else if column.key == 'destination'}
-					{@const targetName =
-						row.fleetOrders?.waypoints && row.fleetOrders?.waypoints.length > 1
-							? $universe.getTargetName(row.fleetOrders?.waypoints[1])
-							: '--'}
+					{@const targetName = getDestination(row, $universe)}
 
 					{#if targetName !== '--'}
 						<button class="cs-link text-xl text-left" onclick={() => selectTarget(row, 1)}
@@ -191,11 +200,7 @@
 						--
 					{/if}
 				{:else if column.key == 'task'}
-					{row.fleetOrders?.waypoints &&
-					row.fleetOrders?.waypoints.length > 1 &&
-					row.fleetOrders?.waypoints[1].task
-						? enumToString(WaypointTask, row.fleetOrders?.waypoints[1].task)
-						: '(no task here)'}
+					{getTask(row)}
 				{:else if column.key == 'eta'}
 					{#if getEta(row) == -1}
 						<span class="text-error"> Never </span>
@@ -217,7 +222,7 @@
 						$player.num,
 						row.tokens && row.tokens.length ? row.tokens[0].designNum : 0
 					)}
-					<div class="flex flex-row justify-between">
+					<div class="flex flex-row justify-between gap-1">
 						<div>
 							{design ? design.name : ''}
 						</div>
