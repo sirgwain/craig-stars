@@ -28,6 +28,7 @@ import { None, StargateWarpSpeed } from './Consts';
 import { type MapObjectLike, owned } from './MapObject';
 import type { CommandedPlayer } from './Player';
 import { distance, emptyVector } from './Vector';
+import { enumToString } from './Enums';
 
 export const WaypointTasks: WaypointTask[] = [
 	WaypointTask.UNSPECIFIED,
@@ -300,6 +301,15 @@ export const getDestination = (fleet: Fleet, universe: Universe) => {
 	return '--';
 };
 
+export const getTask = (fleet: Fleet) => {
+	const wps = fleet.fleetOrders?.waypoints ?? [];
+	const wp = wps.length > 1 ? wps[1] : wps[0];
+	if (wp.task) {
+		return enumToString(WaypointTask, wp.task);
+	}
+	return '(no task here)';
+};
+
 export const getEta = (fleet: Fleet) => {
 	const wps = fleet.fleetOrders?.waypoints ?? [];
 	if (wps.length > 1) {
@@ -349,9 +359,7 @@ export function fleetsSortBy(
 		case 'destination':
 			return (a, b) => getDestination(a, universe).localeCompare(getDestination(b, universe));
 		case 'task':
-			return (a, b) =>
-				(a.fleetOrders?.waypoints[a.fleetOrders?.waypoints.length - 1].task ?? 0) -
-				(b.fleetOrders?.waypoints[b.fleetOrders?.waypoints.length - 1].task ?? 0);
+			return (a, b) => getTask(a).localeCompare(getTask(b));
 		case 'eta':
 			return (a, b) => getEta(a) - getEta(b);
 		case 'cargo':

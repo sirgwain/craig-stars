@@ -2,13 +2,13 @@ import { WaypointTask, type Fleet } from './cs-proto';
 import type { CommandedPlayer } from './Player';
 
 export type FilterOptions = {
-	showIdleFleetsOnly: boolean;
-	filterMyDesigns: boolean;
-	filterAllyDesigns: boolean;
-	filterEnemyDesigns: boolean;
-	filterDesigns: string[];
-	filterAllyShipClasses: ShipClass[];
-	filterEnemyShipClasses: ShipClass[];
+	showIdleFleetsOnly?: boolean;
+	filterMyDesigns?: boolean;
+	filterAllyDesigns?: boolean;
+	filterEnemyDesigns?: boolean;
+	filterDesigns?: string[];
+	filterAllyShipClasses?: ShipClass[];
+	filterEnemyShipClasses?: ShipClass[];
 };
 
 export type ShipClass = (typeof ShipClasses)[keyof typeof ShipClasses];
@@ -31,15 +31,25 @@ export function filterFleet(
 	options: FilterOptions
 ): boolean {
 	return (
-		filterIdleFleet(fleet, options.showIdleFleetsOnly) &&
-		filterMyDesigns(player, fleet, options.filterMyDesigns, options.filterDesigns) &&
-		filterAllyDesigns(player, fleet, options.filterAllyDesigns, options.filterAllyShipClasses) &&
-		filterEnemyDesigns(player, fleet, options.filterEnemyDesigns, options.filterEnemyShipClasses)
+		filterIdleFleet(player, fleet, options.showIdleFleetsOnly ?? false) &&
+		filterMyDesigns(player, fleet, options.filterMyDesigns ?? false, options.filterDesigns ?? []) &&
+		filterAllyDesigns(
+			player,
+			fleet,
+			options.filterAllyDesigns ?? false,
+			options.filterAllyShipClasses ?? []
+		) &&
+		filterEnemyDesigns(
+			player,
+			fleet,
+			options.filterEnemyDesigns ?? false,
+			options.filterEnemyShipClasses ?? []
+		)
 	);
 }
 
 // This shows only your fleets that have no movement orders, and any active enemy ships (so you can match one with the other, if you wish).
-export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
+export function filterIdleFleet(player: CommandedPlayer, fleet: Fleet, enabled: boolean): boolean {
 	if (!enabled) {
 		// no filter, show all fleets
 		return true;
@@ -55,7 +65,7 @@ export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 	}
 
 	// enemy fleet that is moving, show it so players can match idle fleets to moving fleets
-	if (fleet.warpSpeed) {
+	if (player.num !== fleet.mapObject?.playerNum && fleet.warpSpeed) {
 		return true;
 	}
 
