@@ -243,7 +243,7 @@ func (cargoTransfers CargoTransfers) mergeByHandTransfers(fleet *Fleet, mergingF
 
 		var prevTransfer *ByHandCargoTransfer
 		if i > 0 {
-			prevTransfer = &updatedTransfers[i-1]
+			prevTransfer = &transfers[i-1]
 		}
 
 		// if the previous transfer is the fleet we're merging into AND the target is the same, just merge the request
