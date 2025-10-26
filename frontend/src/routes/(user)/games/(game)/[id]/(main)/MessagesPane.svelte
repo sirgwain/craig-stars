@@ -70,6 +70,11 @@
 			return false;
 		}
 
+		// battle messages are goto-able
+		if (message.battleNum) {
+			return true;
+		}
+
 		if (message.target?.targetType !== PlayerMessageTargetType.UNSPECIFIED) {
 			return true;
 		}
