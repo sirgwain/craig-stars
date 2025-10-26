@@ -1,20 +1,22 @@
 <script lang="ts">
 	import FleetIcon from '$lib/components/FleetIcon.svelte';
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
-	import {
-		CargoSchema,
-		FleetSpecSchema,
-		GameDBObjectSchema,
-		MapObjectSchema,
-		ShipDesignSpecSchema,
-		type CargoJson
-	} from '$lib/types/cs-proto';
-	import { FleetSchema, type Fleet, type ShipToken } from '$lib/types/cs-proto';
 	import type { OnCancel, OnOk, SplitFleetEvent } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { emptyCargoJson, totalCargo } from '$lib/types/Cargo';
 	import { absoluteCargoSize, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
+	import {
+		CargoSchema,
+		FleetSchema,
+		FleetSpecSchema,
+		GameDBObjectSchema,
+		MapObjectSchema,
+		ShipDesignSpecSchema,
+		type CargoJson,
+		type Fleet,
+		type ShipToken
+	} from '$lib/types/cs-proto';
 	import { CommandedFleet, moveDamagedTokens } from '$lib/types/Fleet';
 	import { clone, create } from '@bufbuild/protobuf';
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
@@ -110,9 +112,10 @@
 
 			let key: keyof CargoJson;
 			for (key in emptyCargoJson()) {
-				// move over as much cargo as necessary
+				// the value of the source including what we've already transferred in/out
 				const value = src.cargo[key] + transferAmount[key];
-				if (value + transferAmount[key] > 0) {
+				if (value > 0) {
+					// we have some left to transfer
 					transferAmount[key] -= Math.min(value, overload);
 					overload -= Math.min(value, overload);
 				}
@@ -125,9 +128,9 @@
 
 			let key: keyof CargoJson;
 			for (key in emptyCargoJson()) {
-				// move over as much cargo as necessary
+				// the value of the dest including what we've already transferred in/out
 				const value = dest.cargo[key] - transferAmount[key];
-				if (value - transferAmount[key] > 0) {
+				if (value > 0) {
 					transferAmount[key] += Math.min(value, overload);
 					overload -= Math.min(value, overload);
 				}
