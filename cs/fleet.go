@@ -1393,7 +1393,7 @@ func (f *Fleet) CanFuel(player *Player, planet *Planet) bool {
 
 // CanRemoteMine returns true if this fleet can remote mine the planet
 func (f *Fleet) CanRemoteMine(player *Player, planet *Planet) bool {
-	return f.Spec.MiningRate > 0 && planet != nil && !planet.Owned() || (player.Race.Spec.CanRemoteMineOwnPlanets && planet.OwnedBy(player.Num))
+	return f.Spec.MiningRate > 0 && planet != nil && (!planet.Owned() || (player.Race.Spec.CanRemoteMineOwnPlanets && planet.OwnedBy(player.Num)))
 }
 
 // CanRemoteMine returns true if this fleet can remote mine the planet
