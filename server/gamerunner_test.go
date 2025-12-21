@@ -13,12 +13,13 @@ import (
 )
 
 func createTestGameRunner(_ context.Context) GameRunner {
+	ctx := context.Background()
 	dbConn := db.NewConn()
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
 	cfg.Database.Filename = ":memory:"
 	cfg.Database.DebugLogging = true
-	if err := dbConn.Connect(cfg); err != nil {
+	if err := dbConn.Connect(ctx, cfg); err != nil {
 		panic(fmt.Errorf("error connecting to test database: \n%w", err))
 	}
 
@@ -42,11 +43,11 @@ func Test_gameRunner_HostGame(t *testing.T) {
 }
 
 func Test_gameRunner_GenerateTurns(t *testing.T) {
-
+	ctx := context.Background()
 	dbConn := db.NewConn()
 	cfg := &config.Config{}
 	cfg.Database.Filename = ":memory:"
-	if err := dbConn.Connect(cfg); err != nil {
+	if err := dbConn.Connect(ctx, cfg); err != nil {
 		panic(fmt.Errorf("error connecting to test database: \n%w", err))
 	}
 

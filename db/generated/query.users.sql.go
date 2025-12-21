@@ -292,6 +292,38 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 	return i, err
 }
 
+const GetUserByDiscordID = `-- name: GetUserByDiscordID :one
+SELECT
+    id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num
+FROM
+    users
+WHERE
+    discord_id = ?
+`
+
+func (q *Queries) GetUserByDiscordID(ctx context.Context, discordID string) (User, error) {
+	row := q.db.QueryRowContext(ctx, GetUserByDiscordID, discordID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Username,
+		&i.Password,
+		&i.Email,
+		&i.Verified,
+		&i.Banned,
+		&i.Role,
+		&i.LastLogin,
+		&i.DiscordID,
+		&i.DiscordAvatar,
+		&i.DiscordWebhookUrl,
+		&i.GameID,
+		&i.PlayerNum,
+	)
+	return i, err
+}
+
 const GetUserByUsername = `-- name: GetUserByUsername :one
 SELECT
     id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num

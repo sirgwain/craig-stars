@@ -20,6 +20,14 @@ FROM
 WHERE
     username = ?;
 
+-- name: GetUserByDiscordID :one
+SELECT
+    *
+FROM
+    users
+WHERE
+    discord_id = ?;
+
 -- name: GetGuestUser :one
 SELECT
     *

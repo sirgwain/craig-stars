@@ -55,12 +55,10 @@ func getTestModeConfig() Config {
 	tmpDir := os.TempDir()
 	timestamp := time.Now().UnixNano()
 	dbFile := filepath.Join(tmpDir, fmt.Sprintf("craigstars_test_%d.db", timestamp))
-	dbFileUsers := filepath.Join(tmpDir, fmt.Sprintf("craigstars_test_users_%d.db", timestamp))
 
 	return Config{
 		Database: databaseConfig{
-			Filename:      dbFile,
-			UsersFilename: dbFileUsers,
+			Filename: dbFile,
 		},
 		Auth: authConfig{
 			Secret:      "testSecret",
@@ -138,13 +136,6 @@ func CleanupTestDatabase() {
 				slog.Warn("Failed to cleanup test database file", "file", config.Database.Filename, "error", err)
 			} else {
 				slog.Debug("Cleaned up test database file", "file", config.Database.Filename)
-			}
-		}
-		if config.Database.UsersFilename != "" && config.Database.UsersFilename != ":memory:?cache=shared" {
-			if err := os.Remove(config.Database.UsersFilename); err != nil {
-				slog.Warn("Failed to cleanup test database file", "file", config.Database.UsersFilename, "error", err)
-			} else {
-				slog.Debug("Cleaned up test database file", "file", config.Database.UsersFilename)
 			}
 		}
 	}

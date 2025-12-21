@@ -17,20 +17,26 @@ import (
 	mattnsqlite3 "github.com/mattn/go-sqlite3"
 )
 
-//go:embed schema/users/*.sql
-var usersSchemaFiles embed.FS
-
-//go:embed schema/games/*.sql
+//go:embed schema/filesystem/*.sql
 var gamesSchemaFiles embed.FS
 
 //go:embed schema/memory/*.sql
 var memorySchemaFiles embed.FS
 
 func (c *dbConn) mustMigrate(cfg *config.Config) {
-	if !c.databaseInMemory {
-		c.mustMigrateDatabase(cfg.Database.UsersFilename, usersSchemaFiles, "schema/users")
-		c.mustMigrateDatabase(cfg.Database.Filename, gamesSchemaFiles, "schema/games")
+	if c.databaseInMemory {
+		// no migration for in memory dbs
+		return
 	}
+
+	c.mustMigrateDatabase(cfg.Database.Filename, gamesSchemaFiles, "schema/filesystem")
+
+	// one time merge users into games db, remove after complete
+	if err := mergeUsersIntoData(cfg.Database.Filename, cfg.Database.UsersFilename); err != nil {
+		slog.Error("merging users db into main", slog.Any("error", err))
+		os.Exit(1)
+	}
+
 }
 
 // in memory databases are different because the user and games database has to live in the same

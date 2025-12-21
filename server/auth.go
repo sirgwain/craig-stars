@@ -145,6 +145,7 @@ func (s *server) updateUser(ctx context.Context, tokenUser tokenUser, user *cs.U
 
 	idStr := tokenUser.discordID()
 	avatarStr := tokenUser.discordAvatar()
+	user.Username = tokenUser.Name
 	user.DiscordID = idStr
 	user.DiscordAvatar = avatarStr
 	now := time.Now()

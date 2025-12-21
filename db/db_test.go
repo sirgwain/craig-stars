@@ -11,15 +11,16 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-func connectTestDB() *client {
+func connectTestDBWithConn() (*client, *dbConn) {
 
+	ctx := context.Background()
 	dbConn := dbConn{}
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
 	// cfg.Database.DebugLogging = true
 	cfg.Database.Filename = ":memory:"
 	cfg.Database.SkipUpgrade = true
-	if err := dbConn.Connect(cfg); err != nil {
+	if err := dbConn.Connect(ctx, cfg); err != nil {
 		panic(fmt.Errorf("error while connecting to test database: \n%w", err))
 	}
 
@@ -27,7 +28,7 @@ func connectTestDB() *client {
 	user := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
 
 	if err := dbConn.WrapInTransaction(func(c Client) error {
-		if _, err := c.CreateUser(context.Background(), user); err != nil {
+		if _, err := c.CreateUser(ctx, user); err != nil {
 			return fmt.Errorf("error creating test database user: \n%w", err)
 		}
 		return nil
@@ -35,7 +36,12 @@ func connectTestDB() *client {
 		panic(fmt.Errorf("error creating test user in db: \n%w", err))
 	}
 
-	return dbConn.NewReadWriteClient().(*client)
+	return dbConn.NewReadWriteClient().(*client), &dbConn
+}
+
+func connectTestDB() *client {
+	client, _ := connectTestDBWithConn()
+	return client
 }
 
 // create a new game
@@ -102,6 +108,7 @@ func (c *client) createTestFullGame(ctx context.Context) *cs.FullGame {
 }
 
 func BenchmarkUpdateFullGame(b *testing.B) {
+	ctx := context.Background()
 	dbConn := dbConn{}
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
@@ -113,7 +120,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 
 	b.Run("Small Game one turn", func(b *testing.B) {
 		var err error
-		if err = dbConn.Connect(cfg); err != nil {
+		if err = dbConn.Connect(ctx, cfg); err != nil {
 			b.Fatalf("error while connecting to test database %v", err)
 		}
 		defer dbConn.Close()
@@ -155,7 +162,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 
 	b.Run("Large Game many turns and players", func(b *testing.B) {
 		var err error
-		if err = dbConn.Connect(cfg); err != nil {
+		if err = dbConn.Connect(ctx, cfg); err != nil {
 			b.Fatalf("error while connecting to test database %v", err)
 		}
 		defer dbConn.Close()
@@ -201,6 +208,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 }
 
 func BenchmarkGetFullGame(b *testing.B) {
+	ctx := context.Background()
 	dbConn := dbConn{}
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
@@ -212,7 +220,7 @@ func BenchmarkGetFullGame(b *testing.B) {
 
 	b.Run("Small Game one turn", func(b *testing.B) {
 		var err error
-		if err = dbConn.Connect(cfg); err != nil {
+		if err = dbConn.Connect(ctx, cfg); err != nil {
 			b.Fatalf("error while connecting to test database %v", err)
 		}
 		defer dbConn.Close()
@@ -257,7 +265,7 @@ func BenchmarkGetFullGame(b *testing.B) {
 
 	b.Run("Large Game many turns and players", func(b *testing.B) {
 		var err error
-		if err = dbConn.Connect(cfg); err != nil {
+		if err = dbConn.Connect(ctx, cfg); err != nil {
 			b.Fatalf("error while connecting to test database %v", err)
 		}
 		defer dbConn.Close()
