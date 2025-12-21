@@ -23,7 +23,11 @@
 		},
 		{
 			key: 'hostId',
-			title: 'Host'
+			title: 'Host',
+			sortBy: (a, b) =>
+				(usersById.get(a.hostId)?.username ?? 'unknown').localeCompare(
+					usersById.get(b.hostId)?.username ?? 'unknown'
+				)
 		},
 		{
 			key: 'createdAt',

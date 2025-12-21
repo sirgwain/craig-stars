@@ -27,7 +27,7 @@ func newGamesListCmd() *cobra.Command {
 
 			// create a new connection to the database
 			dbConn := db.NewConn()
-			if err := dbConn.Connect(cfg); err != nil {
+			if err := dbConn.Connect(ctx, cfg); err != nil {
 				return err
 			}
 			defer func() { dbConn.Close() }()

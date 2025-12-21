@@ -22,7 +22,7 @@ import (
 // A readWrite connection can be wrapped in a transaction, but be warned, this locks the
 // database until the transaction completes or fails.
 type DBConn interface {
-	Connect(config *config.Config) error
+	Connect(ctx context.Context, config *config.Config) error
 	Close() error
 
 	// create a new read client
@@ -39,6 +39,7 @@ type ReadClient interface {
 	GetGuestUsersForGame(ctx context.Context, gameID int64) ([]cs.User, error)
 	GetUser(ctx context.Context, id int64) (*cs.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*cs.User, error)
+	GetUserByDiscordID(ctx context.Context, discord_id string) (*cs.User, error)
 	GetUsers(ctx context.Context) ([]cs.User, error)
 	GetUsersForGame(ctx context.Context, gameID int64) ([]cs.User, error)
 
@@ -221,7 +222,7 @@ func (conn *dbConn) WrapInTransaction(wrap func(c Client) error) error {
 	return tx.Commit()
 }
 
-func (c *dbConn) Connect(cfg *config.Config) error {
+func (c *dbConn) Connect(ctx context.Context, cfg *config.Config) error {
 
 	c.databaseInMemory = strings.Contains(cfg.Database.Filename, ":memory:")
 	// make sure the database is up to date
@@ -236,26 +237,36 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 	}
 	loggerAdapter := newLoggerWithLogger(logger)
 
-	// dsn is like file::memory:?cache=shared, or file:data.db?_journal=WAL
-	dsn := fmt.Sprintf("file:%s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)
-	logger.Debug("Connecting to database", slog.String("dsn", dsn))
+	// dsnRead is like file::memory:?cache=shared, or file:data.db?_journal=WAL
+	dsnRead := fmt.Sprintf("file:%s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)
+	dsnWrite := fmt.Sprintf("file:%s%s", cfg.Database.Filename, cfg.Database.WriteConnectionParams)
+	slog.DebugContext(ctx, "Connecting to database", slog.String("dsnRead", dsnRead), slog.String("dsnWrite", dsnWrite))
 	connectHook := func(conn *sqlite3.SQLiteConn) error {
 		if c.databaseInMemory {
 			// no need to attach
 			return nil
 		}
-		logger.Debug("Attaching Users database", slog.String("filename", cfg.Database.UsersFilename))
-		if _, err := conn.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", cfg.Database.UsersFilename), nil); err != nil {
-			return err
-		}
+
+		// enforce foreign keys and WAL mode checkpointing
 		if _, err := conn.Exec("PRAGMA foreign_keys = ON;", nil); err != nil {
 			return err
 		}
+		if _, err := conn.Exec("PRAGMA journal_mode = WAL;", nil); err != nil {
+			return err
+		}
+		if _, err := conn.Exec("PRAGMA synchronous = NORMAL;", nil); err != nil {
+			return err
+		}
+
+		// cheap, non-blocking checkpoint attempt
+		// (won't truncate; just nudges checkpointing)
+		// ignore an error, we just want to attempt to checkpoint
+		_, _ = conn.Exec("PRAGMA wal_checkpoint(PASSIVE);", nil)
 		return nil
 	}
 
-	dbRead := sqldblogger.OpenDriver(dsn, &sqlite3.SQLiteDriver{ConnectHook: connectHook}, loggerAdapter)
-	dbWrite := sqldblogger.OpenDriver(dsn, &sqlite3.SQLiteDriver{ConnectHook: connectHook}, loggerAdapter)
+	dbRead := sqldblogger.OpenDriver(dsnRead, &sqlite3.SQLiteDriver{ConnectHook: connectHook}, loggerAdapter)
+	dbWrite := sqldblogger.OpenDriver(dsnWrite, &sqlite3.SQLiteDriver{ConnectHook: connectHook}, loggerAdapter)
 
 	c.dbRead = dbRead
 	if c.databaseInMemory {

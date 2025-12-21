@@ -21,6 +21,7 @@ Version Info:
 003 - Add random artifacts to undiscovered planets
 004 - Set BaseHab of Homeworlds to Hab. They were accidentally 0
 005 - Update MineralConcentrations on all worlds where they are low
+006 - Cleanup duplicate discord_id users
 
 */
 
@@ -31,7 +32,7 @@ type upgrade struct {
 	tx *client
 }
 
-const LATEST_VERSION = int64(5)
+const LATEST_VERSION = int64(6)
 
 func (conn *dbConn) mustUpgrade() {
 
@@ -73,6 +74,8 @@ func (tx *client) ensureUpgrade(ctx context.Context) error {
 			err = u.upgrade4(ctx)
 		case 4:
 			err = u.upgrade5(ctx)
+		case 5:
+			err = u.upgrade6(ctx)
 		}
 
 		// check for any issues upgrading
@@ -200,4 +203,132 @@ func (u *upgrade) upgrade5(ctx context.Context) error {
 		cleaner.FixMineralConc(fg)
 		return nil
 	})
+}
+
+func (u *upgrade) upgrade6(ctx context.Context) error {
+	// Find duplicate discord_id groups with dupe_id=min(id), keep_id=max(id), cnt users
+	tx := u.tx.tx
+	rows, err := tx.QueryContext(ctx, `
+	WITH dupes AS (
+		SELECT
+			discord_id,
+			MIN(id) AS dupe_id,
+			MAX(id) AS keep_id,
+			COUNT(*) AS cnt
+		FROM users
+		WHERE discord_id <> ''
+		GROUP BY discord_id
+		HAVING COUNT(*) > 1
+	)
+	SELECT
+		d.discord_id,
+		d.dupe_id,
+		du.username AS dupe_username,
+		d.keep_id,
+		ku.username AS keep_username,
+		d.cnt
+	FROM dupes d
+	JOIN users du ON du.id = d.dupe_id
+	JOIN users ku ON ku.id = d.keep_id;
+`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	type pair struct {
+		DiscordID    string
+		DupeID       int64
+		DupeUsername string
+		KeepID       int64
+		KeepUsername string
+		Count        int64
+	}
+
+	var pairs []pair
+	for rows.Next() {
+		var p pair
+		if err := rows.Scan(
+			&p.DiscordID,
+			&p.DupeID,
+			&p.DupeUsername,
+			&p.KeepID,
+			&p.KeepUsername,
+			&p.Count,
+		); err != nil {
+			return err
+		}
+		pairs = append(pairs, p)
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	// If you really only expect pairs, enforce it.
+	for _, p := range pairs {
+		if p.Count != 2 {
+			return fmt.Errorf("discord_id %s has %d users; expected 2", p.DiscordID, p.Count)
+		}
+		// Rewire references
+		if _, err := tx.ExecContext(ctx, `UPDATE races SET user_id=? WHERE user_id=?`, p.KeepID, p.DupeID); err != nil {
+			return fmt.Errorf("update races %d->%d: %w", p.DupeID, p.KeepID, err)
+		}
+		if _, err := tx.ExecContext(ctx, `UPDATE players SET user_id=? WHERE user_id=?`, p.KeepID, p.DupeID); err != nil {
+			return fmt.Errorf("update players %d->%d: %w", p.DupeID, p.KeepID, err)
+		}
+		if _, err := tx.ExecContext(ctx, `UPDATE games SET host_id=? WHERE host_id=?`, p.KeepID, p.DupeID); err != nil {
+			return fmt.Errorf("update games.host_id %d->%d: %w", p.DupeID, p.KeepID, err)
+		}
+
+		// Optionally merge some fields from the old into the new (only if empty on keep)
+		// Example: discord_webhook_url
+		_, _ = tx.ExecContext(ctx, `
+			UPDATE users
+			SET discord_webhook_url = (
+				SELECT discord_webhook_url FROM users WHERE id = ?
+			)
+			WHERE id = ?
+			  AND (discord_webhook_url IS NULL OR discord_webhook_url = '')
+			  AND (SELECT discord_webhook_url FROM users WHERE id = ?) <> '';
+		`, p.DupeID, p.KeepID, p.DupeID)
+
+		// Delete the dupe user
+		if _, err := tx.ExecContext(ctx, `DELETE FROM users WHERE id=?`, p.DupeID); err != nil {
+			return fmt.Errorf("delete dupe user %d: %w", p.DupeID, err)
+		}
+		slog.InfoContext(ctx, "De-duped user",
+			"Username", p.KeepUsername,
+			"ID", p.KeepID,
+			"DupeUsername", p.DupeUsername,
+			"DupeID", p.DupeID,
+		)
+	}
+
+	// Ensure nothing remains duplicated
+	var remaining int
+	if err := tx.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM (
+			SELECT 1
+			FROM users
+			WHERE discord_id <> ''
+			GROUP BY discord_id
+			HAVING COUNT(*) > 1
+		)
+	`).Scan(&remaining); err != nil {
+		return err
+	}
+	if remaining != 0 {
+		return fmt.Errorf("discord_id duplicates remain after merge: %d groups", remaining)
+	}
+
+	// Add partial unique index
+	if _, err := tx.ExecContext(ctx, `
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_users_discord_id_unique
+		ON users(discord_id)
+		WHERE discord_id <> '';
+	`); err != nil {
+		return fmt.Errorf("create unique index: %w", err)
+	}
+
+	return nil
 }

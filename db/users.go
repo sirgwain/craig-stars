@@ -52,6 +52,18 @@ func (c *client) GetUserByUsername(ctx context.Context, username string) (*cs.Us
 	return &user, nil
 }
 
+// get a user by id
+func (c *client) GetUserByDiscordID(ctx context.Context, discord_id string) (*cs.User, error) {
+	item, err := c.reader.GetUserByDiscordID(ctx, discord_id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	user := c.converter.ConvertUser(item)
+	return &user, nil
+}
 func (c *client) GetGuestUser(ctx context.Context, hash string) (*cs.User, error) {
 	item, err := c.reader.GetGuestUser(ctx, hash)
 	if err == sql.ErrNoRows {

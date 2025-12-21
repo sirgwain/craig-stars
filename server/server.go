@@ -70,9 +70,9 @@ const userRejected = "rejected"
 
 // Start the webserver, expose all the routes, inject all the middleware, etc.
 func Start(config configpkg.Config) error {
-
+	ctx := context.Background()
 	dbConn := db.NewConn()
-	if err := dbConn.Connect(&config); err != nil {
+	if err := dbConn.Connect(ctx, &config); err != nil {
 		return fmt.Errorf("failed to connect to database %v", err)
 	}
 
@@ -123,7 +123,12 @@ func Start(config configpkg.Config) error {
 				client := server.db.NewReadClient()
 				var user *cs.User
 				var err error
-				user, err = client.GetUserByUsername(context.Background(), claims.User.Name)
+				// if DiscordID is there, query the user by that
+				if tokenUser.discordID() != "" {
+					user, err = client.GetUserByDiscordID(context.Background(), tokenUser.discordID())
+				} else {
+					user, err = client.GetUserByUsername(context.Background(), claims.User.Name)
+				}
 				if err != nil {
 					slog.Error("failed to load user from database during claims update", slog.Any("error", err), slog.String("user", claims.User.Name))
 					claims.User.SetBoolAttr(userRejected, true)

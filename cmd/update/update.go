@@ -17,7 +17,7 @@ func UpdateHost(gameID int64, userID int64) error {
 
 	// create a new connection to the database
 	dbConn := db.NewConn()
-	if err := dbConn.Connect(cfg); err != nil {
+	if err := dbConn.Connect(ctx, cfg); err != nil {
 		return err
 	}
 	defer func() { dbConn.Close() }()
@@ -55,7 +55,7 @@ func UpdatePlayer(gameID int64, playerNum int, userID int64) error {
 
 	// create a new connection to the database
 	dbConn := db.NewConn()
-	if err := dbConn.Connect(cfg); err != nil {
+	if err := dbConn.Connect(ctx, cfg); err != nil {
 		return err
 	}
 	defer func() { dbConn.Close() }()

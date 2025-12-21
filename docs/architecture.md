@@ -153,11 +153,11 @@ erDiagram
 
 ## db
 
-`craig-stars` uses a sqlite database. sqlite is super performant and easy to manage. It can also be run in memory mode making unit testing a snap. The database is actually split into two databases, a `users.db` and a `data.db`. The thought behind this was that the games database would be reset, but users would retain their logins and their races. The database has never been reset, so this wasn't necssary after all. Oh well.
+`craig-stars` uses a sqlite database. sqlite is super performant and easy to manage. It can also be run in memory mode making unit testing a snap.
 
 Because sqlite is file based, in the future it may be updated to use a separate file per game, but for now a single db is working great.
 
-The schema for the database is embedded with `go:embed`. When the server starts up, it checks for new sql schema files and [migrates](/db/migrate.go) the database. When creating new schema files, they must be added to both the [schema/games](/db/schema/games) folder and the [schema/memory](/db/schema/memory) folder. The memory folder is used during unit tests.
+The schema for the database is embedded with `go:embed`. When the server starts up, it checks for new sql schema files and [migrates](/db/migrate.go) the database. When creating new schema files, they must be added to both the [schema/filesystem](/db/schema/filesystem) folder and the [schema/memory](/db/schema/memory) folder. The memory folder is used during unit tests.
 
 There is also an [upgrade.go](/db/upgrade.go) that handles game logic updates, for example adding AR planet internal scanners, or adding artifacts. Any changes that require data changes to existing games can be made as an upgrade step here.
 

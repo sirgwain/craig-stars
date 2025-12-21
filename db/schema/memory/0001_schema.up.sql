@@ -432,6 +432,10 @@ CREATE INDEX idx_mineral_packets_gameid ON mineral_packets (game_id);
 
 CREATE INDEX idx_mystery_traders_gameid ON mystery_traders (game_id);
 
+CREATE UNIQUE INDEX idx_users_discord_id_unique ON users (discord_id)
+WHERE
+  discord_id <> '';
+
 CREATE VIEW
   game_players AS
 SELECT
