@@ -244,3 +244,17 @@ func (s *wasmService) UpdateWaypoint(ctx context.Context, req *craig_starsv1.Upd
 		Fleet:  converter.C.ConvertCSFleet(fleet),
 	}, nil
 }
+
+func (s *wasmService) UpdateWaypointSpeed(ctx context.Context, req *craig_starsv1.UpdateWaypointSpeedRequest) (*craig_starsv1.UpdateWaypointSpeedResponse, error) {
+	fleet := converter.C.ConvertFleet(req.Fleet)
+	fleet.InjectDesigns(s.player.Designs)
+
+	// update the speed, compute the spec
+	fleet.Waypoints[req.WaypointIndex].WarpSpeed = int(req.WarpSpeed)
+	fleet.Spec = cs.ComputeFleetSpec(s.rules, s.player, fleet)
+	fleet.ComputeFuelUsage(s.player)
+
+	return &craig_starsv1.UpdateWaypointSpeedResponse{
+		Fleet: converter.C.ConvertCSFleet(fleet),
+	}, nil
+}

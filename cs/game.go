@@ -452,7 +452,7 @@ func (g *FullGame) computeSpecs() error {
 	for _, fleet := range g.Fleets {
 		player := g.getPlayer(fleet.PlayerNum)
 		fleet.Spec = ComputeFleetSpec(rules, player, fleet)
-		fleet.computeFuelUsage(player)
+		fleet.ComputeFuelUsage(player)
 
 		for _, token := range fleet.Tokens {
 			design := g.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]

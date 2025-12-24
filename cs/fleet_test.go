@@ -2144,7 +2144,7 @@ func TestFleet_GetFuelAllocated(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.fleet.computeFuelUsage(tt.args.player)
+			tt.fleet.ComputeFuelUsage(tt.args.player)
 			if got := tt.fleet.GetFuelAllocated(tt.args.player, tt.args.waypointIndex); got != tt.want {
 				t.Errorf("Fleet.GetFuelAllocated() = %v, want %v", got, tt.want)
 			}

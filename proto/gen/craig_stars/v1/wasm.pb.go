@@ -1725,6 +1725,110 @@ func (x *UpdateWaypointResponse) GetResult() UpdateWaypointResult {
 	return UpdateWaypointResult_UPDATE_WAYPOINT_RESULT_UNSPECIFIED
 }
 
+type UpdateWaypointSpeedRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Fleet         *Fleet                 `protobuf:"bytes,1,opt,name=fleet,proto3" json:"fleet,omitempty"`
+	WaypointIndex int32                  `protobuf:"varint,2,opt,name=waypoint_index,json=waypointIndex,proto3" json:"waypoint_index,omitempty"`
+	WarpSpeed     int32                  `protobuf:"varint,3,opt,name=warp_speed,json=warpSpeed,proto3" json:"warp_speed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateWaypointSpeedRequest) Reset() {
+	*x = UpdateWaypointSpeedRequest{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateWaypointSpeedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateWaypointSpeedRequest) ProtoMessage() {}
+
+func (x *UpdateWaypointSpeedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateWaypointSpeedRequest.ProtoReflect.Descriptor instead.
+func (*UpdateWaypointSpeedRequest) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *UpdateWaypointSpeedRequest) GetFleet() *Fleet {
+	if x != nil {
+		return x.Fleet
+	}
+	return nil
+}
+
+func (x *UpdateWaypointSpeedRequest) GetWaypointIndex() int32 {
+	if x != nil {
+		return x.WaypointIndex
+	}
+	return 0
+}
+
+func (x *UpdateWaypointSpeedRequest) GetWarpSpeed() int32 {
+	if x != nil {
+		return x.WarpSpeed
+	}
+	return 0
+}
+
+type UpdateWaypointSpeedResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Fleet         *Fleet                 `protobuf:"bytes,1,opt,name=fleet,proto3" json:"fleet,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateWaypointSpeedResponse) Reset() {
+	*x = UpdateWaypointSpeedResponse{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateWaypointSpeedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateWaypointSpeedResponse) ProtoMessage() {}
+
+func (x *UpdateWaypointSpeedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateWaypointSpeedResponse.ProtoReflect.Descriptor instead.
+func (*UpdateWaypointSpeedResponse) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *UpdateWaypointSpeedResponse) GetFleet() *Fleet {
+	if x != nil {
+		return x.Fleet
+	}
+	return nil
+}
+
 var File_craig_stars_v1_wasm_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_wasm_proto_rawDesc = "" +
@@ -1811,7 +1915,14 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\x10fastest_waypoint\x18\x04 \x01(\bR\x0ffastestWaypoint\"\x83\x01\n" +
 	"\x16UpdateWaypointResponse\x12+\n" +
 	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x12<\n" +
-	"\x06result\x18\x03 \x01(\x0e2$.craig_stars.v1.UpdateWaypointResultR\x06resultB\xbc\x01\n" +
+	"\x06result\x18\x03 \x01(\x0e2$.craig_stars.v1.UpdateWaypointResultR\x06result\"\x8f\x01\n" +
+	"\x1aUpdateWaypointSpeedRequest\x12+\n" +
+	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x12%\n" +
+	"\x0ewaypoint_index\x18\x02 \x01(\x05R\rwaypointIndex\x12\x1d\n" +
+	"\n" +
+	"warp_speed\x18\x03 \x01(\x05R\twarpSpeed\"J\n" +
+	"\x1bUpdateWaypointSpeedResponse\x12+\n" +
+	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleetB\xbc\x01\n" +
 	"\x12com.craig_stars.v1B\tWasmProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (
@@ -1826,7 +1937,7 @@ func file_craig_stars_v1_wasm_proto_rawDescGZIP() []byte {
 	return file_craig_stars_v1_wasm_proto_rawDescData
 }
 
-var file_craig_stars_v1_wasm_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_craig_stars_v1_wasm_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_craig_stars_v1_wasm_proto_goTypes = []any{
 	(*AddWaypointRequest)(nil),                // 0: craig_stars.v1.AddWaypointRequest
 	(*AddWaypointResponse)(nil),               // 1: craig_stars.v1.AddWaypointResponse
@@ -1866,63 +1977,67 @@ var file_craig_stars_v1_wasm_proto_goTypes = []any{
 	(*UpdatePlanetsResponse)(nil),             // 35: craig_stars.v1.UpdatePlanetsResponse
 	(*UpdateWaypointRequest)(nil),             // 36: craig_stars.v1.UpdateWaypointRequest
 	(*UpdateWaypointResponse)(nil),            // 37: craig_stars.v1.UpdateWaypointResponse
-	(*Fleet)(nil),                             // 38: craig_stars.v1.Fleet
-	(*WaypointDest)(nil),                      // 39: craig_stars.v1.WaypointDest
-	(*Race)(nil),                              // 40: craig_stars.v1.Race
-	(*Minefield)(nil),                         // 41: craig_stars.v1.Minefield
-	(*MinefieldSpec)(nil),                     // 42: craig_stars.v1.MinefieldSpec
-	(*PlayerResearchSpec)(nil),                // 43: craig_stars.v1.PlayerResearchSpec
-	(*RaceSpec)(nil),                          // 44: craig_stars.v1.RaceSpec
-	(*ShipDesign)(nil),                        // 45: craig_stars.v1.ShipDesign
-	(*ShipDesignSpec)(nil),                    // 46: craig_stars.v1.ShipDesignSpec
-	(*Planet)(nil),                            // 47: craig_stars.v1.Planet
-	(QueueItemType)(0),                        // 48: craig_stars.v1.QueueItemType
-	(*Hab)(nil),                               // 49: craig_stars.v1.Hab
-	(*TechLevel)(nil),                         // 50: craig_stars.v1.TechLevel
-	(*Cost)(nil),                              // 51: craig_stars.v1.Cost
-	(*Tech)(nil),                              // 52: craig_stars.v1.Tech
-	(*Intels)(nil),                            // 53: craig_stars.v1.Intels
-	(*Player)(nil),                            // 54: craig_stars.v1.Player
-	(UpdateWaypointResult)(0),                 // 55: craig_stars.v1.UpdateWaypointResult
+	(*UpdateWaypointSpeedRequest)(nil),        // 38: craig_stars.v1.UpdateWaypointSpeedRequest
+	(*UpdateWaypointSpeedResponse)(nil),       // 39: craig_stars.v1.UpdateWaypointSpeedResponse
+	(*Fleet)(nil),                             // 40: craig_stars.v1.Fleet
+	(*WaypointDest)(nil),                      // 41: craig_stars.v1.WaypointDest
+	(*Race)(nil),                              // 42: craig_stars.v1.Race
+	(*Minefield)(nil),                         // 43: craig_stars.v1.Minefield
+	(*MinefieldSpec)(nil),                     // 44: craig_stars.v1.MinefieldSpec
+	(*PlayerResearchSpec)(nil),                // 45: craig_stars.v1.PlayerResearchSpec
+	(*RaceSpec)(nil),                          // 46: craig_stars.v1.RaceSpec
+	(*ShipDesign)(nil),                        // 47: craig_stars.v1.ShipDesign
+	(*ShipDesignSpec)(nil),                    // 48: craig_stars.v1.ShipDesignSpec
+	(*Planet)(nil),                            // 49: craig_stars.v1.Planet
+	(QueueItemType)(0),                        // 50: craig_stars.v1.QueueItemType
+	(*Hab)(nil),                               // 51: craig_stars.v1.Hab
+	(*TechLevel)(nil),                         // 52: craig_stars.v1.TechLevel
+	(*Cost)(nil),                              // 53: craig_stars.v1.Cost
+	(*Tech)(nil),                              // 54: craig_stars.v1.Tech
+	(*Intels)(nil),                            // 55: craig_stars.v1.Intels
+	(*Player)(nil),                            // 56: craig_stars.v1.Player
+	(UpdateWaypointResult)(0),                 // 57: craig_stars.v1.UpdateWaypointResult
 }
 var file_craig_stars_v1_wasm_proto_depIdxs = []int32{
-	38, // 0: craig_stars.v1.AddWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
-	39, // 1: craig_stars.v1.AddWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
-	38, // 2: craig_stars.v1.AddWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
-	40, // 3: craig_stars.v1.CalculateRacePointsRequest.race:type_name -> craig_stars.v1.Race
-	41, // 4: craig_stars.v1.ComputeMinefieldSpecRequest.minefield:type_name -> craig_stars.v1.Minefield
-	42, // 5: craig_stars.v1.ComputeMinefieldSpecResponse.spec:type_name -> craig_stars.v1.MinefieldSpec
-	43, // 6: craig_stars.v1.ComputePlayerResearchSpecResponse.spec:type_name -> craig_stars.v1.PlayerResearchSpec
-	40, // 7: craig_stars.v1.ComputeRaceSpecRequest.race:type_name -> craig_stars.v1.Race
-	44, // 8: craig_stars.v1.ComputeRaceSpecResponse.spec:type_name -> craig_stars.v1.RaceSpec
-	45, // 9: craig_stars.v1.ComputeShipDesignSpecRequest.design:type_name -> craig_stars.v1.ShipDesign
-	46, // 10: craig_stars.v1.ComputeShipDesignSpecResponse.spec:type_name -> craig_stars.v1.ShipDesignSpec
-	47, // 11: craig_stars.v1.EstimateProductionRequest.planet:type_name -> craig_stars.v1.Planet
-	47, // 12: craig_stars.v1.EstimateProductionResponse.planet:type_name -> craig_stars.v1.Planet
-	47, // 13: craig_stars.v1.GetMaxBuildableRequest.planet:type_name -> craig_stars.v1.Planet
-	48, // 14: craig_stars.v1.GetMaxBuildableRequest.item_type:type_name -> craig_stars.v1.QueueItemType
-	40, // 15: craig_stars.v1.GetPlanetHabitabilityRequest.race:type_name -> craig_stars.v1.Race
-	49, // 16: craig_stars.v1.GetPlanetHabitabilityRequest.hab:type_name -> craig_stars.v1.Hab
-	50, // 17: craig_stars.v1.GetResearchCostRequest.tech_level:type_name -> craig_stars.v1.TechLevel
-	45, // 18: craig_stars.v1.GetStarbaseUpgradeCostRequest.design:type_name -> craig_stars.v1.ShipDesign
-	45, // 19: craig_stars.v1.GetStarbaseUpgradeCostRequest.new_design:type_name -> craig_stars.v1.ShipDesign
-	51, // 20: craig_stars.v1.GetStarbaseUpgradeCostResponse.cost:type_name -> craig_stars.v1.Cost
-	52, // 21: craig_stars.v1.GetTechCostRequest.tech:type_name -> craig_stars.v1.Tech
-	51, // 22: craig_stars.v1.GetTechCostResponse.cost:type_name -> craig_stars.v1.Cost
-	45, // 23: craig_stars.v1.SetDesignsRequest.designs:type_name -> craig_stars.v1.ShipDesign
-	53, // 24: craig_stars.v1.SetIntelsRequest.intels:type_name -> craig_stars.v1.Intels
-	54, // 25: craig_stars.v1.SetPlayerRequest.player:type_name -> craig_stars.v1.Player
-	47, // 26: craig_stars.v1.UpdatePlanetRequest.planet:type_name -> craig_stars.v1.Planet
-	47, // 27: craig_stars.v1.UpdatePlanetsRequest.planets:type_name -> craig_stars.v1.Planet
-	38, // 28: craig_stars.v1.UpdateWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
-	39, // 29: craig_stars.v1.UpdateWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
-	38, // 30: craig_stars.v1.UpdateWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
-	55, // 31: craig_stars.v1.UpdateWaypointResponse.result:type_name -> craig_stars.v1.UpdateWaypointResult
-	32, // [32:32] is the sub-list for method output_type
-	32, // [32:32] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	40, // 0: craig_stars.v1.AddWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
+	41, // 1: craig_stars.v1.AddWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
+	40, // 2: craig_stars.v1.AddWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
+	42, // 3: craig_stars.v1.CalculateRacePointsRequest.race:type_name -> craig_stars.v1.Race
+	43, // 4: craig_stars.v1.ComputeMinefieldSpecRequest.minefield:type_name -> craig_stars.v1.Minefield
+	44, // 5: craig_stars.v1.ComputeMinefieldSpecResponse.spec:type_name -> craig_stars.v1.MinefieldSpec
+	45, // 6: craig_stars.v1.ComputePlayerResearchSpecResponse.spec:type_name -> craig_stars.v1.PlayerResearchSpec
+	42, // 7: craig_stars.v1.ComputeRaceSpecRequest.race:type_name -> craig_stars.v1.Race
+	46, // 8: craig_stars.v1.ComputeRaceSpecResponse.spec:type_name -> craig_stars.v1.RaceSpec
+	47, // 9: craig_stars.v1.ComputeShipDesignSpecRequest.design:type_name -> craig_stars.v1.ShipDesign
+	48, // 10: craig_stars.v1.ComputeShipDesignSpecResponse.spec:type_name -> craig_stars.v1.ShipDesignSpec
+	49, // 11: craig_stars.v1.EstimateProductionRequest.planet:type_name -> craig_stars.v1.Planet
+	49, // 12: craig_stars.v1.EstimateProductionResponse.planet:type_name -> craig_stars.v1.Planet
+	49, // 13: craig_stars.v1.GetMaxBuildableRequest.planet:type_name -> craig_stars.v1.Planet
+	50, // 14: craig_stars.v1.GetMaxBuildableRequest.item_type:type_name -> craig_stars.v1.QueueItemType
+	42, // 15: craig_stars.v1.GetPlanetHabitabilityRequest.race:type_name -> craig_stars.v1.Race
+	51, // 16: craig_stars.v1.GetPlanetHabitabilityRequest.hab:type_name -> craig_stars.v1.Hab
+	52, // 17: craig_stars.v1.GetResearchCostRequest.tech_level:type_name -> craig_stars.v1.TechLevel
+	47, // 18: craig_stars.v1.GetStarbaseUpgradeCostRequest.design:type_name -> craig_stars.v1.ShipDesign
+	47, // 19: craig_stars.v1.GetStarbaseUpgradeCostRequest.new_design:type_name -> craig_stars.v1.ShipDesign
+	53, // 20: craig_stars.v1.GetStarbaseUpgradeCostResponse.cost:type_name -> craig_stars.v1.Cost
+	54, // 21: craig_stars.v1.GetTechCostRequest.tech:type_name -> craig_stars.v1.Tech
+	53, // 22: craig_stars.v1.GetTechCostResponse.cost:type_name -> craig_stars.v1.Cost
+	47, // 23: craig_stars.v1.SetDesignsRequest.designs:type_name -> craig_stars.v1.ShipDesign
+	55, // 24: craig_stars.v1.SetIntelsRequest.intels:type_name -> craig_stars.v1.Intels
+	56, // 25: craig_stars.v1.SetPlayerRequest.player:type_name -> craig_stars.v1.Player
+	49, // 26: craig_stars.v1.UpdatePlanetRequest.planet:type_name -> craig_stars.v1.Planet
+	49, // 27: craig_stars.v1.UpdatePlanetsRequest.planets:type_name -> craig_stars.v1.Planet
+	40, // 28: craig_stars.v1.UpdateWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
+	41, // 29: craig_stars.v1.UpdateWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
+	40, // 30: craig_stars.v1.UpdateWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
+	57, // 31: craig_stars.v1.UpdateWaypointResponse.result:type_name -> craig_stars.v1.UpdateWaypointResult
+	40, // 32: craig_stars.v1.UpdateWaypointSpeedRequest.fleet:type_name -> craig_stars.v1.Fleet
+	40, // 33: craig_stars.v1.UpdateWaypointSpeedResponse.fleet:type_name -> craig_stars.v1.Fleet
+	34, // [34:34] is the sub-list for method output_type
+	34, // [34:34] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_wasm_proto_init() }
@@ -1945,7 +2060,7 @@ func file_craig_stars_v1_wasm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_wasm_proto_rawDesc), len(file_craig_stars_v1_wasm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

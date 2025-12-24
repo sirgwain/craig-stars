@@ -670,7 +670,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 }
 
 // compute fuel usage for each waypoint
-func (f *Fleet) computeFuelUsage(player *Player) {
+func (f *Fleet) ComputeFuelUsage(player *Player) {
 	for i := range f.Waypoints {
 		wp := &f.Waypoints[i]
 		if i > 0 && wp.WarpSpeed < StargateWarpSpeed {
@@ -1473,7 +1473,7 @@ func (f *Fleet) AddWaypoint(
 	currentSelectedWaypointIndex int,
 	fastestWaypoint bool,
 ) int {
-	f.computeFuelUsage(player)
+	f.ComputeFuelUsage(player)
 	info := f.getSelectedWaypointInfo(currentSelectedWaypointIndex)
 	selectedWaypoint := info.selectedWaypoint
 	nextWaypoint := info.nextWaypoint
@@ -1573,7 +1573,7 @@ func (f *Fleet) UpdateWaypoint(
 		return UpdateWaypointResultNone
 	}
 
-	f.computeFuelUsage(player)
+	f.ComputeFuelUsage(player)
 
 	// the position is either a position or the target's position
 	position := dest.Position
