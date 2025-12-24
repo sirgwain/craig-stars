@@ -929,8 +929,8 @@ func TestFleet_gateFleet(t *testing.T) {
 	sourcePlanet.Spec = PlanetSpec{
 		PlanetStarbaseSpec: PlanetStarbaseSpec{
 			HasStargate:  true,
-			SafeRange:    100,
-			SafeHullMass: 100,
+			SafeRange:    150,
+			SafeHullMass: 150,
 			MaxRange:     500,
 			MaxHullMass:  500,
 		},
@@ -939,8 +939,8 @@ func TestFleet_gateFleet(t *testing.T) {
 	destPlanet.Spec = PlanetSpec{
 		PlanetStarbaseSpec: PlanetStarbaseSpec{
 			HasStargate:  true,
-			SafeRange:    100,
-			SafeHullMass: 100,
+			SafeRange:    150,
+			SafeHullMass: 150,
 			MaxRange:     500,
 			MaxHullMass:  500,
 		},
