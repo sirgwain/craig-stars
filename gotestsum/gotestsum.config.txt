@@ -1,4 +1,3 @@
-go, tool, gotest.tools/gotestsum,
 --format=testname,
 --format-hide-empty-pkg,
 --format-icons=text,

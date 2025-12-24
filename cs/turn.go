@@ -451,7 +451,7 @@ func (t *turnGenerator) fleetColonize() {
 				continue
 			}
 
-			if fleet.Cargo.Colonists == 0 {
+			if fleet.Cargo.Colonists <= 0 {
 				messager.fleetColonizeWithNoColonists(player, fleet)
 				wp.Task = WaypointTaskNone
 				continue
@@ -1148,7 +1148,12 @@ func (t *turnGenerator) fleetReproduce() {
 			// Calculate relative pop growth based on growth rate
 			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists*player.Race.GrowthRate) / 100)
 		}
-		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
+		if growth == 0 {
+			// no growth or death, too little pop
+			continue
+		}
+		startingColonists := fleet.Cargo.Colonists
+		fleet.Cargo.Colonists = max(0, fleet.Cargo.Colonists+growth)
 		over := max(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
 
 		planet := t.game.getOrbitingPlanet(fleet)
@@ -1169,6 +1174,8 @@ func (t *turnGenerator) fleetReproduce() {
 				slog.Int("Player", fleet.PlayerNum),
 				slog.String("Fleet", fleet.Name),
 				slog.Int("Growth", growth),
+				slog.Int("StartingColonists", startingColonists),
+				slog.Int("Colonists", fleet.Cargo.Colonists),
 				slog.Int("Pop overflow", over),
 			)
 		} else {
@@ -1176,6 +1183,8 @@ func (t *turnGenerator) fleetReproduce() {
 			t.log.Debug("fleet died off",
 				slog.Int("Player", fleet.PlayerNum),
 				slog.String("Fleet", fleet.Name),
+				slog.Int("StartingColonists", startingColonists),
+				slog.Int("Colonists", fleet.Cargo.Colonists),
 				slog.Int("Deaths", growth),
 			)
 		}
@@ -2950,7 +2959,7 @@ func (t *turnGenerator) calculateScores() {
 			}
 			// Planets: From 1 to 6 points, scoring 1 point for each 100,000 colonists
 			score.Score += int(min(float64(planet.GetPopulation()/100000), 6))
-			score.Resources += planet.Spec.ResourcesPerYear
+			score.Resources += max(0, planet.Spec.ResourcesPerYear)
 		}
 	}
 

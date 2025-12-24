@@ -298,9 +298,7 @@ func TestCargoTransfers_mergeFleetCargoTransfers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.cargoTransfers.mergeByHandTransfers(tt.args.fleet, tt.args.mergingFleets)
 			got := tt.cargoTransfers.getTransfers(tt.args.fleet.Position)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CargoTransfers.mergeFleetCargoTransfers() \ngot: \n%v\nwant: \n%v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -791,6 +789,27 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 				{Ironium: 0}, // planet cargo stays the same
 			},
 		},
+		{
+			name: "missing target during by-hand load should not leave source fleet mutated",
+			fields: fields{
+				fleets: []*Fleet{
+					testSmallFreighter(player).withNum(1).withCargo(Cargo{Colonists: 25}),
+				},
+				targets: nil,
+			},
+			transfers: []ByHandCargoTransfer{
+				{
+					// This transfer references a missing fleet
+					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 2, TargetPlayerNum: player.Num},
+					SourceFleetNum:  1,
+					Cargo:           Cargo{Colonists: -25},
+				},
+			},
+			wantSourceCargo: []Cargo{
+				// source fleet must remain unchanged when target is missing.
+				{Colonists: 25},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -927,7 +946,7 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 			},
 		},
 		{
-			name: "unload 50kTi ironium, another fleet loads 10kT, should end up with 40kT unloaded",
+			name: "unload 50kT ironium, another fleet loads 10kT, should end up with 40kT unloaded",
 			fields: fields{
 				fleets: []*Fleet{
 					testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 0}),
@@ -960,6 +979,27 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 			},
 			wantTargetCargo: []Cargo{
 				{Ironium: 40}, // should end up with 40 ironium
+			},
+		},
+		{
+			name: "missing target during by-hand unload should not leave source fleet mutated",
+			fields: fields{
+				fleets: []*Fleet{
+					testSmallFreighter(player).withNum(1).withCargo(Cargo{Colonists: 0}),
+				},
+				targets: nil,
+			},
+			transfers: []ByHandCargoTransfer{
+				{
+					// This transfer references a missing fleet
+					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 2, TargetPlayerNum: player.Num},
+					SourceFleetNum:  1,
+					Cargo:           Cargo{Colonists: 25},
+				},
+			},
+			wantSourceCargo: []Cargo{
+				// source fleet must remain unchanged when target is missing.
+				{Colonists: 0},
 			},
 		},
 	}
@@ -1001,9 +1041,7 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 				tt.want[i].dest = nil
 				got[i].dest = nil
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("cargoTransferer.unloadByHands() = %v, want %v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 
 			for i, dest := range tt.fields.targets {
 				if dest.GetCargo() != tt.wantTargetCargo[i] {

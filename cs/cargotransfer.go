@@ -220,7 +220,7 @@ func (cargoTransfers CargoTransfers) mergeByHandTransfers(fleet *Fleet, mergingF
 
 	// merge any by hand transfers these merging fleets are part of
 	updatedTransfers := make([]ByHandCargoTransfer, 0, len(transfers))
-	for i, transfer := range transfers {
+	for _, transfer := range transfers {
 
 		if transfer.SourceFleetNum == fleet.Num &&
 			slices.ContainsFunc(mergingFleets, func(f *Fleet) bool { return transfer.Targeting(f.MapObject) }) {
@@ -242,8 +242,8 @@ func (cargoTransfers CargoTransfers) mergeByHandTransfers(fleet *Fleet, mergingF
 		}
 
 		var prevTransfer *ByHandCargoTransfer
-		if i > 0 {
-			prevTransfer = &transfers[i-1]
+		if len(updatedTransfers) > 0 {
+			prevTransfer = &updatedTransfers[len(updatedTransfers)-1]
 		}
 
 		// if the previous transfer is the fleet we're merging into AND the target is the same, just merge the request
@@ -372,13 +372,6 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 				continue
 			}
 
-			// convert all by hand load transfers into "Load Amount" style WaypointTransportTasks
-			transportTasks := transfer.getLoadTasks()
-
-			// for by hand transfers, the fleet already thinks it loaded this cargo, so take away the cargo and make the
-			// fleet load it for real
-			fleet.Cargo = fleet.Cargo.Add(cargoToLoad.NegativeOnly())
-
 			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
 			if !ok || dest.Deleted() {
 				// can't load from space
@@ -389,6 +382,13 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 					slog.String("Target", transfer.MapObjectTarget.PrettyString()))
 				continue
 			}
+
+			// convert all by hand load transfers into "Load Amount" style WaypointTransportTasks
+			transportTasks := transfer.getLoadTasks()
+
+			// for by hand transfers, the fleet already thinks it loaded this cargo, so take away the cargo and make the
+			// fleet load it for real
+			fleet.Cargo = fleet.Cargo.Add(cargoToLoad.NegativeOnly())
 
 			mo := dest.GetMapObject()
 			if mo.OwnedBy(fleet.PlayerNum) && mo.Type != MapObjectTypeSalvage {
@@ -404,6 +404,11 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 				slog.String("CargoToLoad", cargoToLoad.PrettyString()))
 
 			results = append(results, t.load(fleet, dest, transportTasks)...)
+
+			// never zero cargo when we're done
+			fleet.Cargo = fleet.Cargo.PositiveOnly()
+			dest.SetCargo(dest.GetCargo().PositiveOnly())
+
 		}
 	}
 	return results
@@ -481,15 +486,9 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				t.log.Warn("fleet tried to transfer by hand to itself",
 					slog.Int("Player", player.Num),
 					slog.String("Fleet", fleet.Name))
+
 				continue
 			}
-
-			// for by hand transfers, the fleet already thinks it unloaded this cargo, so add back the cargo and make the
-			// fleet unload it for real
-			fleet.Cargo = fleet.Cargo.Add(cargoToUnload.PositiveOnly())
-
-			// convert all by hand unload transfers into "Unload Amount" style WaypointTransportTasks
-			transportTasks := transfer.getUnloadTasks()
 
 			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
 			if !ok {
@@ -499,6 +498,7 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 						slog.Int("Player", player.Num),
 						slog.String("Fleet", fleet.Name),
 						slog.String("Target", transfer.MapObjectTarget.PrettyString()))
+
 					continue
 				}
 
@@ -506,21 +506,33 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				dest = t.game.getOrCreateSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
 			}
 
+			// for by hand transfers, the fleet already thinks it unloaded this cargo, so add back the cargo and make the
+			// fleet unload it for real
+			fleet.Cargo = fleet.Cargo.Add(cargoToUnload.PositiveOnly())
+
+			// convert all by hand unload transfers into "Unload Amount" style WaypointTransportTasks
+			transportTasks := transfer.getUnloadTasks()
+
+			fleetCargoStart := fleet.Cargo
+			destCargoStart := dest.GetCargo()
+
 			mo := dest.GetMapObject()
 			if mo.OwnedBy(fleet.PlayerNum) && mo.Type != MapObjectTypeSalvage {
 				// this transfer already happened so reverse it and transfer it again for real this time
 				dest.SetCargo(dest.GetCargo().Subtract(cargoToUnload.PositiveOnly()))
 			}
 
+			transferResults := t.unload(fleet, dest, transportTasks)
 			t.log.Debug("by hand unload cargo",
 				slog.Int("Player", fleet.PlayerNum),
 				slog.String("Fleet", fleet.Name),
 				slog.String("Dest", dest.GetMapObject().Name),
-				slog.String("Cargo", fleet.Cargo.PrettyString()),
-				slog.String("DestCargo", dest.GetCargo().PrettyString()),
+				slog.String("FleetCargoStart", fleetCargoStart.PrettyString()),
+				slog.String("FleetCargoEnd", fleet.Cargo.PrettyString()),
+				slog.String("DestCargoStart", destCargoStart.PrettyString()),
+				slog.String("DestCargoEnd", dest.GetCargo().PrettyString()),
 				slog.String("CargoToUnload", cargoToUnload.PrettyString()))
 
-			transferResults := t.unload(fleet, dest, transportTasks)
 			for _, result := range transferResults {
 				if result.status != CargoTransferStatusNone {
 					// something went wrong, reset the fleet to what it was before
@@ -549,9 +561,14 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 						slog.Int("Wanted", result.wanted),
 						slog.Int("Transferred", result.transferred))
 				}
+
 			}
 
 			results = append(results, transferResults...)
+
+			// never zero cargo when we're done
+			fleet.Cargo = fleet.Cargo.PositiveOnly()
+			dest.SetCargo(dest.GetCargo().PositiveOnly())
 		}
 	}
 	return results

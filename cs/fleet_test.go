@@ -1580,7 +1580,8 @@ func TestFleet_CanRemoteMine(t *testing.T) {
 				player: NewPlayer(0, NewRace().WithPRT(AR).WithSpec(&rules)).WithNum(1),
 				planet: &Planet{MapObject: MapObject{PlayerNum: 1}},
 			},
-			want: true,
+			fields: fields{miningRate: 1},
+			want:   true,
 		},
 	}
 	for _, tt := range tests {

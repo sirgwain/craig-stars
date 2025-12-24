@@ -1,4 +1,3 @@
-go, tool, gotest.tools/gotestsum,
 --format=github-actions,
 --format-hide-empty-pkg,
 --rerun-fails=2,
