@@ -23,7 +23,7 @@ import {
 import { create, merge, type UnknownField } from '@bufbuild/protobuf';
 import { get as pluck } from 'lodash-es';
 import { type CargoType, totalCargo } from './Cargo';
-import type { CargoDest } from './CargoTransferRequest.svelte';
+import type { CargoDest } from './CargoTransferRequest';
 import { None, StargateWarpSpeed } from './Consts';
 import { type MapObjectLike, owned } from './MapObject';
 import type { CommandedPlayer } from './Player';

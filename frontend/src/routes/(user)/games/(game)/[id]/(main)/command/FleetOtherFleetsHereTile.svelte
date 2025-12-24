@@ -4,7 +4,7 @@
 		ShowSplitFleetDialogProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
+	import type { CargoDest } from '$lib/types/CargoTransferRequest';
 	import { MapObjectType, type Fleet } from '$lib/types/cs-proto';
 	import { canLoadFuelOrCargo, type CommandedFleet } from '$lib/types/Fleet';
 	import { commandable, getMapObjectName, key } from '$lib/types/MapObject';

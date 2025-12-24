@@ -2,10 +2,8 @@
 	import { clamp } from '$lib/services/Math';
 
 	type Props = {
-		value?: number;
-		capacity?: number;
-		min?: number;
-		max?: number;
+		value: number;
+		capacity: number;
 		color?: string;
 		unit?: string;
 		readonly?: boolean;
@@ -14,16 +12,15 @@
 	import { getXFromPointerEvent } from '$lib/services/Events';
 
 	let {
-		value = $bindable(0),
-		capacity = 0,
-		min = 0,
-		max = capacity,
+		value,
+		capacity,
 		color = 'ironium-bar',
 		unit = 'kT',
 		readonly = false,
-		onValueChanged: onValueChanged
+		onValueChanged
 	}: Props = $props();
 
+	const min = 0;
 	let percent = $derived(capacity > 0 ? (value / capacity) * 100 : 0);
 
 	let pointerDown = false;
@@ -98,7 +95,7 @@
 	}
 
 	function updateValue(x: number) {
-		let newValue = clamp(Math.round(x * capacity), min, max);
+		let newValue = clamp(Math.round(x * capacity), min, capacity);
 		if (newValue != value) {
 			value = onValueChanged?.(newValue) ?? newValue;
 		}

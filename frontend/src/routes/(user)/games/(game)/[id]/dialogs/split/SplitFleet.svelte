@@ -4,8 +4,13 @@
 	import type { OnCancel, OnOk, SplitFleetEvent } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { emptyCargoJson, totalCargo } from '$lib/types/Cargo';
-	import { absoluteCargoSize, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
+	import {
+		type CargoTransferRequest,
+		emptyCargoTransferRequest,
+		setCargo,
+		suggestCargoTransfer,
+		suggestFuelTransfer
+	} from '$lib/types/CargoTransferRequest';
 	import {
 		CargoSchema,
 		FleetSchema,
@@ -13,7 +18,6 @@
 		GameDBObjectSchema,
 		MapObjectSchema,
 		ShipDesignSpecSchema,
-		type CargoJson,
 		type Fleet,
 		type ShipToken
 	} from '$lib/types/cs-proto';
@@ -25,7 +29,7 @@
 	import { cloneDeep } from 'lodash-es';
 	import { onMount } from 'svelte';
 
-	const { universe } = getGameContext();
+	const { universe, player } = getGameContext();
 
 	type Props = {
 		src: CommandedFleet;
@@ -36,7 +40,7 @@
 
 	let { src, dest: destFleetProp, onOk, onCancel }: Props = $props();
 
-	let transferAmount = $state(new CargoTransferRequest());
+	let transferAmount: CargoTransferRequest = $state(emptyCargoTransferRequest());
 	let srcTokens: ShipToken[] = $state([]);
 	let destTokens: ShipToken[] = $state([]);
 	let dest = $state<Fleet>(
@@ -44,13 +48,29 @@
 			? clone(FleetSchema, { ...destFleetProp, gameDbObject: create(GameDBObjectSchema) })
 			: newEmptyDestFleet(src)
 	);
-	let srcFuelCapacity: number = $state(src.spec.shipDesignSpec?.fuelCapacity ?? 0);
-	let destFuelCapacity: number = $state(destFleetProp?.spec?.shipDesignSpec?.fuelCapacity ?? 0);
-	let srcCargoCapacity: number = $state(src.spec.shipDesignSpec?.cargoCapacity ?? 0);
-	let destCargoCapacity: number = $state(destFleetProp?.spec?.shipDesignSpec?.cargoCapacity ?? 0);
+	let srcFuelCapacity: number = $derived(getFuelCapacity($player.num, srcTokens));
+	let destFuelCapacity: number = $derived(getFuelCapacity($player.num, destTokens));
+	let srcCargoCapacity: number = $derived(getCargoCapacity($player.num, srcTokens));
+	let destCargoCapacity: number = $derived(getCargoCapacity($player.num, destTokens));
 	let quantityModifier = $state(1);
 
-	const totalFuel = src.fuel + (destFleetProp?.fuel ?? 0);
+	// get the fuel capacity of an array of tokens
+	function getFuelCapacity(playerNum: number | undefined, tokens: ShipToken[]): number {
+		return tokens.reduce(
+			(cap, t) =>
+				cap + t.quantity * ($universe.getDesign(playerNum, t.designNum)?.spec?.fuelCapacity ?? 0),
+			0
+		);
+	}
+
+	// get the fuel capacity of an array of tokens
+	function getCargoCapacity(playerNum: number | undefined, tokens: ShipToken[]): number {
+		return tokens.reduce(
+			(cap, t) =>
+				cap + t.quantity * ($universe.getDesign(playerNum, t.designNum)?.spec?.cargoCapacity ?? 0),
+			0
+		);
+	}
 
 	function split() {
 		onOk?.({ src, dest, srcTokens, destTokens, transferAmount });
@@ -69,27 +89,13 @@
 			return;
 		}
 
-		const designFuelCapacity = design.spec?.fuelCapacity ?? 0;
-		const designCargoCapacity = design.spec?.cargoCapacity ?? 0;
-
-		// determine what percent of the total fleet's fuel belongs to these tokens
-		const fuelPercent = (designFuelCapacity * quantity) / (srcFuelCapacity + destFuelCapacity);
-		transferAmount.fuel -= Math.sign(fuelPercent) * Math.floor(Math.abs(totalFuel * fuelPercent));
-
 		const srcToken = srcTokens[index];
 		const destToken = destTokens[index];
-
-		const destShipQuantity = destTokens.reduce((count, token) => count + token.quantity, 0);
 
 		srcToken.quantity -= quantity;
 		destToken.quantity += quantity;
 
 		if (quantity > 0) {
-			// update the dest fleet name to be the name of the first token moved
-			if (destShipQuantity == 0) {
-				dest.baseName = design.name;
-				dest.mapObject.name = dest.baseName;
-			}
 			// move from left to right
 			moveDamagedTokens(srcToken, destToken, quantity);
 		} else if (quantity < 0) {
@@ -100,44 +106,30 @@
 		srcTokens[index] = srcToken;
 		destTokens[index] = destToken;
 
-		srcFuelCapacity -= designFuelCapacity * quantity;
-		srcCargoCapacity -= designCargoCapacity * quantity;
-
-		destFuelCapacity += designFuelCapacity * quantity;
-		destCargoCapacity += designCargoCapacity * quantity;
-
-		// if we have more cargo on the source than space available, move some out
-		if (totalCargo(src.cargo) - absoluteCargoSize(transferAmount) > srcCargoCapacity) {
-			let overload = totalCargo(src.cargo) - absoluteCargoSize(transferAmount) - srcCargoCapacity;
-
-			let key: keyof CargoJson;
-			for (key in emptyCargoJson()) {
-				// the value of the source including what we've already transferred in/out
-				const value = src.cargo[key] + transferAmount[key];
-				if (value > 0) {
-					// we have some left to transfer
-					transferAmount[key] -= Math.min(value, overload);
-					overload -= Math.min(value, overload);
-				}
-			}
-		} else if (
-			dest.cargo &&
-			totalCargo(dest.cargo) + absoluteCargoSize(transferAmount) > destCargoCapacity
-		) {
-			let overload = totalCargo(dest.cargo) + absoluteCargoSize(transferAmount) - destCargoCapacity;
-
-			let key: keyof CargoJson;
-			for (key in emptyCargoJson()) {
-				// the value of the dest including what we've already transferred in/out
-				const value = dest.cargo[key] - transferAmount[key];
-				if (value > 0) {
-					transferAmount[key] += Math.min(value, overload);
-					overload -= Math.min(value, overload);
-				}
+		if (quantity > 0) {
+			// update the dest fleet name to be the name of the first token moved
+			const destShipQuantity = destTokens.reduce((count, token) => count + token.quantity, 0);
+			if (destShipQuantity == quantity) {
+				dest.baseName = design.name;
+				dest.mapObject.name = dest.baseName;
 			}
 		}
+
+		// force update
 		srcTokens = srcTokens;
 		destTokens = destTokens;
+
+		transferAmount.fuel = suggestFuelTransfer(
+			src.fuel,
+			srcFuelCapacity,
+			dest.fuel,
+			destFuelCapacity
+		);
+		setCargo(
+			transferAmount,
+			suggestCargoTransfer(src.cargo, srcCargoCapacity, dest.cargo ?? {}, destCargoCapacity)
+		);
+		transferAmount = transferAmount;
 	}
 
 	function newEmptyDestFleet(src: CommandedFleet): Fleet {
@@ -300,7 +292,8 @@
 				{srcFuelCapacity}
 				{destCargoCapacity}
 				{destFuelCapacity}
-				bind:transferAmount
+				{transferAmount}
+				onTransferAmountChanged={(t) => (transferAmount = t)}
 				bind:quantityModifier
 			/>
 		</div>

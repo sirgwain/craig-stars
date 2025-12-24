@@ -3,20 +3,15 @@
 	import type { Cargo } from '$lib/types/cs-proto';
 
 	type Props = {
-		value?: Cargo;
-		capacity?: number | undefined;
+		value: Cargo | undefined;
+		capacity: number | undefined;
 		canTransferCargo?: boolean;
 		onPointerDown?: (e: PointerEvent) => void | undefined;
 	};
 
-	let {
-		value = emptyCargo(),
-		capacity = 0,
-		canTransferCargo = false,
-		onPointerDown: onPointerDown
-	}: Props = $props();
+	let { value, capacity, canTransferCargo = false, onPointerDown: onPointerDown }: Props = $props();
 
-	let percent: Cargo = $derived(cargoPercent(value, capacity));
+	let percent: Cargo = $derived(cargoPercent(value ?? emptyCargo(), capacity));
 </script>
 
 <div
@@ -27,7 +22,7 @@
 	<div
 		class="font-semibold text-sm text-center align-middle text-white mix-blend-difference w-full bg-blend-difference absolute"
 	>
-		{totalCargo(value)} of {capacity}kT
+		{totalCargo(value)} of {capacity ?? 0}kT
 	</div>
 	<div
 		style={`left: 0%; width: ${percent.ironium.toFixed()}%`}

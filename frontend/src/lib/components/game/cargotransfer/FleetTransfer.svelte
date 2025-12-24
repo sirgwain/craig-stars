@@ -2,7 +2,7 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import MineralBar from '$lib/components/game/MineralBar.svelte';
 	import { add } from '$lib/types/Cargo';
-	import { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
+	import { type CargoTransferRequest, getCargo } from '$lib/types/CargoTransferRequest';
 
 	type Props = {
 		transferAmount: CargoTransferRequest;
@@ -20,10 +20,10 @@
 	};
 
 	let {
-		transferAmount = new CargoTransferRequest(),
-		cargo = new CargoTransferRequest(),
-		cargoCapacity = 0,
-		fuelCapacity = 0,
+		transferAmount,
+		cargo,
+		cargoCapacity,
+		fuelCapacity,
 		allowFuelTransfers = false,
 		allowMineralTransfers = false,
 		allowColonistTransfers = false,
@@ -50,7 +50,7 @@
 
 	<div class="sm:text-right mr-1 h-8 select-none">Cargo Hold</div>
 	<div class="my-auto">
-		<CargoBar value={add(cargo.cargo(), transferAmount.cargo())} capacity={cargoCapacity} />
+		<CargoBar value={add(getCargo(cargo), getCargo(transferAmount))} capacity={cargoCapacity} />
 	</div>
 
 	<div class="col-span-2 mt-10 sm:mt-5"></div>

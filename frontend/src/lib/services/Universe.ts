@@ -1,5 +1,5 @@
 import { battlesSortBy, getBattleRecordDetails, type BattleRecordDetails } from '$lib/types/Battle';
-import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
+import type { CargoDest } from '$lib/types/CargoTransferRequest';
 import type {
 	BattleRecord,
 	Fleet,

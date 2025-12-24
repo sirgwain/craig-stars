@@ -9,7 +9,7 @@ import { create } from '@bufbuild/protobuf';
 
 export type CargoType = ResourceType;
 
-export const totalCargo = (c: Cargo | undefined) =>
+export const totalCargo = (c: Cargo | CargoJson | undefined) =>
 	c ? (c.ironium ?? 0) + (c.boranium ?? 0) + (c.germanium ?? 0) + (c.colonists ?? 0) : 0;
 
 export const emptyCargo = (): Cargo => {

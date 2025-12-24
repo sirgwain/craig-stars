@@ -1,9 +1,12 @@
 <script lang="ts">
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
 	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
-	import { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
+	import type { CargoDest } from '$lib/types/CargoTransferRequest';
+	import {
+		type CargoTransferRequest,
+		emptyCargoTransferRequest
+	} from '$lib/types/CargoTransferRequest';
 	import type { CommandedFleet } from '$lib/types/Fleet';
-	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 
@@ -16,10 +19,10 @@
 
 	let { src, dest, onOk, onCancel }: Props = $props();
 
-	let transferAmount = $state(new CargoTransferRequest());
+	let transferAmount: CargoTransferRequest = $state(emptyCargoTransferRequest());
 
 	function reset() {
-		transferAmount = new CargoTransferRequest();
+		transferAmount = emptyCargoTransferRequest();
 		src = src;
 	}
 
@@ -55,7 +58,12 @@
 	>
 		<div class="flex-col h-full w-full">
 			<div class="flex flex-col h-full w-full">
-				<CargoTransferer {src} {dest} bind:transferAmount />
+				<CargoTransferer
+					{src}
+					{dest}
+					{transferAmount}
+					onTransferAmountChanged={(t) => (transferAmount = t)}
+				/>
 				<div class="flex justify-end pt-2">
 					<button onclick={ok} class="btn btn-primary">Ok</button>
 					<button onclick={cancel} class="btn btn-secondary">Cancel</button>
