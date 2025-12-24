@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"bufio"
 	"fmt"
 	"io"
 	"net/http"
@@ -97,9 +98,6 @@ func Test_Golang(goTestArgs string) error {
 		args = append([]string{"./..."}, args...)
 	}
 
-	// tack on whatever config vals were passed by the user.
-	configVals = append(configVals, args...)
-
 	// If $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
 	// Otherwise, check for $GH_REPO (from github CLI) before falling back to a default string.
 	pkgName := "craig-stars"
@@ -108,6 +106,20 @@ func Test_Golang(goTestArgs string) error {
 	} else if r = strings.TrimSpace(os.Getenv("GH_REPO")); r != "" {
 		pkgName = r
 	}
+
+	// discover modules from go.work
+	modDirs, err := goWorkUseDirs("go.work")
+	if err != nil {
+		return err
+	}
+
+	// filter out some modules we don't want to test (they have no tests)
+	modDirs = filterDirs(modDirs, func(d string) bool {
+		if strings.HasPrefix(filepath.ToSlash(d), "generators/") || strings.HasPrefix(d, "wasm") {
+			return false
+		}
+		return true
+	})
 
 	// merge together any temporary json files together once we're done testing.
 	// We do this now to save time - if the prior steps fail,
@@ -118,8 +130,107 @@ func Test_Golang(goTestArgs string) error {
 		}
 	}()
 
-	return sh.RunWithV(map[string]string{"PKGNAME": pkgName},
-		configVals[0], configVals[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
+	for _, dir := range modDirs {
+		// make a unique junit output per module so they don’t overwrite
+		// (replace tmp/test-results/go-test-report.xml with tmp/test-results/<module>.xml)
+		moduleSafe := strings.ReplaceAll(filepath.ToSlash(dir), "/", "_")
+		junitOut := filepath.ToSlash(
+			filepath.Join("tmp", "test-results", fmt.Sprintf("go-test-%s-report.xml", moduleSafe)),
+		)
+
+		// build args:
+		// go -C <dir> tool gotest.tools/gotestsum ... --junitfile=<unique> -- <args...>
+		cmd := []string{"go", "-C", dir, "tool", "gotest.tools/gotestsum"}
+
+		// clone config vals but patch junitfile + project name (per module if you want)
+		cfg := append([]string{}, configVals...)
+		cfg = patchFlag(cfg, "--junitfile", junitOut)
+		// keep project name stable, but you can also suffix it with module if you prefer
+		cfg = patchFlag(cfg, "--junitfile-project-name", pkgName)
+
+		full := append(cmd, cfg...)
+		full = append(full, args...)
+
+		fmt.Printf("\n==> %s\n", strings.Join(full, " "))
+		if err := sh.RunWithV(map[string]string{"PKGNAME": pkgName}, full[0], full[1:]...); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func goWorkUseDirs(path string) ([]string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("open %s: %w", path, err)
+	}
+	defer f.Close()
+
+	var dirs []string
+	s := bufio.NewScanner(f)
+
+	inUseBlock := false
+	for s.Scan() {
+		line := strings.TrimSpace(s.Text())
+		if line == "" || strings.HasPrefix(line, "//") {
+			continue
+		}
+		if strings.HasPrefix(line, "use ") && strings.HasSuffix(line, "(") {
+			inUseBlock = true
+			continue
+		}
+		if inUseBlock && line == ")" {
+			inUseBlock = false
+			continue
+		}
+		if !inUseBlock {
+			continue
+		}
+
+		// lines like: .   or  ./cs
+		dir := strings.Fields(line)[0]
+		dir = strings.TrimPrefix(dir, "./")
+		if dir == "." {
+			dir = "."
+		}
+		// only keep entries that look like module roots (contain go.mod)
+		modPath := filepath.Join(dir, "go.mod")
+		if _, err := os.Stat(modPath); err == nil {
+			dirs = append(dirs, dir)
+		}
+	}
+	if err := s.Err(); err != nil {
+		return nil, fmt.Errorf("scan %s: %w", path, err)
+	}
+	return dirs, nil
+}
+
+// patchFlag replaces `--name=value` or `--name value` with the provided value.
+// If not present, it appends `--name=value`.
+func patchFlag(args []string, name, value string) []string {
+	for i := range args {
+		a := args[i]
+		if strings.HasPrefix(a, name+"=") {
+			args[i] = name + "=" + value
+			return args
+		}
+		if a == name && i+1 < len(args) {
+			args[i+1] = value
+			return args
+		}
+	}
+	return append(args, name+"="+value)
+}
+
+func filterDirs(in []string, keep func(string) bool) []string {
+	out := make([]string, 0, len(in))
+	for _, d := range in {
+		if keep(d) {
+			out = append(out, d)
+		}
+	}
+	return out
 }
 
 // Remove all temp json files produced during tests and merge them together.

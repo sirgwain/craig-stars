@@ -76,7 +76,7 @@
 		It will be routed to {routeTarget.mapObject?.name}.
 	{/if}
 {:else if message.type === PlayerMessageType.FLEET_DIEOFF}
-	Due to the rigors of warp acceleration, {message.spec?.amount ?? 0} of your colonists on {message
+	Due to the rigors of warp acceleration, {-(message.spec?.amount ?? 0)} of your colonists on {message
 		.target?.targetName}
 	have died.
 {:else if message.type === PlayerMessageType.FLEET_EXCEEDED_SAFE_SPEED}
