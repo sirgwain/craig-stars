@@ -3,8 +3,13 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
-	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
-	import { CargoTransferRequest, negative } from '$lib/types/CargoTransferRequest.svelte';
+	import type { CargoDest } from '$lib/types/CargoTransferRequest';
+	import {
+		type CargoTransferRequest,
+		getCargo,
+		negative,
+		newCargoTransferRequest
+	} from '$lib/types/CargoTransferRequest';
 	import {
 		MapObjectTargetSchema,
 		MapObjectType,
@@ -25,37 +30,47 @@
 	type Props = {
 		src: CommandedFleet;
 		dest: CargoDest;
-		transferAmount?: CargoTransferRequest;
+		transferAmount: CargoTransferRequest;
 		showHeader?: boolean;
 		srcCargoCapacity?: number;
 		srcFuelCapacity?: number;
 		destCargoCapacity?: number;
 		destFuelCapacity?: number;
 		quantityModifier?: number;
+		onTransferAmountChanged?: (t: CargoTransferRequest) => void;
 	};
 
 	let {
 		src,
 		dest,
-		transferAmount = $bindable(new CargoTransferRequest()),
+		transferAmount: transferAmountProp,
 		showHeader = true,
-		srcCargoCapacity = src.spec.shipDesignSpec?.cargoCapacity ?? 0,
-		srcFuelCapacity = src.spec.shipDesignSpec?.fuelCapacity ?? 0,
-		destCargoCapacity = getCargoCapacity(dest),
-		destFuelCapacity = getFuelCapacity(dest),
-		quantityModifier = $bindable(1)
+		quantityModifier = $bindable(1),
+		onTransferAmountChanged,
+		...rest
 	}: Props = $props();
 
-	let srcCargo = $derived(new CargoTransferRequest(src.cargo, src.fuel));
-	let destCargo = $derived(
-		new CargoTransferRequest(
+	let srcCargoCapacity = $derived(
+		rest.srcCargoCapacity ?? src.spec.shipDesignSpec?.cargoCapacity ?? 0
+	);
+	let srcFuelCapacity = $derived(
+		rest.srcFuelCapacity ?? src.spec.shipDesignSpec?.fuelCapacity ?? 0
+	);
+	let destCargoCapacity = $derived(rest.destCargoCapacity ?? getCargoCapacity(dest));
+	let destFuelCapacity = $derived(rest.destFuelCapacity ?? getFuelCapacity(dest));
+
+	let transferAmount = $derived(transferAmountProp);
+	let srcCargo: CargoTransferRequest = $derived(newCargoTransferRequest(src.cargo, src.fuel));
+	let destCargo: CargoTransferRequest = $derived(
+		newCargoTransferRequest(
+			// we are either tranfering to a location, or jettisoning
 			dest
 				? dest.cargo
 				: $player.getByHandTransfer(
 						create(MapObjectTargetSchema, {
 							targetPosition: src.mapObject.position ?? create(VectorSchema)
 						})
-					), // we are either tranfering to a location, or jettisoning
+					),
 			dest && 'fuel' in dest ? dest.fuel : 0
 		)
 	);
@@ -95,9 +110,9 @@
 	): number {
 		// given the current transferAmount, figure out the current state of the source
 		// and destination cargos
-		const updatedSourceCargo = add(srcCargo.cargo(), transferAmount.cargo());
+		const updatedSourceCargo = add(getCargo(srcCargo), getCargo(transferAmount));
 		const sourceRemainingCapacity = srcCargoCapacity - totalCargo(updatedSourceCargo);
-		const updatedDestCargo = add(destCargo.cargo(), negativeCargo(transferAmount.cargo()));
+		const updatedDestCargo = add(getCargo(destCargo), negativeCargo(getCargo(transferAmount)));
 
 		const destRemainingCapacity = destFleet
 			? destCargoCapacity - totalCargo(updatedDestCargo)
@@ -157,6 +172,7 @@
 					srcCargo.fuel + transferAmount.fuel,
 					dest.fuel - transferAmount.fuel
 				);
+			onTransferAmountChanged?.(transferAmount);
 		}
 		return { src: srcCargo.fuel + transferAmount.fuel, dest: destCargo.fuel - transferAmount.fuel };
 	}
@@ -170,6 +186,7 @@
 				srcCargo.ironium + transferAmount.ironium,
 				destCargo.ironium - transferAmount.ironium
 			);
+		onTransferAmountChanged?.(transferAmount);
 		return {
 			src: srcCargo.ironium + transferAmount.ironium,
 			dest: destCargo.ironium - transferAmount.ironium
@@ -185,6 +202,7 @@
 				srcCargo.boranium + transferAmount.boranium,
 				destCargo.boranium - transferAmount.boranium
 			);
+		onTransferAmountChanged?.(transferAmount);
 		return {
 			src: srcCargo.boranium + transferAmount.boranium,
 			dest: destCargo.boranium - transferAmount.boranium
@@ -200,6 +218,7 @@
 				srcCargo.germanium + transferAmount.germanium,
 				destCargo.germanium - transferAmount.germanium
 			);
+		onTransferAmountChanged?.(transferAmount);
 		return {
 			src: srcCargo.germanium + transferAmount.germanium,
 			dest: destCargo.germanium - transferAmount.germanium
@@ -215,6 +234,8 @@
 				srcCargo.colonists + transferAmount.colonists,
 				destCargo.colonists - transferAmount.colonists
 			);
+
+		onTransferAmountChanged?.(transferAmount);
 		return {
 			src: srcCargo.colonists + transferAmount.colonists,
 			dest: destCargo.colonists - transferAmount.colonists
@@ -303,18 +324,18 @@
 
 				{#if dest?.mapObject?.type === MapObjectType.PLANET}
 					<PlanetTransfer
-						cargo={destCargo.cargo()}
-						transferAmount={negativeCargo(transferAmount.cargo())}
+						cargo={getCargo(destCargo)}
+						transferAmount={negativeCargo(getCargo(transferAmount))}
 					/>
 				{:else if !dest || dest.mapObject?.type === MapObjectType.SALVAGE}
 					<SalvageTransfer
-						cargo={destCargo.cargo()}
-						transferAmount={negative(transferAmount).cargo()}
+						cargo={getCargo(destCargo)}
+						transferAmount={getCargo(negative(transferAmount))}
 					/>
 				{:else if !dest || dest.mapObject?.type === MapObjectType.MINERAL_PACKET}
 					<MineralPacketTransfer
-						cargo={destCargo.cargo()}
-						transferAmount={negative(transferAmount).cargo()}
+						cargo={getCargo(destCargo)}
+						transferAmount={getCargo(negative(transferAmount))}
 					/>
 				{:else if destFleet}
 					<FleetTransfer

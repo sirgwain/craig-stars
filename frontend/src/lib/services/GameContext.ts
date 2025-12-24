@@ -1,8 +1,8 @@
 import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
 import { emptyCargo } from '$lib/types/Cargo';
-import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
-import { type CargoDest } from '$lib/types/CargoTransferRequest.svelte';
+import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest';
+import { type CargoDest } from '$lib/types/CargoTransferRequest';
 import { None } from '$lib/types/Consts';
 import {
 	CargoSchema,

@@ -17,7 +17,7 @@
 		TransportTasksDialogEvent
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { absoluteSize } from '$lib/types/CargoTransferRequest.svelte';
+	import { absoluteSize } from '$lib/types/CargoTransferRequest';
 	import { MapObjectType, type WaypointDest } from '$lib/types/cs-proto';
 	import {
 		commandable,
