@@ -6,14 +6,14 @@
 		SelectWaypointProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MapObjectType, WaypointSchema, type Waypoint } from '$lib/types/cs-proto';
-	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { StargateWarpSpeed } from '$lib/types/Consts';
+	import { MapObjectType, WaypointSchema, type Waypoint } from '$lib/types/cs-proto';
+	import { CommandedFleet } from '$lib/types/Fleet';
 	import { distance, emptyVector } from '$lib/types/Vector';
-	import CommandTile from './CommandTile.svelte';
 	import { create } from '@bufbuild/protobuf';
+	import CommandTile from './CommandTile.svelte';
 
-	const { player, universe } = getGameContext();
+	const { player, universe, cs } = getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;
@@ -31,15 +31,14 @@
 	}: Props = $props();
 
 	// local state for the ui components
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let fleet = $state(propFleet);
 	let waypoint: Waypoint = $derived(
 		fleet.fleetOrders.waypoints[selectedWaypointIndex] ?? create(WaypointSchema)
 	);
 
 	$effect(() => {
-		// update state when the props change
 		fleet = propFleet;
-		waypoint = propFleet.fleetOrders.waypoints[selectedWaypointIndex];
 	});
 
 	let previousWaypoint: Waypoint | undefined = $derived.by(() => {
@@ -105,8 +104,17 @@
 		onChangeWaypoint?.({ fleet, waypoint, waypointIndex: selectedWaypointIndex });
 	}
 
-	function onWarpSpeedDragged(speed: number) {
+	async function onWarpSpeedDragged(speed: number) {
 		waypoint.warpSpeed = speed;
+		const result = await cs.wasmService.updateWaypointSpeed({
+			fleet,
+			waypointIndex: selectedWaypointIndex,
+			warpSpeed: speed
+		});
+		if (!result.fleet) {
+			return;
+		}
+		fleet = new CommandedFleet(result.fleet);
 	}
 </script>
 

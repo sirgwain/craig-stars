@@ -167,7 +167,7 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 		fleet.Heading = (fleet.Waypoints[1].Position.Subtract(fleet.Position)).Normalized()
 	}
 
-	fleet.computeFuelUsage(player)
+	fleet.ComputeFuelUsage(player)
 
 	slog.Info("update fleet orders",
 		slog.Int64("GameID", player.GameID),
@@ -262,7 +262,7 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		slog.String("Dest", destName))
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
-	fleet.computeFuelUsage(player)
+	fleet.ComputeFuelUsage(player)
 
 	// update the spec of the dest if we own it
 	switch t := dest.(type) {
@@ -273,7 +273,7 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 	case *Fleet:
 		if t.OwnedBy(player.Num) {
 			t.Spec = ComputeFleetSpec(rules, player, t)
-			t.computeFuelUsage(player)
+			t.ComputeFuelUsage(player)
 		}
 	}
 
@@ -644,8 +644,8 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	}
 
 	// update fuel usage estimates
-	source.computeFuelUsage(player)
-	fleet.computeFuelUsage(player)
+	source.ComputeFuelUsage(player)
+	fleet.ComputeFuelUsage(player)
 
 	return &fleet, nil
 }
@@ -709,7 +709,7 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		slog.Any("Dest", dest))
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
-	fleet.computeFuelUsage(player)
+	fleet.ComputeFuelUsage(player)
 
 	return fleet, nil
 }

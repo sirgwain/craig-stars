@@ -32,6 +32,7 @@ service WasmService {
   rpc UpdatePlanet(UpdatePlanetRequest) returns (UpdatePlanetResponse) {}
   rpc UpdatePlanets(UpdatePlanetsRequest) returns (UpdatePlanetsResponse) {}
   rpc UpdateWaypoint(UpdateWaypointRequest) returns (UpdateWaypointResponse) {}
+  rpc UpdateWaypointSpeed(UpdateWaypointSpeedRequest) returns (UpdateWaypointSpeedResponse) {}
 }
 
 message AddWaypointRequest {
@@ -182,4 +183,14 @@ message UpdateWaypointRequest {
 message UpdateWaypointResponse {
   Fleet fleet = 1;
   UpdateWaypointResult result = 3;
+}
+
+message UpdateWaypointSpeedRequest {
+  Fleet fleet = 1;
+  int32 waypoint_index = 2;
+  int32 warp_speed = 3;
+}
+
+message UpdateWaypointSpeedResponse {
+  Fleet fleet = 1;
 }

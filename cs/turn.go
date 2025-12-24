@@ -159,6 +159,9 @@ func (t *turnGenerator) fleetInit() {
 		if wp0.Task == WaypointTaskTransport {
 			wp0.WaitAtWaypoint = false
 		}
+
+		// fix any bad cargo from earlier bugs
+		fleet.Cargo = fleet.Cargo.MinZero()
 	}
 }
 

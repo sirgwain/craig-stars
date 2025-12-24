@@ -74,6 +74,9 @@ const (
 	// WasmServiceUpdateWaypointProcedure is the fully-qualified name of the WasmService's
 	// UpdateWaypoint RPC.
 	WasmServiceUpdateWaypointProcedure = "/craig_stars.v1.WasmService/UpdateWaypoint"
+	// WasmServiceUpdateWaypointSpeedProcedure is the fully-qualified name of the WasmService's
+	// UpdateWaypointSpeed RPC.
+	WasmServiceUpdateWaypointSpeedProcedure = "/craig_stars.v1.WasmService/UpdateWaypointSpeed"
 )
 
 // WasmServiceHandler is the WASM service interface for the craig_stars.v1.WasmService service.
@@ -97,6 +100,7 @@ type WasmServiceHandler interface {
 	UpdatePlanet(context.Context, *v1.UpdatePlanetRequest) (*v1.UpdatePlanetResponse, error)
 	UpdatePlanets(context.Context, *v1.UpdatePlanetsRequest) (*v1.UpdatePlanetsResponse, error)
 	UpdateWaypoint(context.Context, *v1.UpdateWaypointRequest) (*v1.UpdateWaypointResponse, error)
+	UpdateWaypointSpeed(context.Context, *v1.UpdateWaypointSpeedRequest) (*v1.UpdateWaypointSpeedResponse, error)
 }
 
 // NewWasmServiceHandler builds a WASM handler from the service implementation.
@@ -213,6 +217,12 @@ func NewWasmServiceHandler(svc WasmServiceHandler) grpcwasm.Handler {
 			return respBytes, nil
 		case WasmServiceUpdateWaypointProcedure:
 			respBytes, err := grpcwasm.HandleUnary(ctx, reqBytes, &v1.UpdateWaypointRequest{}, svc.UpdateWaypoint)
+			if err != nil {
+				return nil, err
+			}
+			return respBytes, nil
+		case WasmServiceUpdateWaypointSpeedProcedure:
+			respBytes, err := grpcwasm.HandleUnary(ctx, reqBytes, &v1.UpdateWaypointSpeedRequest{}, svc.UpdateWaypointSpeed)
 			if err != nil {
 				return nil, err
 			}
