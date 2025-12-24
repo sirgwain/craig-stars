@@ -30,13 +30,6 @@ func (c *dbConn) mustMigrate(cfg *config.Config) {
 	}
 
 	c.mustMigrateDatabase(cfg.Database.Filename, gamesSchemaFiles, "schema/filesystem")
-
-	// one time merge users into games db, remove after complete
-	if err := mergeUsersIntoData(cfg.Database.Filename, cfg.Database.UsersFilename); err != nil {
-		slog.Error("merging users db into main", slog.Any("error", err))
-		os.Exit(1)
-	}
-
 }
 
 // in memory databases are different because the user and games database has to live in the same

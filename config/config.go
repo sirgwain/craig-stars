@@ -21,7 +21,6 @@ type Config struct {
 
 type databaseConfig struct {
 	Filename              string `yaml:"Filename,omitempty"`
-	UsersFilename         string `yaml:"UsersFilename,omitempty"`
 	ReadConnectionParams  string `yaml:"ReadConnectionParams"`
 	WriteConnectionParams string `yaml:"WriteConnectionParams"`
 	DebugLogging          bool   `yaml:"DebugLogging,omitempty"`
@@ -93,7 +92,6 @@ func GetConfig() *Config {
 
 		// Set default values for local dev
 		viper.SetDefault("Database.Filename", "data/data.db")
-		viper.SetDefault("Database.UsersFilename", "data/users.db")
 		viper.SetDefault("Database.ReadConnectionParams", "?_txlock=deferred")
 		viper.SetDefault("Database.WriteConnectionParams", "?_txlock=immediate&_busy_timeout=1200")
 		viper.SetDefault("Auth.DisableXSRF", true)            // default for local dev
@@ -119,7 +117,6 @@ func GetConfig() *Config {
 
 		// Config
 		slog.Debug(fmt.Sprintf("Database.Filename : %v", config.Database.Filename))
-		slog.Debug(fmt.Sprintf("Database.UsersFilename : %v", config.Database.UsersFilename))
 		slog.Debug(fmt.Sprintf("Config : %+v", config))
 		if config.GeneratedUserPassword != "" {
 			slog.Debug("GeneratedUserPassword is set")

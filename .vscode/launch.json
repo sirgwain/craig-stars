@@ -40,19 +40,6 @@
 			}
 		},
 		{
-			"name": "Debug WASM serializer generator",
-			"type": "go",
-			"request": "launch",
-			"mode": "auto",
-			"program": "${workspaceFolder}/wasm/generator/main.go",
-			"cwd": "${workspaceFolder}",
-			"args": ["./cs", "wasm/wasm/generated.go"],
-			"presentation": {
-				"group": "Golang",
-				"order": 3
-			}
-		},
-		{
 			"name": "Debug Magefile Target",
 			"type": "go",
 			"request": "launch",
