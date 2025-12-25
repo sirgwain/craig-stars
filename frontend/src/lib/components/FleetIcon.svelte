@@ -13,7 +13,8 @@
 		tokens?: ShipToken[];
 	};
 
-	let { fleet, tokens = fleet.tokens }: Props = $props();
+	let { fleet, ...rest }: Props = $props();
+	let tokens = $derived(rest.tokens ?? fleet.tokens);
 
 	const design: ShipDesign | undefined = $derived.by(() => {
 		const token = tokens.find((t) => t.quantity > 0);

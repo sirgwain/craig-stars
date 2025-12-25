@@ -32,7 +32,7 @@
 			<div class="w-12 text-tile-item-title">Fuel</div>
 			<div class="ml-1 h-full w-full">
 				<!-- TODO: add fuel transfer -->
-				<FuelBar value={fleet.fuel} capacity={fleet.spec.shipDesignSpec?.fuelCapacity} />
+				<FuelBar value={fleet.fuel} capacity={fleet.spec.shipDesignSpec?.fuelCapacity ?? 0} />
 			</div>
 		</div>
 

@@ -8,15 +8,15 @@
 	const size = 120;
 	const positions = [
 		[140, 100],
-		[200, 230], 
+		[200, 230],
 		[330, 330],
 		[100, 400],
 		[400, 220],
 		[280, 100]
 	];
-	
+
 	// Use the first 6 player colors
-	const colors = [0, 1, 2, 3, 4, 5].map(i => getColor(i));
+	const colors = [0, 1, 2, 3, 4, 5].map((i) => getColor(i));
 </script>
 
 <svg

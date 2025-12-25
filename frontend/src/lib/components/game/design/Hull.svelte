@@ -29,10 +29,12 @@
 		shipDesignSlots = $bindable([]),
 		highlightedSlots = [],
 		highlightedClass = '',
-		cargoCapacity = hull.cargoCapacity,
 		showTooltips = true,
-		onSlotClicked: onSlotClicked
+		onSlotClicked: onSlotClicked,
+		...rest
 	}: Props = $props();
+
+	let cargoCapacity = $derived(rest.cargoCapacity ?? hull.cargoCapacity);
 </script>
 
 <div

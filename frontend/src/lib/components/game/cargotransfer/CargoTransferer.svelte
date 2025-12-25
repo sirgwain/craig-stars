@@ -43,7 +43,6 @@
 	let {
 		src,
 		dest,
-		transferAmount: transferAmountProp,
 		showHeader = true,
 		quantityModifier = $bindable(1),
 		onTransferAmountChanged,
@@ -59,7 +58,7 @@
 	let destCargoCapacity = $derived(rest.destCargoCapacity ?? getCargoCapacity(dest));
 	let destFuelCapacity = $derived(rest.destFuelCapacity ?? getFuelCapacity(dest));
 
-	let transferAmount = $derived(transferAmountProp);
+	let transferAmount = $derived(rest.transferAmount);
 	let srcCargo: CargoTransferRequest = $derived(newCargoTransferRequest(src.cargo, src.fuel));
 	let destCargo: CargoTransferRequest = $derived(
 		newCargoTransferRequest(

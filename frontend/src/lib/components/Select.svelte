@@ -20,11 +20,12 @@
 	let {
 		name,
 		value = $bindable(),
-		title = startCase(name),
 		titleClass = 'label-text w-32 text-right',
 		values = [],
 		...rest
 	}: Props = $props();
+
+	let title = $derived(rest.title ?? startCase(name));
 </script>
 
 <div class="w-full flex-grow">

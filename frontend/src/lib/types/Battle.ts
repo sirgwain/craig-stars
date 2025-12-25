@@ -312,7 +312,9 @@ export function getScannerTarget(
 	if (battle.planetNum) {
 		return universe.getPlanet(battle.planetNum);
 	} else {
-		const myMapObjectsAtPosition = universe.getMyMapObjectsByPosition(battle.position ?? emptyVector());
+		const myMapObjectsAtPosition = universe.getMyMapObjectsByPosition(
+			battle.position ?? emptyVector()
+		);
 		const mapObjectsAtPosition = universe.getMapObjectsByPosition(battle.position ?? emptyVector());
 
 		if (myMapObjectsAtPosition?.length > 0) {

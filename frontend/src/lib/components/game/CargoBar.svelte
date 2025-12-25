@@ -9,7 +9,7 @@
 		onPointerDown?: (e: PointerEvent) => void | undefined;
 	};
 
-	let { value, capacity, canTransferCargo = false, onPointerDown: onPointerDown }: Props = $props();
+	let { value, capacity, canTransferCargo = false, onPointerDown }: Props = $props();
 
 	let percent: Cargo = $derived(cargoPercent(value ?? emptyCargo(), capacity));
 </script>

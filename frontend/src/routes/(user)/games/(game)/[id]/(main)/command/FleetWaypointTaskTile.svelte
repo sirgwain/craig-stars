@@ -33,21 +33,17 @@
 	} & ChangeWaypointProps &
 		ShowTransportTasksDialogEventProps;
 
-	let {
-		fleet: propFleet,
-		selectedWaypointIndex,
-		onShowTransportTasksDialog,
-		onChangeWaypoint
-	}: Props = $props();
+	let { selectedWaypointIndex, onShowTransportTasksDialog, onChangeWaypoint, ...rest }: Props =
+		$props();
 
 	// local state for the ui components
-	let fleet = $state(propFleet);
-	let waypoint = $state(propFleet.fleetOrders.waypoints[selectedWaypointIndex]);
+	// eslint-disable-next-line svelte/prefer-writable-derived
+	let fleet = $state(rest.fleet);
+	let waypoint = $derived(fleet.fleetOrders.waypoints[selectedWaypointIndex]);
 
 	$effect(() => {
 		// update state when the props change
-		fleet = propFleet;
-		waypoint = propFleet.fleetOrders.waypoints[selectedWaypointIndex];
+		fleet = rest.fleet;
 	});
 
 	let selectedWaypointTask = $derived(waypoint.task);
