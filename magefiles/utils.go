@@ -130,26 +130,38 @@ func Test_Golang(goTestArgs string) error {
 		}
 	}()
 
-	for _, dir := range modDirs {
-		// make a unique junit output per module so they don’t overwrite
-		// (replace tmp/test-results/go-test-report.xml with tmp/test-results/<module>.xml)
-		label := moduleLabel(dir)
-		junitOut := filepath.ToSlash(filepath.Join("tmp", "test-results", fmt.Sprintf("go-test-%s-report.xml", label)))
+	root, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 
-		// build args:
-		// go -C <dir> tool gotest.tools/gotestsum ... --junitfile=<unique> -- <args...>
+	resultsDir := filepath.Join(root, "tmp", "test-results")
+	if err := os.MkdirAll(resultsDir, 0o755); err != nil {
+		return err
+	}
+
+	for _, dir := range modDirs {
+		label := moduleLabel(dir) // root/cs/proto-wasm/etc.
+
+		junitOut := filepath.Join(resultsDir, fmt.Sprintf("go-test-%s-report.xml", label))
+		flakeOut := filepath.Join(resultsDir, "gotestsum-flake-report.txt")
+
 		cmd := []string{"go", "-C", dir, "tool", "gotest.tools/gotestsum"}
 
-		// clone config vals but patch junitfile + project name (per module if you want)
 		cfg := append([]string{}, configVals...)
 		cfg = patchFlag(cfg, "--junitfile", junitOut)
-		// keep project name stable, but you can also suffix it with module if you prefer
-		cfg = patchFlag(cfg, "--junitfile-project-name", pkgName)
+		if is_CI() {
+			cfg = patchFlag(cfg, "--rerun-fails-report", flakeOut)
+		}
+		cfg = patchFlag(
+			cfg,
+			"--junitfile-project-name",
+			fmt.Sprintf("%s (%s)", pkgName, label),
+		)
 
 		full := append(cmd, cfg...)
 		full = append(full, args...)
 
-		fmt.Printf("\n==> %s\n", strings.Join(full, " "))
 		if err := sh.RunWithV(map[string]string{"PKGNAME": pkgName}, full[0], full[1:]...); err != nil {
 			return err
 		}
@@ -163,11 +175,8 @@ func moduleLabel(dir string) string {
 	if d == "." {
 		return "root"
 	}
-	// keep full relative path so names don’t collide
-	s := filepath.ToSlash(d)
-	s = strings.TrimPrefix(s, "./")
-	s = strings.ReplaceAll(s, "/", "_")
-	return s
+	s := strings.TrimPrefix(filepath.ToSlash(d), "./")
+	return strings.ReplaceAll(s, "/", "_")
 }
 
 func goWorkUseDirs(path string) ([]string, error) {
