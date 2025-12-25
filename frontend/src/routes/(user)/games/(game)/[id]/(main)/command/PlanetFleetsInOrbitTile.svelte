@@ -70,7 +70,7 @@
 			<div class="ml-1 h-full w-full">
 				<FuelBar
 					value={selectedFleet.fuel}
-					capacity={selectedFleet.spec.shipDesignSpec?.fuelCapacity}
+					capacity={selectedFleet.spec.shipDesignSpec?.fuelCapacity ?? 0}
 				/>
 			</div>
 		</div>

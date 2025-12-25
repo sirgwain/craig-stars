@@ -3,22 +3,13 @@
 	import { clamp } from '$lib/services/Math';
 
 	type Props = {
-		value?: number;
-		capacity?: number;
-		min?: number;
-		max?: number;
+		value: number;
+		capacity: number;
 		editable?: boolean;
 		valuechanged?: (value: number) => void;
 	};
 
-	let {
-		value = $bindable(0),
-		capacity = 0,
-		min = 0,
-		max = capacity,
-		editable = false,
-		valuechanged
-	}: Props = $props();
+	let { value = $bindable(0), capacity, editable = false, valuechanged }: Props = $props();
 
 	let percent = $derived(capacity > 0 ? clamp((value / capacity) * 100, 0, 100) : 0);
 
@@ -41,7 +32,7 @@
 	};
 
 	const updateValue = (x: number) => {
-		const newValue = clamp(Math.round(x * capacity), min, max);
+		const newValue = clamp(Math.round(x * capacity), 0, capacity);
 		if (newValue != value) {
 			value = newValue;
 		}

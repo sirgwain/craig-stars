@@ -15,11 +15,12 @@
 		name,
 		value = $bindable(),
 		unit = undefined,
-		title = startCase(name),
 		titleClass = 'label-text w-32 text-right',
 		unitLabelClass = 'w-16',
 		...rest
 	}: Props = $props();
+
+	let title = $derived(rest.title ?? startCase(name));
 </script>
 
 <div class="w-full flex-grow">

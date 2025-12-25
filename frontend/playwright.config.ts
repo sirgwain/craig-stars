@@ -21,9 +21,9 @@ export default defineConfig({
 			use: {
 				baseURL: `http://localhost:${port}`,
 				headless: true,
-				trace: 'on-first-retry',
+				trace: 'on-first-retry'
 				// No storageState - these tests should start without authentication
-			},
+			}
 		},
 		{
 			name: 'authenticated-tests',
@@ -33,8 +33,8 @@ export default defineConfig({
 				headless: true,
 				trace: 'on-first-retry',
 				storageState: '.auth/user.json' // Use cached authentication state
-			},
-		},
+			}
+		}
 	],
 
 	reporter: [

@@ -23,22 +23,22 @@
 		DeleteWaypointProps;
 
 	let {
-		fleet: propFleet,
 		selectedWaypointIndex,
 		onSelectWaypoint,
 		onChangeWaypoint,
-		onDeleteWaypoint
+		onDeleteWaypoint,
+		...rest
 	}: Props = $props();
 
 	// local state for the ui components
 	// eslint-disable-next-line svelte/prefer-writable-derived
-	let fleet = $state(propFleet);
+	let fleet = $state(rest.fleet);
 	let waypoint: Waypoint = $derived(
 		fleet.fleetOrders.waypoints[selectedWaypointIndex] ?? create(WaypointSchema)
 	);
 
 	$effect(() => {
-		fleet = propFleet;
+		fleet = rest.fleet;
 	});
 
 	let previousWaypoint: Waypoint | undefined = $derived.by(() => {

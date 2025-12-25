@@ -211,7 +211,7 @@
 					{/if}
 				{:else if column.key == 'fuel'}
 					<div class="w-32 leading-[1rem]">
-						<FuelBar value={row.fuel} capacity={row.spec?.shipDesignSpec?.fuelCapacity} />
+						<FuelBar value={row.fuel} capacity={row.spec?.shipDesignSpec?.fuelCapacity ?? 0} />
 					</div>
 				{:else if column.key == 'cargo'}
 					<div class="w-32 leading-[1rem]">

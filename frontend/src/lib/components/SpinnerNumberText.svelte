@@ -22,7 +22,7 @@
 		unit = '',
 		begin,
 		end,
-		onChange: onChange,
+		onChange,
 		...rest
 	}: Props = $props();
 </script>

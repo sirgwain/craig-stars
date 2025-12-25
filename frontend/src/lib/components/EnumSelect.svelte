@@ -25,15 +25,18 @@
 	let {
 		name,
 		value = $bindable(),
-		title = startCase(name),
 		tooltip,
 		enumType,
 		titleClass = 'label-text w-32 text-right',
-		typeTitle = (type: TT) => startCase(enumToString(enumType, type)),
 		typeFilter = (_: TT) => true,
 		showEmpty = false,
 		...rest
 	}: Props<T> = $props();
+
+	const defaultTypeTitleFunc = (type: TT) => startCase(enumToString(enumType, type));
+
+	let title = $derived(rest.title ?? startCase(name));
+	let typeTitle = $derived(rest.typeTitle ?? defaultTypeTitleFunc);
 </script>
 
 <div class="w-full flex-grow">

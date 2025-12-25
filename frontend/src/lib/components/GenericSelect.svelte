@@ -21,13 +21,15 @@
 		name,
 		options,
 		value = $bindable(),
-		title = startCase(name),
 		tooltip,
 		titleClass = 'label-text w-32 text-right',
-		typeTitle = (type: T) => startCase(`${type}`),
 		showEmpty = false,
 		...rest
 	}: Props<T> = $props();
+
+	const defaultTypeTitleFunc = (type: T) => startCase(`${type}`);
+	let title = $derived(rest.title ?? startCase(name));
+	let typeTitle = $derived(rest.typeTitle ?? defaultTypeTitleFunc);
 </script>
 
 <div class="w-full flex-grow">

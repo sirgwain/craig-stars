@@ -4,7 +4,15 @@
 	import Starbase from '$lib/components/icons/Starbase.svelte';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet, Minefield, MineralPacket, MysteryTrader, Planet, Salvage, Wormhole } from '$lib/types/cs-proto';
+	import type {
+		Fleet,
+		Minefield,
+		MineralPacket,
+		MysteryTrader,
+		Planet,
+		Salvage,
+		Wormhole
+	} from '$lib/types/cs-proto';
 	import { MapObjectType } from '$lib/types/cs-proto';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import FleetSummary from './FleetSummary.svelte';
