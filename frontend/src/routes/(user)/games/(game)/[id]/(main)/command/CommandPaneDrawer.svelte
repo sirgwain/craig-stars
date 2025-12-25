@@ -237,12 +237,7 @@
 								/>
 							</div>
 							<div id="fleet-waypoint-task-tile">
-								<FleetWaypointTaskTile
-									fleet={$commandedFleet}
-									selectedWaypointIndex={$currentSelectedWaypointIndex}
-									{onShowTransportTasksDialog}
-									{onChangeWaypoint}
-								/>
+								<FleetWaypointTaskTile {onShowTransportTasksDialog} {onChangeWaypoint} />
 							</div>
 							<div id="fleet-other-fleets-here-tile">
 								<FleetOtherFleetsHereTile

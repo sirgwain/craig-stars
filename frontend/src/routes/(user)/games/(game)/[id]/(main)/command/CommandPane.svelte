@@ -134,8 +134,6 @@
 			{onDeleteWaypoint}
 		/>
 		<FleetWaypointTaskTile
-			fleet={$commandedFleet}
-			selectedWaypointIndex={$currentSelectedWaypointIndex}
 			{onShowTransportTasksDialog}
 			{onChangeWaypoint}
 		/>
