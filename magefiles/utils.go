@@ -133,10 +133,8 @@ func Test_Golang(goTestArgs string) error {
 	for _, dir := range modDirs {
 		// make a unique junit output per module so they don’t overwrite
 		// (replace tmp/test-results/go-test-report.xml with tmp/test-results/<module>.xml)
-		moduleSafe := strings.ReplaceAll(filepath.ToSlash(dir), "/", "_")
-		junitOut := filepath.ToSlash(
-			filepath.Join("tmp", "test-results", fmt.Sprintf("go-test-%s-report.xml", moduleSafe)),
-		)
+		label := moduleLabel(dir)
+		junitOut := filepath.ToSlash(filepath.Join("tmp", "test-results", fmt.Sprintf("go-test-%s-report.xml", label)))
 
 		// build args:
 		// go -C <dir> tool gotest.tools/gotestsum ... --junitfile=<unique> -- <args...>
@@ -158,6 +156,18 @@ func Test_Golang(goTestArgs string) error {
 	}
 
 	return nil
+}
+
+func moduleLabel(dir string) string {
+	d := filepath.Clean(dir)
+	if d == "." {
+		return "root"
+	}
+	// keep full relative path so names don’t collide
+	s := filepath.ToSlash(d)
+	s = strings.TrimPrefix(s, "./")
+	s = strings.ReplaceAll(s, "/", "_")
+	return s
 }
 
 func goWorkUseDirs(path string) ([]string, error) {
