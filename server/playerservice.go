@@ -99,7 +99,7 @@ func (s *playerService) SubmitTurn(ctx context.Context, req *connect.Request[cra
 	// update the player in the db
 	player, err := dbClient.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
-		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
+		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", gamePlayer.Num))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player: %w", err))
 	}
 
@@ -152,7 +152,7 @@ func (s *playerService) UnsubmitTurn(ctx context.Context, req *connect.Request[c
 
 	player, err := dbClient.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
-		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
+		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", gamePlayer.Num))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player: %w", err))
 	}
 
@@ -174,7 +174,7 @@ func (s *playerService) UpdatePlayerOrders(ctx context.Context, req *connect.Req
 
 	player, err := dbClient.GetPlayerForGame(ctx, game.ID, gamePlayer.Num)
 	if err != nil {
-		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
+		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", gamePlayer.Num))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player: %w", err))
 	}
 	player.Race.Spec = cs.ComputeRaceSpec(&player.Race, &game.Rules)
@@ -234,7 +234,7 @@ func (s *playerService) UpdatePlayerRelations(ctx context.Context, req *connect.
 
 	player, err := dbClient.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
-		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num))
+		slog.Error("failed to get player", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", gamePlayer.Num))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player: %w", err))
 	}
 
