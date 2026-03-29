@@ -19,7 +19,11 @@ func TestRace_GetPlanetHabitability(t *testing.T) {
 		want int
 	}{
 		{"Perfect Hab", args{Hab{50, 50, 50}, NewRace()}, 100},
-		{"Terrible Hab", args{Hab{0, 0, 0}, &Race{HabLow: Hab{99, 99, 99}, HabHigh: Hab{100, 100, 100}}}, -45},
+		{"Edge 1 Hab", args{Hab{15, 50, 50}, NewRace()}, 41},
+		{"1 Bad Hab low", args{Hab{1, 50, 50}, NewRace()}, -14},
+		{"1 Bad Hab high", args{Hab{100, 50, 50}, NewRace()}, -15},
+		{"2 Bad Hab", args{Hab{1, 100, 50}, NewRace()}, -29},
+		{"Terrible Hab", args{Hab{1, 1, 1}, &Race{HabLow: Hab{99, 99, 99}, HabHigh: Hab{100, 100, 100}}}, -45},
 		{"1% away", args{Hab{48, 50, 50}, NewRace()}, 99},
 	}
 	for _, tt := range tests {
