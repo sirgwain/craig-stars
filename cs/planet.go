@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"log/slog"
 	"math"
 )
 
@@ -698,7 +699,15 @@ func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int
 	maxPopulationFactor := 1 + player.Race.Spec.MaxPopulationOffset
 	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
 		// AR races' max pop are independent of habitability
-		// TODO: How does this round again?
+		if p.Starbase == nil {
+			// user reported a crash that was triggered by this, warn and return 0
+			// maybe the starbase was deleted or there was a colonizer+invasion issue?
+			slog.Warn("AR planet has no starbase",
+				slog.Int("Player", player.Num),
+				slog.String("Planet", p.Name),
+			)
+			return 0
+		}
 		return int(roundTo100(float64(p.Starbase.Spec.MaxPopulation)*maxPopulationFactor, math.Floor))
 	}
 
