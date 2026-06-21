@@ -26,7 +26,7 @@
 		"@connectrpc/connect-web": "^2.0.3",
 		"@floating-ui/dom": "^1.7.4",
 		"@neodrag/svelte": "^2.0.6",
-		"@playwright/test": "^1.45.3",
+		"@playwright/test": "^1.61.0",
 		"@steeze-ui/heroicons": "^2.4.0",
 		"@steeze-ui/svelte-icon": "^1.5.0",
 		"@sveltejs/adapter-static": "^3.0.8",

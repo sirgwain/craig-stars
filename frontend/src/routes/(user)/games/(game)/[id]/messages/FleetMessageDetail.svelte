@@ -260,9 +260,13 @@
 			The planet is unoccupied. Your colonists refuse to be beamed down without a colonization
 			module.
 		{:else if transfer.status === CargoTransferStatus.OWNED}
-			{message.spec?.mapObjectTarget?.targetName} is owned by another player and {message.target
-				?.targetName}
-			does not have the required technology to bypass their sensors.
+			{#if $player.race.spec.livesOnStarbases}
+				{message.spec?.mapObjectTarget?.targetName} is owned by another player and your people 
+			{:else}
+				{message.spec?.mapObjectTarget?.targetName} is owned by another player and {message.target
+					?.targetName}
+				does not have the required technology to bypass their sensors.
+			{/if}
 		{/if}
 	{:else}
 		<!-- Generic failure message -->

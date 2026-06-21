@@ -15,6 +15,11 @@ var santaMariaSlots []cs.ShipDesignSlot = []cs.ShipDesignSlot{
 	{HullComponent: cs.ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
 }
 
+var santaMariaARSlots []cs.ShipDesignSlot = []cs.ShipDesignSlot{
+	{HullComponent: cs.LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+	{HullComponent: cs.OrbitalConstructionModule.Name, HullSlotIndex: 2, Quantity: 1},
+}
+
 var teamsterSlots []cs.ShipDesignSlot = []cs.ShipDesignSlot{
 	{HullComponent: cs.LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
 	{HullComponent: cs.Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},

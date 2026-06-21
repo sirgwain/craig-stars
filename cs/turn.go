@@ -468,7 +468,7 @@ func (t *turnGenerator) fleetColonize() {
 			)
 
 			if fleet.Spec.OrbitalConstructionModule {
-				design := player.GetLatestDesign(ShipDesignPurposeStarterColony)
+				design := player.GetFirstDesign(ShipDesignPurposeStarterColony)
 				if design != nil {
 					t.buildStarbase(player, planet, design)
 				} else {
