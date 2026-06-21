@@ -112,7 +112,7 @@ jobs:
 
         # build the frontend (slow)
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
         working-directory: ./frontend
 
       - name: Run svelte-kit check
