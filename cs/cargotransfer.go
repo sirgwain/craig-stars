@@ -708,6 +708,18 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 			return 0, CargoTransferStatusDestStarbase
 		}
 
+		if player.Race.Spec.LivesOnStarbases {
+			// can't invade a planet with a starbase
+			t.log.Debug("AR fleet cannot unload colonists, it's owned",
+				slog.Int("Player", fleet.PlayerNum),
+				slog.String("Fleet", fleet.Name),
+				slog.String("Dest", dest.GetMapObject().Name),
+				slog.String("cargoType", cargoType.String()),
+				slog.Int("TransferAmount", transferAmount))
+
+			return 0, CargoTransferStatusOwned
+		}
+
 		// invasion!
 		attacker := player
 		defender := t.game.getPlayer(planet.PlayerNum)

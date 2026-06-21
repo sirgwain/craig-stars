@@ -156,6 +156,67 @@ var TestGames = []TestGame{
 		},
 	},
 	{
+		Name: "Colonizer Test AR",
+		Players: []TestPlayer{
+			{
+				Player: cs.NewPlayer(1, cs.NewRace().WithPRT(cs.AR)),
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Santa Maria",
+						Hull:  cs.ColonyShip.Name,
+						Slots: santaMariaARSlots,
+					},
+					{
+						Name:  "Long Range Scout",
+						Hull:  cs.Scout.Name,
+						Slots: longRangeScoutSlots,
+					},
+					{
+						Name:    "Starter Colony",
+						Hull:    cs.OrbitalFort.Name,
+						Purpose: cs.ShipDesignPurposeStarterColony,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						Fuel:              200,
+						BaseName:          "Santa Maria",
+						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						OrbitingPlanetNum: 1,
+					},
+					// scout for scanning
+					{
+						Fuel:              300,
+						BaseName:          "Long Range Scout",
+						Tokens:            []cs.ShipToken{{DesignNum: 2, Quantity: 1}},
+						OrbitingPlanetNum: 1,
+					},
+				},
+			},
+		},
+		Planets: []cs.Planet{
+			{
+				MapObject: cs.MapObject{
+					Name:      "Planet 1",
+					PlayerNum: 1,
+				},
+				Hab:                  cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+				MineralConcentration: cs.NewMineral(100, 100, 100),
+				Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
+				Homeworld:            true,
+			},
+			{
+				MapObject: cs.MapObject{
+					Name:     "Planet 2",
+					Position: cs.Vector{X: 0, Y: 25},
+				},
+				Hab:                  cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+				MineralConcentration: cs.NewMineral(100, 100, 100),
+				Cargo:                cs.Cargo{},
+			},
+		},
+	},
+	{
 		Name: "Kitchen Sink",
 		Players: []TestPlayer{
 			{
@@ -970,9 +1031,10 @@ func CreateTestGame(tg TestGame) *cs.FullGame {
 
 		for _, d := range p.Designs {
 			addDesign(player, &cs.ShipDesign{
-				Name:  d.Name,
-				Hull:  d.Hull,
-				Slots: d.Slots,
+				Name:    d.Name,
+				Hull:    d.Hull,
+				Purpose: d.Purpose,
+				Slots:   d.Slots,
 			})
 		}
 

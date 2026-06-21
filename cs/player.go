@@ -391,6 +391,18 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 	return latest
 }
 
+// get the first design for a purpose. Used for the starting starbase
+func (p *Player) GetFirstDesign(purpose ShipDesignPurpose) *ShipDesign {
+	for i := range p.Designs {
+		design := p.Designs[i]
+		if design.Purpose == purpose {
+			return design
+		}
+	}
+
+	return nil
+}
+
 // get the next design number to use
 func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 	num := 0
