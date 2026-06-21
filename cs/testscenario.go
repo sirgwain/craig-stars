@@ -5,6 +5,7 @@ package cs
 import (
 	"fmt"
 	"log/slog"
+	"slices"
 )
 
 // TestScenario describes a small, deterministic game fixture for tests.
@@ -220,7 +221,7 @@ func BuildScenario(scenario TestScenario) *FullGame {
 				Name:    design.Name,
 				Hull:    design.Hull,
 				Purpose: design.Purpose,
-				Slots:   design.Slots,
+				Slots:   slices.Clone(design.Slots),
 			})
 		}
 

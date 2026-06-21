@@ -207,13 +207,9 @@ func Test_turn_grow(t *testing.T) {
 func Test_turn_fleetByHandUnloads(t *testing.T) {
 
 	t.Run("jettison", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		player.Designs[0] = fleet.Tokens[0].design
-		game.Fleets[0] = fleet
+		fleet := game.Fleets[0]
 
 		fleet.Position = Vector{10, 10}
 		fleet.OrbitingPlanetNum = None
@@ -240,15 +236,11 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 	})
 
 	t.Run("unload on our planet", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		planet := game.Planets[0]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 		fleet.Tokens[0].Quantity = 2
-		game.Fleets[0] = fleet
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num
@@ -273,17 +265,14 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 	})
 
 	t.Run("unload on unowned planet", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		planet2 := NewPlanet().WithNum(2).withPosition(Vector{10, 10})
 		game.Planets = append(game.Planets, planet2)
 		player.initDefaultPlanetIntels(game.Planets)
 
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 		fleet.Tokens[0].Quantity = 2
-		game.Fleets[0] = fleet
 
 		fleet.Position = planet2.Position
 		fleet.OrbitingPlanetNum = planet2.Num
@@ -307,15 +296,11 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
 	})
 	t.Run("invade enemy planet", func(t *testing.T) {
-		game := BuildScenario(TwoPlayerScenario())
+		game := buildEnemyPlanetTeamsterScenario()
 		player := game.Players[0]
 		planet2 := game.Planets[1]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 		fleet.Tokens[0].Quantity = 20
-		game.Fleets[0] = fleet
 
 		fleet.Position = planet2.Position
 		fleet.OrbitingPlanetNum = planet2.Num
@@ -345,15 +330,10 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 func Test_turn_fleetByHandLoads(t *testing.T) {
 
 	t.Run("jettison load from another fleet's jettison", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
+		game := buildTwoTeamsterScenario()
 		player := game.Players[0]
-
-		// give the player two cargo fleets
-		fleet1 := testTeamster(player)
-		fleet2 := testTeamster(player)
-		player.Designs[0] = fleet1.Tokens[0].design
-		game.Fleets[0] = fleet1
-		game.Fleets = append(game.Fleets, fleet2)
+		fleet1 := game.Fleets[0]
+		fleet2 := game.Fleets[1]
 
 		fleet1.Position = Vector{10, 10}
 		fleet1.OrbitingPlanetNum = None
@@ -390,14 +370,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from our planet", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		planet := game.Planets[0]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num
@@ -423,16 +399,13 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from owned mineral packet", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		planet := game.Planets[0]
 		mineralPacket := newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 100}, Vector{50, 0}, planet.Num)
 		game.MineralPackets = append(game.MineralPackets, mineralPacket)
 
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = mineralPacket.Position
 
@@ -456,7 +429,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from enemy mineral packet", func(t *testing.T) {
-		game := BuildScenario(TwoPlayerScenario())
+		game := buildEnemyPlanetTeamsterScenario()
 		player1 := game.Players[0]
 		player2 := game.Players[1]
 		planet := game.Planets[0]
@@ -465,10 +438,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		discoverer := newDiscoverer(testLogger, player1)
 		discoverer.discoverMineralPacket(&rules, mineralPacket, player2, planet)
 
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player1)
-		game.Fleets[0] = fleet
-		player1.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = mineralPacket.Position
 
@@ -492,17 +462,14 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from salvage", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		salvage := newSalvage(Vector{50, 0}, 1, player.Num, Cargo{Ironium: 100})
 		game.Salvages = append(game.Salvages, salvage)
 		discoverer := newDiscoverer(testLogger, player)
 		discoverer.discoverSalvage(salvage)
 
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = salvage.Position
 
@@ -526,14 +493,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("steal from enemy planet", func(t *testing.T) {
-		game := BuildScenario(TwoPlayerScenario())
+		game := buildEnemyPlanetStealingFreighterScenario()
 		player := game.Players[0]
 		planet := game.Planets[1]
-
-		// make the player's fleet a cargo ship
-		fleet := testStealingFreighter(player, 1).withNum(1)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num
@@ -564,14 +527,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("fail load from enemy planet", func(t *testing.T) {
-		game := BuildScenario(TwoPlayerScenario())
+		game := buildEnemyPlanetTeamsterScenario()
 		player := game.Players[0]
 		planet := game.Planets[1]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num
@@ -603,15 +562,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from our fleet", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
+		game := buildTwoTeamsterScenario()
 		player := game.Players[0]
-
-		// make the player's fleets cargo ships
-		fleet1 := testTeamster(player).withNum(1)
-		fleet2 := testTeamster(player).withNum(2)
-		game.Fleets[0] = fleet1
-		game.Fleets = append(game.Fleets, fleet2)
-		player.Designs[0] = fleet1.Tokens[0].design
+		fleet1 := game.Fleets[0]
+		fleet2 := game.Fleets[1]
 
 		// give fleet2 some cargo to load
 		fleet2.Cargo = Cargo{Ironium: 50}
@@ -635,14 +589,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("steal from enemy fleet", func(t *testing.T) {
-		game := BuildScenario(TwoPlayerScenario())
+		game := buildEnemyPlanetStealingFreighterScenario()
 		player := game.Players[0]
 		planet := game.Planets[1]
-
-		// make the player's fleet a cargo ship
-		fleet := testStealingFreighter(player, 1).withNum(1)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num

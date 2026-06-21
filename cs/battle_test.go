@@ -90,42 +90,6 @@ func testJihadCruiser(player *Player) *Fleet {
 }
 
 // create a new small freighter (with cargo pod) fleet for testing
-func testTeamster(player *Player) *Fleet {
-	fleet := &Fleet{
-		MapObject: MapObject{
-			Type:      MapObjectTypeFleet,
-			PlayerNum: player.Num,
-		},
-		BaseName: "Teamster",
-		Tokens: []ShipToken{
-			{
-				Quantity:  1,
-				DesignNum: 1,
-				design: NewShipDesign(player.Num, 1).
-					WithHull(MediumFreighter.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: RhinoScanner.Name, HullSlotIndex: 3, Quantity: 1},
-					}).
-					WithSpec(&rules, player)},
-		},
-		battlePlan:        &player.BattlePlans[0],
-		OrbitingPlanetNum: None,
-		FleetOrders: FleetOrders{
-			Waypoints: []Waypoint{
-				NewPositionWaypoint(Vector{}, 5),
-			},
-		},
-	}
-
-	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-	fleet.Fuel = fleet.Spec.FuelCapacity
-	return fleet
-
-}
-
-// create a new small freighter (with cargo pod) fleet for testing
 func testPrivateer(player *Player, quantity int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
