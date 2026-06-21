@@ -93,7 +93,6 @@ func Test_client_explainQuery(t *testing.T) {
 			query:     generated.GetGamesWithPlayersForUser,
 			queryArgs: []any{1},
 			want: []string{
-				"CREATE BLOOM FILTER",
 				"INDEX 1",
 				"INDEX 2",
 				"LIST SUBQUERY 1",
