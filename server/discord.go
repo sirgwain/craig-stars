@@ -117,13 +117,11 @@ func (d *discordNotifier) SendNewTurnNotification(gameID int64) {
 			slog.Int("userAts", len(userAts)),
 		)
 		for _, hook := range webhooks {
-			d.sendWebhookMessage(ctx, hook, discord.NewWebhookMessageCreateBuilder().
-				SetContentf("**%s** has a new turn. \n%s", game.Name, strings.Join(userAts, ", ")).
-				SetEmbeds(discord.NewEmbedBuilder().
-					SetTitlef("%s - %d", game.Name, game.Year).
-					SetURLf("%s/games/%d", d.config.Auth.URL, game.ID).
-					Build()).
-				Build())
+			d.sendWebhookMessage(ctx, hook, discord.NewWebhookMessageCreate().
+				WithContentf("**%s** has a new turn. \n%s", game.Name, strings.Join(userAts, ", ")).
+				WithEmbeds(discord.NewEmbed().
+					WithTitlef("%s - %d", game.Name, game.Year).
+					WithURLf("%s/games/%d", d.config.Auth.URL, game.ID)))
 		}
 	}()
 }
@@ -138,13 +136,11 @@ func (d *discordNotifier) SendTestWebhook(ctx context.Context, webhookURL, disco
 	hook := discordWebhook{id: webhookID, token: token}
 
 	go func() {
-		d.sendWebhookMessage(ctx, hook, discord.NewWebhookMessageCreateBuilder().
-			SetContentf("This is a test of your discord webhook.\n<@%s>", discordID).
-			SetEmbeds(discord.NewEmbedBuilder().
-				SetTitlef("craig-stars").
-				SetURLf("%s", d.config.Auth.URL).
-				Build()).
-			Build())
+		d.sendWebhookMessage(ctx, hook, discord.NewWebhookMessageCreate().
+			WithContentf("This is a test of your discord webhook.\n<@%s>", discordID).
+			WithEmbeds(discord.NewEmbed().
+				WithTitlef("craig-stars").
+				WithURLf("%s", d.config.Auth.URL)))
 	}()
 
 	return nil
@@ -164,6 +160,7 @@ func (d *discordNotifier) sendWebhookMessage(_ context.Context, hook discordWebh
 	defer client.Close(context.TODO())
 
 	if _, err := client.CreateMessage(message,
+		rest.CreateWebhookMessageParams{},
 		// delay each request by 2 seconds
 		rest.WithDelay(2*time.Second),
 	); err != nil {
