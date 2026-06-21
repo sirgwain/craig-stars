@@ -96,14 +96,22 @@ export const test = base.extend<{
 		await authenticatedPage.getByRole('checkbox', { name: 'Public Player Scores' }).click();
 		await authenticatedPage.locator('[data-type="delete-button"][data-id="Player 3"]').click();
 
-		authenticatedPage.getByRole('button', { name: 'Create Game' }).click();
-		const response = await authenticatedPage.waitForResponse(
+		const createGameResponsePromise = authenticatedPage.waitForResponse(
 			(response) =>
 				response.url().includes('/api/grpc/craig_stars.v1.GameService') &&
 				response.request().method() === 'POST' &&
 				response.status() === 200
 		);
+		const universeResponsePromise = authenticatedPage.waitForResponse(
+			(resp) =>
+				resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetUniverse') &&
+				resp.request().method() === 'POST' &&
+				resp.status() === 200
+		);
 
+		await authenticatedPage.getByRole('button', { name: 'Create Game' }).click();
+
+		const response = await createGameResponsePromise;
 		const { game } = fromJson(
 			CreateGameResponseSchema,
 			(await response.json()) as CreateGameResponseJson
@@ -112,13 +120,7 @@ export const test = base.extend<{
 			throw new Error('failed to create game');
 		}
 
-		const universeResponse = await authenticatedPage.waitForResponse(
-			(resp) =>
-				resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetUniverse') &&
-				resp.request().method() === 'POST' &&
-				resp.status() === 200
-		);
-
+		const universeResponse = await universeResponsePromise;
 		const { universe } = fromJson(
 			GetUniverseResponseSchema,
 			(await universeResponse.json()) as GetUniverseResponseJson
@@ -168,14 +170,15 @@ export const test = base.extend<{
 		await authenticatedPage.getByRole('textbox', { name: 'Name', exact: true }).fill(name);
 		await authenticatedPage.getByRole('textbox', { name: 'Plural Name' }).fill(name + 's');
 
-		authenticatedPage.getByRole('button', { name: 'Save' }).click();
-		const response = await authenticatedPage.waitForResponse(
+		const responsePromise = authenticatedPage.waitForResponse(
 			(response) =>
 				response.url().includes('/api/grpc/craig_stars.v1.RaceService') &&
 				response.request().method() === 'POST' &&
 				response.status() === 200
 		);
 
+		await authenticatedPage.getByRole('button', { name: 'Save' }).click();
+		const response = await responsePromise;
 		const { race } = await response.json();
 
 		// do whatever our subtest wants
