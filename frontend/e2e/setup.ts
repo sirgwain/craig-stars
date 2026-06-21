@@ -20,6 +20,7 @@ import {
 	CreateTestGameRequestSchema,
 	CreateTestGameResponseSchema
 } from '../src/lib/protogen/craig_stars/v1/testservice_pb';
+import { GamePage } from './helpers/gamePage';
 
 let gameNum = 1;
 
@@ -67,6 +68,7 @@ export const test = base.extend<{
 	newRacePage: { page: Page; id: string; name: string };
 	testGamePage: (testGameName: string) => Promise<{
 		page: Page;
+		gamePage: GamePage;
 		gameId: bigint;
 		universe: PlayerUniverse;
 		player: Player;
@@ -283,7 +285,7 @@ export async function loadTestGamePage(page: Page, testGameName: string) {
 	await page.waitForURL(`/games/${gameId}`);
 	await expect(page.locator(`[data-type="game-view"][data-id="${gameId}"]`)).toBeVisible();
 
-	return { page, gameId, universe, player };
+	return { page, gamePage: new GamePage(page), gameId, universe, player };
 }
 
 export async function apiErrorsFailTest(page: Page) {
