@@ -1,139 +1,150 @@
-import { key } from '../src/lib/types/MapObject';
 import { expect, submitTurn, test } from './setup';
 
-test('Kitchen Sink', async ({ testGamePage }) => {
-	const { page, universe } = await testGamePage('Kitchen Sink');
+test('shows homeworld minerals and status', async ({ testGamePage }) => {
+	const { gamePage } = await testGamePage('Kitchen Sink');
 
-	const mapObjectSummary = await page.locator('[data-type="map-object-summary"]').first();
+	await test.step('verify homeworld minerals', async () => {
+		await expect(gamePage.tile('Minerals on Hand')).toBeVisible();
+		await gamePage.expectTileCargo('Minerals on Hand', {
+			ironium: '1000kT',
+			boranium: '1000kT',
+			germanium: '1000kT'
+		});
+	});
 
-	const mineralsOnHandTile = await page
-		.locator('[data-type="command-tile"][data-id="Minerals on Hand"]')
-		.first();
+	await test.step('verify homeworld status', async () => {
+		await gamePage.expectTileText('Status', ['Population 250,000', 'Defense Type SDI']);
+	});
+});
 
-	await expect(mineralsOnHandTile).toBeVisible();
+test('selects minefield from scanner context menu', async ({ testGamePage }) => {
+	const { gamePage, universe } = await testGamePage('Kitchen Sink');
 
-	await expect(mineralsOnHandTile).toContainText('Ironium 1000kT');
-	await expect(mineralsOnHandTile).toContainText('Boranium 1000kT');
-	await expect(mineralsOnHandTile).toContainText('Germanium 1000kT');
+	await test.step('select minefield from planet context menu', async () => {
+		await gamePage.rightClickMapObject(universe.planets[0]);
+		await gamePage.clickScannerContextButton('Humanoids Standard Minefield #1');
+	});
 
-	const statusTile = await page.locator('[data-type="command-tile"][data-id="Status"]').first();
+	await test.step('verify minefield summary', async () => {
+		await gamePage.expectSummaryText([
+			'Humanoids Standard Minefield #1',
+			'Location: (0, 0)',
+			'Field Type: Standard',
+			'Field Radius: 32 l.y. (1000 mines)',
+			'Maximum Safe Speed: Warp 4'
+		]);
+	});
+});
 
-	await expect(statusTile).toContainText('Population 250,000');
-	await expect(statusTile).toContainText('Defense Type SDI');
+test('shows mineral packet summary', async ({ testGamePage }) => {
+	const { gamePage, universe } = await testGamePage('Kitchen Sink');
 
-	// right click planet
-	await page
-		.locator(`[data-id="${key(universe.planets[0])}"]`)
-		.click({ force: true, button: 'right' });
-	const scannerPopup = await page.locator(`[data-id="scanner-context-popup"]`);
-	await expect(scannerPopup).toBeVisible();
+	await test.step('select mineral packet', async () => {
+		await gamePage.selectMapObject(universe.mineralPackets[0]);
+	});
 
-	// click the minefield from the context menu
-	await scannerPopup.getByRole('button', { name: 'Humanoids Standard Minefield #1' }).click();
-	await expect(mapObjectSummary).toContainText('Humanoids Standard Minefield #1');
-	await expect(mapObjectSummary).toContainText('Location: (0, 0)');
-	await expect(mapObjectSummary).toContainText('Field Type: Standard');
-	await expect(mapObjectSummary).toContainText('Field Radius: 32 l.y. (1000 mines)');
-	await expect(mapObjectSummary).toContainText('Maximum Safe Speed: Warp 4');
+	await test.step('verify mineral packet summary', async () => {
+		await gamePage.expectSummaryText([
+			'Humanoids Mineral Packet #1',
+			'Location: (50, 0)',
+			'Traveling at Warp: 5',
+			'Destination: Planet 1',
+			'ETA: 2 years',
+			'Ironium 50kT',
+			'Boranium 50kT',
+			'Germanium 50kT'
+		]);
+	});
+});
 
-	// select mineralPacket
-	await page.locator(`[data-id="${key(universe.mineralPackets[0])}"]`).click({ force: true });
+test('shows foreign fleet and planet summaries', async ({ testGamePage }) => {
+	const { gamePage, universe } = await testGamePage('Kitchen Sink');
 
-	await expect(mapObjectSummary).toContainText('Humanoids Mineral Packet #1');
-	await expect(mapObjectSummary).toContainText('Location: (50, 0)');
-	await expect(mapObjectSummary).toContainText('Traveling at Warp: 5');
-	await expect(mapObjectSummary).toContainText('Destination: Planet 1');
-	await expect(mapObjectSummary).toContainText('ETA: 2 years');
-	await expect(mapObjectSummary).toContainText('Ironium 50kT');
-	await expect(mapObjectSummary).toContainText('Boranium 50kT');
-	await expect(mapObjectSummary).toContainText('Germanium 50kT');
+	await test.step('verify foreign fleet summary', async () => {
+		const otherPlayerFleet = universe.fleets.find((fleet) => fleet.mapObject?.playerNum === 2);
+		if (!otherPlayerFleet?.mapObject) {
+			throw new Error("other player's fleet not found");
+		}
+		await gamePage.selectMapObject(otherPlayerFleet);
+		await gamePage.expectSummaryText([
+			otherPlayerFleet.mapObject.name,
+			'Ship Count: 1',
+			`Mass: ${otherPlayerFleet.spec?.shipDesignSpec?.mass}`,
+			`Warp Speed: ${otherPlayerFleet.warpSpeed}`,
+			universe.playerIntels[1].racePluralName
+		]);
+	});
 
-	// select other player's fleet
-	const otherPlayerFleet = universe.fleets.find((f) => f.mapObject?.playerNum === 2);
-	if (!otherPlayerFleet?.mapObject) {
-		throw new Error("other player's fleet not found");
-	}
-	await page.locator(`[data-id="${key(otherPlayerFleet)}"]`).click({ force: true });
-	await expect(mapObjectSummary).toContainText(otherPlayerFleet.mapObject.name);
-	await expect(mapObjectSummary).toContainText(`Ship Count: 1`);
-	await expect(mapObjectSummary).toContainText(
-		`Mass: ${otherPlayerFleet.spec?.shipDesignSpec?.mass}`
-	);
-	await expect(mapObjectSummary).toContainText(`Warp Speed: ${otherPlayerFleet.warpSpeed}`);
-	await expect(mapObjectSummary).toContainText(universe.playerIntels[1].racePluralName);
+	await test.step('verify foreign planet summary', async () => {
+		const otherPlayerPlanet = universe.planets.find((planet) => planet.mapObject?.playerNum === 2);
+		if (!otherPlayerPlanet?.mapObject) {
+			throw new Error("other player's planet not found");
+		}
+		await gamePage.selectMapObject(otherPlayerPlanet);
+		await gamePage.expectSummaryText([
+			'Report is current',
+			universe.playerIntels[1].racePluralName
+		]);
+	});
+});
 
-	// select other player's planet
-	const otherPlayerPlanet = universe.planets.find((f) => f.mapObject?.playerNum === 2);
-	if (!otherPlayerPlanet?.mapObject) {
-		throw new Error("other player's planet not found");
-	}
-	await page.locator(`[data-id="${key(otherPlayerPlanet)}"]`).click({ force: true });
-	await expect(mapObjectSummary).toContainText('Report is current');
-	await expect(mapObjectSummary).toContainText(universe.playerIntels[1].racePluralName);
+test('shows mystery trader summary', async ({ testGamePage }) => {
+	const { gamePage, universe } = await testGamePage('Kitchen Sink');
 
-	// zoom out so we can see the mystery trader
-	await page.keyboard.press('-');
-	await page.keyboard.press('-');
-	await page.keyboard.press('-');
+	await test.step('select mystery trader', async () => {
+		await gamePage.zoomOut(3);
 
-	// select mystery trader
-	const mysteryTrader = universe.mysteryTraders[0];
-	if (!mysteryTrader?.mapObject) {
-		throw new Error('mysteryTrader not found');
-	}
-	await page.locator(`[data-id="${key(mysteryTrader)}"]`).click({ force: true });
-	await expect(mapObjectSummary).toContainText(
-		'The trader requests interested parties to send it a feet with at least 5000kT of minerals on board to be absorbed into the trader. It offers technological assistance in return. Trader is traveling at Warp 7.'
-	);
+		const mysteryTrader = universe.mysteryTraders[0];
+		if (!mysteryTrader?.mapObject) {
+			throw new Error('mysteryTrader not found');
+		}
+		await gamePage.selectMapObject(mysteryTrader);
+	});
 
-	// select wormhole
+	await test.step('verify mystery trader summary', async () => {
+		await gamePage.expectSummaryText([
+			'The trader requests interested parties to send it a feet with at least 5000kT of minerals on board to be absorbed into the trader. It offers technological assistance in return. Trader is traveling at Warp 7.'
+		]);
+	});
+});
+
+test('discovers paired wormhole after scout travel', async ({ testGamePage }) => {
+	const { page, gamePage, universe } = await testGamePage('Kitchen Sink');
+
 	const wormhole1 = universe.wormholes[0];
 	if (!wormhole1?.mapObject) {
 		throw new Error('wormhole not found');
 	}
-	await page.locator(`[data-id="${key(wormhole1)}"]`).click({ force: true });
-	await expect(mapObjectSummary).toContainText('Location: (10, 10)');
-	await expect(mapObjectSummary).toContainText('Stability: Rock Solid');
-	await expect(mapObjectSummary).toContainText('Destination: unknown');
+	await test.step('verify first wormhole is undiscovered', async () => {
+		await gamePage.selectMapObject(wormhole1);
+		await gamePage.expectSummaryText([
+			'Location: (10, 10)',
+			'Stability: Rock Solid',
+			'Destination: unknown'
+		]);
+	});
 
-	const fleetsInOrbitTile = await page
-		.locator('[data-type="command-tile"][data-id="Fleets In Orbit"]')
-		.first();
+	await test.step('send scout through wormhole', async () => {
+		await expect(gamePage.tile('Fleets In Orbit')).toBeVisible();
+		await gamePage.clickTileButton('Fleets In Orbit', 'Goto');
+		await gamePage.selectMapObject(wormhole1, { modifiers: ['Meta'] });
+	});
 
-	// goto the scout
-	await expect(fleetsInOrbitTile).toBeVisible();
-	await fleetsInOrbitTile.getByRole('button', { name: 'Goto' }).click();
+	const { universe: updatedUniverse } = await test.step('submit turn', async () =>
+		submitTurn(page));
 
-	// send the scout to the wormhole
-	await page.locator(`[data-id="${key(wormhole1)}"]`).click({ force: true, modifiers: ['Meta'] });
+	await test.step('verify paired wormhole is discovered', async () => {
+		expect(updatedUniverse?.wormholes.length).toBe(2);
 
-	const { universe: updatedUniverse } = await submitTurn(page);
+		await gamePage.zoomOut(3);
+		await gamePage.selectMapObject(updatedUniverse?.fleets[0], { clickCount: 2 });
+		await expect(gamePage.tile('Fleet Waypoints')).toContainText('Space: (60, 60)');
 
-	// should know about the second wormhole
-	expect(updatedUniverse?.wormholes.length).toBe(2);
-
-	// zoom out so we can see the wormhole
-	await page.keyboard.press('-');
-	await page.keyboard.press('-');
-	await page.keyboard.press('-');
-
-	// double click the fleet
-	await page
-		.locator(`[data-id="${key(updatedUniverse?.fleets[0])}"]`)
-		.click({ force: true, clickCount: 2 });
-
-	// fleet should be at wormhole2 location
-	const fleetWaypoints = await page
-		.locator('[data-type="command-tile"][data-id="Fleet Waypoints"]')
-		.first();
-
-	await expect(fleetWaypoints).toContainText('Space: (60, 60)');
-
-	// select wormhole2
-	const wormhole2 = updatedUniverse?.wormholes[1];
-	if (!wormhole2?.mapObject) {
-		throw new Error('wormhole2 not found');
-	}
-	await page.locator(`[data-id="${key(wormhole2)}"]`).click({ force: true });
-	await expect(mapObjectSummary).not.toContainText('Destination: unknown');
+		const wormhole2 = updatedUniverse?.wormholes[1];
+		if (!wormhole2?.mapObject) {
+			throw new Error('wormhole2 not found');
+		}
+		await gamePage.selectMapObject(wormhole2);
+		await gamePage.expectSummaryNotText('Destination: unknown');
+	});
 });

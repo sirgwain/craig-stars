@@ -177,7 +177,7 @@ func Test_updateFleetTargets(t *testing.T) {
 	}
 	for _, tt := range tests {
 
-		game := createSingleUnitGame()
+		game := BuildScenario(SingleUnitScenario())
 		player := game.Players[0]
 		fleet := game.Fleets[0]
 
@@ -213,7 +213,7 @@ func Test_updateFleetTargets(t *testing.T) {
 }
 
 func Test_scanPlanetWithStargates(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := BuildScenario(TwoPlayerScenario())
 	// setup a player1 and a  planet with a starbase with a scanner
 	player1 := game.Players[0]
 	planet1 := game.Planets[0]

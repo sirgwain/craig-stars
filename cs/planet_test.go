@@ -10,20 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestPlayerPlanet() (player *Player, planet *Planet) {
-	player = NewPlayer(1, NewRace()).WithNum(1)
-	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
-	planet = &Planet{}
-	planet.PlayerNum = player.Num
-	planet.BaseHab = player.Race.HabCenter()
-	planet.Hab = planet.BaseHab
-
-	player.Spec = ComputePlayerSpec(player, &rules)
-	planet.Spec = ComputePlanetSpec(&rules, player, planet)
-
-	return player, planet
-}
-
 func testSpaceStation(player *Player, planet *Planet) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{

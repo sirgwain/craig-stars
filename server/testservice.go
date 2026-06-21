@@ -26,7 +26,7 @@ func (s *testService) CreateTestGame(ctx context.Context, req *connect.Request[c
 	user := contextUserSession(ctx)
 
 	// Find the test game by test game name
-	var testGame *testgames.TestGame
+	var testGame *cs.TestScenario
 	for _, tg := range testgames.TestGames {
 		if tg.Name == req.Msg.TestGameName {
 			testGame = &tg
@@ -40,8 +40,7 @@ func (s *testService) CreateTestGame(ctx context.Context, req *connect.Request[c
 
 	var game *cs.GameWithPlayers
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		// Create the test game using the exported function
-		fullGame := testgames.CreateTestGame(*testGame)
+		fullGame := cs.BuildScenario(*testGame)
 
 		// Set the custom game name and host user ID
 		fullGame.Name = req.Msg.GameName
@@ -63,12 +62,6 @@ func (s *testService) CreateTestGame(ctx context.Context, req *connect.Request[c
 			for _, design := range player.Designs {
 				design.GameID = fullGame.ID
 			}
-		}
-
-		// Do all new game gen stuff required
-		ug := cs.NewUniverseGenerator(fullGame.Game, fullGame.Players)
-		if err := ug.GenerateWithUniverse(fullGame.Universe); err != nil {
-			return err
 		}
 
 		// Save to db

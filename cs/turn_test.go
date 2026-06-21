@@ -38,129 +38,6 @@ func (m MockRand) Int63() int64 {
 	return m.int63Result
 }
 
-func createSingleUnitGame() *FullGame {
-	client := NewGamer()
-	game := client.CreateGame(1, *NewGameSettings())
-	game.RandomEvents = false // don't allow random events in tests unless configured
-	game.Area, _ = game.Rules.GetArea(game.Size)
-	game.Rules.ResetSeed(0) // keep the same seed for tests
-	player := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
-	player.Num = 1
-	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}} // friends with themselves
-	player.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player})
-
-	planet := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player.Num},
-		Hab:       Hab{50, 50, 50},
-		BaseHab:   Hab{50, 50, 50},
-		Cargo:     Cargo{Colonists: 2500},
-	}
-	planet.Spec = ComputePlanetSpec(&game.Rules, player, planet)
-
-	// setup initial planet intels for this planet
-	player.initDefaultPlanetIntels([]*Planet{planet})
-
-	fleet := testLongRangeScout(player)
-	fleet.OrbitingPlanetNum = planet.Num
-	fleet.Waypoints = []Waypoint{
-		NewPlanetWaypoint(Vector{}, 1, "Planet 1", 5),
-	}
-	player.Designs = []*ShipDesign{
-		fleet.Tokens[0].design,
-	}
-
-	players := []*Player{player}
-
-	universe := NewUniverse(testLogger, &game.Rules)
-	universe.Planets = append(universe.Planets, planet)
-	universe.Fleets = append(universe.Fleets, fleet)
-
-	universe.buildMaps(players)
-
-	return &FullGame{
-		Game:      game,
-		Universe:  &universe,
-		TechStore: &StaticTechStore,
-		Players:   players,
-	}
-
-}
-
-func createTwoPlayerGame() *FullGame {
-	client := NewGamer()
-	game := client.CreateGame(1, *NewGameSettings())
-	game.RandomEvents = false // don't allow random events in tests unless configured
-	game.Area, _ = game.Rules.GetArea(game.Size)
-	game.Rules.ResetSeed(0) // keep the same seed for tests
-	player1 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
-	player1.Num = 1
-	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-
-	player2 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
-	player2.Num = 2
-	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-
-	player1.Intels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2})
-	player2.Intels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player2, player2})
-
-	// create homeworlds
-	planet1 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player1.Num},
-		Hab:       Hab{50, 50, 50},
-		BaseHab:   Hab{50, 50, 50},
-		Cargo:     Cargo{Colonists: 2500},
-	}
-	planet1.Spec = ComputePlanetSpec(&game.Rules, player1, planet1)
-
-	planet2 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: player2.Num, Position: Vector{100, 0}},
-		Hab:       Hab{50, 50, 50},
-		BaseHab:   Hab{50, 50, 50},
-		Cargo:     Cargo{Colonists: 2500},
-	}
-	planet2.Spec = ComputePlanetSpec(&game.Rules, player2, planet2)
-
-	// setup initial planet intels for this planet
-	player1.initDefaultPlanetIntels([]*Planet{planet1, planet2})
-	player2.initDefaultPlanetIntels([]*Planet{planet1, planet2})
-
-	// give each player a scout on their homeworld
-	fleet1 := testLongRangeScout(player1)
-	fleet1.OrbitingPlanetNum = planet1.Num
-	fleet1.Waypoints = []Waypoint{
-		NewPlanetWaypoint(Vector{}, 1, "Planet 1", 5),
-	}
-	player1.Designs = []*ShipDesign{
-		fleet1.Tokens[0].design,
-	}
-
-	// give each player a scout on their homeworld
-	fleet2 := testLongRangeScout(player2)
-	fleet2.OrbitingPlanetNum = planet2.Num
-	fleet2.Waypoints = []Waypoint{
-		NewPlanetWaypoint(Vector{}, 2, "Planet 2", 5),
-	}
-	player2.Designs = []*ShipDesign{
-		fleet2.Tokens[0].design,
-	}
-
-	players := []*Player{player1, player2}
-
-	universe := NewUniverse(testLogger, &game.Rules)
-	universe.Planets = append(universe.Planets, planet1, planet2)
-	universe.Fleets = append(universe.Fleets, fleet1, fleet2)
-
-	universe.buildMaps(players)
-
-	return &FullGame{
-		Game:      game,
-		Universe:  &universe,
-		TechStore: &StaticTechStore,
-		Players:   players,
-	}
-
-}
-
 func Test_generateTurn(t *testing.T) {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
@@ -278,7 +155,7 @@ func Test_generateTurns(t *testing.T) {
 }
 
 func Test_turn_grow(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 
 	player := game.Players[0]
 
@@ -330,13 +207,9 @@ func Test_turn_grow(t *testing.T) {
 func Test_turn_fleetByHandUnloads(t *testing.T) {
 
 	t.Run("jettison", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		player.Designs[0] = fleet.Tokens[0].design
-		game.Fleets[0] = fleet
+		fleet := game.Fleets[0]
 
 		fleet.Position = Vector{10, 10}
 		fleet.OrbitingPlanetNum = None
@@ -363,15 +236,11 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 	})
 
 	t.Run("unload on our planet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		planet := game.Planets[0]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 		fleet.Tokens[0].Quantity = 2
-		game.Fleets[0] = fleet
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num
@@ -396,17 +265,14 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 	})
 
 	t.Run("unload on unowned planet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		planet2 := NewPlanet().WithNum(2).withPosition(Vector{10, 10})
 		game.Planets = append(game.Planets, planet2)
 		player.initDefaultPlanetIntels(game.Planets)
 
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 		fleet.Tokens[0].Quantity = 2
-		game.Fleets[0] = fleet
 
 		fleet.Position = planet2.Position
 		fleet.OrbitingPlanetNum = planet2.Num
@@ -430,15 +296,11 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
 	})
 	t.Run("invade enemy planet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := buildEnemyPlanetTeamsterScenario()
 		player := game.Players[0]
 		planet2 := game.Planets[1]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 		fleet.Tokens[0].Quantity = 20
-		game.Fleets[0] = fleet
 
 		fleet.Position = planet2.Position
 		fleet.OrbitingPlanetNum = planet2.Num
@@ -468,15 +330,10 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 func Test_turn_fleetByHandLoads(t *testing.T) {
 
 	t.Run("jettison load from another fleet's jettison", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := buildTwoTeamsterScenario()
 		player := game.Players[0]
-
-		// give the player two cargo fleets
-		fleet1 := testTeamster(player)
-		fleet2 := testTeamster(player)
-		player.Designs[0] = fleet1.Tokens[0].design
-		game.Fleets[0] = fleet1
-		game.Fleets = append(game.Fleets, fleet2)
+		fleet1 := game.Fleets[0]
+		fleet2 := game.Fleets[1]
 
 		fleet1.Position = Vector{10, 10}
 		fleet1.OrbitingPlanetNum = None
@@ -513,14 +370,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from our planet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		planet := game.Planets[0]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num
@@ -546,16 +399,13 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from owned mineral packet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		planet := game.Planets[0]
 		mineralPacket := newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 100}, Vector{50, 0}, planet.Num)
 		game.MineralPackets = append(game.MineralPackets, mineralPacket)
 
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = mineralPacket.Position
 
@@ -579,7 +429,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from enemy mineral packet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := buildEnemyPlanetTeamsterScenario()
 		player1 := game.Players[0]
 		player2 := game.Players[1]
 		planet := game.Planets[0]
@@ -588,10 +438,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		discoverer := newDiscoverer(testLogger, player1)
 		discoverer.discoverMineralPacket(&rules, mineralPacket, player2, planet)
 
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player1)
-		game.Fleets[0] = fleet
-		player1.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = mineralPacket.Position
 
@@ -615,17 +462,14 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from salvage", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := buildSingleTeamsterScenario()
 		player := game.Players[0]
 		salvage := newSalvage(Vector{50, 0}, 1, player.Num, Cargo{Ironium: 100})
 		game.Salvages = append(game.Salvages, salvage)
 		discoverer := newDiscoverer(testLogger, player)
 		discoverer.discoverSalvage(salvage)
 
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = salvage.Position
 
@@ -649,14 +493,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("steal from enemy planet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := buildEnemyPlanetStealingFreighterScenario()
 		player := game.Players[0]
 		planet := game.Planets[1]
-
-		// make the player's fleet a cargo ship
-		fleet := testStealingFreighter(player, 1).withNum(1)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num
@@ -687,14 +527,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("fail load from enemy planet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := buildEnemyPlanetTeamsterScenario()
 		player := game.Players[0]
 		planet := game.Planets[1]
-
-		// make the player's fleet a cargo ship
-		fleet := testTeamster(player)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num
@@ -726,15 +562,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from our fleet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := buildTwoTeamsterScenario()
 		player := game.Players[0]
-
-		// make the player's fleets cargo ships
-		fleet1 := testTeamster(player).withNum(1)
-		fleet2 := testTeamster(player).withNum(2)
-		game.Fleets[0] = fleet1
-		game.Fleets = append(game.Fleets, fleet2)
-		player.Designs[0] = fleet1.Tokens[0].design
+		fleet1 := game.Fleets[0]
+		fleet2 := game.Fleets[1]
 
 		// give fleet2 some cargo to load
 		fleet2.Cargo = Cargo{Ironium: 50}
@@ -758,14 +589,10 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("steal from enemy fleet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := buildEnemyPlanetStealingFreighterScenario()
 		player := game.Players[0]
 		planet := game.Planets[1]
-
-		// make the player's fleet a cargo ship
-		fleet := testStealingFreighter(player, 1).withNum(1)
-		game.Fleets[0] = fleet
-		player.Designs[0] = fleet.Tokens[0].design
+		fleet := game.Fleets[0]
 
 		fleet.Position = planet.Position
 		fleet.OrbitingPlanetNum = planet.Num
@@ -797,7 +624,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 }
 
 func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := BuildScenario(TwoPlayerScenario())
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	fleet := game.Fleets[0]
@@ -841,7 +668,7 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 }
 
 func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := BuildScenario(TwoPlayerScenario())
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	fleet := game.Fleets[0]
@@ -894,7 +721,7 @@ func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
 }
 
 func Test_turn_fleetRoute(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 
 	// add a second planet target
 	game.Planets = append(game.Planets, &Planet{
@@ -932,7 +759,7 @@ func Test_turn_fleetRoute(t *testing.T) {
 
 func Test_turn_fleetMove(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := BuildScenario(SingleUnitScenario())
 
 		planet := game.Planets[0]
 		fleet := game.Fleets[0]
@@ -956,7 +783,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Repeat Orders", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := BuildScenario(SingleUnitScenario())
 		player := game.Players[0]
 
 		planet := game.Planets[0]
@@ -1024,7 +851,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("TransportRepeat", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := BuildScenario(SingleUnitScenario())
 		player := game.Players[0]
 
 		planet1 := game.Planets[0]
@@ -1124,7 +951,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Wait for %", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := BuildScenario(SingleUnitScenario())
 		player := game.Players[0]
 
 		planet1 := game.Planets[0]
@@ -1204,7 +1031,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Stopped by minefield", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := BuildScenario(SingleUnitScenario())
 		rules := &game.Rules
 
 		// change the rules so going 4 warp over the limit guarantee's a hit
@@ -1255,7 +1082,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Destroyed by minefield", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := BuildScenario(SingleUnitScenario())
 		rules := &game.Rules
 
 		// change the rules so going 4 warp over the limit guarantee's a hit
@@ -1306,7 +1133,7 @@ func Test_turn_fleetMove(t *testing.T) {
 }
 
 func Test_turn_permaform(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 
 	player := game.Players[0]
 	planet := game.Planets[0]
@@ -1336,7 +1163,7 @@ func Test_turn_permaform(t *testing.T) {
 }
 
 func Test_turn_permaformNone(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 
 	player := game.Players[0]
 	planet := game.Planets[0]
@@ -1392,7 +1219,7 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// create a new test game
-			game := createSingleUnitGame()
+			game := BuildScenario(SingleUnitScenario())
 			player := game.Players[0]
 			fleet := game.Fleets[0]
 
@@ -1458,7 +1285,7 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// create a new test game
-			game := createSingleUnitGame()
+			game := BuildScenario(SingleUnitScenario())
 			player := game.Players[0]
 			fleet := game.Fleets[0]
 
@@ -1500,7 +1327,7 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 }
 
 func Test_turn_fleetLayMines(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	player := game.Players[0]
 
 	// make a test minelayer for
@@ -1529,7 +1356,7 @@ func Test_turn_fleetLayMines(t *testing.T) {
 }
 
 func Test_turn_fleetSweepMines(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	rules := &game.Rules
 
 	// change the rules so we don't decay
@@ -1588,7 +1415,7 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 }
 
 func Test_turn_instaform(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	player := game.Players[0]
 	planet := game.Planets[0]
 
@@ -1615,7 +1442,7 @@ func Test_turn_instaform(t *testing.T) {
 }
 
 func Test_turn_instaformTakenPlanet(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	player := game.Players[0]
 	planet := game.Planets[0]
 
@@ -1646,7 +1473,7 @@ func Test_turn_instaformTakenPlanet(t *testing.T) {
 }
 
 func Test_turn_fleetRepair(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	player := game.Players[0]
 	fleet := game.Fleets[0]
 	planet := game.Planets[0]
@@ -1687,7 +1514,7 @@ func Test_turn_fleetRepair(t *testing.T) {
 }
 
 func Test_turn_fleetReproduce(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := BuildScenario(TwoPlayerScenario())
 
 	// make an IS race for reproducing and an AR race for dieoff
 	isPlayer := game.Players[0]
@@ -1753,7 +1580,7 @@ func Test_turn_fleetReproduce(t *testing.T) {
 }
 
 func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 
 	// make an IS race for reproducing
 	player := game.Players[0]
@@ -1897,7 +1724,7 @@ func Test_turn_detonateMines(t *testing.T) {
 }
 
 func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 
 	player := game.Players[0]
 	planet := game.Planets[0]
@@ -1931,7 +1758,7 @@ func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 }
 
 func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 
 	player := game.Players[0]
 	planet := game.Planets[0]
@@ -1977,7 +1804,7 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 }
 
 func Test_turn_decayPackets(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	player := game.Players[0]
 
 	// create some Packets with 100kT of each mineral
@@ -2007,7 +1834,7 @@ func Test_turn_decayPackets(t *testing.T) {
 }
 
 func Test_turn_randomCometStrikeOwnedPlanet(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	// make sure we are far enough along that comets will strike
 	// player worlds
 	game.Year += game.Rules.RandomCometMinYear + game.Rules.RandomCometMinYearPlayerWorld
@@ -2034,7 +1861,7 @@ func Test_turn_randomCometStrikeOwnedPlanet(t *testing.T) {
 }
 
 func Test_turn_randomCometStrikeOwnedPlanetAR(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	player := game.Players[0]
 	player.Race.PRT = AR
 	player.Race.Spec = ComputeRaceSpec(&player.Race, &game.Rules)
@@ -2063,7 +1890,7 @@ func Test_turn_randomCometStrikeOwnedPlanetAR(t *testing.T) {
 }
 
 func Test_turn_fleetPatrol(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	rules := &game.Rules
 
 	// make a new destroyer to patrol within 50ly
@@ -2123,7 +1950,7 @@ func Test_turn_fleetPatrol(t *testing.T) {
 }
 
 func Test_turn_fleetRemoteTerraform(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	rules := &game.Rules
 
 	// give player TT so it can terraform these other worlds
@@ -2213,7 +2040,7 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 }
 
 func Test_turn_fleetRefuel(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	player := game.Players[0]
 	fleet := game.Fleets[0]
 	planet := game.Planets[0]
@@ -2249,7 +2076,7 @@ func Test_turn_fleetRefuel(t *testing.T) {
 }
 
 func Test_turn_playerResearch(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	planet := game.Planets[0]
 	player := game.Players[0]
 
@@ -2288,7 +2115,7 @@ func Test_turn_playerResearch(t *testing.T) {
 }
 
 func Test_turn_buildStarbase(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	player := game.Players[0]
 	planet := game.Planets[0]
 	rCopy := rules
@@ -2377,7 +2204,7 @@ func Test_turn_buildStarbase(t *testing.T) {
 }
 
 func Test_turn_fleetTransferOwner(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := BuildScenario(TwoPlayerScenario())
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	fleet := game.Fleets[0]
@@ -2413,7 +2240,7 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 }
 
 func Test_turn_fleetBattle(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := BuildScenario(TwoPlayerScenario())
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 
@@ -2585,7 +2412,7 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 // it should intercept and kill one fleet, then
 // return to base and target another
 func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := BuildScenario(TwoPlayerScenario())
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	planet := game.Planets[0]
@@ -2677,7 +2504,7 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 // it should intercept and kill one fleet, then target
 // another
 func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := BuildScenario(TwoPlayerScenario())
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	planet := game.Planets[0]
@@ -2743,7 +2570,7 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderSpawn(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom() // test random always rolls 0 by default
 	game.Year = game.Year + game.Rules.MysteryTraderRules.MinYear
@@ -2764,7 +2591,7 @@ func Test_turn_mysteryTraderSpawn(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMove(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom(1) // test random that returns 1 so we don't change course
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
@@ -2785,7 +2612,7 @@ func Test_turn_mysteryTraderMove(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom(0) // test random that returns 0 so we change course
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
@@ -2808,7 +2635,7 @@ func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderFinished(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom(1, 1) // test random that returns 1 so we don't change course or go again
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
@@ -2829,7 +2656,7 @@ func Test_turn_mysteryTraderFinished(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderAgain(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom(1, 0) // test random that returns 1 so we don't change course or go again
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
@@ -2853,7 +2680,7 @@ func Test_turn_mysteryTraderAgain(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
@@ -2883,7 +2710,7 @@ func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetReward(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
@@ -2914,7 +2741,7 @@ func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
@@ -2944,7 +2771,7 @@ func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
@@ -2977,7 +2804,7 @@ func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom()
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardLifeboat))
@@ -3020,7 +2847,7 @@ func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
@@ -3053,7 +2880,7 @@ func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
 }
 
 func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
-	game := createSingleUnitGame()
+	game := BuildScenario(SingleUnitScenario())
 	planet := game.Planets[0]
 	game.Rules.MysteryTraderRules.GenesisDeviceCost = Cost{0, 0, 0, 100}
 

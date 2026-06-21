@@ -9,57 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// create a new long range scout fleet for testing with pre-computed specs.
-func testLongRangeScout(player *Player) *Fleet {
-	return testLongRangeScoutWithQuantity(player, 1)
-}
-
-// create a new long range scout ship design for testing.
-// Does NOT come with precomputed specs; those will have to be done manually.
-func testLongRangeScoutDesign(playerNum int) *ShipDesign {
-	return NewShipDesign(playerNum, 1).
-		WithName("Long Range Scout").
-		WithHull(Scout.Name).
-		WithSlots([]ShipDesignSlot{
-			{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
-			{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-			{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
-		})
-}
-
-func testLongRangeScoutWithQuantity(player *Player, quantity int) *Fleet {
-	fleet := &Fleet{
-		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-		BaseName:  "Long Range Scout",
-		Tokens: []ShipToken{
-			{
-				Quantity:  quantity,
-				DesignNum: 1,
-				design: NewShipDesign(player.Num, 1).
-					WithName("Long Range Scout").
-					WithHull(Scout.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
-					}).
-					WithSpec(&rules, player),
-			},
-		},
-		battlePlan:        &player.BattlePlans[0],
-		OrbitingPlanetNum: None,
-		FleetOrders: FleetOrders{
-			Waypoints: []Waypoint{
-				NewPositionWaypoint(Vector{}, 5),
-			},
-		},
-	}
-	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-	fleet.Fuel = fleet.Spec.FuelCapacity
-	player.Designs = append(player.Designs, fleet.Tokens[0].design)
-	return fleet
-}
-
 // create a new small freighter (with cargo pod) fleet for testing
 func testSmallFreighter(player *Player) *Fleet {
 	return testSmallFreighterWithQuantity(player, 1)

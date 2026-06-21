@@ -2,407 +2,269 @@ import { MapObjectType } from '../src/lib/protogen/craig_stars/v1/common_pb';
 import { expect, submitTurn, test } from './setup';
 
 test('Cargo Transfer Planet Owned', async ({ testGamePage }) => {
-	const { page } = await testGamePage('Cargo Transfer Planet Owned');
+	const { page, gamePage } = await testGamePage('Cargo Transfer Planet Owned');
 
-	let fleetsInOrbitTile = await page
-		.locator('[data-type="command-tile"][data-id="Fleets In Orbit"]')
-		.first();
+	await test.step('transfer one of each cargo type from planet to fleet', async () => {
+		await gamePage.clickTileButton('Fleets In Orbit', 'Goto');
+		await gamePage.openTransferFromTile('Orbiting Planet 1');
+		await gamePage.transferCargo({ ironium: 1, boranium: 1, germanium: 1, colonists: 1 }, 'source');
+		await gamePage.confirmDialog();
+	});
 
-	await fleetsInOrbitTile.getByRole('button', { name: 'Goto' }).first().click();
+	await test.step('verify fleet cargo before submit', async () => {
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '1kT',
+			boranium: '1kT',
+			germanium: '1kT',
+			colonists: '1kT'
+		});
+	});
 
-	// open transfer dialog
-	const fleetOrbitingTile = await page
-		.locator('[data-type="command-tile"][data-id="Orbiting Planet 1"]')
-		.first();
-	await fleetOrbitingTile
-		.getByRole('button', { name: /Jettison|Transfer/ })
-		.first()
-		.click();
+	await test.step('submit turn', async () => {
+		await submitTurn(page);
+	});
 
-	// transfer one of each to the fleet
-	for (const cargoType of ['ironium', 'boranium', 'germanium', 'colonists']) {
-		await page
-			.locator(`[data-id="${cargoType}"][data-type="transfer-to-source-button"]`)
-			.click({ clickCount: 1 });
-	}
-	await page.getByRole('button', { name: 'Ok' }).click();
+	await test.step('verify cargo persists after submit', async () => {
+		await gamePage.expectTileCargo('Minerals on Hand', {
+			ironium: '999kT',
+			boranium: '999kT',
+			germanium: '999kT'
+		});
+		await expect(gamePage.tile('Status').getByText('Population 287,300').first()).toBeVisible();
 
-	// verify cargo
-	let fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 1kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 1kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 1kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Colonists 1kT').first()).toBeVisible();
-
-	await submitTurn(page);
-
-	// verify cargo
-	const mineralsOnHandTile = await page
-		.locator('[data-type="command-tile"][data-id="Minerals on Hand"]')
-		.first();
-	await expect(mineralsOnHandTile.getByText('Ironium 999kT').first()).toBeVisible();
-	await expect(mineralsOnHandTile.getByText('Boranium 999kT').first()).toBeVisible();
-	await expect(mineralsOnHandTile.getByText('Germanium 999kT').first()).toBeVisible();
-
-	// pop grows
-	// TODO: fragile test?
-	const statusTile = await page.locator('[data-type="command-tile"][data-id="Status"]').first();
-	await expect(statusTile.getByText('Population 287,300').first()).toBeVisible();
-
-	// goto fleet
-	fleetsInOrbitTile = await page
-		.locator('[data-type="command-tile"][data-id="Fleets In Orbit"]')
-		.first();
-	await fleetsInOrbitTile.getByRole('button', { name: 'Goto' }).first().click();
-
-	// verify cargo after turn submit
-	fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 1kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 1kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 1kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Colonists 1kT').first()).toBeVisible();
+		await gamePage.clickTileButton('Fleets In Orbit', 'Goto');
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '1kT',
+			boranium: '1kT',
+			germanium: '1kT',
+			colonists: '1kT'
+		});
+	});
 });
 
 test('Cargo Transfer Fleets', async ({ testGamePage }) => {
-	const { page } = await testGamePage('Cargo Transfer Fleets');
+	const { page, gamePage } = await testGamePage('Cargo Transfer Fleets');
 
-	const otherFleetsHereTile = await page
-		.locator('[data-type="command-tile"][data-id="Other Entities Here"]')
-		.first();
+	await test.step('transfer one of each cargo type between fleets', async () => {
+		await gamePage.clickTileButton('Other Entities Here', 'Transfer');
+		await gamePage.transferCargo(
+			{ fuel: 1, ironium: 1, boranium: 1, germanium: 1, colonists: 1 },
+			'dest'
+		);
+		await gamePage.confirmDialog();
+	});
 
-	await otherFleetsHereTile.getByRole('button', { name: 'Transfer' }).first().click();
+	await test.step('verify both fleet cargo totals before submit', async () => {
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			fuel: '99 of 450mg',
+			ironium: '9kT',
+			boranium: '9kT',
+			germanium: '9kT',
+			colonists: '9kT'
+		});
 
-	// transfer one of each
-	// teamster starts with {10, 10, 10, 10} 100 fuel
-	// colony ship starts with {5, 5, 5, 5} 10 fuel
-	for (const cargoType of ['fuel', 'ironium', 'boranium', 'germanium', 'colonists']) {
-		await page
-			.locator(`[data-id="${cargoType}"][data-type="transfer-to-dest-button"]`)
-			.click({ clickCount: 1 });
-	}
-	await page.getByRole('button', { name: 'Ok' }).click();
+		await gamePage.clickNextSelectedObject();
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			fuel: '11 of 200mg',
+			ironium: '6kT',
+			boranium: '6kT',
+			germanium: '6kT',
+			colonists: '6kT'
+		});
+	});
 
-	// verify cargo
-	let fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 9kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 9kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 9kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Colonists 9kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Fuel 99 of 450mg').first().first()).toBeVisible();
+	await test.step('submit turn', async () => {
+		await submitTurn(page);
+	});
 
-	// select colony ship
-	await page.getByRole('button', { name: 'Next', exact: true }).first().click();
-	await expect(fuelAndCargoTile.getByText('Ironium 6kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 6kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 6kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Colonists 6kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Fuel 11 of 200mg').first().first()).toBeVisible();
+	await test.step('verify both fleet cargo totals after submit', async () => {
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			fuel: '99 of 450mg',
+			ironium: '9kT',
+			boranium: '9kT',
+			germanium: '9kT',
+			colonists: '9kT'
+		});
 
-	// submit turn and make sure it "sticks"
-	await submitTurn(page);
-
-	// verify cargo
-	fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 9kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 9kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 9kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Colonists 9kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Fuel 99 of 450mg').first().first()).toBeVisible();
-
-	// select colony ship
-	await page.getByRole('button', { name: 'Next', exact: true }).first().click();
-	await expect(fuelAndCargoTile.getByText('Ironium 6kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 6kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 6kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Colonists 6kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Fuel 11 of 200mg').first().first()).toBeVisible();
+		await gamePage.clickNextSelectedObject();
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			fuel: '11 of 200mg',
+			ironium: '6kT',
+			boranium: '6kT',
+			germanium: '6kT',
+			colonists: '6kT'
+		});
+	});
 });
 
 test('Cargo Transfer Split', async ({ testGamePage }) => {
-	const { page } = await testGamePage('Cargo Transfer Split');
+	const { page, gamePage } = await testGamePage('Cargo Transfer Split');
 
-	const fleetOrbitingTile = await page
-		.locator('[data-type="command-tile"][data-id="In Deep Space"]')
-		.first();
+	await test.step('jettison ironium and split fleet', async () => {
+		await gamePage.openTransferFromTile('In Deep Space');
+		await gamePage.transferCargo({ ironium: 10 }, 'dest');
+		await gamePage.confirmDialog();
+		await page.getByRole('button', { name: 'Split All' }).first().click();
+	});
 
-	// jettison 10 ironium
-	await fleetOrbitingTile
-		.getByRole('button', { name: /Jettison|Transfer/ })
-		.first()
-		.click();
-	await page
-		.locator('[data-id="ironium"][data-type="transfer-to-dest-button"]')
-		.click({ clickCount: 10 });
-	await page.getByRole('button', { name: 'Ok' }).click();
+	await test.step('verify split fleet cargo before reload', async () => {
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '36kT',
+			boranium: '45kT',
+			germanium: '45kT'
+		});
 
-	// split fleet
-	await page.getByRole('button', { name: 'Split All' }).first().click();
+		await gamePage.clickNextSelectedObject();
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '4kT',
+			boranium: '5kT',
+			germanium: '5kT'
+		});
+	});
 
-	// verify cargo
-	let fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 36kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 45kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 45kT').first()).toBeVisible();
+	await test.step('load ironium back from salvage and submit turn', async () => {
+		await gamePage.openTransferFromTile('In Deep Space');
+		await gamePage.transferCargo({ ironium: 10 }, 'source');
+		await gamePage.confirmDialog();
+		await submitTurn(page);
+	});
 
-	// select colony ship
-	await page.getByRole('button', { name: 'Next', exact: true }).first().click();
-	await expect(fuelAndCargoTile.getByText('Ironium 4kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 5kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 5kT').first()).toBeVisible();
+	await test.step('verify split fleet cargo after submit', async () => {
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '36kT',
+			boranium: '45kT',
+			germanium: '45kT'
+		});
 
-	// grab 10 ironium back
-	await fleetOrbitingTile
-		.getByRole('button', { name: /Jettison|Transfer/ })
-		.first()
-		.click();
-	await page
-		.locator('[data-id="ironium"][data-type="transfer-to-source-button"]')
-		.click({ clickCount: 10 });
-	await page.getByRole('button', { name: 'Ok' }).click();
-
-	// submit turn
-	await submitTurn(page);
-
-	fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 36kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 45kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 45kT').first()).toBeVisible();
-
-	// select colony ship
-	await page.getByRole('button', { name: 'Next', exact: true }).first().click();
-	await expect(fuelAndCargoTile.getByText('Ironium 14kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 5kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 5kT').first()).toBeVisible();
+		await gamePage.clickNextSelectedObject();
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '14kT',
+			boranium: '5kT',
+			germanium: '5kT'
+		});
+	});
 });
 
 test('Cargo Transfer Jettison', async ({ testGamePage }) => {
-	const { page } = await testGamePage('Cargo Transfer Jettison');
+	const { page, gamePage } = await testGamePage('Cargo Transfer Jettison');
 
-	const fleetOrbitingTile = await page
-		.locator('[data-type="command-tile"][data-id="In Deep Space"]')
-		.first();
+	await test.step('jettison cargo', async () => {
+		await gamePage.openTransferFromTile('In Deep Space');
+		await gamePage.transferCargo({ ironium: 10, boranium: 20, germanium: 30 }, 'dest');
+		await gamePage.confirmDialog();
+	});
 
-	// click the cargo button
-	await fleetOrbitingTile
-		.getByRole('button', { name: /Jettison|Transfer/ })
-		.first()
-		.click();
-	await page
-		.locator('[data-id="ironium"][data-type="transfer-to-dest-button"]')
-		.click({ clickCount: 10 });
-	await page
-		.locator('[data-id="boranium"][data-type="transfer-to-dest-button"]')
-		.click({ clickCount: 20 });
-	await page
-		.locator('[data-id="germanium"][data-type="transfer-to-dest-button"]')
-		.click({ clickCount: 30 });
-	await page.getByRole('button', { name: 'Ok' }).click();
+	await test.step('verify fleet cargo before submit', async () => {
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '40kT',
+			boranium: '30kT',
+			germanium: '20kT'
+		});
+	});
 
-	// fleet cargo should be updated
-	let fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 40kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 30kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 20kT').first()).toBeVisible();
+	await test.step('submit turn', async () => {
+		await submitTurn(page);
+	});
 
-	// submit turn
-	await submitTurn(page);
+	await test.step('verify fleet and salvage cargo after submit', async () => {
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '40kT',
+			boranium: '30kT',
+			germanium: '20kT'
+		});
 
-	// fleet cargo should be updated
-	fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 40kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 30kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 20kT').first()).toBeVisible();
-
-	// select the salvage in the map object summary
-	const mapObjectSummary = await page.locator('[data-type="map-object-summary"]').first();
-
-	await mapObjectSummary.locator('[data-type="cycle-selected-map-object-button"]').click();
-
-	// select salvage #1 and check it
-	await expect(
-		mapObjectSummary
-			.locator('div')
-			.filter({ hasText: /^Salvage #1$/ })
-			.first()
-	).toBeVisible();
-	await mapObjectSummary
-		.getByText('Salvage #1 Humanoids Location')
-		.first()
-		.scrollIntoViewIfNeeded();
-	// salvage cargo should exist but also be decayed
-	await expect(mapObjectSummary.getByText('Ironium 0kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Boranium 10kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Germanium 20kT').first()).toBeVisible();
+		await gamePage.cycleSummarySelection();
+		await gamePage.expectSummarySelection(/^Salvage #1$/);
+		await gamePage.scrollSummaryText('Salvage #1 Humanoids Location');
+		await gamePage.expectSummaryCargo({
+			ironium: '0kT',
+			boranium: '10kT',
+			germanium: '20kT'
+		});
+	});
 });
 
 test('Cargo Transfer Salvage', async ({ testGamePage }) => {
-	const { page } = await testGamePage('Cargo Transfer Salvage');
+	const { page, gamePage } = await testGamePage('Cargo Transfer Salvage');
 
-	const fleetOrbitingTile = await page
-		.locator('[data-type="command-tile"][data-id="In Deep Space"]')
-		.first();
+	await test.step('transfer cargo to salvage', async () => {
+		await gamePage.openTransferFromTile('In Deep Space');
+		await gamePage.transferCargo({ ironium: 1, boranium: 2, germanium: 3 }, 'dest');
+		await gamePage.confirmDialog();
+	});
 
-	// click the cargo button
-	await fleetOrbitingTile
-		.getByRole('button', { name: /Jettison|Transfer/ })
-		.first()
-		.click();
-	await page
-		.locator('[data-id="ironium"][data-type="transfer-to-dest-button"]')
-		.click({ clickCount: 1 });
-	await page
-		.locator('[data-id="boranium"][data-type="transfer-to-dest-button"]')
-		.click({ clickCount: 2 });
-	await page
-		.locator('[data-id="germanium"][data-type="transfer-to-dest-button"]')
-		.click({ clickCount: 3 });
-	await page.getByRole('button', { name: 'Ok' }).click();
+	await test.step('verify salvage cargo before submit', async () => {
+		await gamePage.cycleSummarySelection();
+		await gamePage.expectSummarySelection(/^Salvage #1$/);
+		await gamePage.scrollSummaryText('Salvage #1 Humanoids Location');
+		await gamePage.expectSummaryCargo({
+			ironium: '51kT',
+			boranium: '52kT',
+			germanium: '53kT'
+		});
+	});
 
-	// select the salvage in the map object summary
-	let mapObjectSummary = await page.locator('[data-type="map-object-summary"]').first();
-	await mapObjectSummary.locator('[data-type="cycle-selected-map-object-button"]').first().click();
+	await test.step('submit turn', async () => {
+		await submitTurn(page);
+	});
 
-	// Salvage #1 should be selected
-	await expect(
-		mapObjectSummary
-			.locator('div')
-			.filter({ hasText: /^Salvage #1$/ })
-			.first()
-	).toBeVisible();
-	// salvage cargo should be updated
-	await mapObjectSummary
-		.getByText('Salvage #1 Humanoids Location')
-		.first()
-		.scrollIntoViewIfNeeded();
-	await expect(mapObjectSummary.getByText('Ironium 51kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Boranium 52kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Germanium 53kT').first()).toBeVisible();
+	await test.step('verify fleet and salvage cargo after submit', async () => {
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '9kT',
+			boranium: '8kT',
+			germanium: '7kT'
+		});
 
-	// submit turn
-	await submitTurn(page);
-
-	// fleet cargo should be updated
-	const fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 9kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 8kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 7kT').first()).toBeVisible();
-
-	// select the salvage in the map object summary
-	mapObjectSummary = await page.locator('[data-type="map-object-summary"]').first();
-
-	await mapObjectSummary.locator('[data-type="cycle-selected-map-object-button"]').click();
-
-	// select salvage #1 and check it
-	await expect(
-		mapObjectSummary
-			.locator('div')
-			.filter({ hasText: /^Salvage #1$/ })
-			.first()
-	).toBeVisible();
-	await mapObjectSummary
-		.getByText('Salvage #1 Humanoids Location')
-		.first()
-		.scrollIntoViewIfNeeded();
-	// salvage cargo should be decayed but also updated
-	await expect(mapObjectSummary.getByText('Ironium 41kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Boranium 42kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Germanium 43kT').first()).toBeVisible();
+		await gamePage.cycleSummarySelection();
+		await gamePage.expectSummarySelection(/^Salvage #1$/);
+		await gamePage.scrollSummaryText('Salvage #1 Humanoids Location');
+		await gamePage.expectSummaryCargo({
+			ironium: '41kT',
+			boranium: '42kT',
+			germanium: '43kT'
+		});
+	});
 });
 
 test('Cargo Transfer MineralPacket', async ({ testGamePage }) => {
-	const name = 'Cargo Transfer MineralPacket';
-	const { page } = await testGamePage(name);
+	const { page, gamePage } = await testGamePage('Cargo Transfer MineralPacket');
 
-	const otherFleetsHereTile = await page
-		.locator('[data-type="command-tile"][data-id="Other Entities Here"]')
-		.first();
+	await test.step('transfer cargo from mineral packet to fleet', async () => {
+		await gamePage.clickTileButton('Other Entities Here', 'Transfer');
+		await gamePage.transferCargo({ ironium: 1, boranium: 2, germanium: 3 }, 'source');
+		await gamePage.confirmDialog();
+	});
 
-	await otherFleetsHereTile.getByRole('button', { name: 'Transfer' }).first().click();
+	await test.step('verify mineral packet cargo before submit', async () => {
+		await gamePage.cycleSummarySelection();
+		await gamePage.expectSummarySelection(/^Humanoids Mineral Packet #1$/);
+		await gamePage.scrollSummaryText('Location: (0, 0) Traveling at');
+		await gamePage.expectSummaryCargo({
+			ironium: '49kT',
+			boranium: '48kT',
+			germanium: '47kT'
+		});
+	});
 
-	await page
-		.locator('[data-id="ironium"][data-type="transfer-to-source-button"]')
-		.click({ clickCount: 1 });
-	await page
-		.locator('[data-id="boranium"][data-type="transfer-to-source-button"]')
-		.click({ clickCount: 2 });
-	await page
-		.locator('[data-id="germanium"][data-type="transfer-to-source-button"]')
-		.click({ clickCount: 3 });
-	await page.getByRole('button', { name: 'Ok' }).click();
+	await test.step('submit turn', async () => {
+		await submitTurn(page);
+	});
 
-	// select the mineralPacket in the map object summary
-	let mapObjectSummary = await page.locator('[data-type="map-object-summary"]').first();
-	await mapObjectSummary.locator('[data-type="cycle-selected-map-object-button"]').first().click();
+	await test.step('verify fleet and mineral packet cargo after submit', async () => {
+		await gamePage.expectTileCargo('Fuel & Cargo', {
+			ironium: '11kT',
+			boranium: '12kT',
+			germanium: '13kT'
+		});
 
-	// MineralPacket #1 should be selected
-	await expect(
-		mapObjectSummary
-			.locator('div')
-			.filter({ hasText: /^Humanoids Mineral Packet #1$/ })
-			.first()
-	).toBeVisible();
+		await page.locator(`[data-id="${MapObjectType.MINERAL_PACKET}-1-1"]`).click({ force: true });
 
-	// mineralPacket cargo should be updated
-	await mapObjectSummary
-		.getByText('Location: (0, 0) Traveling at')
-		.first()
-		.scrollIntoViewIfNeeded();
-	await expect(mapObjectSummary.getByText('Ironium 49kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Boranium 48kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Germanium 47kT').first()).toBeVisible();
-
-	// submit turn
-	await page.getByRole('button', { name: 'Submit Turn' }).click();
-
-	// wait for turn submit to finish
-	await page.locator('#loading-modal').waitFor({ state: 'visible' }); // wait for loading modal to show up
-	await expect(page.locator('#loading-modal')).not.toHaveClass(/modal-open/); // ensure submit is done
-
-	// fleet cargo should be updated
-	const fuelAndCargoTile = await page
-		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
-		.first();
-	await expect(fuelAndCargoTile.getByText('Ironium 11kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Boranium 12kT').first()).toBeVisible();
-	await expect(fuelAndCargoTile.getByText('Germanium 13kT').first()).toBeVisible();
-
-	// click the mineral packet
-	await page.locator(`[data-id="${MapObjectType.MINERAL_PACKET}-1-1"]`).click({ force: true });
-
-	// select the mineralPacket in the map object summary
-	mapObjectSummary = await page.locator('[data-type="map-object-summary"]').first();
-
-	// select mineralPacket #1 and check it
-	await expect(
-		mapObjectSummary
-			.locator('div')
-			.filter({ hasText: /^Humanoids Mineral Packet #1$/ })
-			.first()
-	).toBeVisible();
-	await mapObjectSummary
-		.getByText('Location: (25, 0) Traveling at')
-		.first()
-		.scrollIntoViewIfNeeded();
-	// mineralPacket cargo should be decayed but also updated
-	await expect(mapObjectSummary.getByText('Ironium 25kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Boranium 24kT').first()).toBeVisible();
-	await expect(mapObjectSummary.getByText('Germanium 24kT').first()).toBeVisible();
+		await gamePage.expectSummarySelection(/^Humanoids Mineral Packet #1$/);
+		await gamePage.scrollSummaryText('Location: (25, 0) Traveling at');
+		await gamePage.expectSummaryCargo({
+			ironium: '25kT',
+			boranium: '24kT',
+			germanium: '24kT'
+		});
+	});
 });
