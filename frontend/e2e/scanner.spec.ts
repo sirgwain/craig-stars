@@ -1,7 +1,7 @@
 import { expect, submitTurn, test } from './setup';
 
-test('Kitchen Sink', async ({ testGamePage }) => {
-	const { page, gamePage, universe } = await testGamePage('Kitchen Sink');
+test('shows homeworld minerals and status', async ({ testGamePage }) => {
+	const { gamePage } = await testGamePage('Kitchen Sink');
 
 	await expect(gamePage.tile('Minerals on Hand')).toBeVisible();
 	await gamePage.expectTileCargo('Minerals on Hand', {
@@ -10,6 +10,10 @@ test('Kitchen Sink', async ({ testGamePage }) => {
 		germanium: '1000kT'
 	});
 	await gamePage.expectTileText('Status', ['Population 250,000', 'Defense Type SDI']);
+});
+
+test('selects minefield from scanner context menu', async ({ testGamePage }) => {
+	const { gamePage, universe } = await testGamePage('Kitchen Sink');
 
 	await gamePage.rightClickMapObject(universe.planets[0]);
 	await gamePage.clickScannerContextButton('Humanoids Standard Minefield #1');
@@ -20,6 +24,10 @@ test('Kitchen Sink', async ({ testGamePage }) => {
 		'Field Radius: 32 l.y. (1000 mines)',
 		'Maximum Safe Speed: Warp 4'
 	]);
+});
+
+test('shows mineral packet summary', async ({ testGamePage }) => {
+	const { gamePage, universe } = await testGamePage('Kitchen Sink');
 
 	await gamePage.selectMapObject(universe.mineralPackets[0]);
 	await gamePage.expectSummaryText([
@@ -32,8 +40,12 @@ test('Kitchen Sink', async ({ testGamePage }) => {
 		'Boranium 50kT',
 		'Germanium 50kT'
 	]);
+});
 
-	const otherPlayerFleet = universe.fleets.find((f) => f.mapObject?.playerNum === 2);
+test('shows foreign fleet and planet summaries', async ({ testGamePage }) => {
+	const { gamePage, universe } = await testGamePage('Kitchen Sink');
+
+	const otherPlayerFleet = universe.fleets.find((fleet) => fleet.mapObject?.playerNum === 2);
 	if (!otherPlayerFleet?.mapObject) {
 		throw new Error("other player's fleet not found");
 	}
@@ -52,6 +64,10 @@ test('Kitchen Sink', async ({ testGamePage }) => {
 	}
 	await gamePage.selectMapObject(otherPlayerPlanet);
 	await gamePage.expectSummaryText(['Report is current', universe.playerIntels[1].racePluralName]);
+});
+
+test('shows mystery trader summary', async ({ testGamePage }) => {
+	const { gamePage, universe } = await testGamePage('Kitchen Sink');
 
 	await gamePage.zoomOut(3);
 
@@ -63,6 +79,10 @@ test('Kitchen Sink', async ({ testGamePage }) => {
 	await gamePage.expectSummaryText([
 		'The trader requests interested parties to send it a feet with at least 5000kT of minerals on board to be absorbed into the trader. It offers technological assistance in return. Trader is traveling at Warp 7.'
 	]);
+});
+
+test('discovers paired wormhole after scout travel', async ({ testGamePage }) => {
+	const { page, gamePage, universe } = await testGamePage('Kitchen Sink');
 
 	const wormhole1 = universe.wormholes[0];
 	if (!wormhole1?.mapObject) {
