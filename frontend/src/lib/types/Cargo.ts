@@ -80,11 +80,10 @@ export function cargoPercent(cargo: Cargo, capacity: number | undefined): Cargo 
 		return emptyCargo();
 	}
 
-	let total = 0;
 	const percent: Cargo = create(CargoSchema, {
 		ironium: Math.round(((cargo.ironium ?? 0) / capacity) * 100)
 	});
-	total = percent.ironium ?? 0;
+	let total = percent.ironium ?? 0;
 	percent.boranium = Math.min(100 - total, Math.round(((cargo.boranium ?? 0) / capacity) * 100));
 	total += percent.boranium ?? 0;
 	percent.germanium = Math.min(100 - total, Math.round(((cargo.germanium ?? 0) / capacity) * 100));

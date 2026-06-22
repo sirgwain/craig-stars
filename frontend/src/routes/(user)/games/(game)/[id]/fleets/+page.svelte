@@ -3,7 +3,8 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
+	import Table from '$lib/components/table/Table.svelte';
+	import type { TableColumn } from '$lib/components/table/Table';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { type Fleet } from '$lib/types/cs-proto';

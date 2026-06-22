@@ -1,18 +1,9 @@
-<script lang="ts" module>
-	export type ProductionQueueEvent = {
-		next: void;
-		prev: void;
-		ok: void;
-		cancel: void;
-	};
-</script>
-
 <script lang="ts">
 	import { asyncToVoidWrapper } from '$lib/asyncToVoid';
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
-	import { onAllocatedTooltip } from '$lib/components/game/tooltips/AllocatedTooltip.svelte';
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import { onAllocatedTooltip } from '$lib/components/game/tooltips/AllocatedTooltip';
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import type { CostJson as Cost } from '$lib/types/cs-proto';
 	import {
@@ -97,7 +88,10 @@
 		);
 	}
 
-	async function onQueueItemClicked(index: number, item?: ProductionQueueItem) {
+	async function onQueueItemClicked(
+		index: number,
+		item: ProductionQueueItem | undefined = undefined
+	) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
 		selectedQueueItemCost = await $player.getItemCost(
@@ -194,7 +188,7 @@
 		return percent;
 	}
 
-	async function addAvailableItem(item?: ProductionQueueItem) {
+	async function addAvailableItem(item: ProductionQueueItem | undefined = undefined) {
 		item = item ?? selectedAvailableItem;
 		if (!item) {
 			return;

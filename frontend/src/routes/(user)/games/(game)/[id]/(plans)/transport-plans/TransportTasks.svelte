@@ -18,7 +18,7 @@
 	// Note: The generated Message type requires internal fields at runtime,
 	// but for UI state we can keep a plain object with the same shape,
 	// then assign it back to transportTasks (which is also Message-typed with optional fields).
-	function makeTask(task?: WaypointTransportTask): WaypointTransportTask {
+	function makeTask(task: WaypointTransportTask | undefined = undefined): WaypointTransportTask {
 		return create(WaypointTransportTaskSchema, {
 			// amount defaults to 0, action defaults to empty string
 			amount: task?.amount ?? 0,

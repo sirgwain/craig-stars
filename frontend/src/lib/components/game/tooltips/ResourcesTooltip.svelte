@@ -1,4 +1,4 @@
-<script lang="ts" module>
+<script module lang="ts">
 	export type ResourcesTooltipProps = {
 		planetName: string;
 		resourcesPerYear: number;

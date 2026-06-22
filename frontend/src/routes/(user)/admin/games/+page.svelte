@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table, { defaultSortBy, type TableColumn } from '$lib/components/table/Table.svelte';
+	import Table from '$lib/components/table/Table.svelte';
+	import { defaultSortBy, type TableColumn } from '$lib/components/table/Table';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { adminClient } from '$lib/services/connect';
 	import { addError } from '$lib/services/Errors';

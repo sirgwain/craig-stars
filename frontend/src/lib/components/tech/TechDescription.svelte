@@ -422,14 +422,12 @@
 				}
 
 				if (hullComponent.canStealFleetCargo || hullComponent.canStealPlanetCargo) {
-					let target = '';
-					if (hullComponent.canStealFleetCargo && !hullComponent.canStealPlanetCargo) {
-						target = 'fleets';
-					} else if (!hullComponent.canStealFleetCargo && hullComponent.canStealPlanetCargo) {
-						target = 'planets';
-					} else {
-						target = 'fleets and planets';
-					}
+					const target =
+						hullComponent.canStealFleetCargo && !hullComponent.canStealPlanetCargo
+							? 'fleets'
+							: !hullComponent.canStealFleetCargo && hullComponent.canStealPlanetCargo
+								? 'planets'
+								: 'fleets and planets';
 					descriptions.push(
 						`This scanner is also capable of penetrating the defenses of enemy ${target} allowing you to view and steal their cargo.`
 					);

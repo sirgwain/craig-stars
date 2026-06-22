@@ -25,7 +25,7 @@
 	import Cost from '../Cost.svelte';
 	import CostMini from '../CostMini.svelte';
 	import DesignStats from '../DesignStats.svelte';
-	import { onTechTooltip } from '../tooltips/TechTooltip.svelte';
+	import { onTechTooltip } from '../tooltips/TechTooltip';
 	import { shipDesignerContext } from './ShipDesignerContext';
 
 	const { cs, player } = getGameContext();

@@ -5,7 +5,7 @@
 	import ResourcesTooltip, {
 		type ResourcesTooltipProps
 	} from '$lib/components/game/tooltips/ResourcesTooltip.svelte';
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
+	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip, techs } from '$lib/services/Stores';
 	import type { CommandedPlanet } from '$lib/types/Planet';

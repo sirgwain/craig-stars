@@ -6,7 +6,7 @@
 	import TechAvatar from '../tech/TechAvatar.svelte';
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
-	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
+	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip';
 	import type { ShipDesign } from '$lib/types/cs-proto';
 
 	type Props = {

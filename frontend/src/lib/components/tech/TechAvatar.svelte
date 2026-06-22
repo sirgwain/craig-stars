@@ -2,8 +2,8 @@
 	import { getTechIcon } from '$lib/techicon';
 	import type { TechHull } from '$lib/types/cs-proto';
 	import { isHull, type TechLike } from '$lib/types/Tech';
-	import { onTechHullTooltip } from '../game/tooltips/TechHullTooltip.svelte';
-	import { onTechTooltip } from '../game/tooltips/TechTooltip.svelte';
+	import { onTechHullTooltip } from '../game/tooltips/TechHullTooltip';
+	import { onTechTooltip } from '../game/tooltips/TechTooltip';
 
 	type Props = {
 		tech: TechLike | undefined;
