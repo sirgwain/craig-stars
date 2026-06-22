@@ -1,6 +1,6 @@
 module github.com/sirgwain/craig-stars/generators/enum-mapper-gen
 
-go 1.25
+go 1.26.1
 
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0

@@ -1,6 +1,6 @@
 module github.com/sirgwain/craig-stars/wasm
 
-go 1.25
+go 1.26.1
 
 replace github.com/sirgwain/craig-stars => ../
 

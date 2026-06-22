@@ -99,8 +99,8 @@ func Copy_Wasm_Exec_TinyGo() error {
 	goroot = strings.ReplaceAll(goroot, "\\", "/") // replace backslashes on windows
 
 	// Check if wasm executable exists or not.
-	// Go 1.25 moved wasm_exec.js from misc/wasm to lib/wasm,
-	// but we require go 1.25 anyways to run our tool deps so it shouldn't matter.
+	// go 1.26.1 moved wasm_exec.js from misc/wasm to lib/wasm,
+	// but we require go 1.26.1 anyways to run our tool deps so it shouldn't matter.
 	if _, err := os.Stat(goroot + "/targets/wasm_exec.js"); errors.Is(err, os.ErrNotExist) {
 		// file doesn't exist
 		return mg.Fatalf(1, "executable was not found inside TINYGOROOT: %v", goroot)
