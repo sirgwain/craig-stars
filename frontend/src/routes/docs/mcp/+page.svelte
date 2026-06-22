@@ -37,7 +37,8 @@
 			</div>
 			<div class="mockup-code text-sm">
 				<pre><code
-						>{`[mcp_servers.craig-stars]
+						>{`
+[mcp_servers.craig-stars]
 url = "${serverUrl}"
 enabled = true
 startup_timeout_sec = 10
