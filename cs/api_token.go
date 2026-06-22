@@ -7,7 +7,7 @@ type APIToken struct {
 	DBObject
 	UserID      int64      `json:"userId"`
 	Name        string     `json:"name"`
-	TokenPrefix string     `json:"tokenPrefix"`
+	TokenPrefix string     `json:"tokenPrefix"` // shown to user to support revoking tokens without storing the full token
 	Scope       string     `json:"scope"`
 	ExpiresAt   time.Time  `json:"expiresAt"`
 	LastUsedAt  *time.Time `json:"lastUsedAt,omitempty"`

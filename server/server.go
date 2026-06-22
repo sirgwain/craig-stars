@@ -293,6 +293,7 @@ func Start(config configpkg.Config) error {
 	grpc.Handle(craig_starsv1connect.NewAdminServiceHandler(NewAdminServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewTestServiceHandler(NewTestServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewTechServiceHandler(NewTechServiceHandler(), connect.WithInterceptors(newErrorLogInterceptor())))
+	grpc.Handle(craig_starsv1connect.NewRulesServiceHandler(NewRulesServiceHandler(), connect.WithInterceptors(newErrorLogInterceptor())))
 	grpc.Handle(craig_starsv1connect.NewUserServiceHandler(NewUserServiceHandler(dbConn, discordNotifier), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewRaceServiceHandler(NewRaceServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewGameServiceHandler(NewGameServiceHandler(dbConn, server.config, discordNotifier), connect.WithInterceptors(gameInterceptors...)))

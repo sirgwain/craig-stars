@@ -38,13 +38,6 @@ const (
 type cliConfig struct {
 	DefaultServer string                     `json:"default_server,omitempty"`
 	Servers       map[string]cliServerConfig `json:"servers,omitempty"`
-
-	// Legacy single-server fields are kept so existing config files continue to
-	// load and can be rewritten in the multi-server format on the next login.
-	Server      string    `json:"server,omitempty"`
-	AccessToken string    `json:"access_token,omitempty"`
-	Scope       string    `json:"scope,omitempty"`
-	ExpiresAt   time.Time `json:"expires_at,omitempty"`
 }
 
 // cliServerConfig stores credentials for one named server.
@@ -66,7 +59,6 @@ type tokenResponse struct {
 // cliClientConfig is the resolved runtime configuration for remote commands.
 type cliClientConfig struct {
 	Server      string
-	Token       string
 	ConfigPath  string
 	AccessToken string
 }
@@ -99,13 +91,12 @@ func resolveCLIClientConfig(requireToken bool) (cliClientConfig, error) {
 		return cliClientConfig{}, err
 	}
 
-	server := firstNonEmpty(cliServer, os.Getenv(cliEnvServer), fileCfg.defaultServer(), defaultCLIServer)
+	server := firstNonEmpty(cliServer, os.Getenv(cliEnvServer), fileCfg.DefaultServer, defaultCLIServer)
 	server = normalizeServerURL(server)
 	serverCfg := fileCfg.serverConfig(server)
 	token := firstNonEmpty(cliToken, os.Getenv(cliEnvToken), serverCfg.AccessToken)
 	cfg := cliClientConfig{
 		Server:      server,
-		Token:       token,
 		ConfigPath:  path,
 		AccessToken: token,
 	}
@@ -115,26 +106,12 @@ func resolveCLIClientConfig(requireToken bool) (cliClientConfig, error) {
 	return cfg, nil
 }
 
-// defaultServer returns the saved default server, including legacy config
-// compatibility.
-func (c cliConfig) defaultServer() string {
-	return firstNonEmpty(c.DefaultServer, c.Server)
-}
-
 // serverConfig returns credentials for a normalized server URL.
 func (c cliConfig) serverConfig(server string) cliServerConfig {
 	name := serverName(server)
 	if c.Servers != nil {
 		if cfg, ok := c.Servers[name]; ok {
 			return cfg
-		}
-	}
-	if c.AccessToken != "" && normalizeServerURL(c.Server) == server {
-		return cliServerConfig{
-			Server:      server,
-			AccessToken: c.AccessToken,
-			Scope:       c.Scope,
-			ExpiresAt:   c.ExpiresAt,
 		}
 	}
 	return cliServerConfig{}
@@ -210,7 +187,7 @@ func saveServerToken(path, server string, token tokenResponse, expiresAt time.Ti
 		cfg.Servers = map[string]cliServerConfig{}
 	}
 	if cfg.DefaultServer == "" {
-		cfg.DefaultServer = firstNonEmpty(cfg.Server, defaultCLIServer)
+		cfg.DefaultServer = defaultCLIServer
 	}
 	cfg.Servers[serverName(server)] = cliServerConfig{
 		Server:      server,
@@ -218,10 +195,6 @@ func saveServerToken(path, server string, token tokenResponse, expiresAt time.Ti
 		Scope:       token.Scope,
 		ExpiresAt:   expiresAt,
 	}
-	cfg.Server = ""
-	cfg.AccessToken = ""
-	cfg.Scope = ""
-	cfg.ExpiresAt = time.Time{}
 	return writeCLIConfig(path, cfg)
 }
 

@@ -23,9 +23,6 @@ plugins:
     opt: paths=source_relative
     exclude_types:
       - "craig_stars.v1.AdminService"
-      - "craig_stars.v1.BattleService"
-      - "craig_stars.v1.RulesService"
-      - "craig_stars.v1.TechService"
       - "craig_stars.v1.TestService"
       - "craig_stars.v1.WasmService"
   # wasm protobuf stuff

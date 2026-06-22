@@ -21,6 +21,9 @@ func (s *server) newMCPHandler() http.Handler {
 	baseURL := s.internalConnectBaseURL()
 	client := http.DefaultClient
 
+	craig_starsv1mcp.ForwardToConnectBattleServiceClient(runtimeServer, craig_starsv1connect.NewBattleServiceClient(client, baseURL, opts...))
+	craig_starsv1mcp.ForwardToConnectRulesServiceClient(runtimeServer, craig_starsv1connect.NewRulesServiceClient(client, baseURL, opts...))
+	craig_starsv1mcp.ForwardToConnectTechServiceClient(runtimeServer, craig_starsv1connect.NewTechServiceClient(client, baseURL, opts...))
 	craig_starsv1mcp.ForwardToConnectUserServiceClient(runtimeServer, craig_starsv1connect.NewUserServiceClient(client, baseURL, opts...))
 	craig_starsv1mcp.ForwardToConnectRaceServiceClient(runtimeServer, craig_starsv1connect.NewRaceServiceClient(client, baseURL, opts...))
 	craig_starsv1mcp.ForwardToConnectGameServiceClient(runtimeServer, craig_starsv1connect.NewGameServiceClient(client, baseURL, opts...))
