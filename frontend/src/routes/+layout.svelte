@@ -18,12 +18,12 @@
 
 	let { children }: Props = $props();
 
-	const loggingIn = $page.url.pathname.startsWith('/auth');
+	const publicRoute = $page.url.pathname.startsWith('/auth') || $page.url.pathname.startsWith('/docs');
 	const wasmExecUrl = new URL('$lib/wasm/wasm_exec.js', import.meta.url).href;
 
 	// check the user
 	onMount(() => {
-		if (!loggingIn) {
+		if (!publicRoute) {
 			authGuard();
 		}
 	});
@@ -34,7 +34,7 @@
 </svelte:head>
 
 <!-- Show the main content if we've logged in, otherwise show the login page -->
-{#if $me.status == UserStatuses.LoggedIn || loggingIn}
+{#if $me.status == UserStatuses.LoggedIn || publicRoute}
 	{#if children}{@render children()}{:else}This is the main content{/if}
 {:else if $me.status == UserStatuses.NotFound}
 	<HomePage />

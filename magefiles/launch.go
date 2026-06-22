@@ -217,9 +217,9 @@ func Build_Backend_CI(version, hash, releaseTime string) error {
 	mg.SerialDeps(Tidy, Generate, Build_WASM)
 
 	// Benchmarks might suggest otherwise, but these string literals get concatenated during compile time
-	args := ldflags + fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'"+
-		" -X 'github.com/sirgwain/craig-stars/cmd.commit=%s'"+
-		" -X 'github.com/sirgwain/craig-stars/cmd.buildTime=%s'", version, hash, releaseTime)
+	args := ldflags + fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/version.Semver=%s'"+
+		" -X 'github.com/sirgwain/craig-stars/version.Commit=%s'"+
+		" -X 'github.com/sirgwain/craig-stars/version.BuildTime=%s'", version, hash, releaseTime)
 	return build_backend(args)
 }
 

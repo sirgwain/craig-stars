@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"os"
 
+	"log/slog"
+
 	"github.com/lensesio/tableprinter"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/spf13/cobra"
-	"log/slog"
 )
 
-func newGamesListCmd() *cobra.Command {
+func newDBGamesListCmd() *cobra.Command {
 	var full bool
 	var save bool
 	var generate bool

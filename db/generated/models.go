@@ -11,6 +11,20 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
+type ApiToken struct {
+	ID          int64
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	UserID      int64
+	Name        string
+	TokenPrefix string
+	TokenHash   string
+	Scope       string
+	ExpiresAt   time.Time
+	LastUsedAt  sql.NullTime
+	RevokedAt   sql.NullTime
+}
+
 type Fleet struct {
 	ID                int64
 	CreatedAt         time.Time

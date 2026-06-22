@@ -42,6 +42,8 @@ type ReadClient interface {
 	GetUserByDiscordID(ctx context.Context, discord_id string) (*cs.User, error)
 	GetUsers(ctx context.Context) ([]cs.User, error)
 	GetUsersForGame(ctx context.Context, gameID int64) ([]cs.User, error)
+	GetAPITokenByHash(ctx context.Context, tokenHash string) (*cs.APIToken, error)
+	GetAPITokensForUser(ctx context.Context, userID int64) ([]cs.APIToken, error)
 
 	GetRace(ctx context.Context, id int64) (*cs.Race, error)
 	GetRaces(ctx context.Context) ([]cs.Race, error)
@@ -102,8 +104,11 @@ type WriteClient interface {
 	ensureUpgrade(context.Context) error
 
 	CreateUser(ctx context.Context, user *cs.User) (*cs.User, error)
+	CreateAPIToken(ctx context.Context, token *cs.APIToken, tokenHash string) (*cs.APIToken, error)
 	DeleteGameGuestUsers(ctx context.Context, gameID int64) error
 	DeleteUser(ctx context.Context, id int64) error
+	RevokeAPIToken(ctx context.Context, userID, id int64) error
+	TouchAPIToken(ctx context.Context, id int64) error
 	UpdateUser(ctx context.Context, user *cs.User) error
 	UpdateUserSettings(ctx context.Context, user *cs.User) error
 

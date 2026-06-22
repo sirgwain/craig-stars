@@ -18,6 +18,16 @@ plugins:
     opt: paths=source_relative
     exclude_types:
       - "craig_stars.v1.WasmService"
+  - local: ["go", "tool", "github.com/redpanda-data/protoc-gen-go-mcp/cmd/protoc-gen-go-mcp"]
+    out: proto/gen
+    opt: paths=source_relative
+    exclude_types:
+      - "craig_stars.v1.AdminService"
+      - "craig_stars.v1.BattleService"
+      - "craig_stars.v1.RulesService"
+      - "craig_stars.v1.TechService"
+      - "craig_stars.v1.TestService"
+      - "craig_stars.v1.WasmService"
   # wasm protobuf stuff
   - local: ["go", "tool", "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto"]
     out: proto/gen

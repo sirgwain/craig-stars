@@ -1,6 +1,6 @@
 module github.com/sirgwain/craig-stars
 
-go 1.25
+go 1.26.1
 
 replace github.com/sirgwain/craig-stars/cs => ./cs
 
@@ -32,7 +32,9 @@ require (
 	github.com/golodash/godash v1.3.0
 	github.com/lensesio/tableprinter v0.0.0-20201125135848-89e81fc956e7
 	github.com/magefile/mage v1.17.2
+	github.com/mark3labs/mcp-go v0.55.0
 	github.com/phsym/console-slog v0.3.1
+	github.com/redpanda-data/protoc-gen-go-mcp v0.0.0-20260610124158-78ea28e8c1aa
 	github.com/samber/lo v1.53.0
 	github.com/samber/slog-multi v1.8.0
 	github.com/simukti/sqldb-logger v0.0.0-20230108155151-646c1a075551
@@ -44,7 +46,7 @@ require (
 
 require (
 	buf.build/gen/go/bufbuild/bufplugin/protocolbuffers/go v1.36.6-20250718181942-e35f9b667443.1 // indirect
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250717185734-6c6e0d3c608e.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1 // indirect
 	buf.build/gen/go/bufbuild/registry/connectrpc/go v1.18.1-20250721151928-2b7ae473b098.1 // indirect
 	buf.build/gen/go/bufbuild/registry/protocolbuffers/go v1.36.6-20250721151928-2b7ae473b098.1 // indirect
 	buf.build/gen/go/pluginrpc/pluginrpc/protocolbuffers/go v1.36.6-20241007202033-cf42259fcbfc.1 // indirect
@@ -55,7 +57,7 @@ require (
 	buf.build/go/protoyaml v0.6.0 // indirect
 	buf.build/go/spdx v0.2.0 // indirect
 	buf.build/go/standard v0.1.0 // indirect
-	cel.dev/expr v0.24.0 // indirect
+	cel.dev/expr v0.25.1 // indirect
 	connectrpc.com/otelconnect v0.7.2 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -141,8 +143,8 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20240107134140-fcbab37b09ad // indirect
-	github.com/segmentio/asm v1.2.0 // indirect
-	github.com/segmentio/encoding v0.5.3 // indirect
+	github.com/segmentio/asm v1.2.1 // indirect
+	github.com/segmentio/encoding v0.5.4 // indirect
 	github.com/sirgwain/craig-stars/generators/protoc-gen-wasm-go v0.0.0-00010101000000-000000000000 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sqlc-dev/sqlc v1.29.0 // indirect
@@ -156,11 +158,11 @@ require (
 	go.lsp.dev/pkg v0.0.0-20210717090340-384b27a52fb2 // indirect
 	go.lsp.dev/protocol v0.12.0 // indirect
 	go.lsp.dev/uri v0.3.0 // indirect
-	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
-	go.opentelemetry.io/otel v1.37.0 // indirect
-	go.opentelemetry.io/otel/metric v1.37.0 // indirect
-	go.opentelemetry.io/otel/trace v1.37.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.67.0 // indirect
+	go.opentelemetry.io/otel v1.43.0 // indirect
+	go.opentelemetry.io/otel/metric v1.43.0 // indirect
+	go.opentelemetry.io/otel/trace v1.43.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/mock v0.5.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -170,9 +172,9 @@ require (
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/term v0.44.0 // indirect
 	golang.org/x/tools v0.46.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250818200422-3122310a409c // indirect
-	google.golang.org/grpc v1.74.2 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260316180232-0b37fe3546d5 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260316180232-0b37fe3546d5 // indirect
+	google.golang.org/grpc v1.81.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gotest.tools/gotestsum v1.12.0 // indirect
 	modernc.org/libc v1.62.1 // indirect
@@ -203,15 +205,21 @@ require (
 )
 
 require (
+	buf.build/gen/go/redpandadata/common/protocolbuffers/go v1.34.2-20240917150400-3f349e63f44a.2 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/disgoorg/json/v2 v2.0.0 // indirect
 	github.com/disgoorg/omit v1.0.0 // indirect
 	github.com/fabien-marty/tracerr v0.0.0-20240624051446-7f090eca46ee // indirect
 	github.com/go-pkgz/repeater/v2 v2.2.0 // indirect
+	github.com/google/jsonschema-go v0.4.2 // indirect
 	github.com/nsf/jsondiff v0.0.0-20260207060731-8e8d90c4c0ac // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/redpanda-data/common-go/api v0.0.0-20250801174835-9eea07f1ea06 // indirect
 	github.com/samber/slog-common v0.22.0 // indirect
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/ztrue/tracerr v0.4.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 )
@@ -237,6 +245,7 @@ tool (
 	github.com/bufbuild/buf/cmd/buf
 	github.com/jmattheis/goverter/cmd/goverter
 	github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto
+	github.com/redpanda-data/protoc-gen-go-mcp/cmd/protoc-gen-go-mcp
 	github.com/sirgwain/craig-stars/generators/protoc-gen-wasm-go
 	github.com/sqlc-dev/sqlc/cmd/sqlc
 	google.golang.org/protobuf/cmd/protoc-gen-go
