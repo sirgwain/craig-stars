@@ -1,4 +1,4 @@
-<script lang="ts" module>
+<script module lang="ts">
 	export type MineralTooltipProps = {
 		mineralType: string;
 		surfaceAmount: number;

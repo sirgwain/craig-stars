@@ -16,7 +16,7 @@
 
 	let { battle, action, phase }: Props = $props();
 
-	function getTokenDescription(tokenNum?: number): string {
+	function getTokenDescription(tokenNum: number | undefined = undefined): string {
 		if (!tokenNum) {
 			return '';
 		}

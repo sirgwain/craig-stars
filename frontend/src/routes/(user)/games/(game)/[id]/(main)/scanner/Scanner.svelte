@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { clickOutside } from '$lib/clickOutside';
-	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
+	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup';
 	import type { SelectWaypointProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';

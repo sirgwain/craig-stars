@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
 	import type { Waypoint } from '$lib/types/cs-proto';
 	import type {
 		BattlePlanChangedProps,

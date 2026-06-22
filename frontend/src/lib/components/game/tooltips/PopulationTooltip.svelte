@@ -1,4 +1,4 @@
-<script lang="ts" module>
+<script module lang="ts">
 	import { ReportAgeUnexplored } from '$lib/types/Consts';
 	import type { CommandedPlayer } from '$lib/types/Player';
 	export type PopulationTooltipProps = {

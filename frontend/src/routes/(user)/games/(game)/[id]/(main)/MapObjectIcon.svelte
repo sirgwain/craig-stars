@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getHullIcon } from '$lib/techicon';
 	import { MinefieldType, type Planet } from '$lib/types/cs-proto';

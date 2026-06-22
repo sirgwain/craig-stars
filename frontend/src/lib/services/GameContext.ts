@@ -313,7 +313,6 @@ export async function createGameContext(
 	) {
 		const targetType: PlayerMessageTargetType =
 			message.target?.targetType ?? PlayerMessageTargetType.UNSPECIFIED;
-		let moType = MapObjectType.UNSPECIFIED;
 
 		if (message.battleNum) {
 			goto(`/games/${gameId}/battles/${message.battleNum}`);
@@ -382,7 +381,7 @@ export async function createGameContext(
 		}
 
 		if (message.target?.targetNum) {
-			moType = getMapObjectTypeForMessageType(targetType);
+			const moType = getMapObjectTypeForMessageType(targetType);
 
 			if (moType != MapObjectType.UNSPECIFIED) {
 				const target = universe.getMapObject(getMapObjectTarget(message));

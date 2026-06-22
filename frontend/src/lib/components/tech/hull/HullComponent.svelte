@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
+	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
 	import { techs } from '$lib/services/Stores';
 	import {
 		HullSlotTypeArmor,

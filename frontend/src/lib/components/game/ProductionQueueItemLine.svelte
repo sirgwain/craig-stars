@@ -7,7 +7,7 @@
 	import { Infinite } from '$lib/types/Consts';
 	import { getFullName, getShortName, isAuto } from '$lib/types/QueueItemType';
 	import { create } from '@bufbuild/protobuf';
-	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
+	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip';
 
 	const { universe } = getGameContext();
 

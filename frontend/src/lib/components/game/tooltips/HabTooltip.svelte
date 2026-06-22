@@ -1,4 +1,4 @@
-<script lang="ts" module>
+<script module lang="ts">
 	import type { HabType } from '$lib/types/Hab';
 	import type { CommandedPlayer } from '$lib/types/Player';
 	import type { Planet } from '$lib/types/cs-proto';

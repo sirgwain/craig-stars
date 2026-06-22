@@ -10,10 +10,11 @@
 	} from '$lib/components/game/tooltips/MinesTooltip.svelte';
 	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
+	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
+	import Table from '$lib/components/table/Table.svelte';
+	import type { TableColumn } from '$lib/components/table/Table';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip, techs } from '$lib/services/Stores';

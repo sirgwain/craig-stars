@@ -15,7 +15,7 @@
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { getContext } from 'svelte';
-	import { onShipDesignTooltip } from '../tooltips/ShipDesignTooltip.svelte';
+	import { onShipDesignTooltip } from '../tooltips/ShipDesignTooltip';
 	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import BattleSpeed from '../BattleSpeed.svelte';
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { ArrowsUpDown, ArrowUp, ArrowDown } from '@steeze-ui/heroicons';
-	import type { TableColumn } from './Table.svelte';
+	import type { TableColumn } from './Table';
 
 	type T = $$Generic;
 	type Props = {

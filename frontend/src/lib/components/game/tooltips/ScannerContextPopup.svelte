@@ -1,13 +1,5 @@
-<script lang="ts" module>
-	import ScannerContextPopup from './ScannerContextPopup.svelte';
-
-	export type ScannerContextPopupProps = {
-		position: Position;
-	} & PopupPropsBase;
-
-	export function onScannerContextPopup(e: PointerEvent | MouseEvent, position: Position) {
-		showPopup<ScannerContextPopupProps>(e.x, e.y, ScannerContextPopup, { position });
-	}
+<script module lang="ts">
+	import type { ScannerContextPopupProps } from './ScannerContextPopup';
 </script>
 
 <script lang="ts">
@@ -17,12 +9,10 @@
 	import {
 		getMapObjectName,
 		ownedBy,
-		type MapObjectLike,
-		type Position
+		type MapObjectLike
 	} from '$lib/types/MapObject';
 	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import { flatten } from 'lodash-es';
-	import { showPopup, type PopupPropsBase } from './Popup.svelte';
 
 	const { player, universe, settings, commandMapObject, selectMapObject } = getGameContext();
 

@@ -4,7 +4,7 @@
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
-	import { onTechTooltip } from '../tooltips/TechTooltip.svelte';
+	import { onTechTooltip } from '../tooltips/TechTooltip';
 
 	const componentSize = 64; // each component block is 64px
 	const containerWidth = componentSize * 5;

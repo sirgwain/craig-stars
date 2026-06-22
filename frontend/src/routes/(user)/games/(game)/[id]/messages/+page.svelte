@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
+	import Table from '$lib/components/table/Table.svelte';
+	import type { TableColumn } from '$lib/components/table/Table';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { PlayerMessageType, type PlayerMessage } from '$lib/types/cs-proto';

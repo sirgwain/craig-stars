@@ -52,13 +52,13 @@
 		onAvailableItemSelected?.(selectedAvailableItem);
 	}
 
-	function queueItemClicked(index: number, item?: ProductionPlanItem) {
+	function queueItemClicked(index: number, item: ProductionPlanItem | undefined = undefined) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
 		onQueueItemSelected?.(selectedQueueItem);
 	}
 
-	function addAvailableItem(item?: ProductionPlanItem) {
+	function addAvailableItem(item: ProductionPlanItem | undefined = undefined) {
 		item = item ?? selectedAvailableItem;
 		if (!item) {
 			return;

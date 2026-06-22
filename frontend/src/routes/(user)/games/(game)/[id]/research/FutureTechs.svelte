@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
+	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';
