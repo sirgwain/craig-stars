@@ -12,6 +12,28 @@ import (
 
 type GameConverter struct{}
 
+func (c *GameConverter) ConvertApiToken(source generated.ApiToken) cs.APIToken {
+	var csAPIToken cs.APIToken
+	csAPIToken.DBObject = c.generatedApiTokenToCsDBObject(source)
+	csAPIToken.UserID = source.UserID
+	csAPIToken.Name = source.Name
+	csAPIToken.TokenPrefix = source.TokenPrefix
+	csAPIToken.Scope = source.Scope
+	csAPIToken.ExpiresAt = c.timeTimeToTimeTime(source.ExpiresAt)
+	csAPIToken.LastUsedAt = NullTimeToPTime(source.LastUsedAt)
+	csAPIToken.RevokedAt = NullTimeToPTime(source.RevokedAt)
+	return csAPIToken
+}
+func (c *GameConverter) ConvertApiTokens(source []generated.ApiToken) []cs.APIToken {
+	var csAPITokenList []cs.APIToken
+	if source != nil {
+		csAPITokenList = make([]cs.APIToken, len(source))
+		for i := 0; i < len(source); i++ {
+			csAPITokenList[i] = c.ConvertApiToken(source[i])
+		}
+	}
+	return csAPITokenList
+}
 func (c *GameConverter) ConvertFleet(source generated.Fleet) *cs.Fleet {
 	var csFleet cs.Fleet
 	csFleet.GameDBObject = c.generatedFleetToCsGameDBObject(source)
@@ -68,6 +90,19 @@ func (c *GameConverter) ConvertGame(source generated.Game) cs.Game {
 	csGame.Archived = source.Archived
 	csGame.GalaxyClumping = source.GalaxyClumping
 	return csGame
+}
+func (c *GameConverter) ConvertGameApiTokenToCreateParams(source *cs.APIToken) generated.CreateAPITokenParams {
+	var generatedCreateAPITokenParams generated.CreateAPITokenParams
+	if source != nil {
+		var generatedCreateAPITokenParams2 generated.CreateAPITokenParams
+		generatedCreateAPITokenParams2.UserID = (*source).UserID
+		generatedCreateAPITokenParams2.Name = (*source).Name
+		generatedCreateAPITokenParams2.TokenPrefix = (*source).TokenPrefix
+		generatedCreateAPITokenParams2.Scope = (*source).Scope
+		generatedCreateAPITokenParams2.ExpiresAt = c.timeTimeToTimeTime((*source).ExpiresAt)
+		generatedCreateAPITokenParams = generatedCreateAPITokenParams2
+	}
+	return generatedCreateAPITokenParams
 }
 func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) generated.Fleet {
 	var generatedFleet generated.Fleet
@@ -1280,7 +1315,7 @@ func (c *GameConverter) ConvertGames(source []generated.Game) []cs.Game {
 func (c *GameConverter) ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.GamePlayer {
 	var csGamePlayer cs.GamePlayer
 	csGamePlayer.ID = NullInt64ToInt64(source.ID)
-	csGamePlayer.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
+	csGamePlayer.UpdatedAt = NullTimeToPTime(source.UpdatedAt)
 	csGamePlayer.UserID = NullInt64ToInt64(source.UserID)
 	csGamePlayer.Name = NullStringToString(source.Name)
 	csGamePlayer.Num = NullInt64ToInt(source.Num)
@@ -1299,7 +1334,7 @@ func (c *GameConverter) ConvertGetGameWithPlayersRowToPlayerStatus(source genera
 func (c *GameConverter) ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.GamePlayer {
 	var csGamePlayer cs.GamePlayer
 	csGamePlayer.ID = NullInt64ToInt64(source.ID)
-	csGamePlayer.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
+	csGamePlayer.UpdatedAt = NullTimeToPTime(source.UpdatedAt)
 	csGamePlayer.UserID = NullInt64ToInt64(source.UserID)
 	csGamePlayer.Name = NullStringToString(source.Name)
 	csGamePlayer.Num = NullInt64ToInt(source.Num)
@@ -1318,7 +1353,7 @@ func (c *GameConverter) ConvertGetGamesWithPlayersForUserRowToPlayerStatus(sourc
 func (c *GameConverter) ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.GamePlayer {
 	var csGamePlayer cs.GamePlayer
 	csGamePlayer.ID = NullInt64ToInt64(source.ID)
-	csGamePlayer.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
+	csGamePlayer.UpdatedAt = NullTimeToPTime(source.UpdatedAt)
 	csGamePlayer.UserID = NullInt64ToInt64(source.UserID)
 	csGamePlayer.Name = NullStringToString(source.Name)
 	csGamePlayer.Num = NullInt64ToInt(source.Num)
@@ -1734,6 +1769,13 @@ func (c *GameConverter) csShipDesignPurposeToCsShipDesignPurpose(source cs.ShipD
 func (c *GameConverter) csWormholeStabilityToCsWormholeStability(source cs.WormholeStability) cs.WormholeStability {
 	return source
 }
+func (c *GameConverter) generatedApiTokenToCsDBObject(source generated.ApiToken) cs.DBObject {
+	var csDBObject cs.DBObject
+	csDBObject.ID = source.ID
+	csDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
+	return csDBObject
+}
 func (c *GameConverter) generatedFleetToCsCargo(source generated.Fleet) cs.Cargo {
 	var csCargo cs.Cargo
 	csCargo.Ironium = Int64ToInt(source.Ironium)
@@ -1945,10 +1987,6 @@ func (c *GameConverter) salvageCargo(source generated.Salvage) cs.Cargo {
 	csCargo.Boranium = Int64ToInt(source.Boranium)
 	csCargo.Germanium = Int64ToInt(source.Germanium)
 	return csCargo
-}
-func (c *GameConverter) sqlNullTimeToPTimeTime(source sql.NullTime) *time.Time {
-	timeTime := NullTimeToTime(source)
-	return &timeTime
 }
 func (c *GameConverter) timeTimeToTimeTime(source time.Time) time.Time {
 	return source

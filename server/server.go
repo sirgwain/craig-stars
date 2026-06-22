@@ -64,6 +64,7 @@ type server struct {
 	config          configpkg.Config
 	sf              singleflight.Group
 	discordNotifier *discordNotifier
+	mcpAuth         *mcpAuthStore
 }
 
 const userRejected = "rejected"
@@ -89,6 +90,7 @@ func Start(config configpkg.Config) error {
 		db:              dbConn,
 		config:          config,
 		discordNotifier: discordNotifier,
+		mcpAuth:         newMCPAuthStore(),
 	}
 
 	var authLogger = logger.Func(func(format string, args ...interface{}) { slog.Info(fmt.Sprintf(format, args...)) })
@@ -291,6 +293,7 @@ func Start(config configpkg.Config) error {
 	grpc.Handle(craig_starsv1connect.NewAdminServiceHandler(NewAdminServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewTestServiceHandler(NewTestServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewTechServiceHandler(NewTechServiceHandler(), connect.WithInterceptors(newErrorLogInterceptor())))
+	grpc.Handle(craig_starsv1connect.NewRulesServiceHandler(NewRulesServiceHandler(), connect.WithInterceptors(newErrorLogInterceptor())))
 	grpc.Handle(craig_starsv1connect.NewUserServiceHandler(NewUserServiceHandler(dbConn, discordNotifier), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewRaceServiceHandler(NewRaceServiceHandler(dbConn), connect.WithInterceptors(userInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewGameServiceHandler(NewGameServiceHandler(dbConn, server.config, discordNotifier), connect.WithInterceptors(gameInterceptors...)))
@@ -306,10 +309,26 @@ func Start(config configpkg.Config) error {
 
 	// Mount the grpc calls to /api/grpc
 	r.Group(func(r chi.Router) {
-		r.Use(m.Auth)
+		r.Use(server.authAPIOrSession(m))
 		r.Use(server.userSessionCtx)
 
 		r.Mount("/api/grpc", http.StripPrefix("/api/grpc", grpc))
+	})
+
+	r.Group(func(r chi.Router) {
+		r.Use(m.Trace)
+		r.Get("/api/mcp/oauth/authorize", server.mcpAuthorizeHandler)
+	})
+	r.Post("/api/mcp/oauth/token", server.mcpTokenHandler)
+	r.Get("/api/mcp/oauth/metadata", server.mcpOAuthMetadataHandler)
+	r.Get("/api/mcp/.well-known/openid-configuration", server.mcpOAuthMetadataHandler)
+	r.Get("/api/mcp/.well-known/oauth-authorization-server", server.mcpOAuthMetadataHandler)
+	r.Get("/api/mcp/resource-metadata", server.mcpResourceMetadataHandler)
+	mcpHandler := server.newMCPHandler()
+	r.Group(func(r chi.Router) {
+		r.Use(server.authAPITokenOnly)
+		r.Handle("/api/mcp", mcpHandler)
+		r.Handle("/api/mcp/*", mcpHandler)
 	})
 
 	// setup auth routes

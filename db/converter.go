@@ -73,6 +73,7 @@ var c Converter
 // goverter:extend NullInt64ToInt64
 // goverter:extend NullStringToString
 // goverter:extend NullTimeToTime
+// goverter:extend NullTimeToPTime
 // goverter:extend PlanetIntelsToGamePlanetIntels
 // goverter:extend PlanetSpecToGamePlanetSpec
 // goverter:extend PlayerIntelsToGamePlayerIntels
@@ -114,6 +115,14 @@ type Converter interface {
 	ConvertUser(source generated.User) cs.User
 
 	ConvertUsers(source []generated.User) []cs.User
+
+	// goverter:autoMap DBObject
+	// goverter:ignore TokenHash
+	ConvertGameApiTokenToCreateParams(source *cs.APIToken) generated.CreateAPITokenParams
+	// goverter:map . DBObject
+	ConvertApiToken(source generated.ApiToken) cs.APIToken
+
+	ConvertApiTokens(source []generated.ApiToken) []cs.APIToken
 
 	// goverter:map . DBObject
 	// goverter:map . ResearchCost | ExtendResearchCost
@@ -610,6 +619,13 @@ func NullTimeToTime(source sql.NullTime) time.Time {
 		return source.Time
 	}
 	return time.Time{}
+}
+
+func NullTimeToPTime(source sql.NullTime) *time.Time {
+	if source.Valid {
+		return &source.Time
+	}
+	return nil
 }
 
 func NullBoolToBool(source sql.NullBool) bool {

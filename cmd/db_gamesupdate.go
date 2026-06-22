@@ -7,7 +7,7 @@ import (
 
 var gameID int64
 
-func newGamesUpdateCmd() *cobra.Command {
+func newDBGamesUpdateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update a game",

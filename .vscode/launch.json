@@ -60,7 +60,7 @@
 			"id": "launchArgs",
 			"type": "pickString",
 			"description": "Select arguments to run main.go with.",
-			"options": ["serve", "serve --test-mode"],
+			"options": ["serve", "serve --test-mode", "games --server http://localhost:5173"],
 			"default": "serve"
 		},
 		{

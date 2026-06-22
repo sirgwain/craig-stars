@@ -5,22 +5,25 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/phsym/console-slog"
 	slogmulti "github.com/samber/slog-multi"
+	"github.com/sirgwain/craig-stars/version"
 	"github.com/spf13/cobra"
 )
 
 // semver is the semantic-release semver (added at compile time)
 var (
-	semver    string = "0.0.0-develop"
-	commit    string = "local"
-	buildTime string = time.Now().Format(time.RFC3339)
+	semver    = version.Semver
+	commit    = version.Commit
+	buildTime = version.BuildTime
 )
 
 var logFile string
 var debugEnabled = true
+var cliServer string
+var cliToken string
+var cliConfigPath string
 
 // prerun method for enabling slog logging
 func logPreRun(cmd *cobra.Command, args []string) error {
@@ -104,4 +107,7 @@ func Execute() {
 func init() {
 	// all commands have debug mode
 	rootCmd.PersistentFlags().StringVarP(&logFile, "log", "", "", "log file to send structured logs to")
+	rootCmd.PersistentFlags().StringVar(&cliServer, "server", "", "craig-stars server URL")
+	rootCmd.PersistentFlags().StringVar(&cliToken, "token", "", "craig-stars API bearer token")
+	rootCmd.PersistentFlags().StringVar(&cliConfigPath, "config", "", "craig-stars CLI config file")
 }
