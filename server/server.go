@@ -320,10 +320,14 @@ func Start(config configpkg.Config) error {
 		r.Get("/api/mcp/oauth/authorize", server.mcpAuthorizeHandler)
 	})
 	r.Post("/api/mcp/oauth/token", server.mcpTokenHandler)
+	r.Post("/api/mcp/oauth/register", server.mcpRegisterHandler)
 	r.Get("/api/mcp/oauth/metadata", server.mcpOAuthMetadataHandler)
+	r.Get("/.well-known/oauth-authorization-server", server.mcpOAuthMetadataHandler)
+	r.Get("/.well-known/oauth-protected-resource/api/mcp", server.mcpResourceMetadataHandler)
+	// Some MCP clients probe discovery URLs relative to the MCP endpoint before
+	// following the protected-resource metadata advertised in WWW-Authenticate.
 	r.Get("/api/mcp/.well-known/openid-configuration", server.mcpOAuthMetadataHandler)
 	r.Get("/api/mcp/.well-known/oauth-authorization-server", server.mcpOAuthMetadataHandler)
-	r.Get("/api/mcp/resource-metadata", server.mcpResourceMetadataHandler)
 	mcpHandler := server.newMCPHandler()
 	r.Group(func(r chi.Router) {
 		r.Use(server.authAPITokenOnly)

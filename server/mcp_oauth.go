@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
@@ -8,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -18,6 +20,7 @@ import (
 	"github.com/go-pkgz/auth/v2/token"
 	"github.com/go-pkgz/rest"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db"
 )
 
 const authCodeTTL = 5 * time.Minute
@@ -33,10 +36,25 @@ type mcpAuthStore struct {
 type mcpAuthCode struct {
 	CodeHash      string
 	UserID        int64
+	ClientID      string
+	Registered    bool
 	RedirectURI   string
+	Resource      string
 	CodeChallenge string
 	ExpiresAt     time.Time
 	Used          bool
+}
+
+type mcpRegisteredClient struct {
+	ClientID                string   `json:"client_id"`
+	ClientName              string   `json:"client_name,omitempty"`
+	ClientURI               string   `json:"client_uri,omitempty"`
+	RedirectURIs            []string `json:"redirect_uris"`
+	GrantTypes              []string `json:"grant_types"`
+	ResponseTypes           []string `json:"response_types"`
+	TokenEndpointAuthMethod string   `json:"token_endpoint_auth_method"`
+	Scope                   string   `json:"scope,omitempty"`
+	ClientIDIssuedAt        int64    `json:"client_id_issued_at"`
 }
 
 // tokenResponse is the OAuth token response returned to MCP clients.
@@ -62,10 +80,17 @@ func (s *server) mcpAuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	clientID := r.URL.Query().Get("client_id")
 	redirectURI := r.URL.Query().Get("redirect_uri")
+	resource := r.URL.Query().Get("resource")
 	codeChallenge := r.URL.Query().Get("code_challenge")
-	if err := validateLoopbackRedirectURI(redirectURI); err != nil {
+	registered, err := s.validateMCPRedirectURI(r.Context(), clientID, redirectURI)
+	if err != nil {
 		rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, err, "invalid redirect_uri")
+		return
+	}
+	if resource != "" && resource != s.mcpResourceURI() {
+		rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, errors.New("invalid resource"), "invalid resource")
 		return
 	}
 	if codeChallenge == "" {
@@ -91,7 +116,10 @@ func (s *server) mcpAuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	s.mcpAuth.put(mcpAuthCode{
 		CodeHash:      hashOAuthSecret(code),
 		UserID:        userID,
+		ClientID:      clientID,
+		Registered:    registered,
 		RedirectURI:   redirectURI,
+		Resource:      resource,
 		CodeChallenge: codeChallenge,
 		ExpiresAt:     time.Now().Add(authCodeTTL),
 	})
@@ -120,7 +148,9 @@ func (s *server) mcpTokenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := req["code"]
+	clientID := req["client_id"]
 	redirectURI := req["redirect_uri"]
+	resource := req["resource"]
 	verifier := req["code_verifier"]
 	if code == "" || redirectURI == "" || verifier == "" {
 		rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, errors.New("missing required token field"), "missing required token field")
@@ -130,6 +160,14 @@ func (s *server) mcpTokenHandler(w http.ResponseWriter, r *http.Request) {
 	authCode, ok := s.mcpAuth.consume(code)
 	if !ok || authCode.RedirectURI != redirectURI || !verifyPKCE(verifier, authCode.CodeChallenge) {
 		rest.SendErrorJSON(w, r, nil, http.StatusUnauthorized, errors.New("invalid authorization code"), "invalid authorization code")
+		return
+	}
+	if authCode.Registered && authCode.ClientID != clientID {
+		rest.SendErrorJSON(w, r, nil, http.StatusUnauthorized, errors.New("invalid client_id"), "invalid client_id")
+		return
+	}
+	if authCode.Resource != "" && authCode.Resource != resource {
+		rest.SendErrorJSON(w, r, nil, http.StatusUnauthorized, errors.New("invalid resource"), "invalid resource")
 		return
 	}
 
@@ -177,10 +215,12 @@ func (s *server) mcpOAuthMetadataHandler(w http.ResponseWriter, r *http.Request)
 		"issuer":                                base,
 		"authorization_endpoint":                base + "/api/mcp/oauth/authorize",
 		"token_endpoint":                        base + "/api/mcp/oauth/token",
+		"registration_endpoint":                 base + "/api/mcp/oauth/register",
 		"response_types_supported":              []string{"code"},
 		"grant_types_supported":                 []string{"authorization_code"},
 		"code_challenge_methods_supported":      []string{"S256"},
 		"token_endpoint_auth_methods_supported": []string{"none"},
+		"scopes_supported":                      []string{apiTokenScopePlayer},
 	})
 }
 
@@ -189,7 +229,7 @@ func (s *server) mcpOAuthMetadataHandler(w http.ResponseWriter, r *http.Request)
 func (s *server) mcpResourceMetadataHandler(w http.ResponseWriter, r *http.Request) {
 	base := strings.TrimRight(s.config.Auth.URL, "/")
 	rest.RenderJSON(w, map[string]any{
-		"resource":                               base + "/api/mcp",
+		"resource":                               s.mcpResourceURI(),
 		"authorization_servers":                  []string{base},
 		"bearer_methods_supported":               []string{"header"},
 		"resource_documentation":                 base + "/docs/mcp",
@@ -200,6 +240,85 @@ func (s *server) mcpResourceMetadataHandler(w http.ResponseWriter, r *http.Reque
 		"mcp_protocol_version":                   "2025-06-18",
 		"authorization_server_metadata_endpoint": base + "/api/mcp/oauth/metadata",
 	})
+}
+
+// mcpRegisterHandler implements OAuth Dynamic Client Registration for ChatGPT
+// and other hosted MCP clients. Registered clients are public PKCE clients.
+func (s *server) mcpRegisterHandler(w http.ResponseWriter, r *http.Request) {
+	var req mcpRegisteredClient
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, err, "invalid registration request")
+		return
+	}
+	if len(req.RedirectURIs) == 0 {
+		rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, errors.New("missing redirect_uris"), "missing redirect_uris")
+		return
+	}
+	for _, redirectURI := range req.RedirectURIs {
+		if err := validateHostedRedirectURI(redirectURI); err != nil {
+			rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, err, "invalid redirect_uri")
+			return
+		}
+	}
+	if len(req.GrantTypes) == 0 {
+		req.GrantTypes = []string{"authorization_code"}
+	}
+	if len(req.ResponseTypes) == 0 {
+		req.ResponseTypes = []string{"code"}
+	}
+	if req.TokenEndpointAuthMethod == "" {
+		req.TokenEndpointAuthMethod = "none"
+	}
+	if req.TokenEndpointAuthMethod != "none" {
+		rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, errors.New("unsupported token_endpoint_auth_method"), "unsupported token_endpoint_auth_method")
+		return
+	}
+	if !stringSliceContains(req.GrantTypes, "authorization_code") || !stringSliceContains(req.ResponseTypes, "code") {
+		rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, errors.New("unsupported OAuth flow"), "unsupported OAuth flow")
+		return
+	}
+
+	clientID, err := randomURLToken(24)
+	if err != nil {
+		rest.SendErrorJSON(w, r, nil, http.StatusInternalServerError, err, "failed to create client")
+		return
+	}
+	req.ClientID = "mcp_" + clientID
+	req.ClientIDIssuedAt = time.Now().Unix()
+	var created *cs.MCPOAuthClient
+	err = s.db.WrapInTransaction(func(c db.Client) error {
+		var err error
+		created, err = c.CreateMCPOAuthClient(r.Context(), &cs.MCPOAuthClient{
+			ClientID:                req.ClientID,
+			ClientName:              req.ClientName,
+			ClientURI:               req.ClientURI,
+			RedirectURIs:            req.RedirectURIs,
+			TokenEndpointAuthMethod: req.TokenEndpointAuthMethod,
+			Scope:                   req.Scope,
+			ClientIDIssuedAt:        req.ClientIDIssuedAt,
+		})
+		return err
+	})
+	if err != nil {
+		rest.SendErrorJSON(w, r, nil, http.StatusInternalServerError, err, "failed to save client")
+		return
+	}
+	req.ClientID = created.ClientID
+	req.ClientIDIssuedAt = created.ClientIDIssuedAt
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(req); err != nil {
+		slog.Error("failed to write MCP OAuth registration response", "error", err)
+	}
+}
+
+func (s *server) mcpResourceURI() string {
+	return strings.TrimRight(s.config.Auth.URL, "/") + "/api/mcp"
+}
+
+func (s *server) mcpResourceMetadataURI() string {
+	return strings.TrimRight(s.config.Auth.URL, "/") + "/.well-known/oauth-protected-resource/api/mcp"
 }
 
 // absoluteRequestURL reconstructs the current request URL for the post-login
@@ -265,9 +384,31 @@ func parseTokenRequest(r *http.Request) (map[string]string, error) {
 	return map[string]string{
 		"grant_type":    r.Form.Get("grant_type"),
 		"code":          r.Form.Get("code"),
+		"client_id":     r.Form.Get("client_id"),
 		"redirect_uri":  r.Form.Get("redirect_uri"),
+		"resource":      r.Form.Get("resource"),
 		"code_verifier": r.Form.Get("code_verifier"),
 	}, nil
+}
+
+func (s *server) validateMCPRedirectURI(ctx context.Context, clientID, redirectURI string) (bool, error) {
+	if clientID != "" {
+		client, err := s.db.NewReadClient().GetMCPOAuthClient(ctx, clientID)
+		if err != nil {
+			return false, err
+		}
+		if client != nil {
+			ok, err := s.db.NewReadClient().HasMCPOAuthRedirectURI(ctx, clientID, redirectURI)
+			if err != nil {
+				return false, err
+			}
+			if ok {
+				return true, nil
+			}
+			return true, errors.New("redirect_uri not registered for client")
+		}
+	}
+	return false, validateLoopbackRedirectURI(redirectURI)
 }
 
 // validateLoopbackRedirectURI restricts MCP authorization callbacks to local
@@ -292,6 +433,32 @@ func validateLoopbackRedirectURI(raw string) error {
 		return errors.New("redirect_uri must include a port")
 	}
 	return nil
+}
+
+func validateHostedRedirectURI(raw string) error {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return err
+	}
+	if u.Scheme != "https" {
+		return errors.New("redirect_uri must use https")
+	}
+	if u.Hostname() == "" {
+		return errors.New("redirect_uri missing host")
+	}
+	if u.Fragment != "" {
+		return errors.New("redirect_uri must not include a fragment")
+	}
+	return nil
+}
+
+func stringSliceContains(values []string, target string) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
 }
 
 // verifyPKCE checks an OAuth S256 PKCE verifier against the stored challenge.
