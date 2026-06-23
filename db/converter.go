@@ -124,6 +124,12 @@ type Converter interface {
 
 	ConvertApiTokens(source []generated.ApiToken) []cs.APIToken
 
+	// goverter:autoMap DBObject
+	ConvertGameMCPOAuthClientToCreateParams(source *cs.MCPOAuthClient) generated.CreateMCPOAuthClientParams
+	// goverter:map . DBObject
+	// goverter:ignore RedirectURIs
+	ConvertMCPOAuthClient(source generated.McpOauthClient) cs.MCPOAuthClient
+
 	// goverter:map . DBObject
 	// goverter:map . ResearchCost | ExtendResearchCost
 	// goverter:map . HabLow | ExtendHabLow

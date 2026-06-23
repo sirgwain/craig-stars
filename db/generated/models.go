@@ -117,6 +117,25 @@ type GamePlayer struct {
 	Guest         bool
 }
 
+type McpOauthClient struct {
+	ID                      int64
+	CreatedAt               time.Time
+	UpdatedAt               time.Time
+	ClientID                string
+	ClientName              string
+	ClientUri               string
+	TokenEndpointAuthMethod string
+	Scope                   string
+	ClientIDIssuedAt        int64
+}
+
+type McpOauthRedirectUri struct {
+	ID          int64
+	CreatedAt   time.Time
+	ClientID    string
+	RedirectUri string
+}
+
 type Minefield struct {
 	ID            int64
 	CreatedAt     time.Time

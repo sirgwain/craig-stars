@@ -376,6 +376,20 @@ func (c *GameConverter) ConvertGameGameToUpdateParams(source *cs.Game) generated
 	}
 	return generatedUpdateGameParams
 }
+func (c *GameConverter) ConvertGameMCPOAuthClientToCreateParams(source *cs.MCPOAuthClient) generated.CreateMCPOAuthClientParams {
+	var generatedCreateMCPOAuthClientParams generated.CreateMCPOAuthClientParams
+	if source != nil {
+		var generatedCreateMCPOAuthClientParams2 generated.CreateMCPOAuthClientParams
+		generatedCreateMCPOAuthClientParams2.ClientID = (*source).ClientID
+		generatedCreateMCPOAuthClientParams2.ClientName = (*source).ClientName
+		generatedCreateMCPOAuthClientParams2.ClientUri = (*source).ClientURI
+		generatedCreateMCPOAuthClientParams2.TokenEndpointAuthMethod = (*source).TokenEndpointAuthMethod
+		generatedCreateMCPOAuthClientParams2.Scope = (*source).Scope
+		generatedCreateMCPOAuthClientParams2.ClientIDIssuedAt = (*source).ClientIDIssuedAt
+		generatedCreateMCPOAuthClientParams = generatedCreateMCPOAuthClientParams2
+	}
+	return generatedCreateMCPOAuthClientParams
+}
 func (c *GameConverter) ConvertGameMinefield(source *cs.Minefield) generated.Minefield {
 	var generatedMinefield generated.Minefield
 	if source != nil {
@@ -1441,6 +1455,17 @@ func (c *GameConverter) ConvertLightPlayer(source generated.GetLightPlayerForGam
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	return csPlayer
 }
+func (c *GameConverter) ConvertMCPOAuthClient(source generated.McpOauthClient) cs.MCPOAuthClient {
+	var csMCPOAuthClient cs.MCPOAuthClient
+	csMCPOAuthClient.DBObject = c.generatedMcpOauthClientToCsDBObject(source)
+	csMCPOAuthClient.ClientID = source.ClientID
+	csMCPOAuthClient.ClientName = source.ClientName
+	csMCPOAuthClient.ClientURI = source.ClientUri
+	csMCPOAuthClient.TokenEndpointAuthMethod = source.TokenEndpointAuthMethod
+	csMCPOAuthClient.Scope = source.Scope
+	csMCPOAuthClient.ClientIDIssuedAt = source.ClientIDIssuedAt
+	return csMCPOAuthClient
+}
 func (c *GameConverter) ConvertMinefield(source generated.Minefield) *cs.Minefield {
 	var csMinefield cs.Minefield
 	csMinefield.GameDBObject = c.generatedMinefieldToCsGameDBObject(source)
@@ -1817,6 +1842,13 @@ func (c *GameConverter) generatedGetLightPlayerForGameRowToCsPlayerPlans(source 
 func (c *GameConverter) generatedGetPlayersStatusForGameRowToPCsPlayer(source generated.GetPlayersStatusForGameRow) *cs.Player {
 	csPlayer := c.ConvertPlayerStatus(source)
 	return &csPlayer
+}
+func (c *GameConverter) generatedMcpOauthClientToCsDBObject(source generated.McpOauthClient) cs.DBObject {
+	var csDBObject cs.DBObject
+	csDBObject.ID = source.ID
+	csDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
+	return csDBObject
 }
 func (c *GameConverter) generatedMinefieldToCsGameDBObject(source generated.Minefield) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject

@@ -55,7 +55,7 @@ func (s *server) authAPIOrSession(m authmiddleware.Authenticator) func(http.Hand
 // resource metadata endpoint when a client needs to authenticate.
 func (s *server) authAPITokenOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resourceMetadata := strings.TrimRight(s.config.Auth.URL, "/") + "/api/mcp/resource-metadata"
+		resourceMetadata := s.mcpResourceMetadataURI()
 		raw := bearerToken(r)
 		if raw == "" {
 			w.Header().Set("WWW-Authenticate", `Bearer resource_metadata="`+resourceMetadata+`"`)

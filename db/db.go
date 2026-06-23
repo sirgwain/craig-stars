@@ -44,6 +44,8 @@ type ReadClient interface {
 	GetUsersForGame(ctx context.Context, gameID int64) ([]cs.User, error)
 	GetAPITokenByHash(ctx context.Context, tokenHash string) (*cs.APIToken, error)
 	GetAPITokensForUser(ctx context.Context, userID int64) ([]cs.APIToken, error)
+	GetMCPOAuthClient(ctx context.Context, clientID string) (*cs.MCPOAuthClient, error)
+	HasMCPOAuthRedirectURI(ctx context.Context, clientID, redirectURI string) (bool, error)
 
 	GetRace(ctx context.Context, id int64) (*cs.Race, error)
 	GetRaces(ctx context.Context) ([]cs.Race, error)
@@ -105,6 +107,7 @@ type WriteClient interface {
 
 	CreateUser(ctx context.Context, user *cs.User) (*cs.User, error)
 	CreateAPIToken(ctx context.Context, token *cs.APIToken, tokenHash string) (*cs.APIToken, error)
+	CreateMCPOAuthClient(ctx context.Context, client *cs.MCPOAuthClient) (*cs.MCPOAuthClient, error)
 	DeleteGameGuestUsers(ctx context.Context, gameID int64) error
 	DeleteUser(ctx context.Context, id int64) error
 	RevokeAPIToken(ctx context.Context, userID, id int64) error
