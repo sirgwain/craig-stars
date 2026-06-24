@@ -20,7 +20,7 @@
 		</header>
 
 		<section class="flex flex-col gap-3">
-			<h2 class="text-xl font-semibold">Server URLs</h2>
+			<h2 class="text-xl font-semibold">Server URL</h2>
 			<div class="mockup-code text-sm">
 				<pre><code>{serverUrl}</code></pre>
 			</div>
@@ -67,8 +67,9 @@ client_id = "codex"
 			<h2 class="text-xl font-semibold">Authentication</h2>
 			<p class="text-base-content/75">
 				The MCP client opens a browser, craig-stars signs you in with Discord, then redirects back
-				to the local client. The client receives a bearer token for game tools like listing games,
-				reading universe data, updating orders, and submitting turns.
+				to the requesting client. OAuth endpoints are discovered automatically from the MCP server
+				URL. The client receives a bearer token for game tools like listing games, reading universe
+				data, updating orders, and submitting turns.
 			</p>
 		</section>
 	</section>

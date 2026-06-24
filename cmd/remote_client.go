@@ -282,7 +282,7 @@ func exchangeOAuthCode(ctx context.Context, server, code, redirectURI, verifier 
 	form.Set("redirect_uri", redirectURI)
 	form.Set("code_verifier", verifier)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpointURL(server, "/api/mcp/oauth/token"), strings.NewReader(form.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpointURL(server, "/api/oauth/token"), strings.NewReader(form.Encode()))
 	if err != nil {
 		return tokenResponse{}, err
 	}
