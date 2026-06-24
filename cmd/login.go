@@ -63,7 +63,7 @@ func newLoginCmd() *cobra.Command {
 			}()
 
 			redirectURI := "http://" + listener.Addr().String() + "/callback"
-			authURL, err := url.Parse(endpointURL(cfg.Server, "/api/mcp/oauth/authorize"))
+			authURL, err := url.Parse(endpointURL(cfg.Server, "/api/oauth/authorize"))
 			if err != nil {
 				return err
 			}

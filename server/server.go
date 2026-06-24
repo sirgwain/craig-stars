@@ -64,7 +64,7 @@ type server struct {
 	config          configpkg.Config
 	sf              singleflight.Group
 	discordNotifier *discordNotifier
-	mcpAuth         *mcpAuthStore
+	apiOAuth        *apiOAuthStore
 }
 
 const userRejected = "rejected"
@@ -90,7 +90,7 @@ func Start(config configpkg.Config) error {
 		db:              dbConn,
 		config:          config,
 		discordNotifier: discordNotifier,
-		mcpAuth:         newMCPAuthStore(),
+		apiOAuth:        newAPIOAuthStore(),
 	}
 
 	var authLogger = logger.Func(func(format string, args ...interface{}) { slog.Info(fmt.Sprintf(format, args...)) })
@@ -317,17 +317,17 @@ func Start(config configpkg.Config) error {
 
 	r.Group(func(r chi.Router) {
 		r.Use(m.Trace)
-		r.Get("/api/mcp/oauth/authorize", server.mcpAuthorizeHandler)
+		r.Get("/api/oauth/authorize", server.apiOAuthAuthorizeHandler)
 	})
-	r.Post("/api/mcp/oauth/token", server.mcpTokenHandler)
+	r.Post("/api/oauth/token", server.apiOAuthTokenHandler)
+	r.Get("/api/oauth/metadata", server.apiOAuthMetadataHandler)
 	r.Post("/api/mcp/oauth/register", server.mcpRegisterHandler)
-	r.Get("/api/mcp/oauth/metadata", server.mcpOAuthMetadataHandler)
-	r.Get("/.well-known/oauth-authorization-server", server.mcpOAuthMetadataHandler)
+	r.Get("/.well-known/oauth-authorization-server", server.apiOAuthMetadataHandler)
 	r.Get("/.well-known/oauth-protected-resource/api/mcp", server.mcpResourceMetadataHandler)
 	// Some MCP clients probe discovery URLs relative to the MCP endpoint before
 	// following the protected-resource metadata advertised in WWW-Authenticate.
-	r.Get("/api/mcp/.well-known/openid-configuration", server.mcpOAuthMetadataHandler)
-	r.Get("/api/mcp/.well-known/oauth-authorization-server", server.mcpOAuthMetadataHandler)
+	r.Get("/api/mcp/.well-known/openid-configuration", server.apiOAuthMetadataHandler)
+	r.Get("/api/mcp/.well-known/oauth-authorization-server", server.apiOAuthMetadataHandler)
 	mcpHandler := server.newMCPHandler()
 	r.Group(func(r chi.Router) {
 		r.Use(server.authAPITokenOnly)
