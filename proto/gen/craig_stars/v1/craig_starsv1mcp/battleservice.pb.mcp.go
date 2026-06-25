@@ -4,15 +4,16 @@
 package craig_starsv1mcp
 
 import (
+	v1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
+)
+
+import (
+	"connectrpc.com/connect"
 	"context"
 	"encoding/json"
-
-	"connectrpc.com/connect"
-	v1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
-	"google.golang.org/protobuf/encoding/protojson"
-
 	"github.com/redpanda-data/protoc-gen-go-mcp/pkg/runtime"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var (
