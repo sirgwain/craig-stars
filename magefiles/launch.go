@@ -177,6 +177,22 @@ func Generate() error {
 		}
 	}
 
+	return Format()
+}
+
+// Format all Go code in every module listed in go.work.
+func Format() error {
+	fmt.Println("formatting go code")
+	modDirs, err := goWorkUseDirs("go.work")
+	if err != nil {
+		return err
+	}
+	for _, dir := range modDirs {
+		if err := sh.RunV("go", "-C", dir, "fmt", "./..."); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

@@ -81,7 +81,7 @@ func (s *server) mcpRegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, redirectURI := range req.RedirectURIs {
-		if err := validateHostedRedirectURI(redirectURI); err != nil {
+		if err := validateMCPRegistrationRedirectURI(redirectURI); err != nil {
 			rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, err, "invalid redirect_uri")
 			return
 		}
@@ -162,6 +162,27 @@ func validateHostedRedirectURI(raw string) error {
 		return errors.New("redirect_uri must not include a fragment")
 	}
 	return nil
+}
+
+// validateMCPRegistrationRedirectURI supports https:// schemes for chatgpt and localhost uris for claude
+func validateMCPRegistrationRedirectURI(raw string) error {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return err
+	}
+
+	if u.Fragment != "" {
+		return errors.New("redirect_uri must not include a fragment")
+	}
+
+	if u.Scheme == "https" {
+		if u.Hostname() == "" {
+			return errors.New("redirect_uri missing host")
+		}
+		return nil
+	}
+
+	return validateLoopbackRedirectURI(raw)
 }
 
 func stringSliceContains(values []string, target string) bool {

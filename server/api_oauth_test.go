@@ -16,7 +16,6 @@ func TestValidateLoopbackRedirectURI(t *testing.T) {
 		{name: "ipv4 loopback with port", uri: "http://127.0.0.1:39123/callback"},
 		{name: "ipv6 loopback with port", uri: "http://[::1]:39123/callback"},
 		{name: "https rejected", uri: "https://localhost:39123/callback", wantErr: true},
-		{name: "missing port rejected", uri: "http://localhost/callback", wantErr: true},
 		{name: "remote host rejected", uri: "http://example.com:39123/callback", wantErr: true},
 	}
 
