@@ -17,7 +17,7 @@ func TestValidateHostedRedirectURI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateHostedRedirectURI(tt.uri)
+			err := validateMCPRegistrationRedirectURI(tt.uri)
 			if tt.wantErr && err == nil {
 				t.Fatal("expected error")
 			}
