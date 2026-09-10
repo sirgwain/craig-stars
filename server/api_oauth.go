@@ -312,8 +312,8 @@ func validateLoopbackRedirectURI(raw string) error {
 	if host != "localhost" && (ip == nil || !ip.IsLoopback()) {
 		return errors.New("redirect_uri must be loopback")
 	}
-	if u.Port() == "" {
-		return errors.New("redirect_uri must include a port")
+	if u.Fragment != "" {
+		return errors.New("redirect_uri must not include a fragment")
 	}
 	return nil
 }
