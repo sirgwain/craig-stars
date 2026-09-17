@@ -90,7 +90,7 @@ type warshipCount struct {
 }
 
 type aiCutoffsByStartMode struct {
-	attackYear  map[cs.GameStartMode]int // min year to start attacking
+		attackYear  map[cs.GameStartMode]int // min year to start attacking; also handles AI warship quantity rampup 
 	mineralYear map[cs.GameStartMode]int // min year to care about minerals
 }
 
@@ -99,7 +99,7 @@ var defaultCutoffs = aiCutoffsByStartMode{
 	attackYear: map[cs.GameStartMode]int{
 		cs.GameStartModeNormal: 25,
 		cs.GameStartModeAccBBS: 20,
-		cs.GameStartModeMax:    0,
+		cs.GameStartModeMax:    -50, // starts game with 40 bombers and 60 nubians/fleet
 	},
 	mineralYear: map[cs.GameStartMode]int{
 		cs.GameStartModeNormal: 55,
@@ -362,7 +362,8 @@ func (ai *aiPlayer) updateWarfleets() (err error) {
 		// care about minerals over resources after year 55 (50 for accBBS)
 		ct = cs.MineralTypes[:]
 	}
-	costRatio := cs.GetCostEfficiencyRatio(beamDesign.Spec.Cost.ToCostFloat64(), torpDesign.Spec.Cost.ToCostFloat64(), ct...)
+	costRatio := cs.GetCostEfficiencyRatio(beamDesign.Spec.Cost.ToCostFloat64(), torpDesign.Spec.Cost.ToCostFloat64(),
+		ct...)
 
 	if scoreRatio >= 1.5*costRatio { // beams are >50% more cost efficient than torps
 		ai.updateWarshipAmounts(warshipCount.bombers, warshipCount.warships, 0, warshipCount.fuelTransports)
@@ -382,6 +383,7 @@ func (ai *aiPlayer) getWarshipCount() (warshipQty warshipCount) {
 
 	// determine ship counts by year
 	// TODO: Make these values configurable per AI type
+	// and allow creation of larger warfleets and armadas from multiple planets
 	switch {
 	case yearsAfterStart < 5: // <2429 non-BBS; <2424 accBBS
 		warshipQty.bombers = 5
@@ -406,7 +408,7 @@ func (ai *aiPlayer) getWarshipCount() (warshipQty warshipCount) {
 		warshipQty.warships = 60
 	default: // 2475+ non-BBS; 2470+ acc-BBS
 		warshipQty.bombers = 40
-		warshipQty.warships = min((yearsAfterStart/5)*6, 150)
+		warshipQty.warships = min((yearsAfterStart/5)*6, 120)
 	}
 
 	// only add on fuel transports if we have them and they can repair our fleets
