@@ -2338,7 +2338,7 @@ func (t *turnGenerator) fleetBomb() {
 			if fleet, ok := mo.(*Fleet); ok {
 				fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
 				willBomb := fleet.willAttack(fleetPlayer, planet.PlayerNum)
-				if fleet.Delete || fleet.OwnedBy(planetPlayer.Num) {
+				if fleet.Delete || len(fleet.Tokens) == 0 || fleet.OwnedBy(planetPlayer.Num) {
 					continue
 				}
 				if fleet.Spec.Bomber && willBomb {
