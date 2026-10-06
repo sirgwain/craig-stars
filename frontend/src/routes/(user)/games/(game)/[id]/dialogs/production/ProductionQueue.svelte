@@ -9,7 +9,9 @@
 	import {
 		ProductionQueueItemSchema,
 		QueueItemCompletionEstimateSchema,
-		type ProductionQueueItem
+		QueueItemType,
+		type ProductionQueueItem,
+		type ShipDesign
 	} from '$lib/types/cs-proto';
 	import { type ProductionPlan } from '$lib/types/cs-proto';
 	import { addError, CSError } from '$lib/services/Errors';
@@ -83,14 +85,84 @@
 		);
 	});
 
+	// the starbase a new starbase at this queue position replaces, the last one queued before it.
+	// If there isn't one, it replaces the planet's starbase.
+	function starbaseBefore(index: number): number | undefined {
+		for (let i = Math.min(index, queueItems.length) - 1; i >= 0; i--) {
+			if (queueItems[i].type === QueueItemType.STARBASE) {
+				return queueItems[i].designNum;
+			}
+		}
+		return undefined;
+	}
+
+	// the cost of an item at a position in the queue
+	function getCost(item: ProductionQueueItem | undefined, index: number, quantity = 1) {
+		return $player.getItemCost(cs, item, $universe, planet, quantity, starbaseBefore(index));
+	}
+
+	async function updateSelectedQueueItemCost() {
+		const quantity =
+			selectedQueueItem && hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1;
+		selectedQueueItemCost = await getCost(selectedQueueItem, selectedQueueItemIndex, quantity);
+	}
+
+	// new items are added after the selected queue item
+	async function updateSelectedAvailableItemCost() {
+		selectedAvailableItemCost = await getCost(selectedAvailableItem, selectedQueueItemIndex + 1);
+	}
+
+	// starbases in the queue, ships and packets can be built after them
+	function queuedStarbaseDesigns(): ShipDesign[] {
+		return queueItems
+			.filter((item) => item.type === QueueItemType.STARBASE)
+			.map((item) => $universe.getMyDesign(item.designNum))
+			.filter((design): design is ShipDesign => design !== undefined);
+	}
+
+	// update the items we can add, from the planet's starbase and the starbases in the queue
+	function updateAvailableItems() {
+		// keep the estimates we already have, they're slow to compute
+		const key = (item: ProductionQueueItem) => `${item.type}-${item.designNum}`;
+		const estimates = new Map(
+			[...availableShipDesigns, ...availableStarbaseDesigns, ...availableItems].map((item) => [
+				key(item),
+				item.queueItemCompletionEstimate
+			])
+		);
+
+		const queuedStarbases = queuedStarbaseDesigns();
+		const genesisDevice = $techs.getTech(GenesisDevice);
+		availableItems = planet.getAvailableProductionQueueItems(
+			$player.race.spec.innateMining,
+			$player.race.spec.innateResources,
+			$player.race.spec.livesOnStarbases,
+			genesisDevice && $player.hasTech(genesisDevice),
+			queuedStarbases
+		);
+		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns(
+			$universe.designs,
+			queuedStarbases
+		);
+		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns($universe.designs);
+		for (const item of [...availableShipDesigns, ...availableStarbaseDesigns, ...availableItems]) {
+			item.queueItemCompletionEstimate = estimates.get(key(item));
+		}
+
+		// keep the same item selected, if we can still add it
+		const selected = selectedAvailableItem;
+		if (selected) {
+			selectedAvailableItem = [
+				...availableShipDesigns,
+				...availableStarbaseDesigns,
+				...availableItems
+			].find((item) => item.type === selected.type && item.designNum === selected.designNum);
+		}
+	}
+
 	async function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
-		selectedAvailableItemCost = await $player.getItemCost(
-			cs,
-			selectedAvailableItem,
-			$universe,
-			planet
-		);
+		await updateSelectedAvailableItemCost();
 	}
 
 	async function onQueueItemClicked(
@@ -99,13 +171,8 @@
 	) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
-		selectedQueueItemCost = await $player.getItemCost(
-			cs,
-			selectedQueueItem,
-			$universe,
-			planet,
-			selectedQueueItem && hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
-		);
+		await updateSelectedQueueItemCost();
+		await updateSelectedAvailableItemCost();
 	}
 
 	const contributesOnlyLeftoverToResearchChecked: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -136,14 +203,12 @@
 
 		if (selectedQueueItemIndex !== -1) {
 			selectedQueueItem = queueItems[selectedQueueItemIndex];
-			selectedQueueItemCost = await $player.getItemCost(
-				cs,
-				selectedQueueItem,
-				$universe,
-				planet,
-				hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
-			);
+			await updateSelectedQueueItemCost();
 		}
+
+		// starbases in the queue change what we can add, and what other starbases cost
+		updateAvailableItems();
+		await updateSelectedAvailableItemCost();
 
 		for (let i = 0; i < availableItems.length; i++) {
 			const item = availableItems[i];
@@ -191,7 +256,7 @@
 			return 0;
 		}
 
-		const costOfOne = await $player.getItemCost(cs, item, $universe, planet, 1);
+		const costOfOne = await getCost(item, queueItems.indexOf(item));
 		const percent = divide(item.allocated ?? {}, costOfOne);
 
 		// if we are mineral or resource constrained, report the percent complete based on the lowest.
@@ -241,13 +306,7 @@
 				);
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = await $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
-				);
+				await updateSelectedQueueItemCost();
 			}
 		} else {
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
@@ -255,13 +314,7 @@
 				nextItem.quantity = hasQuantity(item.type) ? nextItem.quantity + quantity : 1;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
-				selectedQueueItemCost = await $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
-				);
+				await updateSelectedQueueItemCost();
 			} else {
 				// prepend a new queue item
 				queueItems = [
@@ -274,13 +327,7 @@
 				];
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = await $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
-				);
+				await updateSelectedQueueItemCost();
 			}
 		}
 
@@ -303,13 +350,7 @@
 						Math.min(selectedQueueItemIndex - 1, queueItems.length - 1)
 					);
 					selectedQueueItem = queueItems[selectedQueueItemIndex];
-					selectedQueueItemCost = await $player.getItemCost(
-						cs,
-						selectedQueueItem,
-						$universe,
-						planet,
-						hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
-					);
+					await updateSelectedQueueItemCost();
 				} else {
 					// no items left, clear
 					selectedQueueItemIndex = -1;
@@ -347,6 +388,7 @@
 		selectedQueueItem = undefined;
 		selectedQueueItemIndex = -1;
 		selectedQueueItemCost = {};
+		updateAvailableItems();
 	}
 
 	function applyPlan(plan: ProductionPlan | undefined) {
@@ -438,15 +480,8 @@
 				return copy;
 			})
 		];
-		const genesisDevice = $techs.getTech(GenesisDevice);
-		availableItems = planet.getAvailableProductionQueueItems(
-			$player.race.spec.innateMining,
-			$player.race.spec.innateResources,
-			$player.race.spec.livesOnStarbases,
-			genesisDevice && $player.hasTech(genesisDevice)
-		);
-		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns($universe.designs);
-		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns($universe.designs);
+		selectedAvailableItem = undefined;
+		updateAvailableItems();
 		if (availableShipDesigns.length > 0) {
 			selectedAvailableItem = availableShipDesigns[0];
 		} else if (availableStarbaseDesigns.length > 0) {
@@ -454,12 +489,7 @@
 		} else if (availableItems.length > 0) {
 			selectedAvailableItem = availableItems[0];
 		}
-		selectedAvailableItemCost = await $player.getItemCost(
-			cs,
-			selectedAvailableItem,
-			$universe,
-			planet
-		);
+		await updateSelectedAvailableItemCost();
 		contributesOnlyLeftoverToResearch = planet.planetOrders.contributesOnlyLeftoverToResearch;
 		await updateQueueEstimates();
 	}

@@ -315,7 +315,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			want: []ProductionQueueItem{
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-						YearsToBuildOne: 13,
+						YearsToBuildOne: 9, // a partial factory started by the auto factories finishes
 						YearsToBuildAll: 24,
 						YearsToSkipAuto: 1,
 					},
@@ -324,7 +324,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-						YearsToBuildOne: 15,
+						YearsToBuildOne: 3,  // 2 resources a year finishes a partial mine in year 3
 						YearsToBuildAll: 25, // it takes a while to build all these mines
 						YearsToSkipAuto: Infinite,
 					},
@@ -549,4 +549,47 @@ func Test_completionEstimate_doesNotChangeQueue(t *testing.T) {
 	_, _, err := NewCompletionEstimator().GetProductionWithEstimates(&rules, player, *planet)
 	require.NoError(t, err)
 	assert.Equal(t, queue, planet.ProductionQueue)
+}
+
+func Test_completionEstimate_packetAfterMassDriverBase(t *testing.T) {
+	player, planet := newProductionTestPlanet(10_000, Mineral{10_000, 10_000, 10_000})
+	player.Race.PRT = PP
+	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
+	player.TechLevels = TechLevel{Energy: 4}
+	massDriverBase := NewShipDesign(player.Num, 1).WithHull(SpaceStation.Name).
+		WithSlots([]ShipDesignSlot{{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1}}).
+		WithSpec(&rules, player)
+	player.Designs = append(player.Designs, massDriverBase)
+	planet.PacketTargetNum = 1
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: massDriverBase.Num, design: massDriverBase},
+		{Type: QueueItemTypeMixedMineralPacket, Quantity: 1},
+	}
+
+	items, _, err := NewCompletionEstimator().GetProductionWithEstimates(&rules, player, *planet)
+	require.NoError(t, err)
+	assert.Equal(t, 1, items[0].YearsToBuildOne)
+	assert.Equal(t, 1, items[1].YearsToBuildOne) // the new base launches the packet the same year
+	assert.Nil(t, planet.Starbase)               // estimating doesn't change the real planet
+}
+
+// in the browser the planet's starbase only has its design, not its fleet spec
+func Test_completionEstimate_starbaseWithoutSpec(t *testing.T) {
+	player, planet := newProductionTestPlanet(10, Mineral{1000, 1000, 1000})
+	scout := NewShipDesign(player.Num, 1).WithHull(Scout.Name).WithSpec(&rules, player)
+	baseDesign := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	player.Designs = append(player.Designs, scout, baseDesign)
+	starbase := newStarbase(player, planet, baseDesign, "Starbase")
+	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
+	planet.Starbase = &starbase
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
+	planet.Spec.ResourcesPerYearAvailable = 10 // one scout this year, the rest next year
+	planet.Starbase = &Fleet{Tokens: []ShipToken{{Quantity: 1, DesignNum: baseDesign.Num, design: baseDesign}}}
+	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeShipToken, Quantity: 3, DesignNum: scout.Num, design: scout}}
+
+	items, _, err := NewCompletionEstimator().GetProductionWithEstimates(&rules, player, *planet)
+	require.NoError(t, err)
+	assert.Equal(t, 1, items[0].YearsToBuildOne)
+	assert.Equal(t, 2, items[0].YearsToBuildAll)       // next year still has a dock to build them
+	assert.Equal(t, FleetSpec{}, planet.Starbase.Spec) // the caller's starbase isn't changed
 }

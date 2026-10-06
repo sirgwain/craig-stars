@@ -103,40 +103,62 @@ export class CommandedPlanet implements Planet {
 	}
 
 	/**
+	 * get the biggest dock this planet will have, from its starbase or any starbase in the queue
+	 * @param queuedStarbases starbase designs in the production queue
+	 * @returns the dock capacity, UnlimitedSpaceDock, or 0 for no dock
+	 */
+	public getDockCapacity(queuedStarbases: ShipDesign[] = []): number {
+		const docks = [
+			this.spec?.planetStarbaseSpec?.hasStarbase
+				? (this.spec.planetStarbaseSpec.dockCapacity ?? 0)
+				: 0,
+			...queuedStarbases.map((d) => d.spec?.spaceDock ?? 0)
+		];
+		if (docks.includes(UnlimitedSpaceDock)) {
+			return UnlimitedSpaceDock;
+		}
+		return Math.max(...docks);
+	}
+
+	/**
+	 * true if this planet will have a mass driver, from its starbase or any starbase in the queue
+	 * @param queuedStarbases starbase designs in the production queue
+	 */
+	public hasMassDriver(queuedStarbases: ShipDesign[] = []): boolean {
+		return (
+			!!this.spec?.planetStarbaseSpec?.hasMassDriver ||
+			queuedStarbases.some((d) => !!d.spec?.massDriver)
+		);
+	}
+
+	/**
 	 * get a list of available ProductionQueueItems for ship designs a planet can build
-	 * @param planet the planet to get items for
 	 * @param designs the designs to load by num to get items for
+	 * @param queuedStarbases starbase designs in the production queue, ships can be built after them
 	 * @returns a list of items for a planet
 	 */
-	public getAvailableProductionQueueShipDesigns(designs: ShipDesign[]): ProductionQueueItem[] {
-		const items: ProductionQueueItem[] = [];
-
-		if (
-			this.spec?.planetStarbaseSpec?.dockCapacity == UnlimitedSpaceDock ||
-			(this.spec?.planetStarbaseSpec?.dockCapacity ?? 0) > 0
-		) {
-			sortBy(
-				designs
-					.filter(
-						(d) =>
-							this.spec?.planetStarbaseSpec?.dockCapacity == UnlimitedSpaceDock ||
-							(d.spec?.mass ?? 0) <= (this.spec?.planetStarbaseSpec?.dockCapacity ?? 0)
-					)
-					.filter((d) => !d.spec?.starbase)
-					.filter((d) => d.originalPlayerNum == None),
-				(d) => d.name
-			).forEach((d) => {
-				items.push(
-					create(ProductionQueueItemSchema, {
-						quantity: 1,
-						type: QueueItemType.SHIP_TOKEN,
-						designNum: d.num
-					})
-				);
-			});
+	public getAvailableProductionQueueShipDesigns(
+		designs: ShipDesign[],
+		queuedStarbases: ShipDesign[] = []
+	): ProductionQueueItem[] {
+		const dockCapacity = this.getDockCapacity(queuedStarbases);
+		if (dockCapacity == 0) {
+			return [];
 		}
 
-		return items;
+		return sortBy(
+			designs
+				.filter((d) => dockCapacity == UnlimitedSpaceDock || (d.spec?.mass ?? 0) <= dockCapacity)
+				.filter((d) => !d.spec?.starbase)
+				.filter((d) => d.originalPlayerNum == None),
+			(d) => d.name
+		).map((d) =>
+			create(ProductionQueueItemSchema, {
+				quantity: 1,
+				type: QueueItemType.SHIP_TOKEN,
+				designNum: d.num
+			})
+		);
 	}
 
 	/**
@@ -171,8 +193,11 @@ export class CommandedPlanet implements Planet {
 		innateMining: boolean | undefined,
 		innateResources: boolean | undefined,
 		livesOnStarbases: boolean | undefined,
-		genesisDevice: boolean | undefined
+		genesisDevice: boolean | undefined,
+		queuedStarbases: ShipDesign[] = []
 	): ProductionQueueItem[] {
+		// packets can be built after a mass driver in the queue
+		const hasMassDriver = this.hasMassDriver(queuedStarbases);
 		const items: ProductionQueueItem[] = [];
 
 		if (!innateResources) {
@@ -198,7 +223,7 @@ export class CommandedPlanet implements Planet {
 			items.push(fromQueueItemType(QueueItemType.TERRAFORM_ENVIRONMENT));
 		}
 
-		if (this.spec?.planetStarbaseSpec?.hasMassDriver) {
+		if (hasMassDriver) {
 			items.push(
 				fromQueueItemType(QueueItemType.IRONIUM_MINERAL_PACKET),
 				fromQueueItemType(QueueItemType.BORANIUM_MINERAL_PACKET),
@@ -224,7 +249,7 @@ export class CommandedPlanet implements Planet {
 			fromQueueItemType(QueueItemType.AUTO_MIN_TERRAFORM)
 		);
 
-		if (this.spec?.planetStarbaseSpec?.hasMassDriver) {
+		if (hasMassDriver) {
 			items.push(fromQueueItemType(QueueItemType.AUTO_MINERAL_PACKET));
 		}
 

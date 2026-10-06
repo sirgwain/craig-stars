@@ -581,7 +581,8 @@ func ComputePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	installationPop := min(planet.GetPopulation(), spec.MaxPopulation)
 
 	if !race.Spec.InnateMining {
-		spec.MaxMines = getMaxInstallations(player.Race.NumMines, installationPop)
+		// like the original, a colony can always operate at least one mine
+		spec.MaxMines = max(1, getMaxInstallations(player.Race.NumMines, installationPop))
 		spec.MaxPossibleMines = max(rules.MinMines, spec.MaxPopulation*race.NumMines/10000)
 	} else {
 		spec.MaxMines = planet.Mines
@@ -596,7 +597,8 @@ func ComputePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.computeResourcesPerYearAvailable(player, planet)
 
 	if race.Spec.CanBuildDefenses {
-		spec.MaxDefenses = 100
+		// like the original, room for 4 defenses per 1% habitability, between 10 and 100
+		spec.MaxDefenses = Clamp(4*spec.Habitability, 10, 100)
 		spec.Defense = defense.Name
 		spec.computeDefenseCoverage(rules, defense.DefenseCoverage, planet.Defenses)
 	}
@@ -674,7 +676,8 @@ func (spec *PlanetSpec) ComputeResourcesPerYear(player *Player, numFacts, produc
 		// compute resources from population & factories
 		resourcesFromPop := productivePop / (player.Race.PopEfficiency * 100)
 
-		spec.MaxFactories = getMaxInstallations(player.Race.NumFactories, installationPop)
+		// like the original, a colony can always operate at least one factory
+		spec.MaxFactories = max(1, getMaxInstallations(player.Race.NumFactories, installationPop))
 		spec.MaxPossibleFactories = spec.MaxPopulation * player.Race.NumFactories / 10000 // factory count rounds down
 		resourcesFromFactories := int(math.Ceil(float64(min(numFacts, spec.MaxFactories)*player.Race.FactoryOutput) / 10))
 
@@ -729,26 +732,36 @@ func getMaxInstallations(installationsPer10K, population int) int {
 func (planet *Planet) MaxBuildable(player *Player, itemType QueueItemType) int {
 	switch itemType {
 	case QueueItemTypeAutoMines:
-		// for autobuild purposes, the maxFactories is next year's pop
-		// don't want to floor to 100
+		// auto mines build what next year's pop can operate, at least one,
+		// and no more than the planet has room for
 		futurePop := min(planet.PopNextYear(), planet.Spec.MaxPopulation)
-		maxMines := getMaxInstallations(player.Race.NumMines, futurePop)
+		maxMines := max(1, min(planet.Spec.MaxPossibleMines, getMaxInstallations(player.Race.NumMines, futurePop)))
 		return max(0, maxMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
-		// for autobuild purposes, the maxFactories is next year's pop
+		// auto factories build what next year's pop can operate, at least one,
+		// and no more than the planet has room for
 		futurePop := min(planet.PopNextYear(), planet.Spec.MaxPopulation)
-		maxFactories := getMaxInstallations(player.Race.NumFactories, futurePop)
+		maxFactories := max(1, min(planet.Spec.MaxPossibleFactories, getMaxInstallations(player.Race.NumFactories, futurePop)))
 		return max(0, maxFactories-planet.Factories)
 	case QueueItemTypeMine:
 		return max(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeFactory:
 		return max(0, planet.Spec.MaxPossibleFactories-planet.Factories)
-	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
+	case QueueItemTypeAutoDefenses:
+		// auto defenses build what next year's pop can operate, one per 2500 colonists
+		maxDefenses := min(planet.Spec.MaxDefenses, (planet.PopNextYear()+2499)/2500)
+		return max(0, maxDefenses-planet.Defenses)
+	case QueueItemTypeDefenses:
 		return max(0, planet.Spec.MaxDefenses-planet.Defenses)
 	case QueueItemTypeTerraformEnvironment, QueueItemTypeAutoMaxTerraform:
 		return planet.Spec.TerraformAmount.absSum()
 	case QueueItemTypeAutoMinTerraform:
-		return planet.Spec.MinTerraformAmount.absSum()
+		// like the original, only terraform a planet that is uninhabitable or losing colonists,
+		// then terraform as much as we can
+		if planet.Spec.Habitability > 0 && planet.Spec.GrowthAmount >= 0 {
+			return 0
+		}
+		return planet.Spec.TerraformAmount.absSum()
 	case QueueItemTypeStarbase, QueueItemTypeGenesisDevice:
 		return 1
 	case QueueItemTypePlanetaryScanner:

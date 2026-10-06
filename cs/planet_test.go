@@ -653,3 +653,33 @@ func Test_computePlanetSpec_maxPossibleInstallations(t *testing.T) {
 		})
 	}
 }
+
+func TestPlanet_MaxBuildable(t *testing.T) {
+	tests := []struct {
+		name     string
+		hab      Hab // the test race prefers 50, 50, 50 and has terraform tech for 3 clicks
+		pop      int
+		itemType QueueItemType
+		want     int
+	}{
+		{"defenses on an ideal planet have room for 100", Hab{50, 50, 50}, 100_000, QueueItemTypeDefenses, 100},
+		{"defenses on a hostile planet have room for 10", Hab{1, 1, 1}, 100_000, QueueItemTypeDefenses, 10},
+		{"auto defenses build one per 2500 colonists next year", Hab{50, 50, 50}, 5000, QueueItemTypeAutoDefenses, 3}, // 5700 next year
+		{"auto mines on a tiny colony can build one", Hab{50, 50, 50}, 100, QueueItemTypeAutoMines, 1},
+		{"auto factories on a tiny colony can build one", Hab{50, 50, 50}, 100, QueueItemTypeAutoFactories, 1},
+		{"auto min terraform skips a green, growing planet", Hab{40, 50, 50}, 100_000, QueueItemTypeAutoMinTerraform, 0},
+		{"auto min terraform terraforms a green, overcrowded planet as much as it can", Hab{40, 50, 50}, 3_000_000, QueueItemTypeAutoMinTerraform, 3},
+		{"auto min terraform terraforms a hostile planet as much as it can", Hab{1, 1, 1}, 100_000, QueueItemTypeAutoMinTerraform, 9},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player, planet := newTestPlayerPlanet()
+			planet.Hab, planet.BaseHab = tt.hab, tt.hab
+			planet.Mines, planet.Factories, planet.Defenses = 0, 0, 0
+			planet.setPopulation(tt.pop)
+			planet.Spec = ComputePlanetSpec(&rules, player, planet)
+
+			assert.Equal(t, tt.want, planet.MaxBuildable(player, tt.itemType))
+		})
+	}
+}

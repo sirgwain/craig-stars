@@ -470,7 +470,13 @@ func (t *turnGenerator) fleetColonize() {
 			if fleet.Spec.OrbitalConstructionModule {
 				design := player.GetFirstDesign(ShipDesignPurposeStarterColony)
 				if design != nil {
-					t.buildStarbase(player, planet, design)
+					if err := t.buildStarbase(player, planet, design); err != nil {
+						t.log.Error("failed to build Starter Colony starbase",
+							slog.Int("Player", fleet.PlayerNum),
+							slog.String("Planet", planet.Name),
+							slog.Any("err", err),
+						)
+					}
 				} else {
 					t.log.Error("colonizer can't find Starter Colony design",
 						slog.Int("Player", fleet.PlayerNum),
@@ -1552,15 +1558,14 @@ func (t *turnGenerator) planetProduction() error {
 			messager.planetBuiltMineralPacket(player, planet, packet)
 		}
 
-		// build bases
-		if result.starbase != nil {
-			starbase, err := t.buildStarbase(player, planet, result.starbase)
-			if err != nil {
+		// production already put new bases on the planet, add the final one to the universe
+		if len(result.starbases) > 0 {
+			if err := t.addBuiltStarbases(player, planet, result.starbases, result.replacedStarbase); err != nil {
 				return err
 			}
-			planet.Starbase = starbase
-			planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
-			messager.planetBuiltStarbase(player, planet, starbase)
+			for _, starbase := range result.starbases {
+				messager.planetBuiltStarbase(player, planet, starbase)
+			}
 		}
 
 		// planetary scanner
@@ -1569,11 +1574,8 @@ func (t *turnGenerator) planetProduction() error {
 			messager.planetBuiltScanner(player, planet, planet.Spec.Scanner)
 		}
 
-		// genesis device
+		// genesis device, production already rerolled the planet
 		if result.reset {
-			planet.randomize(&t.game.Rules, t.game.StartMode == GameStartModeAccBBS)
-			planet.Mines = 0
-			planet.Factories = 0
 			messager.planetBuiltGenesisDevice(player, planet)
 		}
 
@@ -1647,43 +1649,37 @@ func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToke
 }
 
 // build a starbase on a planet
-func (t *turnGenerator) buildStarbase(player *Player, planet *Planet, design *ShipDesign) (*Fleet, error) {
-	player.Stats.StarbasesBuilt++
-	player.Stats.TokensBuilt++
-	design.Spec.NumBuilt++
-
-	var prevDamage float64
-	var prevArmor int
-	// remove the old starbase, tracking its prior damage
-	if planet.Starbase != nil {
-		// TODO: Make this account for quantity if or when multi token starbases become a thing
-		prevDamage = planet.Starbase.Tokens[0].Damage
-		prevArmor = planet.Starbase.Tokens[0].design.Spec.Armor
-		t.game.deleteStarbase(planet.Starbase)
-		planet.Starbase = nil
-		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
-	}
-
+// build a starbase on a planet outside of production, like the starter colony base from an orbital construction module
+func (t *turnGenerator) buildStarbase(player *Player, planet *Planet, design *ShipDesign) error {
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, &starbase)
+	replaced := planet.Starbase
+	planet.setStarbase(&starbase)
+	planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
+	return t.addBuiltStarbases(player, planet, []*Fleet{&starbase}, replaced)
+}
 
-	// if the prior starbase was damaged, set the new base's damage proportional to the old base's dmg%
-	if prevDamage > 0 && prevArmor > 0 {
-		starbase.Tokens[0].QuantityDamaged = 1
-		starbase.Tokens[0].Damage = (prevDamage / float64(prevArmor)) * float64(starbase.Tokens[0].design.Spec.Armor)
+// add starbases built during production to the universe. Production put each one on the planet as it
+// was built, so only the last one is still there. The others were replaced later in the same year.
+func (t *turnGenerator) addBuiltStarbases(player *Player, planet *Planet, starbases []*Fleet, replaced *Fleet) error {
+	if replaced != nil {
+		t.game.deleteStarbase(replaced)
 	}
 
-	planet.setStarbase(&starbase)
+	for _, starbase := range starbases {
+		player.Stats.StarbasesBuilt++
+		player.Stats.TokensBuilt++
+		starbase.Tokens[0].design.Spec.NumBuilt++
+	}
+
+	starbase := starbases[len(starbases)-1]
 	t.log.Debug("built starbase",
 		slog.Int("Player", starbase.PlayerNum),
 		slog.String("Planet", planet.Name),
 		slog.String("Starbase", starbase.Name),
 	)
-	t.game.Starbases = append(t.game.Starbases, &starbase)
-	if err := t.game.addStarbase(&starbase); err != nil {
-		return nil, err
-	}
-	return &starbase, nil
+	t.game.Starbases = append(t.game.Starbases, starbase)
+	return t.game.addStarbase(starbase)
 }
 
 // build a mineral packet with cargo

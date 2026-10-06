@@ -827,6 +827,57 @@ var TestGames = []cs.TestScenario{
 			},
 		},
 	},
+	{
+		// a homeworld with an orbital fort (no dock, no mass driver) and starbases to upgrade to
+		Name: "Production Starbases",
+		Players: []cs.TestScenarioPlayer{
+			{
+				Player: &cs.Player{
+					Name:       "Player 1",
+					UserID:     1,
+					Race:       *cs.NewRace().WithPRT(cs.PP),
+					TechLevels: cs.TechLevel{Energy: 4, Weapons: 3, Propulsion: 3, Construction: 3, Electronics: 3, Biotechnology: 3},
+				},
+				Designs: []cs.ShipDesign{
+					{
+						Name: "Fort",
+						Hull: cs.OrbitalFort.Name,
+					},
+					{
+						Name: "Station",
+						Hull: cs.SpaceStation.Name,
+					},
+					{
+						Name:  "Flinger",
+						Hull:  cs.SpaceStation.Name,
+						Slots: []cs.ShipDesignSlot{{HullComponent: cs.MassDriver5.Name, HullSlotIndex: 1, Quantity: 1}},
+					},
+					{
+						Name:  "Long Range Scout",
+						Hull:  cs.Scout.Name,
+						Slots: cs.LongRangeScoutTestSlots,
+					},
+				},
+			},
+		},
+		Planets: []cs.Planet{
+			{
+				MapObject: cs.MapObject{
+					Name:      "Planet 1",
+					PlayerNum: 1,
+				},
+				Hab:                  cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+				MineralConcentration: cs.NewMineral(100, 100, 100),
+				Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
+				Homeworld:            true,
+				Starbase: &cs.Fleet{
+					BaseName:  "Fort",
+					Tokens:    []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+					PlanetNum: 1,
+				},
+			},
+		},
+	},
 }
 
 // CreateTestGames creates one of each test game for manual testing
