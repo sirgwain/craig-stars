@@ -93,3 +93,56 @@ test('production queue change', async ({ newGamePage }) => {
 	// should have built a long range scout and a factory
 	await expect(productionTile).toContainText('Factory 10');
 });
+
+test('production queue starbases add ships and packets', async ({ testGamePage }) => {
+	// the homeworld has an orbital fort, with no dock or mass driver
+	const { page } = await testGamePage('Production Starbases');
+	apiErrorsFailTest(page);
+
+	const productionTile = await page
+		.locator('[data-type="command-tile"][data-id="Production"]')
+		.first();
+	await productionTile.getByRole('button', { name: 'Change' }).click();
+
+	const productionQueueDialog = await page
+		.locator('[data-type="dialog"][data-id="Production Queue"]')
+		.first();
+	await expect(productionQueueDialog).toBeVisible();
+	await productionQueueDialog.getByRole('button', { name: 'Clear' }).click();
+
+	const scout = productionQueueDialog.getByRole('button', { name: 'Long Range Scout' });
+	const packet = productionQueueDialog.getByRole('button', {
+		name: 'Mixed Mineral Packet',
+		exact: true
+	});
+
+	// no ships or packets without a dock or mass driver
+	await expect(scout).toHaveCount(0);
+	await expect(packet).toHaveCount(0);
+
+	// a space station has a dock, so we can build ships after it
+	await productionQueueDialog.getByRole('button', { name: 'Station', exact: true }).click();
+	await productionQueueDialog.getByRole('button', { name: 'Add' }).click();
+	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Station 1');
+	await expect(scout).toBeVisible();
+	await expect(packet).toHaveCount(0);
+
+	// a station with a mass driver after it, so we can build packets after it
+	// it's priced as an upgrade from the station, not the orbital fort
+	await productionQueueDialog.getByRole('button', { name: 'Flinger', exact: true }).click();
+	await productionQueueDialog.getByRole('button', { name: 'Add' }).click();
+	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Station 1Flinger 1');
+	await expect(productionQueueDialog).toContainText(
+		'Cost of Flinger x 1 Ironium 24kT Boranium 20kT Germanium 20kT Resources 70'
+	);
+	await expect(packet).toBeVisible();
+
+	// add a packet after the flinger and save it
+	await packet.click();
+	await productionQueueDialog.getByRole('button', { name: 'Add' }).click();
+	await expect(productionQueueDialog).toContainText(
+		'-- Top of the Queue -- Station 1Flinger 1Mixed Mineral Packet 1'
+	);
+	await productionQueueDialog.getByRole('button', { name: 'Ok' }).click();
+	await expect(productionTile).toContainText('Station 1Flinger 1Mixed');
+});

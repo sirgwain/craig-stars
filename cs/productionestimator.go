@@ -65,6 +65,14 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 	// index it and produce from it
 	planet.ProductionQueue = slices.Clone(planet.ProductionQueue)
 
+	// in the browser the starbase only has its design, so compute its fleet spec for a copy of it.
+	// Otherwise the planet spec we recompute each year would lose the starbase's dock and mass driver.
+	if planet.Starbase != nil {
+		starbase := *planet.Starbase
+		starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
+		planet.Starbase = &starbase
+	}
+
 	// reset any estimates
 	// we simulate until every item's estimate is settled
 	settled := make([]bool, len(items))
@@ -81,9 +89,8 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		settled[i] = item.Type == QueueItemTypeAutoMineralAlchemy && i < len(items)-1
 	}
 
-	// keep track of items built so we know how many auto items are completed
-	numBuilt := make([]int, len(planet.ProductionQueue))
 	producer := newProducer(slog.Default(), rules, &planet, player)
+	producer.estimating = true
 	for year := 1; year <= 100; year++ {
 		// mine for minerals
 		planet.mine(rules, planet.Spec.MiningOutput, min(planet.Mines, planet.Spec.MaxPossibleMines))
@@ -102,65 +109,56 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 
 		for _, itemBuilt := range result.itemsBuilt {
 			if itemBuilt.index == -1 {
-				// skip partial auto builds
+				// leftover resources put toward alchemy, not part of any item
 				continue
 			}
 			item := &items[itemBuilt.index]
-			maxBuildable := planet.MaxBuildable(player, item.Type)
 
-			// this will be skipped if we've hit the max allowed
-			if itemBuilt.skipped {
-				if year == 1 && maxBuildable == 0 {
-					item.Skipped = true
-					item.YearsToSkipAuto = 1
-				} else {
-					if item.YearsToSkipAuto == Infinite {
-						item.YearsToSkipAuto = year
-					}
-				}
-				// an auto item at capacity is done, but one waiting on minerals may build later
-				if maxBuildable == 0 {
-					settled[itemBuilt.index] = true
+			if itemBuilt.queueItemType != item.Type {
+				// a partial an auto item started, credit the auto item when it's finished
+				if itemBuilt.numBuilt > 0 && item.YearsToBuildOne == Infinite {
+					item.YearsToBuildOne = year
 				}
 				continue
 			}
 
-			// this item will never complete
-			if itemBuilt.never {
+			switch {
+			case itemBuilt.never:
+				// this item will never complete
 				settled[itemBuilt.index] = true
 				continue
+			case itemBuilt.status == productionStatusSkippedAuto:
+				// an auto item at capacity is done
+				if year == 1 {
+					item.Skipped = true
+				}
+				if item.YearsToSkipAuto == Infinite {
+					item.YearsToSkipAuto = year
+				}
+				settled[itemBuilt.index] = true
+				continue
+			case itemBuilt.skipped:
+				// an auto item waiting on minerals may build later
+				if item.YearsToSkipAuto == Infinite {
+					item.YearsToSkipAuto = year
+				}
+				continue
 			}
-			numBuiltSoFar := numBuilt[itemBuilt.index] + itemBuilt.numBuilt
-			numBuilt[itemBuilt.index] = numBuiltSoFar
 
 			// see if we already recorded when the first item was built
-			first := item.YearsToBuildOne
-			if first == Infinite {
-				// we built one, update the years to build one
+			if item.YearsToBuildOne == Infinite {
 				item.YearsToBuildOne = year
 			}
-			// Trailing auto alchemy is continuous; its stored quantity is not a quota.
-			if item.Type == QueueItemTypeAutoMineralAlchemy {
-				settled[itemBuilt.index] = true
-				continue
-			}
 
-			// check if we built the last one of this group
-			// if we've built the item's original quantity, or we've built some and the maxBuildable remaining is 0
-			// we're done
-			last := item.YearsToBuildAll
-			if last == Infinite {
-				if item.Type.IsAuto() {
-					if itemBuilt.numBuilt >= item.Quantity || (maxBuildable != Infinite && itemBuilt.numBuilt >= maxBuildable) {
-						item.YearsToBuildAll = year
-					}
-				} else {
-					if numBuiltSoFar >= item.Quantity || (maxBuildable != Infinite && itemBuilt.numBuilt >= maxBuildable) {
-						item.YearsToBuildAll = year
-					}
+			switch {
+			case item.Type == QueueItemTypeAutoMineralAlchemy:
+				// trailing auto alchemy is continuous, its stored quantity is not a quota
+				settled[itemBuilt.index] = true
+			case itemBuilt.status == productionStatusComplete || itemBuilt.status == productionStatusCompleteAuto:
+				// we built all of a concrete item, or all an auto item can build this year
+				if item.YearsToBuildAll == Infinite {
+					item.YearsToBuildAll = year
 				}
-			}
-			if item.YearsToBuildAll != Infinite {
 				settled[itemBuilt.index] = true
 			}
 		}

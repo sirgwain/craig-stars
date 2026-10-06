@@ -32,6 +32,10 @@ type producer struct {
 	planet    *Planet
 	player    *Player
 	estimator CompletionEstimator
+
+	// true when simulating production for estimates. We don't know how a genesis device
+	// will reroll the planet, so estimates leave the environment alone.
+	estimating bool
 }
 
 type QueueItemCompletionEstimate struct {
@@ -153,7 +157,8 @@ type productionResult struct {
 	packets           Cargo
 	scanner           bool
 	reset             bool
-	starbase          *ShipDesign
+	starbases         []*Fleet // starbases built this year, in order; the last one is on the planet
+	replacedStarbase  *Fleet   // the starbase the planet started the year with, if a new one replaced it
 	alchemy           int
 	mines             int
 	factories         int
@@ -168,6 +173,7 @@ type itemBuilt struct {
 	designNum     int
 	index         int
 	numBuilt      int
+	status        productionStatus
 	skipped       bool
 	never         bool
 }
@@ -281,9 +287,9 @@ func (p *producer) produce() (productionResult, error) {
 
 			// record ship buildings/packets for later
 			p.updateProductionResult(item, built.numBuilt, cost, &result)
-			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: built.numBuilt})
+			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: built.numBuilt, status: built.status})
 		} else if built.status == productionStatusSkippedAuto || built.status == productionStatusMineralBlockedAuto {
-			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, skipped: true})
+			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, skipped: true, status: built.status})
 		}
 
 		if built.status == productionStatusBlocked {
@@ -443,7 +449,7 @@ func (p *producer) buildItem(item ProductionQueueItem, cost Cost, quantity int, 
 				Type:      item.Type.concreteType(),
 				Quantity:  1,
 				Allocated: paid,
-				index:     -1, // we don't track concrete auto items, we only care about the first fully built auto item
+				index:     item.index, // estimates credit the auto item when its partial is finished
 			}
 		}
 	case !auto:
@@ -607,18 +613,84 @@ func (p *producer) updateProductionResult(item ProductionQueueItem, numBuilt int
 		result.factories += numBuilt
 	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
 		result.defenses += numBuilt
-	case QueueItemTypeAutoMineralPacket, QueueItemTypeMixedMineralPacket, QueueItemTypeIroniumMineralPacket, QueueItemTypeBoraniumMineralPacket, QueueItemTypeGermaniumMineralPacket:
+	case QueueItemTypeAutoMineralPacket, QueueItemTypeMixedMineralPacket:
 		// add this packet cargo to the production result
 		// so it can be added as packets to the universe later
-		cargo := MultiplyCost(MultiplyCost(cost, 1/p.player.Race.Spec.PacketMineralCostFactor), numBuilt).ToCargo()
-		result.packets = result.packets.Add(cargo)
+		mixed := p.player.Race.Spec.MineralsPerMixedMineralPacket * numBuilt
+		result.packets = result.packets.Add(Cargo{Ironium: mixed, Boranium: mixed, Germanium: mixed})
+	case QueueItemTypeIroniumMineralPacket:
+		result.packets.Ironium += p.player.Race.Spec.MineralsPerSingleMineralPacket * numBuilt
+	case QueueItemTypeBoraniumMineralPacket:
+		result.packets.Boranium += p.player.Race.Spec.MineralsPerSingleMineralPacket * numBuilt
+	case QueueItemTypeGermaniumMineralPacket:
+		result.packets.Germanium += p.player.Race.Spec.MineralsPerSingleMineralPacket * numBuilt
 	case QueueItemTypeShipToken:
 		result.tokens = append(result.tokens, builtShip{ShipToken: ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum}, tags: item.Tags})
 	case QueueItemTypeStarbase:
-		result.starbase = item.design
+		p.installStarbase(item.design, result)
 	case QueueItemTypePlanetaryScanner:
 		result.scanner = true
 	case QueueItemTypeGenesisDevice:
+		p.genesis()
 		result.reset = true
 	}
+}
+
+// install a new starbase right away, like the original, so later items in the queue
+// are priced against it and can use its dock and mass driver
+func (p *producer) installStarbase(design *ShipDesign, result *productionResult) {
+	planet := p.planet
+	starbase := newStarbase(p.player, planet, design, design.Name)
+	starbase.Spec = ComputeFleetSpec(p.rules, p.player, &starbase)
+
+	if previous := planet.Starbase; previous != nil {
+		if len(result.starbases) == 0 {
+			result.replacedStarbase = previous
+		}
+
+		// if the prior starbase was damaged, set the new base's damage proportional to the old base's dmg%
+		// TODO: Make this account for quantity if or when multi token starbases become a thing
+		prevDamage := previous.Tokens[0].Damage
+		prevArmor := previous.Tokens[0].design.Spec.Armor
+		if prevDamage > 0 && prevArmor > 0 {
+			starbase.Tokens[0].QuantityDamaged = 1
+			starbase.Tokens[0].Damage = (prevDamage / float64(prevArmor)) * float64(starbase.Tokens[0].design.Spec.Armor)
+		}
+	}
+
+	planet.setStarbase(&starbase)
+	planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
+	result.starbases = append(result.starbases, &starbase)
+}
+
+// a genesis device rerolls the planet right away, like the original. Everything built on the planet is
+// destroyed (except for AR races), and the environment and mineral concentrations are rerolled.
+// Minerals on the surface are kept.
+func (p *producer) genesis() {
+	planet := p.planet
+	if p.player.Race.PRT != AR {
+		planet.Mines = 0
+		planet.Factories = 0
+		planet.Defenses = 0
+		planet.Scanner = false
+	}
+
+	if !p.estimating {
+		// hab is 1 to 99, concentrations are 25 to 103, both weighted toward the middle
+		random := p.rules.random
+		planet.Hab = Hab{
+			Grav: random.Intn(50) + random.Intn(50) + 1,
+			Temp: random.Intn(50) + random.Intn(50) + 1,
+			Rad:  random.Intn(50) + random.Intn(50) + 1,
+		}
+		planet.BaseHab = planet.Hab
+		planet.TerraformedAmount = Hab{}
+		planet.MineralConcentration = Mineral{
+			Ironium:   random.Intn(40) + random.Intn(40) + 25,
+			Boranium:  random.Intn(40) + random.Intn(40) + 25,
+			Germanium: random.Intn(40) + random.Intn(40) + 25,
+		}
+		planet.MineYears = Mineral{}
+	}
+	p.refreshPlanetSpec()
 }

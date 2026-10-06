@@ -185,22 +185,31 @@ export class CommandedPlayer implements Player {
 		return spec ?? create(PlayerResearchSpecSchema);
 	}
 
+	/**
+	 * get the cost of a production queue item
+	 * @param upgradeFromDesignNum for a starbase, the starbase it replaces. Defaults to the planet's
+	 * current starbase, but a starbase later in the queue replaces the one queued before it.
+	 */
 	public async getItemCost(
 		cs: CS,
 		item: ProductionQueueItem | undefined,
 		designFinder: DesignFinder,
 		planet?: CommandedPlanet,
-		quantity = 1
+		quantity = 1,
+		upgradeFromDesignNum?: number
 	): Promise<Cost> {
 		if (item) {
 			switch (item.type) {
 				case QueueItemType.STARBASE:
 					if (item.designNum) {
 						const design = designFinder.getMyDesign(item.designNum);
-						if (planet?.spec.planetStarbaseSpec?.hasStarbase) {
-							const starbaseToUpgrade = designFinder.getMyDesign(
-								planet.spec.planetStarbaseSpec?.starbaseDesignNum
-							);
+						const fromDesignNum =
+							upgradeFromDesignNum ??
+							(planet?.spec.planetStarbaseSpec?.hasStarbase
+								? planet.spec.planetStarbaseSpec.starbaseDesignNum
+								: undefined);
+						if (fromDesignNum) {
+							const starbaseToUpgrade = designFinder.getMyDesign(fromDesignNum);
 							if (starbaseToUpgrade && design) {
 								const { cost } = await cs.wasmService.getStarbaseUpgradeCost({
 									design: starbaseToUpgrade,
