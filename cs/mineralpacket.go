@@ -145,7 +145,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 		planet.addPopulation(-roundTo100(damage.Killed, math.Round))
 		planet.Defenses = Clamp(planet.Defenses-damage.DefensesDestroyed, 0, planet.Defenses)
 
-		messager.planetPacketDamage(planetPlayer, planet, packet, damage.Killed, damage.DefensesDestroyed)
+		messager.planetPacketDamage(planetPlayer, planet, packet, damage)
 		if planet.GetPopulation() <= 0 {
 			planet.emptyPlanet()
 			messager.planetDiedOff(planetPlayer, planet)

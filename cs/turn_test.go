@@ -1208,11 +1208,11 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 		wantMessageType PlayerMessageType
 	}{
 		{name: "no task, do nothing", fields: fields{}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
-		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
-		{name: "owned planet, invalid message", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 2, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
-		{name: "owned by us, invalid", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
+		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidDeepSpace},
+		{name: "owned planet, invalid message", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 2, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidInhabited},
+		{name: "owned by us, invalid", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidInhabited},
 		{name: "owned by us, but we can remote mine our own, should skip", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
-		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
+		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidNoMiners},
 		{name: "should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageFleetRemoteMined},
 	}
 	for _, tt := range tests {
@@ -1277,8 +1277,8 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 		wantMessageType PlayerMessageType
 	}{
 		{name: "no task, do nothing", fields: fields{}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
-		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
-		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
+		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidDeepSpace},
+		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidNoMiners},
 		{name: "owned by us, but we can remote mine our own, should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageFleetRemoteMined},
 	}
 	for _, tt := range tests {

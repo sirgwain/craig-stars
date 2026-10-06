@@ -1,5 +1,6 @@
+import { TerraformHabType } from '$lib/types/cs-proto';
 import { describe, it, expect } from 'vitest';
-import { getGravString, getTempString } from './Hab';
+import { getGravString, getTempString, getTerraformHabValueString } from './Hab';
 
 // These values were painstakingly recorded from stars!
 const testData: [number, string][] = [
@@ -113,5 +114,18 @@ describe('hab test', () => {
 
 	it.for(testData)('getGravString(%i) -> %s', ([value, expected]) => {
 		expect(getGravString(value)).toBe(expected);
+	});
+});
+
+describe('TerraformHabType formatting', () => {
+	it('uses the protobuf axis values rather than the internal indices', () => {
+		expect(getTerraformHabValueString(TerraformHabType.GRAV, 50)).toBe('1.00g');
+		expect(getTerraformHabValueString(TerraformHabType.TEMP, 50)).toBe('0°C');
+		expect(getTerraformHabValueString(TerraformHabType.RAD, 50)).toBe('50mR');
+	});
+	it('preserves a zero raw value', () => {
+		expect(getTerraformHabValueString(TerraformHabType.GRAV, 0)).toBe('0.12g');
+		expect(getTerraformHabValueString(TerraformHabType.TEMP, 0)).toBe('-200°C');
+		expect(getTerraformHabValueString(TerraformHabType.RAD, 0)).toBe('0mR');
 	});
 });

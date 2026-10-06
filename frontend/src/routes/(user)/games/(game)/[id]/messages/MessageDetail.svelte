@@ -33,7 +33,7 @@
 
 {#if message.type === PlayerMessageType.BATTLE || message.type === PlayerMessageType.BATTLE_ALLY}
 	<BattleMessageDetail {message} />
-{:else if planet}
+{:else if planet || message.target?.targetType === PlayerMessageTargetType.PLANET}
 	<PlanetMessageDetail {message} {planet} {owner} />
 {:else if message.target?.targetType === PlayerMessageTargetType.MYSTERY_TRADER}
 	<MysteryTraderMessageDetail {message} />

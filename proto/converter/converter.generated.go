@@ -2824,6 +2824,11 @@ func (c *ProtoConverter) csPlayerMessageSpecToPCraig_starsv1PlayerMessageSpec(so
 	craig_starsv1PlayerMessageSpec.SourcePlayerNum = IntToInt32(source.SourcePlayerNum)
 	craig_starsv1PlayerMessageSpec.TechGained = source.TechGained
 	craig_starsv1PlayerMessageSpec.TerraformAmount = CSHabToHab(source.TerraformAmount)
+	craig_starsv1PlayerMessageSpec.HabType = CSTerraformHabTypeToTerraformHabType(source.HabType)
+	craig_starsv1PlayerMessageSpec.Distance = source.Distance
+	craig_starsv1PlayerMessageSpec.HasMassDriver = source.HasMassDriver
+	craig_starsv1PlayerMessageSpec.PlanetEmptied = source.PlanetEmptied
+	craig_starsv1PlayerMessageSpec.Error = source.Error
 	return &craig_starsv1PlayerMessageSpec
 }
 func (c *ProtoConverter) csPlayerMessageToPCraig_starsv1PlayerMessage(source cs.PlayerMessage) *v1.PlayerMessage {
@@ -3810,7 +3815,11 @@ func (c *ProtoConverter) pCraig_starsv1PlayerMessageSpecToCsPlayerMessageSpec(so
 		csPlayerMessageSpec2.Comet = c.pCraig_starsv1PlayerMessageSpecCometToPCsPlayerMessageSpecComet((*source).Comet)
 		csPlayerMessageSpec2.Cost = c.pCraig_starsv1CostToPCsCostGeneric((*source).Cost)
 		csPlayerMessageSpec2.DestPlayerNum = Int32ToInt((*source).DestPlayerNum)
+		csPlayerMessageSpec2.Distance = (*source).Distance
+		csPlayerMessageSpec2.Error = (*source).Error
 		csPlayerMessageSpec2.Field = cs.TechField((*source).Field)
+		csPlayerMessageSpec2.HabType = TerraformHabTypeToCSTerraformHabType((*source).HabType)
+		csPlayerMessageSpec2.HasMassDriver = (*source).HasMassDriver
 		csPlayerMessageSpec2.Invasion = c.pCraig_starsv1PlayerMessageSpecInvasionToPCsPlayerMessageSpecInvasion((*source).Invasion)
 		csPlayerMessageSpec2.LostTargetType = MapObjectTypeToCSMapObjectType((*source).LostTargetType)
 		csPlayerMessageSpec2.MinefieldDamage = c.pCraig_starsv1MinefieldDamageToPCsMinefieldDamage((*source).MinefieldDamage)
@@ -3819,6 +3828,7 @@ func (c *ProtoConverter) pCraig_starsv1PlayerMessageSpecToCsPlayerMessageSpec(so
 		csPlayerMessageSpec2.MysteryTrader = c.ConvertPlayerMessageSpecMysteryTrader((*source).MysteryTrader)
 		csPlayerMessageSpec2.Name = (*source).Name
 		csPlayerMessageSpec2.NextField = cs.TechField((*source).NextField)
+		csPlayerMessageSpec2.PlanetEmptied = (*source).PlanetEmptied
 		csPlayerMessageSpec2.PrevAmount = Int32ToInt((*source).PrevAmount)
 		csPlayerMessageSpec2.QueueItemType = QueueItemTypeToCSQueueItemType((*source).QueueItemType)
 		csPlayerMessageSpec2.RouteTarget = c.pCraig_starsv1MapObjectTargetToPCsTarget((*source).RouteTarget)
