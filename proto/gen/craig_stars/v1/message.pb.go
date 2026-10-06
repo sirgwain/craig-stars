@@ -192,6 +192,24 @@ const (
 	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_BY_HAND_TRANSFER_INCOMPLETE                  PlayerMessageType = 101
 	PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_BUILT_BEYOND_MAXIMUM                        PlayerMessageType = 102
 	PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_BUILT_INVALID_SHIP                          PlayerMessageType = 103
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NOT_PLANET                  PlayerMessageType = 104
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_OWNED_PLANET                PlayerMessageType = 105
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NO_MODULE                   PlayerMessageType = 106
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NO_COLONISTS                PlayerMessageType = 107
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_LAY_MINES_INVALID_NO_MINE_LAYERS             PlayerMessageType = 108
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_NO_MINERS                PlayerMessageType = 109
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_INHABITED                PlayerMessageType = 110
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_DEEP_SPACE               PlayerMessageType = 111
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_SOURCE                      PlayerMessageType = 112
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_SOURCE_OWNER                PlayerMessageType = 113
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_DEST                        PlayerMessageType = 114
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_DEST_OWNER                  PlayerMessageType = 115
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_RANGE                       PlayerMessageType = 116
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_MASS                        PlayerMessageType = 117
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_COLONISTS                   PlayerMessageType = 118
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_INVADE_INVALID_EMPTY                        PlayerMessageType = 119
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_INVADE_INVALID_STARBASE                     PlayerMessageType = 120
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_STARGATE_DESTROYED                           PlayerMessageType = 121
 )
 
 // Enum value maps for PlayerMessageType.
@@ -301,6 +319,24 @@ var (
 		101: "PLAYER_MESSAGE_TYPE_FLEET_BY_HAND_TRANSFER_INCOMPLETE",
 		102: "PLAYER_MESSAGE_TYPE_PLANET_BUILT_BEYOND_MAXIMUM",
 		103: "PLAYER_MESSAGE_TYPE_PLANET_BUILT_INVALID_SHIP",
+		104: "PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NOT_PLANET",
+		105: "PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_OWNED_PLANET",
+		106: "PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NO_MODULE",
+		107: "PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NO_COLONISTS",
+		108: "PLAYER_MESSAGE_TYPE_FLEET_LAY_MINES_INVALID_NO_MINE_LAYERS",
+		109: "PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_NO_MINERS",
+		110: "PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_INHABITED",
+		111: "PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_DEEP_SPACE",
+		112: "PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_SOURCE",
+		113: "PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_SOURCE_OWNER",
+		114: "PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_DEST",
+		115: "PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_DEST_OWNER",
+		116: "PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_RANGE",
+		117: "PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_MASS",
+		118: "PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_COLONISTS",
+		119: "PLAYER_MESSAGE_TYPE_PLANET_INVADE_INVALID_EMPTY",
+		120: "PLAYER_MESSAGE_TYPE_PLANET_INVADE_INVALID_STARBASE",
+		121: "PLAYER_MESSAGE_TYPE_FLEET_STARGATE_DESTROYED",
 	}
 	PlayerMessageType_value = map[string]int32{
 		"PLAYER_MESSAGE_TYPE_UNSPECIFIED":                                        0,
@@ -407,6 +443,24 @@ var (
 		"PLAYER_MESSAGE_TYPE_FLEET_BY_HAND_TRANSFER_INCOMPLETE":                  101,
 		"PLAYER_MESSAGE_TYPE_PLANET_BUILT_BEYOND_MAXIMUM":                        102,
 		"PLAYER_MESSAGE_TYPE_PLANET_BUILT_INVALID_SHIP":                          103,
+		"PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NOT_PLANET":                  104,
+		"PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_OWNED_PLANET":                105,
+		"PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NO_MODULE":                   106,
+		"PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NO_COLONISTS":                107,
+		"PLAYER_MESSAGE_TYPE_FLEET_LAY_MINES_INVALID_NO_MINE_LAYERS":             108,
+		"PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_NO_MINERS":                109,
+		"PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_INHABITED":                110,
+		"PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_DEEP_SPACE":               111,
+		"PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_SOURCE":                      112,
+		"PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_SOURCE_OWNER":                113,
+		"PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_DEST":                        114,
+		"PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_DEST_OWNER":                  115,
+		"PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_RANGE":                       116,
+		"PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_MASS":                        117,
+		"PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_COLONISTS":                   118,
+		"PLAYER_MESSAGE_TYPE_PLANET_INVADE_INVALID_EMPTY":                        119,
+		"PLAYER_MESSAGE_TYPE_PLANET_INVADE_INVALID_STARBASE":                     120,
+		"PLAYER_MESSAGE_TYPE_FLEET_STARGATE_DESTROYED":                           121,
 	}
 )
 
@@ -604,6 +658,11 @@ type PlayerMessageSpec struct {
 	SourcePlayerNum     int32                           `protobuf:"varint,23,opt,name=source_player_num,json=sourcePlayerNum,proto3" json:"source_player_num,omitempty"`
 	TechGained          string                          `protobuf:"bytes,24,opt,name=tech_gained,json=techGained,proto3" json:"tech_gained,omitempty"`
 	TerraformAmount     *Hab                            `protobuf:"bytes,25,opt,name=terraform_amount,json=terraformAmount,proto3" json:"terraform_amount,omitempty"`
+	HabType             TerraformHabType                `protobuf:"varint,26,opt,name=hab_type,json=habType,proto3,enum=craig_stars.v1.TerraformHabType" json:"hab_type,omitempty"`
+	Distance            float64                         `protobuf:"fixed64,27,opt,name=distance,proto3" json:"distance,omitempty"`
+	HasMassDriver       bool                            `protobuf:"varint,28,opt,name=has_mass_driver,json=hasMassDriver,proto3" json:"has_mass_driver,omitempty"`
+	PlanetEmptied       bool                            `protobuf:"varint,29,opt,name=planet_emptied,json=planetEmptied,proto3" json:"planet_emptied,omitempty"`
+	Error               string                          `protobuf:"bytes,30,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -811,6 +870,41 @@ func (x *PlayerMessageSpec) GetTerraformAmount() *Hab {
 		return x.TerraformAmount
 	}
 	return nil
+}
+
+func (x *PlayerMessageSpec) GetHabType() TerraformHabType {
+	if x != nil {
+		return x.HabType
+	}
+	return TerraformHabType_TERRAFORM_HAB_TYPE_UNSPECIFIED
+}
+
+func (x *PlayerMessageSpec) GetDistance() float64 {
+	if x != nil {
+		return x.Distance
+	}
+	return 0
+}
+
+func (x *PlayerMessageSpec) GetHasMassDriver() bool {
+	if x != nil {
+		return x.HasMassDriver
+	}
+	return false
+}
+
+func (x *PlayerMessageSpec) GetPlanetEmptied() bool {
+	if x != nil {
+		return x.PlanetEmptied
+	}
+	return false
+}
+
+func (x *PlayerMessageSpec) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
 }
 
 type PlayerMessageSpecComet struct {
@@ -1305,15 +1399,14 @@ var File_craig_stars_v1_message_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1ccraig_stars/v1/message.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/battle.proto\x1a\x1bcraig_stars/v1/common.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\"craig_stars/v1/mineralpacket.proto\x1a\"craig_stars/v1/mysterytrader.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1acraig_stars/v1/rules.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\"\xed\x01\n" +
+	"\x1ccraig_stars/v1/message.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/battle.proto\x1a\x1bcraig_stars/v1/common.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\"craig_stars/v1/mineralpacket.proto\x1a\"craig_stars/v1/mysterytrader.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1acraig_stars/v1/rules.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\x1a\x19craig_stars/v1/tech.proto\"\xed\x01\n" +
 	"\rPlayerMessage\x12;\n" +
 	"\x06target\x18\x01 \x01(\v2#.craig_stars.v1.PlayerMessageTargetR\x06target\x125\n" +
 	"\x04type\x18\x02 \x01(\x0e2!.craig_stars.v1.PlayerMessageTypeR\x04type\x12\x12\n" +
 	"\x04text\x18\x03 \x01(\tR\x04text\x12\x1d\n" +
 	"\n" +
 	"battle_num\x18\x04 \x01(\x05R\tbattleNum\x125\n" +
-	"\x04spec\x18\x05 \x01(\v2!.craig_stars.v1.PlayerMessageSpecR\x04spec\"\xdb\n" +
-	"\n" +
+	"\x04spec\x18\x05 \x01(\v2!.craig_stars.v1.PlayerMessageSpecR\x04spec\"\x99\f\n" +
 	"\x11PlayerMessageSpec\x12K\n" +
 	"\x11map_object_target\x18\x01 \x01(\v2\x1f.craig_stars.v1.MapObjectTargetR\x0fmapObjectTarget\x12\x16\n" +
 	"\x06amount\x18\x02 \x01(\x05R\x06amount\x12\x18\n" +
@@ -1343,7 +1436,12 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"\x11source_player_num\x18\x17 \x01(\x05R\x0fsourcePlayerNum\x12\x1f\n" +
 	"\vtech_gained\x18\x18 \x01(\tR\n" +
 	"techGained\x12>\n" +
-	"\x10terraform_amount\x18\x19 \x01(\v2\x13.craig_stars.v1.HabR\x0fterraformAmount\"\xc9\x02\n" +
+	"\x10terraform_amount\x18\x19 \x01(\v2\x13.craig_stars.v1.HabR\x0fterraformAmount\x12;\n" +
+	"\bhab_type\x18\x1a \x01(\x0e2 .craig_stars.v1.TerraformHabTypeR\ahabType\x12\x1a\n" +
+	"\bdistance\x18\x1b \x01(\x01R\bdistance\x12&\n" +
+	"\x0fhas_mass_driver\x18\x1c \x01(\bR\rhasMassDriver\x12%\n" +
+	"\x0eplanet_emptied\x18\x1d \x01(\bR\rplanetEmptied\x12\x14\n" +
+	"\x05error\x18\x1e \x01(\tR\x05error\"\xc9\x02\n" +
 	"\x16PlayerMessageSpecComet\x12-\n" +
 	"\x04size\x18\x01 \x01(\x0e2\x19.craig_stars.v1.CometSizeR\x04size\x12>\n" +
 	"\x0eminerals_added\x18\x02 \x01(\v2\x17.craig_stars.v1.MineralR\rmineralsAdded\x12_\n" +
@@ -1406,7 +1504,7 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"$PLAYER_MESSAGE_TARGET_TYPE_MINEFIELD\x10\x04\x12-\n" +
 	")PLAYER_MESSAGE_TARGET_TYPE_MYSTERY_TRADER\x10\x05\x12-\n" +
 	")PLAYER_MESSAGE_TARGET_TYPE_MINERAL_PACKET\x10\x06\x12%\n" +
-	"!PLAYER_MESSAGE_TARGET_TYPE_BATTLE\x10\a*\xe4'\n" +
+	"!PLAYER_MESSAGE_TARGET_TYPE_BATTLE\x10\a*\xf3/\n" +
 	"\x11PlayerMessageType\x12#\n" +
 	"\x1fPLAYER_MESSAGE_TYPE_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18PLAYER_MESSAGE_TYPE_INFO\x10\x01\x12\x1d\n" +
@@ -1512,7 +1610,25 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"8PLAYER_MESSAGE_TYPE_PLAYER_ACQUIRABLE_PART_GAINED_BATTLE\x10d\x129\n" +
 	"5PLAYER_MESSAGE_TYPE_FLEET_BY_HAND_TRANSFER_INCOMPLETE\x10e\x123\n" +
 	"/PLAYER_MESSAGE_TYPE_PLANET_BUILT_BEYOND_MAXIMUM\x10f\x121\n" +
-	"-PLAYER_MESSAGE_TYPE_PLANET_BUILT_INVALID_SHIP\x10g*\xce\x02\n" +
+	"-PLAYER_MESSAGE_TYPE_PLANET_BUILT_INVALID_SHIP\x10g\x129\n" +
+	"5PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NOT_PLANET\x10h\x12;\n" +
+	"7PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_OWNED_PLANET\x10i\x128\n" +
+	"4PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NO_MODULE\x10j\x12;\n" +
+	"7PLAYER_MESSAGE_TYPE_FLEET_COLONIZE_INVALID_NO_COLONISTS\x10k\x12>\n" +
+	":PLAYER_MESSAGE_TYPE_FLEET_LAY_MINES_INVALID_NO_MINE_LAYERS\x10l\x12;\n" +
+	"7PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_NO_MINERS\x10m\x12;\n" +
+	"7PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_INHABITED\x10n\x12<\n" +
+	"8PLAYER_MESSAGE_TYPE_FLEET_REMOTE_MINE_INVALID_DEEP_SPACE\x10o\x125\n" +
+	"1PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_SOURCE\x10p\x12;\n" +
+	"7PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_SOURCE_OWNER\x10q\x123\n" +
+	"/PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_DEST\x10r\x129\n" +
+	"5PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_DEST_OWNER\x10s\x124\n" +
+	"0PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_RANGE\x10t\x123\n" +
+	"/PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_MASS\x10u\x128\n" +
+	"4PLAYER_MESSAGE_TYPE_FLEET_STARGATE_INVALID_COLONISTS\x10v\x123\n" +
+	"/PLAYER_MESSAGE_TYPE_PLANET_INVADE_INVALID_EMPTY\x10w\x126\n" +
+	"2PLAYER_MESSAGE_TYPE_PLANET_INVADE_INVALID_STARBASE\x10x\x120\n" +
+	",PLAYER_MESSAGE_TYPE_FLEET_STARGATE_DESTROYED\x10y*\xce\x02\n" +
 	"\x13CargoTransferStatus\x12%\n" +
 	"!CARGO_TRANSFER_STATUS_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bCARGO_TRANSFER_STATUS_OWNED\x10\x01\x12\x1f\n" +
@@ -1560,12 +1676,13 @@ var file_craig_stars_v1_message_proto_goTypes = []any{
 	(*MineralPacketDamage)(nil),            // 18: craig_stars.v1.MineralPacketDamage
 	(QueueItemType)(0),                     // 19: craig_stars.v1.QueueItemType
 	(*Hab)(nil),                            // 20: craig_stars.v1.Hab
-	(CometSize)(0),                         // 21: craig_stars.v1.CometSize
-	(MysteryTraderRewardType)(0),           // 22: craig_stars.v1.MysteryTraderRewardType
-	(*TechLevel)(nil),                      // 23: craig_stars.v1.TechLevel
-	(*ShipDesign)(nil),                     // 24: craig_stars.v1.ShipDesign
-	(ResourceType)(0),                      // 25: craig_stars.v1.ResourceType
-	(*Vector)(nil),                         // 26: craig_stars.v1.Vector
+	(TerraformHabType)(0),                  // 21: craig_stars.v1.TerraformHabType
+	(CometSize)(0),                         // 22: craig_stars.v1.CometSize
+	(MysteryTraderRewardType)(0),           // 23: craig_stars.v1.MysteryTraderRewardType
+	(*TechLevel)(nil),                      // 24: craig_stars.v1.TechLevel
+	(*ShipDesign)(nil),                     // 25: craig_stars.v1.ShipDesign
+	(ResourceType)(0),                      // 26: craig_stars.v1.ResourceType
+	(*Vector)(nil),                         // 27: craig_stars.v1.Vector
 }
 var file_craig_stars_v1_message_proto_depIdxs = []int32{
 	9,  // 0: craig_stars.v1.PlayerMessage.target:type_name -> craig_stars.v1.PlayerMessageTarget
@@ -1587,23 +1704,24 @@ var file_craig_stars_v1_message_proto_depIdxs = []int32{
 	19, // 16: craig_stars.v1.PlayerMessageSpec.queue_item_type:type_name -> craig_stars.v1.QueueItemType
 	11, // 17: craig_stars.v1.PlayerMessageSpec.route_target:type_name -> craig_stars.v1.MapObjectTarget
 	20, // 18: craig_stars.v1.PlayerMessageSpec.terraform_amount:type_name -> craig_stars.v1.Hab
-	21, // 19: craig_stars.v1.PlayerMessageSpecComet.size:type_name -> craig_stars.v1.CometSize
-	17, // 20: craig_stars.v1.PlayerMessageSpecComet.minerals_added:type_name -> craig_stars.v1.Mineral
-	17, // 21: craig_stars.v1.PlayerMessageSpecComet.mineral_concentration_increased:type_name -> craig_stars.v1.Mineral
-	20, // 22: craig_stars.v1.PlayerMessageSpecComet.hab_changed:type_name -> craig_stars.v1.Hab
-	22, // 23: craig_stars.v1.PlayerMessageSpecMysteryTrader.type:type_name -> craig_stars.v1.MysteryTraderRewardType
-	23, // 24: craig_stars.v1.PlayerMessageSpecMysteryTrader.tech_levels:type_name -> craig_stars.v1.TechLevel
-	24, // 25: craig_stars.v1.PlayerMessageSpecMysteryTrader.ship:type_name -> craig_stars.v1.ShipDesign
-	25, // 26: craig_stars.v1.PlayerMessageSpecCargoTransfer.cargo_type:type_name -> craig_stars.v1.ResourceType
-	2,  // 27: craig_stars.v1.PlayerMessageSpecCargoTransfer.status:type_name -> craig_stars.v1.CargoTransferStatus
-	26, // 28: craig_stars.v1.PlayerMessageTarget.target_position:type_name -> craig_stars.v1.Vector
-	0,  // 29: craig_stars.v1.PlayerMessageTarget.target_type:type_name -> craig_stars.v1.PlayerMessageTargetType
-	20, // 30: craig_stars.v1.BombingResult.unterraform_amount:type_name -> craig_stars.v1.Hab
-	31, // [31:31] is the sub-list for method output_type
-	31, // [31:31] is the sub-list for method input_type
-	31, // [31:31] is the sub-list for extension type_name
-	31, // [31:31] is the sub-list for extension extendee
-	0,  // [0:31] is the sub-list for field type_name
+	21, // 19: craig_stars.v1.PlayerMessageSpec.hab_type:type_name -> craig_stars.v1.TerraformHabType
+	22, // 20: craig_stars.v1.PlayerMessageSpecComet.size:type_name -> craig_stars.v1.CometSize
+	17, // 21: craig_stars.v1.PlayerMessageSpecComet.minerals_added:type_name -> craig_stars.v1.Mineral
+	17, // 22: craig_stars.v1.PlayerMessageSpecComet.mineral_concentration_increased:type_name -> craig_stars.v1.Mineral
+	20, // 23: craig_stars.v1.PlayerMessageSpecComet.hab_changed:type_name -> craig_stars.v1.Hab
+	23, // 24: craig_stars.v1.PlayerMessageSpecMysteryTrader.type:type_name -> craig_stars.v1.MysteryTraderRewardType
+	24, // 25: craig_stars.v1.PlayerMessageSpecMysteryTrader.tech_levels:type_name -> craig_stars.v1.TechLevel
+	25, // 26: craig_stars.v1.PlayerMessageSpecMysteryTrader.ship:type_name -> craig_stars.v1.ShipDesign
+	26, // 27: craig_stars.v1.PlayerMessageSpecCargoTransfer.cargo_type:type_name -> craig_stars.v1.ResourceType
+	2,  // 28: craig_stars.v1.PlayerMessageSpecCargoTransfer.status:type_name -> craig_stars.v1.CargoTransferStatus
+	27, // 29: craig_stars.v1.PlayerMessageTarget.target_position:type_name -> craig_stars.v1.Vector
+	0,  // 30: craig_stars.v1.PlayerMessageTarget.target_type:type_name -> craig_stars.v1.PlayerMessageTargetType
+	20, // 31: craig_stars.v1.BombingResult.unterraform_amount:type_name -> craig_stars.v1.Hab
+	32, // [32:32] is the sub-list for method output_type
+	32, // [32:32] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_message_proto_init() }
@@ -1619,6 +1737,7 @@ func file_craig_stars_v1_message_proto_init() {
 	file_craig_stars_v1_planet_proto_init()
 	file_craig_stars_v1_rules_proto_init()
 	file_craig_stars_v1_shipdesign_proto_init()
+	file_craig_stars_v1_tech_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

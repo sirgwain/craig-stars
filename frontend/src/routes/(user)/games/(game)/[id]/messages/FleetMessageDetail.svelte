@@ -5,6 +5,7 @@
 	import { None } from '$lib/types/Consts';
 	import {
 		CargoTransferStatus,
+		MapObjectType,
 		PlayerMessageType,
 		ResourceType,
 		type PlayerMessage
@@ -12,7 +13,7 @@
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
 	import { enumToString } from '$lib/types/Enums';
-	import { cargoDescription } from '$lib/types/Cargo';
+	import { cargoDescription, population, totalCargo } from '$lib/types/Cargo';
 
 	const { game, universe, player } = getGameContext();
 
@@ -22,14 +23,146 @@
 
 	let { message }: Props = $props();
 
-	let fleet =
+	let fleetName = $derived(message.target?.targetName ?? 'your fleet');
+	let sourceName = $derived(message.spec?.mapObjectTarget?.targetName ?? 'unknown');
+	let destinationName = $derived(message.spec?.routeTarget?.targetName ?? 'unknown');
+
+	let fleet = $derived(
 		message.target?.targetPlayerNum && message.target.targetNum
 			? $universe.getFleet(message.target.targetPlayerNum, message.target.targetNum)
-			: undefined;
+			: undefined
+	);
 </script>
 
 {#if message.text}
 	{message.text}
+{:else if message.type === PlayerMessageType.FLEET_ORDERS_COMPLETE}
+	{fleetName} has completed its assigned orders.
+{:else if message.type === PlayerMessageType.FLEET_ENGINE_FAILURE}
+	{fleetName} was unable to engage its engines due to balky equipment. Engineers think they have the problem
+	fixed for the time being.
+{:else if message.type === PlayerMessageType.FLEET_OUT_OF_FUEL}
+	<!-- Amount is the resulting warp speed. -->
+	{fleetName} has run out of fuel. The fleet's speed has been decreased to Warp {message.spec
+		?.amount ?? 0}.
+{:else if message.type === PlayerMessageType.FLEET_MERGED}
+	{message.spec?.name} has been merged into {fleetName}.
+{:else if message.type === PlayerMessageType.FLEET_MERGE_INVALID_NOT_FLEET}
+	{fleetName} was unable to complete its merge orders as the waypoint destination wasn't a fleet.
+{:else if message.type === PlayerMessageType.FLEET_MERGE_INVALID_UNOWNED}
+	{fleetName} was unable to complete its merge orders as the destination fleet wasn't one of yours.
+{:else if message.type === PlayerMessageType.FLEET_ROUTE_INVALID_NOT_PLANET}
+	{fleetName} could not be routed because it is not orbiting a planet.
+{:else if message.type === PlayerMessageType.FLEET_ROUTE_INVALID_NOT_FRIENDLY_PLANET}
+	{fleetName} could not be routed because you are not friends with the inhabitants of {sourceName}.
+{:else if message.type === PlayerMessageType.FLEET_ROUTE_INVALID_NO_ROUTE_TARGET}
+	{fleetName} could not be routed at {sourceName} as the planet has no route set.
+{:else if message.type === PlayerMessageType.FLEET_ROUTE}
+	{fleetName} has been routed by the citizens of {sourceName} to {destinationName}.
+{:else if message.type === PlayerMessageType.FLEET_COLONIZE_INVALID_NOT_PLANET}
+	{fleetName} has orders to colonize, but is not currently orbiting a planet. The order has been canceled.
+{:else if message.type === PlayerMessageType.FLEET_COLONIZE_INVALID_OWNED_PLANET}
+	{fleetName} has orders to colonize {sourceName}, but {sourceName} is already populated. The order has
+	been canceled.
+{:else if message.type === PlayerMessageType.FLEET_COLONIZE_INVALID_NO_MODULE}
+	{fleetName} has orders to colonize a planet without a colonization module. The order has been canceled.
+{:else if message.type === PlayerMessageType.FLEET_COLONIZE_INVALID_NO_COLONISTS}
+	{fleetName} has orders to colonize a planet, but has failed to bring along any colonists. The order
+	has been canceled.
+{:else if message.type === PlayerMessageType.FLEET_LAY_MINES_INVALID_NO_MINE_LAYERS}
+	{fleetName} has orders to lay mines, but has no mine layers. The order has been canceled.
+{:else if message.type === PlayerMessageType.FLEET_REMOTE_MINE_INVALID_NO_MINERS}
+	{fleetName} has orders to remote mine {sourceName}, but the fleet doesn't have any remote mining
+	modules. The order has been canceled.
+{:else if message.type === PlayerMessageType.FLEET_REMOTE_MINE_INVALID_INHABITED}
+	{fleetName} has orders to remote mine {sourceName}, but the planet is already inhabited. The order
+	has been canceled.
+{:else if message.type === PlayerMessageType.FLEET_REMOTE_MINE_INVALID_DEEP_SPACE}
+	{fleetName} has orders to remote mine in deep space. The order has been canceled.
+{:else if message.type === PlayerMessageType.FLEET_TRANSFERRED_CARGO}
+	{@const transfer = message.spec?.cargoTransfer}
+	{#if transfer}
+		{@const loading = transfer.transfered < 0}
+		{#if transfer.cargoType === ResourceType.COLONISTS}
+			{fleetName} has beamed {cargoDescription(transfer.cargoType, Math.abs(transfer.transfered))} colonists
+			{loading ? 'from' : 'to'}
+			{sourceName}.
+		{:else}
+			{fleetName} has {loading ? 'loaded' : 'unloaded'}
+			{cargoDescription(transfer.cargoType, Math.abs(transfer.transfered))} of {enumToString(
+				ResourceType,
+				transfer.cargoType
+			)}
+			{loading ? 'from' : 'to'}
+			{sourceName}.
+		{/if}
+	{:else}
+		<FallbackMessageDetail {message} />
+	{/if}
+{:else if message.type === PlayerMessageType.FLEET_TARGET_LOST}
+	{#if message.spec?.lostTargetType === MapObjectType.FLEET}
+		The fleet you were tracking with {fleetName}, {message.spec.name}, appears to have outrun the
+		range of your scanners. Orders for your fleet have been changed to go to the last known location
+		of that fleet.
+	{:else}
+		The {message.spec?.name} that you were tracking with {fleetName}, appears to have disappeared.
+		Orders for your fleet have been changed to go to the last known location of the target.
+	{/if}
+{:else if message.type === PlayerMessageType.FLEET_STARGATE_INVALID_SOURCE}
+	{fleetName} attempted to use a stargate at {sourceName}, but no stargate exists there.
+{:else if message.type === PlayerMessageType.FLEET_STARGATE_INVALID_SOURCE_OWNER}
+	{fleetName} attempted to use a stargate at {sourceName}, but could not because the starbase is not
+	owned by you or your allies.
+{:else if message.type === PlayerMessageType.FLEET_STARGATE_INVALID_DEST}
+	{fleetName} attempted to use a stargate at {sourceName} to reach {destinationName}, but no
+	stargate could be detected at the destination.
+{:else if message.type === PlayerMessageType.FLEET_STARGATE_INVALID_DEST_OWNER}
+	{fleetName} attempted to use a stargate at {sourceName} to reach {destinationName}, but could not
+	because the destination starbase is not owned by you or your allies.
+{:else if message.type === PlayerMessageType.FLEET_STARGATE_INVALID_RANGE}
+	{fleetName} attempted to use a stargate at {sourceName} to reach {destinationName}, but the
+	distance of {(message.spec?.distance ?? 0).toFixed(1)} Ly. was far beyond the max range of the stargates.
+{:else if message.type === PlayerMessageType.FLEET_STARGATE_INVALID_MASS}
+	{fleetName} attempted to use a stargate at {sourceName} to reach {destinationName}, but your ships
+	are far too massive for the gate's limits.
+{:else if message.type === PlayerMessageType.FLEET_STARGATE_INVALID_COLONISTS}
+	{fleetName} attempted to use a stargate at {sourceName} to reach {destinationName}, but you are
+	carrying colonists and can't drop them off as you don't own the planet.
+{:else if message.type === PlayerMessageType.FLEET_DUMPED_CARGO}
+	{@const cargo = message.spec?.cargo}
+	{@const minerals = totalCargo(cargo) - (cargo?.colonists ?? 0)}
+	{fleetName} has unloaded
+	{#if population(cargo) > 0 && minerals > 0}
+		{population(cargo).toLocaleString()} colonists and {minerals.toLocaleString()}kt of minerals
+	{:else if population(cargo) > 0}
+		{population(cargo).toLocaleString()} colonists
+	{:else}
+		{minerals.toLocaleString()}kt of minerals
+	{/if}
+	in preparation for jumping through the stargate at {sourceName} to reach {destinationName}.
+{:else if message.type === PlayerMessageType.FLEET_STARGATE_DESTROYED}
+	Heedless to the danger, {fleetName} attempted to use the stargate at {sourceName} to reach {destinationName}.
+	The fleet never arrived. The distance or mass must have been too great.
+{:else if message.type === PlayerMessageType.FLEET_STARGATE_DAMAGED}
+	<!-- Amount is damage points; Amount2 is total ships lost. -->
+	{@const shipsLost = message.spec?.amount2 ?? 0}
+	{fleetName} used the stargate at {sourceName} to reach {destinationName}
+	{#if shipsLost === 0}
+		losing no ships but suffering {message.spec?.amount ?? 0} dp of damage. They exceeded the capability
+		of the gates.
+	{:else if shipsLost < 5}
+		losing only {shipsLost}
+		{shipsLost === 1 ? 'ship' : 'ships'} to the treacherous void. They were fortunate. They exceeded the
+		capability of the gates.
+	{:else if shipsLost <= 10}
+		losing {shipsLost} ships to the unforgiving void. Exceeding the capability of your stargates can be
+		dangerous...
+	{:else if shipsLost <= 50}
+		losing {shipsLost} ships to the great unknown. Such disregard for stargates' capabilities is not recommended...
+	{:else}
+		losing an unbelievable {shipsLost} ships to the cosmic ocean. The jump was far in excess of the capabilities
+		of stargates involved...
+	{/if}
 {:else if message.type === PlayerMessageType.FLEET_BOMBED_PLANET}
 	{@const bombing = message.spec?.bombing}
 	{#if bombing}

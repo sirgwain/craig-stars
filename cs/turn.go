@@ -728,7 +728,7 @@ func (t *turnGenerator) fleetRoute() {
 			fleet.AddWaypoint(player, WaypointDest{MO: *mo}, len(fleet.Waypoints)-1, false)
 			fleet.Waypoints[len(fleet.Waypoints)-1].Task = WaypointTaskRoute
 
-			messager.fleetRouted(player, fleet, planet, mo.Name)
+			messager.fleetRouted(player, fleet, planet, mo)
 
 			t.log.Debug("fleet routed to target",
 				slog.Int("Player", fleet.PlayerNum),

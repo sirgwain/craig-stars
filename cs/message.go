@@ -29,7 +29,7 @@ func (t Target[T]) Targeting(mo MapObject) bool {
 type PlayerMessage struct {
 	Target[PlayerMessageTargetType]
 	Type      PlayerMessageType `json:"type"`
-	Text      string            `json:"text,omitempty"`
+	Text      string            `json:"text,omitempty"` // Legacy rendered text from saved games.
 	BattleNum int               `json:"battleNum,omitempty"`
 	Spec      PlayerMessageSpec `json:"spec"`
 }
@@ -48,7 +48,11 @@ type PlayerMessageSpec struct {
 	Comet               *PlayerMessageSpecComet         `json:"comet,omitempty"`
 	Cost                *Cost                           `json:"cost,omitempty"`
 	DestPlayerNum       int                             `json:"destPlayerNum,omitempty"`
+	Distance            float64                         `json:"distance,omitempty"`
+	Error               string                          `json:"error,omitempty"`
 	Field               TechField                       `json:"field,omitempty"`
+	HabType             TerraformHabType                `json:"habType,omitempty"`
+	HasMassDriver       bool                            `json:"hasMassDriver,omitempty"`
 	Invasion            *PlayerMessageSpecInvasion      `json:"invasion,omitempty"`
 	LostTargetType      MapObjectType                   `json:"lostTargetType,omitempty"`
 	MinefieldDamage     *MinefieldDamage                `json:"minefieldDamage,omitempty"`
@@ -57,6 +61,7 @@ type PlayerMessageSpec struct {
 	MysteryTrader       *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
 	Name                string                          `json:"name,omitempty"`
 	NextField           TechField                       `json:"nextField,omitempty"`
+	PlanetEmptied       bool                            `json:"planetEmptied,omitempty"`
 	PrevAmount          int                             `json:"prevAmount,omitempty"`
 	QueueItemType       QueueItemType                   `json:"queueItemType,omitempty"`
 	RouteTarget         *MapObjectTarget                `json:"routeTarget,omitempty"`
@@ -214,6 +219,24 @@ const (
 	PlayerMessageFleetByHandTransferIncomplete
 	PlayerMessagePlanetBuiltBeyondMaximum
 	PlayerMessagePlanetBuiltInvalidShip
+	PlayerMessageFleetColonizeInvalidNotPlanet
+	PlayerMessageFleetColonizeInvalidOwnedPlanet
+	PlayerMessageFleetColonizeInvalidNoModule
+	PlayerMessageFleetColonizeInvalidNoColonists
+	PlayerMessageFleetLayMinesInvalidNoMineLayers
+	PlayerMessageFleetRemoteMineInvalidNoMiners
+	PlayerMessageFleetRemoteMineInvalidInhabited
+	PlayerMessageFleetRemoteMineInvalidDeepSpace
+	PlayerMessageFleetStargateInvalidSource
+	PlayerMessageFleetStargateInvalidSourceOwner
+	PlayerMessageFleetStargateInvalidDest
+	PlayerMessageFleetStargateInvalidDestOwner
+	PlayerMessageFleetStargateInvalidRange
+	PlayerMessageFleetStargateInvalidMass
+	PlayerMessageFleetStargateInvalidColonists
+	PlayerMessagePlanetInvadeInvalidEmpty
+	PlayerMessagePlanetInvadeInvalidStarbase
+	PlayerMessageFleetStargateDestroyed
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -261,15 +284,10 @@ func newBattleMessage(messageType PlayerMessageType, planet *Planet, battle *Bat
 	return PlayerMessage{Type: messageType, Target: PlayerMessageTarget{TargetType: targetType, TargetNum: planetNum}, BattleNum: battle.Num}
 }
 
-// use a spec in this message. spec.Name must be specified because the message details
-// depend on it. Set it to the name of the PlayerMessage target
+// Use a spec for event data. Amount and Amount2 have message-specific meanings;
+// the primary object's name is stored in the message target.
 func (m PlayerMessage) withSpec(spec PlayerMessageSpec) PlayerMessage {
 	m.Spec = spec
-	return m
-}
-
-func (m PlayerMessage) withText(text string) PlayerMessage {
-	m.Text = text
 	return m
 }
 
@@ -309,14 +327,29 @@ func (spec PlayerMessageSpec) withTargetMinefield(minefield *Minefield) PlayerMe
 	return spec
 }
 
+// Snapshot waypoint names and positions, including when the destination no longer exists.
+func (spec PlayerMessageSpec) withStargateSource(wp Waypoint) PlayerMessageSpec {
+	spec.MapObjectTarget = wp.MapObjectTarget
+	spec.MapObjectTarget.TargetPosition = wp.Position
+	return spec
+}
+
+func (spec PlayerMessageSpec) withStargateTargets(source, dest Waypoint) PlayerMessageSpec {
+	spec = spec.withStargateSource(source)
+	target := dest.MapObjectTarget
+	target.TargetPosition = dest.Position
+	spec.RouteTarget = &target
+	return spec
+}
+
 type messageClient struct {
 }
 
 var messager = messageClient{}
 
 func (m *messageClient) error(player *Player, err error) {
-	text := fmt.Sprintf("Something went wrong on the server. Please contact the administrator, %v", err)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageError, Text: text})
+	player.Messages = append(player.Messages, newMessage(PlayerMessageError).
+		withSpec(PlayerMessageSpec{Error: err.Error()}))
 }
 
 func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRecord) {
@@ -371,30 +404,24 @@ func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet,
 }
 
 func (m *messageClient) fleetColonizeNonPlanet(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to colonize, but is not currently orbiting a planet. The order has been canceled.", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetColonizeInvalidNotPlanet, fleet))
 }
 
 func (m *messageClient) fleetColonizeOwnedPlanet(player *Player, planet *Planet, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to colonize %s, but %s is already populated. The order has been canceled.", fleet.Name, planet.Name, planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
-
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetColonizeInvalidOwnedPlanet, fleet).
+		withSpec(PlayerMessageSpec{}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetColonizeWithNoModule(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to colonize a planet without a colonization module. The order has been canceled.", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
-
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetColonizeInvalidNoModule, fleet))
 }
 
 func (m *messageClient) fleetColonizeWithNoColonists(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to colonize a planet, but has failed to bring along any colonists. The order has been canceled.", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetColonizeInvalidNoColonists, fleet))
 }
 
 func (m *messageClient) fleetCompletedAssignedOrders(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s has completed its assigned orders.", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetOrdersComplete, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetOrdersComplete, fleet))
 }
 
 func (m *messageClient) fleetDieOff(player *Player, fleet *Fleet, death int) {
@@ -404,8 +431,7 @@ func (m *messageClient) fleetDieOff(player *Player, fleet *Fleet, death int) {
 }
 
 func (m *messageClient) fleetEngineFailure(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s was unable to engage its engines due to balky equipment. Engineers think they have the problem fixed for the time being.", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetEngineFailure, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetEngineFailure, fleet))
 }
 
 func (m *messageClient) fleetExceededSafeSpeed(player *Player, fleet *Fleet, explodedShips int) {
@@ -421,8 +447,8 @@ func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGen
 }
 
 func (m *messageClient) fleetMerged(player *Player, fleet *Fleet, mergedInto *Fleet) {
-	text := fmt.Sprintf("%s has been merged into %s.", fleet.Name, mergedInto.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMerged, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: mergedInto.Num, TargetPlayerNum: mergedInto.PlayerNum}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetMerged, mergedInto).
+		withSpec(PlayerMessageSpec{Name: fleet.Name}))
 }
 
 func (m *messageClient) fleetMinefieldHit(player *Player, fleet *Fleet, minefield *Minefield, minefieldDamage MinefieldDamage) {
@@ -436,8 +462,7 @@ func (m *messageClient) fleetMinefieldSwept(player *Player, fleet *Fleet, minefi
 }
 
 func (m *messageClient) fleetMinesLaidFailed(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to lay mines, but has no mine layers. The order has been canceled.", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetLayMinesInvalidNoMineLayers, fleet))
 }
 
 func (m *messageClient) fleetMinesLaid(player *Player, fleet *Fleet, minefield *Minefield, numMinesLaid int) {
@@ -445,9 +470,10 @@ func (m *messageClient) fleetMinesLaid(player *Player, fleet *Fleet, minefield *
 		PlayerMessageFleetLaidMines, fleet).withSpec(PlayerMessageSpec{Amount: numMinesLaid}.withTargetMinefield(minefield)))
 }
 
+// Amount is the resulting warp speed.
 func (m *messageClient) fleetOutOfFuel(player *Player, fleet *Fleet, warpSpeed int) {
-	text := fmt.Sprintf("%s has run out of fuel. The fleet's speed has been decreased to Warp %d.", fleet.Name, warpSpeed)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetOutOfFuel, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetOutOfFuel, fleet).
+		withSpec(PlayerMessageSpec{Amount: warpSpeed}))
 }
 
 func (m *messageClient) fleetPatrolTargeted(player *Player, fleet *Fleet, target *Fleet) {
@@ -460,28 +486,25 @@ func (m *messageClient) fleetPatrolTargeted(player *Player, fleet *Fleet, target
 }
 
 func (m *messageClient) fleetInvalidMergeNotFleet(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s was unable to complete its merge orders as the waypoint destination wasn't a fleet.", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMergeInvalidNotFleet, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetMergeInvalidNotFleet, fleet))
 }
 
 func (m *messageClient) fleetInvalidMergeNotOwned(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s was unable to complete its merge orders as the destination fleet wasn't one of yours.", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMergeInvalidUnowned, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetMergeInvalidUnowned, fleet))
 }
 
 func (m *messageClient) fleetInvalidRouteNotPlanet(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s could not be routed because it is not orbiting a planet.", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetRouteInvalidNotPlanet, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetRouteInvalidNotPlanet, fleet))
 }
 
 func (m *messageClient) fleetInvalidRouteNotFriendlyPlanet(player *Player, fleet *Fleet, planet *Planet) {
-	text := fmt.Sprintf("%s could not be routed because you are not friends with the inhabitants of %s.", fleet.Name, planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetRouteInvalidNotFriendlyPlanet, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetRouteInvalidNotFriendlyPlanet, fleet).
+		withSpec(PlayerMessageSpec{}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetInvalidRouteNoRouteTarget(player *Player, fleet *Fleet, planet *Planet) {
-	text := fmt.Sprintf("%s could not be routed at %s as the planet has no route set.", fleet.Name, planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetRouteInvalidNoRouteTarget, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetRouteInvalidNoRouteTarget, fleet).
+		withSpec(PlayerMessageSpec{}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetRadiatingEngineDieoff(player *Player, fleet *Fleet, colonistsKilled int) {
@@ -495,18 +518,17 @@ func (m *messageClient) fleetReproduce(player *Player, fleet *Fleet, colonistsGr
 }
 
 func (m *messageClient) fleetRemoteMineNoMiners(player *Player, fleet *Fleet, planet *Planet) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s has orders to remote mine %s, but the fleet doesn't have any remote mining modules. The order has been canceled.", fleet.Name, planet.Name)))
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetRemoteMineInvalidNoMiners, fleet).
+		withSpec(PlayerMessageSpec{}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetRemoteMineInhabited(player *Player, fleet *Fleet, planet *Planet) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s has orders to remote mine %s, but the planet is already inhabited. The order has been canceled.", fleet.Name, planet.Name)))
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetRemoteMineInvalidInhabited, fleet).
+		withSpec(PlayerMessageSpec{}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetRemoteMineDeepSpace(player *Player, fleet *Fleet) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s has orders to remote mine in deep space. The order has been canceled.", fleet.Name)))
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetRemoteMineInvalidDeepSpace, fleet))
 }
 
 func (m *messageClient) fleetRemoteMined(player *Player, fleet *Fleet, planet *Planet, mineral Mineral) {
@@ -514,9 +536,10 @@ func (m *messageClient) fleetRemoteMined(player *Player, fleet *Fleet, planet *P
 		withSpec(PlayerMessageSpec{Mineral: &mineral}.withTargetPlanet(planet)))
 }
 
-func (m *messageClient) fleetRouted(player *Player, fleet *Fleet, planet *Planet, target string) {
-	text := fmt.Sprintf("%s has been routed by the citizens of %s to %s.", fleet.Name, planet.Name, target)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetRoute, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
+func (m *messageClient) fleetRouted(player *Player, fleet *Fleet, planet *Planet, target *MapObject) {
+	routeTarget := target.ToTarget()
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetRoute, fleet).
+		withSpec(PlayerMessageSpec{RouteTarget: &routeTarget}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, cost Cost, planet *Planet) {
@@ -528,82 +551,54 @@ func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, cost Cost, p
 	}
 }
 func (m *messageClient) fleetStargateInvalidSource(player *Player, fleet *Fleet, wp0 Waypoint) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s attempted to use a stargate at %s, but no stargate exists there.", fleet.Name, wp0.TargetName)))
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateInvalidSource, fleet).
+		withSpec(PlayerMessageSpec{}.withStargateSource(wp0)))
 }
 
 func (m *messageClient) fleetStargateInvalidSourceOwner(player *Player, fleet *Fleet, wp0 Waypoint) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s attempted to use a stargate at %s, but could not because the starbase is not owned by you or your allies.", fleet.Name, wp0.TargetName)))
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateInvalidSourceOwner, fleet).
+		withSpec(PlayerMessageSpec{}.withStargateSource(wp0)))
 }
 
 func (m *messageClient) fleetStargateInvalidDest(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but no stargate could be detected at the destination.", fleet.Name, wp0.TargetName, wp1.TargetName)))
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateInvalidDest, fleet).
+		withSpec(PlayerMessageSpec{}.withStargateTargets(wp0, wp1)))
 }
 
 func (m *messageClient) fleetStargateInvalidDestOwner(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but could not because the destination starbase is not owned by you or your allies.", fleet.Name, wp0.TargetName, wp1.TargetName)))
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateInvalidDestOwner, fleet).
+		withSpec(PlayerMessageSpec{}.withStargateTargets(wp0, wp1)))
 }
 
 func (m *messageClient) fleetStargateInvalidRange(player *Player, fleet *Fleet, wp0, wp1 Waypoint, totalDist float64) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but the distance of %.1f Ly. was far beyond the max range of the stargates.", fleet.Name, wp0.TargetName, wp1.TargetName, totalDist)))
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateInvalidRange, fleet).
+		withSpec(PlayerMessageSpec{Distance: totalDist}.withStargateTargets(wp0, wp1)))
 }
 
 func (m *messageClient) fleetStargateInvalidMass(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but your ships are far too massive for the gate's limits.", fleet.Name, wp0.TargetName, wp1.TargetName)))
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateInvalidMass, fleet).
+		withSpec(PlayerMessageSpec{}.withStargateTargets(wp0, wp1)))
 }
 
-func (m *messageClient) fleetStargateInvalidColonists(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint) {
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but you are carrying colonists and can't drop them off as you don't own the planet.", fleet.Name, wp0.TargetName, wp1.TargetName)))
+func (m *messageClient) fleetStargateInvalidColonists(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateInvalidColonists, fleet).
+		withSpec(PlayerMessageSpec{}.withStargateTargets(wp0, wp1)))
 }
 
-func (m *messageClient) fleetStargateDumpedCargo(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint, cargo Cargo) {
-	var text string
-	if cargo.HasColonists() && cargo.HasMinerals() {
-		text = fmt.Sprintf("%s has unloaded %d colonists and %dkt of minerals in preparation for jumping through the stargate at %s to reach %s.", fleet.Name, cargo.Colonists*100, cargo.Total()-cargo.Colonists, wp0.TargetName, wp1.TargetName)
-	} else if cargo.HasColonists() {
-		text = fmt.Sprintf("%s has unloaded %d colonists in preparation for jumping through the stargate at %s to reach %s.", fleet.Name, cargo.Colonists*100, wp0.TargetName, wp1.TargetName)
-	} else {
-		text = fmt.Sprintf("%s has unloaded %dkt of minerals in preparation for jumping through the stargate at %s to reach %s.", fleet.Name, cargo.Total(), wp0.TargetName, wp1.TargetName)
-	}
-
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageInvalid, fleet).
-		withText(text))
+func (m *messageClient) fleetStargateDumpedCargo(player *Player, fleet *Fleet, wp0, wp1 Waypoint, cargo Cargo) {
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetDumpedCargo, fleet).
+		withSpec(PlayerMessageSpec{Cargo: &cargo}.withStargateTargets(wp0, wp1)))
 }
 
-func (m *messageClient) fleetStargateDestroyed(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint) {
+func (m *messageClient) fleetStargateDestroyed(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateDestroyed, fleet).
+		withSpec(PlayerMessageSpec{}.withStargateTargets(wp0, wp1)))
+}
+
+// Amount is damage points; Amount2 is the total number of ships lost.
+func (m *messageClient) fleetStargateDamaged(player *Player, fleet *Fleet, wp0, wp1 Waypoint, damage int, shipsLostToDamage int, shipsLostToTheVoid int) {
 	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateDamaged, fleet).
-		withText(fmt.Sprintf("Heedless to the danger, %s attempted to use the stargate at %s to reach %s. The fleet never arrived. The distance or mass must have been too great.", fleet.Name, wp0.TargetName, wp1.TargetName)))
-}
-
-func (m *messageClient) fleetStargateDamaged(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint, damage int, shipsLostToDamage int, shipsLostToTheVoid int) {
-	totalShipsLost := shipsLostToDamage + shipsLostToTheVoid
-	var text string
-	if totalShipsLost == 0 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing no ships but suffering %d dp of damage. They exceeded the capability of the gates.", fleet.Name, wp0.TargetName, wp1.TargetName, damage)
-	} else if totalShipsLost < 5 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing only %d ship%s to the treacherous void. They were fortunate. They exceeded the capability of the gates.", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost, func() string {
-			if totalShipsLost == 1 {
-				return ""
-			} else {
-				return "s"
-			}
-		}())
-	} else if totalShipsLost >= 5 && totalShipsLost <= 10 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing %d ships to the unforgiving void. Exceeding the capability of your stargates can be dangerous...", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost)
-	} else if totalShipsLost >= 10 && totalShipsLost <= 50 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing %d ships to the great unknown. Such disregard for stargates' capabilities is not recommended...", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost)
-	} else if totalShipsLost >= 50 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing an unbelievable %d ships to the cosmic ocean. The jump was far in excess of the capabilities of stargates involved...", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost)
-	}
-
-	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetStargateDamaged, fleet).
-		withText(text))
+		withSpec(PlayerMessageSpec{Amount: damage, Amount2: shipsLostToDamage + shipsLostToTheVoid}.withStargateTargets(wp0, wp1)))
 }
 
 func (m *messageClient) fleetTransferGiven(player *Player, fleet *Fleet, targetPlayer *Player) {
@@ -637,25 +632,11 @@ func (m *messageClient) fleetTransferReceived(player *Player, fleet *Fleet, givi
 }
 
 func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
-	text := ""
-	if cargoType == Colonists {
-		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has beamed %d colonists from %s.", fleet.Name, -transferAmount*100, dest.GetMapObject().Name)
-		} else {
-			text = fmt.Sprintf("%s has beamed %d colonists to %s.", fleet.Name, transferAmount*100, dest.GetMapObject().Name)
-		}
-	} else {
-		units := "kT"
-		if cargoType == Fuel {
-			units = "mg"
-		}
-		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has loaded %d%s of %v from %s.", fleet.Name, -transferAmount, units, cargoType, dest.GetMapObject().Name)
-		} else {
-			text = fmt.Sprintf("%s has unloaded %d%s of %v to %s.", fleet.Name, transferAmount, units, cargoType, dest.GetMapObject().Name)
-		}
-	}
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransferredCargo, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetTransferredCargo, fleet).
+		withSpec(PlayerMessageSpec{
+			MapObjectTarget: dest.GetMapObject().ToTarget(),
+			CargoTransfer:   &PlayerMessageSpecCargoTransfer{CargoType: cargoType, Transfered: transferAmount},
+		}))
 }
 
 func (m *messageClient) fleetByHandTransferIncomplete(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int, wanted int, status CargoTransferStatus) {
@@ -676,13 +657,8 @@ func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest
 }
 
 func (m *messageClient) fleetTargetLost(player *Player, fleet *Fleet, targetName string, targetType MapObjectType) {
-	text := ""
-	if targetType == MapObjectTypeFleet {
-		text = fmt.Sprintf("The fleet you were tracking with %s, %s, appears to have outrun the range of your scanners. Orders for your fleet have been changed to go to the last known location of that fleet.", fleet.Name, targetName)
-	} else {
-		text = fmt.Sprintf("The %s that you were tracking with %s, appears to have disappeared. Orders for your fleet have been changed to go to the last known location of the target.", targetName, fleet.Name)
-	}
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTargetLost, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}, Spec: PlayerMessageSpec{LostTargetType: targetType}})
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetTargetLost, fleet).
+		withSpec(PlayerMessageSpec{LostTargetType: targetType, Name: targetName}))
 }
 
 /*
@@ -755,8 +731,7 @@ func (m *messageClient) planetBuiltStarbase(player *Player, planet *Planet, flee
 }
 
 func (m *messageClient) planetColonized(player *Player, planet *Planet) {
-	text := fmt.Sprintf("Your colonists are now in control of %s.", planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetColonized, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetColonized, planet))
 }
 
 func (m *messageClient) planetComet(player *Player, planet *Planet, size CometSize, mineralsAdded Mineral, mineralConcentrationIncreased Mineral, habChanged Hab, colonistsKilled int) {
@@ -811,11 +786,8 @@ func (m *messageClient) planetDiscovered(player *Player, planet *Planet) {
 }
 
 func (m *messageClient) planetInstaform(player *Player, planet *Planet, terraformAmount Hab) {
-	player.Messages = append(player.Messages, PlayerMessage{
-		Type:   PlayerMessagePlanetInstaform,
-		Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
-		Spec:   PlayerMessageSpec{TerraformAmount: terraformAmount},
-	})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetInstaform, planet).
+		withSpec(PlayerMessageSpec{TerraformAmount: terraformAmount}))
 }
 
 func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackersKilled int, defendersKilled int, successful bool) {
@@ -828,116 +800,61 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName 
 		Successful:        successful,
 	}
 	if player.Num == attacker.Num {
-		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvadedPlanet, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
-			Spec: PlayerMessageSpec{Invasion: &invasion},
-		})
+		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageFleetInvadedPlanet, planet).
+			withSpec(PlayerMessageSpec{Invasion: &invasion}))
 	} else {
-		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInvaded, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
-			Spec: PlayerMessageSpec{Invasion: &invasion},
-		})
+		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetInvaded, planet).
+			withSpec(PlayerMessageSpec{Invasion: &invasion}))
 	}
 }
 
 func (m *messageClient) planetInvadeEmpty(player *Player, planet *Planet, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to beam colonists to %s, but the planet is uninhabited. The order has been canceled.", fleet.Name, planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetInvadeInvalidEmpty, planet).
+		withSpec(PlayerMessageSpec{}.withTargetFleet(fleet)))
 }
 func (m *messageClient) planetInvadeStarbase(player *Player, planet *Planet, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to invade %s, but the planet is protected by a starbase. The order has been canceled.", fleet.Name, planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetInvadeInvalidStarbase, planet).
+		withSpec(PlayerMessageSpec{}.withTargetFleet(fleet)))
 }
 
+// Amount is the packet mineral mass in kT.
 func (m *messageClient) planetPacketArrived(player *Player, planet *Planet, packet *MineralPacket) {
-	text := fmt.Sprintf("Your mineral packet containing %dkT of minerals has arrived at %s.", packet.Cargo.Total(), planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetPacketLanded, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetPacketLanded, planet).
+		withSpec(PlayerMessageSpec{Amount: packet.Cargo.Total()}))
 }
 
+// Amount is the packet mineral mass in kT.
 func (m *messageClient) planetPacketCaught(player *Player, planet *Planet, packet *MineralPacket) {
-	text := fmt.Sprintf("Your mass accelerator at %s has successfully captured a packet containing %dkT of minerals.", planet.Name, packet.Cargo.Total())
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetPacketCaught, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetPacketCaught, planet).
+		withSpec(PlayerMessageSpec{Amount: packet.Cargo.Total()}))
 }
 
-func (m *messageClient) planetPacketDamage(player *Player, planet *Planet, packet *MineralPacket, colonistsKilled, defensesDestroyed int) {
-	var text string
-	if planet.Spec.HasStarbase && planet.Starbase.Spec.HasMassDriver {
-		if defensesDestroyed == 0 {
-			text = fmt.Sprintf("Your mass accelerator at %s was partially successful at capturing a %dkT mineral packet. Unable to completely slow the packet, %d of your colonists were killed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled)
-		} else {
-			text = fmt.Sprintf("Your mass accelerator at %s was partially successful at capturing a %dkT mineral packet. Unfortunately, %d of your colonists and %d of your defenses were destroyed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled, defensesDestroyed)
-		}
-	} else {
-		if planet.GetPopulation() == 0 {
-			text = fmt.Sprintf("%s was annihilated by a mineral packet. All of your colonists were killed.", planet.Name)
-		} else if defensesDestroyed == 0 {
-			text = fmt.Sprintf("%s was bombarded with a %dkT mineral packet. %d of your colonists were killed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled)
-		} else {
-			text = fmt.Sprintf("%s was bombarded with a %dkT mineral packet. %d of your colonists and %d of your defenses were destroyed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled, defensesDestroyed)
-		}
-	}
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetPacketDamage, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+// Amount is the packet mineral mass in kT.
+func (m *messageClient) planetPacketDamage(player *Player, planet *Planet, packet *MineralPacket, damage MineralPacketDamage) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetPacketDamage, planet).
+		withSpec(PlayerMessageSpec{
+			Amount: packet.Cargo.Total(), MineralPacketDamage: &damage,
+			HasMassDriver: planet.Spec.HasStarbase && planet.Starbase.Spec.HasMassDriver,
+			PlanetEmptied: planet.GetPopulation() == 0,
+		}))
 }
 
+// Amount is the signed change; Amount2 is the resulting raw habitat value.
 func (m *messageClient) planetPacketPermaform(player *Player, planet *Planet, habType HabType, change int) {
-	changeText := ""
-	if change > 0 {
-		changeText = "increased"
-	} else {
-		changeText = "decreased"
-	}
-	newValueText := ""
-	newValue := planet.Hab.Get(habType)
-	switch habType {
-	case Grav:
-		newValueText = gravString(newValue)
-	case Temp:
-		newValueText = tempString(newValue)
-	case Rad:
-		newValueText = radString(newValue)
-	}
-	text := fmt.Sprintf("Your mineral packet hitting %s has permanently %s its %s to %s.", planet.Name, changeText, habType, newValueText)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetPacketPermaform, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetPacketPermaform, planet).
+		withSpec(PlayerMessageSpec{HabType: FromHabType(habType), Amount: change, Amount2: planet.Hab.Get(habType)}))
 }
 
+// Amount is the signed change; Amount2 is the resulting raw habitat value.
 func (m *messageClient) planetPacketTerraform(player *Player, planet *Planet, habType HabType, change int) {
-	changeText := ""
-	if change > 0 {
-		changeText = "increased"
-	} else {
-		changeText = "decreased"
-	}
-
-	newValueText := ""
-	newValue := planet.Hab.Get(habType)
-	switch habType {
-	case Grav:
-		newValueText = gravString(newValue)
-	case Temp:
-		newValueText = tempString(newValue)
-	case Rad:
-		newValueText = radString(newValue)
-	}
-
-	text := fmt.Sprintf("Your mineral packet hitting %s has %s its %s to %s.", planet.Name, changeText, habType, newValueText)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetPacketTerraform, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetPacketTerraform, planet).
+		withSpec(PlayerMessageSpec{HabType: FromHabType(habType), Amount: change, Amount2: planet.Hab.Get(habType)}))
 }
 
+// Amount is the signed change; Amount2 is the resulting raw habitat value.
 func (m *messageClient) planetPermaform(player *Player, planet *Planet, habType HabType, change int) {
-	changeText := "decreased"
-	if change > 0 {
-		changeText = "increased"
-	}
-	newValueText := ""
-	newValue := planet.Hab.Get(habType)
-	switch habType {
-	case Grav:
-		newValueText = gravString(newValue)
-	case Temp:
-		newValueText = tempString(newValue)
-	case Rad:
-		newValueText = radString(newValue)
-	}
-	text := fmt.Sprintf("Your colonists have permanently %s the %s on %s to %s.", changeText, habType, planet.Name, newValueText)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetPermaform, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetPermaform, planet).
+		withSpec(PlayerMessageSpec{HabType: FromHabType(habType), Amount: change, Amount2: planet.Hab.Get(habType)}))
 }
 
 func (m *messageClient) planetPopulationDecreased(player *Player, planet *Planet, prevAmount int, amount int) {
@@ -950,25 +867,10 @@ func (m *messageClient) planetPopulationDecreasedOvercrowding(player *Player, pl
 		withSpec(PlayerMessageSpec{Amount: amount}))
 }
 
+// Amount is the signed change; Amount2 is the resulting raw habitat value.
 func (m *messageClient) planetTerraform(player *Player, planet *Planet, habType HabType, change int) {
-	changeText := "decreased"
-	if change > 0 {
-		changeText = "increased"
-	}
-
-	var newValueText string
-	newValue := planet.Hab.Get(habType)
-	switch habType {
-	case Grav:
-		newValueText = gravString(newValue)
-	case Temp:
-		newValueText = tempString(newValue)
-	case Rad:
-		newValueText = radString(newValue)
-	}
-
-	text := fmt.Sprintf("Your terraforming efforts on %s have %s its %s to %s.", planet.Name, changeText, habType, newValueText)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetBuiltTerraform, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetBuiltTerraform, planet).
+		withSpec(PlayerMessageSpec{HabType: FromHabType(habType), Amount: change, Amount2: planet.Hab.Get(habType)}))
 }
 
 /*
@@ -976,30 +878,19 @@ func (m *messageClient) planetTerraform(player *Player, planet *Planet, habType 
  */
 
 func (m *messageClient) playerDiscovered(player *Player, otherPlayer *Player) {
-	text := fmt.Sprintf("You have discovered a new species, the %s. You are not alone in this universe!", otherPlayer.Race.PluralName)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlayerDiscovery, Text: text})
+	player.Messages = append(player.Messages, newPlayerMessage(PlayerMessagePlayerDiscovery, otherPlayer.Num).
+		withSpec(PlayerMessageSpec{Name: otherPlayer.Race.PluralName}))
 }
 
+// Amount is the research level reached.
 func (m *messageClient) playerGainTechLevel(player *Player, field TechField, level int, nextField TechField) {
-	text := fmt.Sprintf("Your scientists have completed research into Tech Level %d for %v. They will continue their efforts in the %v field.", level, field, nextField)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlayerGainTechLevel, Text: text, Spec: PlayerMessageSpec{Field: field, NextField: nextField, Amount: level}})
+	player.Messages = append(player.Messages, newMessage(PlayerMessagePlayerGainTechLevel).
+		withSpec(PlayerMessageSpec{Field: field, NextField: nextField, Amount: level}))
 }
 
 func (m *messageClient) playerTechGained(player *Player, field TechField, tech *Tech) {
-	var text string
-	switch tech.Category {
-	case TechCategoryShipHull:
-		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s ship hull. To create ships with this hull design, go to Commands -> Ship Designer and select \"Create New Design\".", field, tech.Name)
-	case TechCategoryStarbaseHull:
-		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s starbase hull. To create starbases with this hull design, go to Commands -> Ship Designer and select \"Create New Design\".", field, tech.Name)
-	case TechCategoryPlanetaryDefense:
-		text = fmt.Sprintf("Your recent breakthrough in %v has also taught you how to build %s defenses. All existing planetary defenses have been upgraded to the new technology.", field, tech.Name)
-	case TechCategoryPlanetaryScanner:
-		text = fmt.Sprintf("Your recent breakthrough in %v has also taught you how to build the %s scanner. All existing planetary scanners have been upgraded to the new technology.", field, tech.Name)
-	default:
-		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s benefit.", field, tech.Name)
-	}
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlayerTechGained, Text: text, Spec: PlayerMessageSpec{Field: field, TechGained: tech.Name}})
+	player.Messages = append(player.Messages, newMessage(PlayerMessagePlayerTechGained).
+		withSpec(PlayerMessageSpec{Field: field, TechGained: tech.Name}))
 }
 
 func (m *messageClient) playerTechGainedBattle(player *Player, planet *Planet, record *BattleRecord, field TechField) {
@@ -1018,7 +909,7 @@ func (m *messageClient) playerTechGainedScrappedFleet(player *Player, planet *Pl
 }
 
 func (m *messageClient) playerAcquirablePartGainedBattle(player *Player, planet *Planet, record *BattleRecord, tech string) {
-	player.Messages = append(player.Messages, newBattleMessage(PlayerMessagePlayerAcquirablePartGainedScrapFleet, planet, record).
+	player.Messages = append(player.Messages, newBattleMessage(PlayerMessagePlayerAcquirablePartGainedBattle, planet, record).
 		withSpec(PlayerMessageSpec{TechGained: tech}))
 }
 
@@ -1037,13 +928,9 @@ func (mc *messageClient) playerNoPlanets(player *Player, numColonists int) {
 	player.Messages = append([]PlayerMessage{newMessage(PlayerMessagePlayerNoPlanets).withSpec(PlayerMessageSpec{Amount: numColonists})}, player.Messages...)
 }
 
-func (mc *messageClient) playerVictory(player *Player, victor *Player) {
-	var text string
-	if player.Num == victor.Num {
-		text = "You have been declared the winner of this grand game. You may continue to play though, if you wish to really rub your nose in everyone else's faces."
-	} else {
-		text = fmt.Sprintf("The %s have been declared the winner of this game. You are advised to accept their supremacy, though you may continue the fight regardless.", victor.Race.Name)
-	}
-	// Victory messages are always the first message of the year
-	player.Messages = append([]PlayerMessage{{Type: PlayerMessagePlayerVictor, Text: text}}, player.Messages...)
+func (m *messageClient) playerVictory(player *Player, victor *Player) {
+	// Victory messages are always the first message of the year.
+	message := newPlayerMessage(PlayerMessagePlayerVictor, victor.Num).
+		withSpec(PlayerMessageSpec{Name: victor.Race.Name})
+	player.Messages = append([]PlayerMessage{message}, player.Messages...)
 }

@@ -1,4 +1,4 @@
-import { HabSchema, type Hab, type HabJson } from '$lib/types/cs-proto';
+import { HabSchema, TerraformHabType, type Hab, type HabJson } from '$lib/types/cs-proto';
 import { create } from '@bufbuild/protobuf';
 
 export type HabType = number /* int */;
@@ -103,4 +103,18 @@ export function getHabValueString(habType: HabType, value: number): string {
 export function absSum(hab: Hab | undefined): number {
 	if (!hab) return 0;
 	return Math.abs(hab.grav ?? 0) + Math.abs(hab.temp ?? 0) + Math.abs(hab.rad ?? 0);
+}
+
+// TerraformHabType has different enum values than the internal HabType indices.
+export function getTerraformHabValueString(type: TerraformHabType, value: number): string {
+	switch (type) {
+		case TerraformHabType.GRAV:
+			return getHabValueString(Grav, value);
+		case TerraformHabType.TEMP:
+			return getHabValueString(Temp, value);
+		case TerraformHabType.RAD:
+			return getHabValueString(Rad, value);
+		default:
+			return `${value}`;
+	}
 }
