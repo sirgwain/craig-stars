@@ -16,7 +16,7 @@ import (
 
 // many functions require a copy of the current game's rules.
 // for testing, create a standard rules var every test can use
-var rules = NewRules()
+var rules = NewRulesWithSeed(0)
 var testLogger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 	AddSource: true,
 	Level:     slog.LevelDebug,
@@ -38,15 +38,26 @@ func (m MockRand) Int63() int64 {
 	return m.int63Result
 }
 
-func Test_generateTurn(t *testing.T) {
+// newGeneratedGame generates a real universe like a new game does, with a fixed
+// seed so the generated galaxy and every turn after it are the same each run.
+func newGeneratedGame(t *testing.T) (Gamer, *Game, *Universe, *Player) {
+	t.Helper()
 	client := NewGamer()
-	game := client.CreateGame(1, *NewGameSettings())
+	game := newSeededGame(*NewGameSettings())
 	game.Area, _ = game.Rules.GetArea(game.Size)
 	player := client.NewPlayer(1, *NewRace(), &game.Rules)
-	players := []*Player{player}
 	player.AIControlled = true
 	player.Num = 1
-	universe, _ := client.GenerateUniverse(game, players)
+	universe, err := client.GenerateUniverse(game, []*Player{player})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return client, game, universe, player
+}
+
+func Test_generateTurn(t *testing.T) {
+	client, game, universe, player := newGeneratedGame(t)
+	players := []*Player{player}
 
 	// build a ship on the planet
 	pmo := universe.GetPlayerMapObjects(player.Num)
@@ -55,7 +66,9 @@ func Test_generateTurn(t *testing.T) {
 
 	startingFleets := len(universe.Fleets)
 
-	client.GenerateTurn(game, universe, players)
+	if err := client.GenerateTurn(game, universe, players); err != nil {
+		t.Fatal(err)
+	}
 
 	assert.Equal(t, 2401, game.Year)
 
@@ -71,69 +84,16 @@ func Test_generateTurn(t *testing.T) {
 }
 
 func Test_generateTurns(t *testing.T) {
-	client := NewGamer()
-	game := client.CreateGame(1, *NewGameSettings())
-	game.Area, _ = game.Rules.GetArea(game.Size)
-	player := client.NewPlayer(1, *NewRace(), &game.Rules)
-	player.AIControlled = true
-	player.Num = 1
+	client, game, universe, player := newGeneratedGame(t)
 	players := []*Player{player}
-	universe, _ := client.GenerateUniverse(game, players)
 
 	// generate many turns
 	numTurns := 10
 	for i := 0; i < numTurns; i++ {
-		client.GenerateTurn(game, universe, players)
-
-		// manually delete these
-		fleets := make([]*Fleet, 0, len(universe.Fleets))
-		for _, fleet := range universe.Fleets {
-			if !fleet.Delete {
-				fleets = append(fleets, fleet)
-			}
+		if err := client.GenerateTurn(game, universe, players); err != nil {
+			t.Fatal(err)
 		}
-		universe.Fleets = fleets
-
-		salvages := make([]*Salvage, 0, len(universe.Salvages))
-		for _, salvage := range universe.Salvages {
-			if !salvage.Delete {
-				salvages = append(salvages, salvage)
-			}
-		}
-		universe.Salvages = salvages
-
-		minefields := make([]*Minefield, 0, len(universe.Minefields))
-		for _, minefield := range universe.Minefields {
-			if !minefield.Delete {
-				minefields = append(minefields, minefield)
-			}
-		}
-		universe.Minefields = minefields
-
-		mineralPackets := make([]*MineralPacket, 0, len(universe.MineralPackets))
-		for _, mineralPacket := range universe.MineralPackets {
-			if !mineralPacket.Delete {
-				mineralPackets = append(mineralPackets, mineralPacket)
-			}
-		}
-		universe.MineralPackets = mineralPackets
-
-		mysteryTraders := make([]*MysteryTrader, 0, len(universe.MysteryTraders))
-		for _, mysteryTrader := range universe.MysteryTraders {
-			if !mysteryTrader.Delete {
-				mysteryTraders = append(mysteryTraders, mysteryTrader)
-			}
-		}
-		universe.MysteryTraders = mysteryTraders
-
-		wormholes := make([]*Wormhole, 0, len(universe.Wormholes))
-		for _, wormhole := range universe.Wormholes {
-			if !wormhole.Delete {
-				wormholes = append(wormholes, wormhole)
-			}
-		}
-		universe.Wormholes = wormholes
-
+		removeDeleted(universe)
 	}
 
 	assert.Equal(t, game.Rules.StartingYear+numTurns, game.Year)
@@ -151,51 +111,20 @@ func Test_generateTurns(t *testing.T) {
 	// no victor
 	assert.False(t, player.Victor)
 	assert.False(t, game.VictorDeclared)
-
 }
 
 func Test_turn_grow(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-
-	player := game.Players[0]
-
-	// add a second, third, and fourth planet
-	// first two are hostile and will lose colonists
-	// the final planet is for overcrowding
-	game.Planets = append(game.Planets,
-		&Planet{
-			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: player.Num},
-			Hab:       Hab{0, 0, 0}, // bad planet
-			BaseHab:   Hab{0, 0, 0},
-		},
-		&Planet{
-			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 3", Num: 3, PlayerNum: player.Num},
-			Hab:       Hab{0, 0, 0}, // bad planet
-			BaseHab:   Hab{0, 0, 0},
-		},
-		&Planet{
-			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 4", Num: 4, PlayerNum: player.Num},
-			Hab:       Hab{50, 50, 50}, // good planet
-			BaseHab:   Hab{50, 50, 50},
-		},
-	)
-
-	planet1 := game.Planets[0]
-	planet2 := game.Planets[1]
-	planet3 := game.Planets[2]
-	planet4 := game.Planets[3]
-	planet1.setPopulation(100_000)
-	planet2.setPopulation(100_000)
-	planet3.setPopulation(100)       // planets never die, hold strong little guys!
-	planet4.setPopulation(2_400_000) // should lose 4%
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-
-	turn.computeSpecs()
-	turn.planetGrow()
+	u := newTestUniverse(t, TestScenario{
+		Players: []ScenarioPlayer{{}},
+		Planets: []ScenarioPlanet{
+			{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 1000}},
+			{Name: "Planet 2", Owner: 1, Hab: ScenarioValue(Hab{}), Cargo: Cargo{Colonists: 1000}},
+			{Name: "Planet 3", Owner: 1, Hab: ScenarioValue(Hab{}), Cargo: Cargo{Colonists: 1}},
+			{Name: "Planet 4", Owner: 1, Cargo: Cargo{Colonists: 24000}},
+		}})
+	planet1, planet2 := u.Planet("Planet 1"), u.Planet("Planet 2")
+	planet3, planet4 := u.Planet("Planet 3"), u.Planet("Planet 4")
+	u.Run((*turnGenerator).planetGrow)
 
 	// #1 grows, #2 dies, #3 dies but can't go lower, #4 overpops a tad bit
 	assert.Equal(t, 115_000, planet1.exactPopulation())
@@ -207,27 +136,19 @@ func Test_turn_grow(t *testing.T) {
 func Test_turn_fleetByHandUnloads(t *testing.T) {
 
 	t.Run("jettison", func(t *testing.T) {
-		game := buildSingleTeamsterScenario()
-		player := game.Players[0]
-		fleet := game.Fleets[0]
+		u := newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{
+				{
+					Designs: Designs(DesignTeamster),
+					Fleets:  []ScenarioFleet{{Design: "Teamster", Position: Vector{10, 10}, Cargo: Cargo{Ironium: 50}}},
+				},
+			},
+			Planets: []ScenarioPlanet{Homeworld("Planet 1", 1)},
+		})
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "", Cargo{Ironium: -50})
 
-		fleet.Position = Vector{10, 10}
-		fleet.OrbitingPlanetNum = None
-		fleet.Cargo = Cargo{Ironium: 50}
-
-		// transfer 50kT ironium to deep space
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, nil, CargoTransferRequest{Cargo: Cargo{Ironium: -50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		assert.Equal(t, 1, len(game.Salvages))
 		assert.Equal(t, Vector{10, 10}, game.Salvages[0].Position)
@@ -236,89 +157,61 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 	})
 
 	t.Run("unload on our planet", func(t *testing.T) {
-		game := buildSingleTeamsterScenario()
-		player := game.Players[0]
-		planet := game.Planets[0]
-		fleet := game.Fleets[0]
-		fleet.Tokens[0].Quantity = 2
+		u := newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{
+				{
+					Designs: Designs(DesignTeamster),
+					Fleets:  []ScenarioFleet{{Design: "Teamster", At: "Planet 1", Quantity: 2, Cargo: Cargo{Ironium: 50}}},
+				},
+			},
+			Planets: []ScenarioPlanet{{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 2500}}},
+		})
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Planet 1", Cargo{Ironium: -50})
 
-		fleet.Position = planet.Position
-		fleet.OrbitingPlanetNum = planet.Num
-		fleet.Cargo = Cargo{Ironium: 50}
-
-		// transfer 50kT ironium to deep space
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, planet, CargoTransferRequest{Cargo: Cargo{Ironium: -50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		assert.Equal(t, Cargo{Ironium: 50}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[0].Cargo)
 		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
 	})
 
 	t.Run("unload on unowned planet", func(t *testing.T) {
-		game := buildSingleTeamsterScenario()
-		player := game.Players[0]
-		planet2 := NewPlanet().WithNum(2).withPosition(Vector{10, 10})
-		game.Planets = append(game.Planets, planet2)
-		player.initDefaultPlanetIntels(game.Planets)
+		u := newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{
+				{
+					Designs: Designs(DesignTeamster),
+					Fleets:  []ScenarioFleet{{Design: "Teamster", At: "Planet 2", Quantity: 2, Cargo: Cargo{Ironium: 50}}},
+				},
+			},
+			Planets: []ScenarioPlanet{Homeworld("Planet 1", 1), {Name: "Planet 2", Position: Vector{10, 10}}},
+		})
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Planet 2", Cargo{Ironium: -50})
 
-		fleet := game.Fleets[0]
-		fleet.Tokens[0].Quantity = 2
-
-		fleet.Position = planet2.Position
-		fleet.OrbitingPlanetNum = planet2.Num
-		fleet.Cargo = Cargo{Ironium: 50}
-
-		// transfer 50kT ironium to deep space
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, player.GetPlanetIntel(planet2.Num), CargoTransferRequest{Cargo: Cargo{Ironium: -50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		assert.Equal(t, Cargo{Ironium: 50}, game.Planets[1].Cargo)
 		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
 	})
 	t.Run("invade enemy planet", func(t *testing.T) {
-		game := buildEnemyPlanetTeamsterScenario()
-		player := game.Players[0]
-		planet2 := game.Planets[1]
-		fleet := game.Fleets[0]
-		fleet.Tokens[0].Quantity = 20
+		u := newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{
+				{
+					Designs: Designs(DesignTeamster),
+					Fleets:  []ScenarioFleet{{Design: "Teamster", At: "Planet 2", Quantity: 20, Cargo: Cargo{Colonists: 5000}}},
+				},
+				AIPlayer("Player 2"),
+			},
+			Planets: []ScenarioPlanet{
+				{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 2500}},
+				{Name: "Planet 2", Owner: 2, Position: Vector{100, 0}, Cargo: Cargo{Colonists: 2500}},
+			},
+		})
+		game := u.Game
+		player := u.Player(1)
+		u.TransferByHand(1, "Teamster #1", "Planet 2", Cargo{Colonists: -5000})
 
-		fleet.Position = planet2.Position
-		fleet.OrbitingPlanetNum = planet2.Num
-		fleet.Cargo = Cargo{Colonists: 5000}
-
-		// transfer 50kT ironium to deep space
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, player.GetPlanetIntel(planet2.Num), CargoTransferRequest{Cargo: Cargo{Colonists: -5000}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		assert.Equal(t, player.Num, game.Planets[1].PlayerNum)
 		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
@@ -330,36 +223,17 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 func Test_turn_fleetByHandLoads(t *testing.T) {
 
 	t.Run("jettison load from another fleet's jettison", func(t *testing.T) {
-		game := buildTwoTeamsterScenario()
-		player := game.Players[0]
-		fleet1 := game.Fleets[0]
-		fleet2 := game.Fleets[1]
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets = append(s.Players[0].Fleets, s.Players[0].Fleets[0])
+		s.Players[0].Fleets[0].Position = Vector{10, 10}
+		s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 50}
+		s.Players[0].Fleets[1].Position = Vector{10, 10}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "", Cargo{Ironium: -50})
+		u.TransferByHand(1, "Teamster #2", "", Cargo{Ironium: 10})
 
-		fleet1.Position = Vector{10, 10}
-		fleet1.OrbitingPlanetNum = None
-		fleet1.Cargo = Cargo{Ironium: 50}
-
-		fleet2.Position = Vector{10, 10}
-		fleet2.OrbitingPlanetNum = None
-
-		// fleet1 transfer 50kT ironium to deep space
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet1, nil, CargoTransferRequest{Cargo: Cargo{Ironium: -50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		// fleet2 transfer 10kT ironium from deep space
-		if err := orderer.TransferByHand(&rules, player, fleet2, nil, CargoTransferRequest{Cargo: Cargo{Ironium: 10}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// should end up with a salvage from the jettison, but fleet2 also gets some cargo it grabbed
 		assert.Equal(t, 1, len(game.Salvages))
@@ -370,58 +244,28 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from our planet", func(t *testing.T) {
-		game := buildSingleTeamsterScenario()
-		player := game.Players[0]
-		planet := game.Planets[0]
-		fleet := game.Fleets[0]
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].At = "Planet 1"
+		s.Planets[0].Cargo.Ironium = 50
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Planet 1", Cargo{Ironium: 50})
 
-		fleet.Position = planet.Position
-		fleet.OrbitingPlanetNum = planet.Num
-
-		planet.Cargo = planet.Cargo.WithCargo(Ironium, 50)
-
-		// load 50kT ironium from the planet
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, planet, CargoTransferRequest{Cargo: Cargo{Ironium: 50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[0].Cargo)
 		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
 	})
 
 	t.Run("load from owned mineral packet", func(t *testing.T) {
-		game := buildSingleTeamsterScenario()
-		player := game.Players[0]
-		planet := game.Planets[0]
-		mineralPacket := newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 100}, Vector{50, 0}, planet.Num)
-		game.MineralPackets = append(game.MineralPackets, mineralPacket)
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].Position = Vector{50, 0}
+		s.Players[0].MineralPackets = []ScenarioMineralPacket{{Name: "Packet", To: "Planet 1", Position: Vector{50, 0}, WarpSpeed: 5, SafeWarpSpeed: 5, Cargo: Cargo{Ironium: 100}}}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Packet", Cargo{Ironium: 50})
 
-		fleet := game.Fleets[0]
-
-		fleet.Position = mineralPacket.Position
-
-		// load 50kT ironium from the planet
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, mineralPacket, CargoTransferRequest{Cargo: Cargo{Ironium: 50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// mineral packet should have 50 left, fleet should have 50
 		assert.Equal(t, Cargo{Ironium: 50}, game.MineralPackets[0].Cargo)
@@ -429,32 +273,15 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from enemy mineral packet", func(t *testing.T) {
-		game := buildEnemyPlanetTeamsterScenario()
-		player1 := game.Players[0]
-		player2 := game.Players[1]
-		planet := game.Planets[0]
-		mineralPacket := newMineralPacket(player2, 1, 5, 5, Cargo{Ironium: 100}, Vector{50, 0}, planet.Num)
-		game.MineralPackets = append(game.MineralPackets, mineralPacket)
-		discoverer := newDiscoverer(testLogger, player1)
-		discoverer.discoverMineralPacket(&rules, mineralPacket, player2, planet)
+		s := twoPlayerFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].Position = Vector{50, 0}
+		s.Players[1].MineralPackets = []ScenarioMineralPacket{{Name: "Packet", To: "Planet 1", Position: Vector{50, 0}, WarpSpeed: 5, SafeWarpSpeed: 5, Cargo: Cargo{Ironium: 100}}}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		newDiscoverer(testLogger, u.Player(1)).discoverMineralPacket(&game.Rules, game.MineralPackets[0], u.Player(2), u.Planet("Planet 1"))
+		u.TransferByHand(1, "Teamster #1", "Packet", Cargo{Ironium: 50})
 
-		fleet := game.Fleets[0]
-
-		fleet.Position = mineralPacket.Position
-
-		// load 50kT ironium from the planet
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player1, fleet, player1.GetMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num), CargoTransferRequest{Cargo: Cargo{Ironium: 50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// mineral packet should have 50 left, fleet should have 50
 		assert.Equal(t, Cargo{Ironium: 50}, game.MineralPackets[0].Cargo)
@@ -462,30 +289,15 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from salvage", func(t *testing.T) {
-		game := buildSingleTeamsterScenario()
-		player := game.Players[0]
-		salvage := newSalvage(Vector{50, 0}, 1, player.Num, Cargo{Ironium: 100})
-		game.Salvages = append(game.Salvages, salvage)
-		discoverer := newDiscoverer(testLogger, player)
-		discoverer.discoverSalvage(salvage)
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].Position = Vector{50, 0}
+		s.Players[0].Salvages = []Salvage{{MapObject: MapObject{Position: Vector{50, 0}}, Cargo: Cargo{Ironium: 100}}}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		newDiscoverer(testLogger, u.Player(1)).discoverSalvage(game.Salvages[0])
+		u.TransferByHand(1, "Teamster #1", "Salvage #1", Cargo{Ironium: 50})
 
-		fleet := game.Fleets[0]
-
-		fleet.Position = salvage.Position
-
-		// load 50kT ironium from the planet
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, player.GetSalvageIntel(salvage.Num), CargoTransferRequest{Cargo: Cargo{Ironium: 50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// mineral packet should have 40 left (after decay), fleet should have 50
 		assert.Equal(t, Cargo{Ironium: 40}, game.Salvages[0].Cargo)
@@ -493,33 +305,15 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("steal from enemy planet", func(t *testing.T) {
-		game := buildEnemyPlanetStealingFreighterScenario()
-		player := game.Players[0]
-		planet := game.Planets[1]
-		fleet := game.Fleets[0]
+		s := twoPlayerFleetScenario(DesignStealingFreighter)
+		s.Players[0].Fleets[0].At = "Planet 2"
+		s.Planets[1].Cargo.Ironium = 50
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
+		u.TransferByHand(1, "Stealing Freighter #1", "Planet 2", Cargo{Ironium: 50})
 
-		fleet.Position = planet.Position
-		fleet.OrbitingPlanetNum = planet.Num
-
-		planet.Cargo = planet.Cargo.WithCargo(Ironium, 50)
-
-		// make sure we're aware of this cargo, somehow
-		intel := player.GetPlanetIntel(planet.Num)
-		intel.Cargo = planet.Cargo.WithCargo(Ironium, 50)
-
-		// load 50kT ironium from the planet
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, player.GetPlanetIntel(planet.Num), CargoTransferRequest{Cargo: Cargo{Ironium: 50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// should steal
 		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
@@ -527,33 +321,16 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("fail load from enemy planet", func(t *testing.T) {
-		game := buildEnemyPlanetTeamsterScenario()
-		player := game.Players[0]
-		planet := game.Planets[1]
-		fleet := game.Fleets[0]
+		s := twoPlayerFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].At = "Planet 2"
+		s.Planets[1].Cargo.Ironium = 50
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
+		u.TransferByHand(1, "Teamster #1", "Planet 2", Cargo{Ironium: 50})
+		player := u.Player(1)
 
-		fleet.Position = planet.Position
-		fleet.OrbitingPlanetNum = planet.Num
-
-		planet.Cargo = planet.Cargo.WithCargo(Ironium, 50)
-
-		// make sure we're aware of this cargo, somehow
-		intel := player.GetPlanetIntel(planet.Num)
-		intel.Cargo = planet.Cargo.WithCargo(Ironium, 50)
-
-		// load 50kT ironium from the planet
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, player.GetPlanetIntel(planet.Num), CargoTransferRequest{Cargo: Cargo{Ironium: 50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// should fail to steal
 		assert.Equal(t, Cargo{Ironium: 50}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
@@ -562,60 +339,29 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from our fleet", func(t *testing.T) {
-		game := buildTwoTeamsterScenario()
-		player := game.Players[0]
-		fleet1 := game.Fleets[0]
-		fleet2 := game.Fleets[1]
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets = append(s.Players[0].Fleets, s.Players[0].Fleets[0])
+		s.Players[0].Fleets[1].Cargo = Cargo{Ironium: 50}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Teamster #2", Cargo{Ironium: 50})
 
-		// give fleet2 some cargo to load
-		fleet2.Cargo = Cargo{Ironium: 50}
-
-		// load 50kT ironium from fleet2
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet1, fleet2, CargoTransferRequest{Cargo: Cargo{Ironium: 50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
 		assert.Equal(t, Cargo{Ironium: 0}, game.Fleets[1].Cargo)
 	})
 
 	t.Run("steal from enemy fleet", func(t *testing.T) {
-		game := buildEnemyPlanetStealingFreighterScenario()
-		player := game.Players[0]
-		planet := game.Planets[1]
-		fleet := game.Fleets[0]
+		s := twoPlayerFleetScenario(DesignStealingFreighter)
+		s.Players[0].Fleets[0].At = "Planet 2"
+		s.Planets[1].Cargo.Ironium = 50
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
+		u.TransferByHand(1, "Stealing Freighter #1", "Planet 2", Cargo{Ironium: 50})
 
-		fleet.Position = planet.Position
-		fleet.OrbitingPlanetNum = planet.Num
-
-		planet.Cargo = planet.Cargo.WithCargo(Ironium, 50)
-
-		// make sure we're aware of this cargo, somehow
-		intel := player.GetPlanetIntel(planet.Num)
-		intel.Cargo = planet.Cargo.WithCargo(Ironium, 50)
-
-		// load 50kT ironium from the planet
-		orderer := NewOrderer()
-		if err := orderer.TransferByHand(&rules, player, fleet, player.GetPlanetIntel(planet.Num), CargoTransferRequest{Cargo: Cargo{Ironium: 50}}); err != nil {
-			t.Fatal(err)
-		}
-
-		turn := turnGenerator{
-			log:  testLogger,
-			game: game,
-		}
-		turn.game.Universe.buildMaps(game.Players)
-
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// should steal
 		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
@@ -624,32 +370,26 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 }
 
 func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
-	game := BuildScenario(TwoPlayerScenario())
-	player1 := game.Players[0]
-	player2 := game.Players[1]
-	fleet := game.Fleets[0]
-	planet := game.Planets[1]
-
-	player1.Race.Name = "Attacker"
-	player1.Race.PluralName = "Attackers"
-	player2.Race.Name = "Defender"
-	player2.Race.PluralName = "Defenders"
-
-	fleet.Position = planet.Position
-	fleet.OrbitingPlanetNum = planet.Num
-	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
-	fleet.Waypoints[0].Task = WaypointTaskTransport
-	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionUnloadAll
-	fleet.Cargo.Colonists = planet.Cargo.Colonists * 2 // double attackers
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
+	s := TwoPlayerScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPluralName("Attackers"))
+	s.Players[1].Player = AIPlayer("Player 2").Player
+	s.Players[1].Player.Race.PluralName = "Defenders"
+	s.Players[0].Fleets[0].At = "Planet 2"
+	s.Players[0].Fleets[0].Cargo = Cargo{Colonists: 5000}
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{
+		{
+			To:             "Planet 2",
+			Warp:           5,
+			Task:           WaypointTaskTransport,
+			TransportTasks: WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionUnloadAll}},
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+
+	u := newTestUniverse(t, s)
+	player1, player2, fleet, planet := u.Player(1), u.Player(2), u.FleetFor(1, "Long Range Scout #1"), u.Planet("Planet 2")
 
 	// transfer
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// should have invaded the planet and taken it over
 	assert.Equal(t, planet.PlayerNum, fleet.PlayerNum)
@@ -668,46 +408,29 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 }
 
 func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
-	game := BuildScenario(TwoPlayerScenario())
-	player1 := game.Players[0]
-	player2 := game.Players[1]
-	fleet := game.Fleets[0]
-	planet := game.Planets[1]
-
-	// create a new starbase
-	starbaseDesign := NewShipDesign(player2.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player2)
-	starbase := newStarbase(player2, planet,
-		starbaseDesign,
-		"Starbase",
-	)
-	player2.Designs = append(player2.Designs, starbaseDesign)
-	starbase.Spec = ComputeFleetSpec(&rules, player2, &starbase)
-	starbase.Tokens[0].QuantityDamaged = 1
-	starbase.Tokens[0].Damage = 100
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
-
-	player1.Race.Name = "Attacker"
-	player1.Race.PluralName = "Attackers"
-	player2.Race.Name = "Defender"
-	player2.Race.PluralName = "Defenders"
-
-	fleet.Position = planet.Position
-	fleet.OrbitingPlanetNum = planet.Num
-	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
-	fleet.Waypoints[0].Task = WaypointTaskTransport
-	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionUnloadAll
-	numInvaders := planet.Cargo.Colonists * 2 // double attackers
-	fleet.Cargo.Colonists = numInvaders
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
+	s := TwoPlayerScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPluralName("Attackers"))
+	s.Players[1].Player = AIPlayer("Player 2").Player
+	s.Players[1].Player.Race.PluralName = "Defenders"
+	s.Players[0].Fleets[0].At = "Planet 2"
+	s.Players[0].Fleets[0].Cargo = Cargo{Colonists: 5000}
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{
+		{
+			To:             "Planet 2",
+			Warp:           5,
+			Task:           WaypointTaskTransport,
+			TransportTasks: WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionUnloadAll}},
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	s.Players[1].Designs = append(s.Players[1].Designs, ShipDesign{Name: "Starbase", Hull: SpaceStation.Name})
+	s.Planets[1].Starbase = "Starbase"
+
+	u := newTestUniverse(t, s)
+	player1, player2, fleet, planet := u.Player(1), u.Player(2), u.FleetFor(1, "Long Range Scout #1"), u.Planet("Planet 2")
+	numInvaders := 5000
 
 	// transfer
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// should not have invaded the planet because we have a starbase
 	assert.Equal(t, planet.PlayerNum, player2.Num)
@@ -721,34 +444,16 @@ func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
 }
 
 func Test_turn_fleetRoute(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-
-	// add a second planet target
-	game.Planets = append(game.Planets, &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Num: 2, Position: Vector{10, 10}},
-	})
-
-	player := game.Players[0]
-	planet := game.Planets[0]
-	target := game.Planets[1]
-	fleet := game.Fleets[0]
-
-	player.initDefaultPlanetIntels(game.Planets)
-
-	planet.RouteTargetType = MapObjectTypePlanet
-	planet.RouteTargetNum = 2
-
-	fleet.Waypoints[0].Task = WaypointTaskRoute
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	s := SingleUnitScenario()
+	s.Planets = append(s.Planets, ScenarioPlanet{Name: "Planet 2", Position: Vector{10, 10}})
+	s.Planets[0].RouteTo = "Planet 2"
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Planet 1", Task: WaypointTaskRoute}}
+	u := newTestUniverse(t, s)
+	player, target, fleet := u.Player(1), u.Planet("Planet 2"), u.Fleet("Long Range Scout #1")
 
 	// route to planet 2
 	// move
-	turn.fleetRoute()
+	u.Run((*turnGenerator).fleetRoute)
 
 	assert.Equal(t, 2, len(fleet.Waypoints))
 	assert.Equal(t, target.Num, fleet.Waypoints[1].TargetNum)
@@ -759,21 +464,13 @@ func Test_turn_fleetRoute(t *testing.T) {
 
 func Test_turn_fleetMove(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
-
-		planet := game.Planets[0]
-		fleet := game.Fleets[0]
-
-		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{10, 10}, 5))
-
-		turn := turnGenerator{
-			game: game,
-			log:  testLogger,
-		}
-		turn.game.Universe.buildMaps(game.Players)
+		s := SingleUnitScenario()
+		s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Planet 1"}, {Position: Vector{10, 10}, Warp: 5}}
+		u := newTestUniverse(t, s)
+		game, planet, fleet := u.Game, u.Planet("Planet 1"), u.Fleet("Long Range Scout #1")
 
 		// move to place
-		turn.fleetMove()
+		u.Run((*turnGenerator).fleetMove)
 
 		// should have consumed that waypoint and moved to the space
 		assert.Equal(t, 1, len(fleet.Waypoints))
@@ -783,38 +480,27 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Repeat Orders", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
-		player := game.Players[0]
-
-		planet := game.Planets[0]
-
-		planet.Cargo = Cargo{1000, 1000, 1000, 1000}
-
-		// make a new freighter for transport
-		fleet := testSmallFreighter(player)
-		player.Designs[0] = fleet.Tokens[0].design
-		game.Fleets[0] = fleet
-
-		// set a waypoint 2 turns away, load ironium from planet and move
-		fleet.RepeatOrders = true
-		fleet.OrbitingPlanetNum = planet.Num
-		fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
-		fleet.Waypoints[0].Task = WaypointTaskTransport
-		fleet.Waypoints[0].TransportTasks.Ironium.Action = TransportActionLoadAll
-
-		// dump all ironium at this waypoint and return
-		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{50, 0}, 5))
-		fleet.Waypoints[1].Task = WaypointTaskTransport
-		fleet.Waypoints[1].TransportTasks.Ironium.Action = TransportActionUnloadAll
-
-		turn := turnGenerator{
-			game: game,
-			log:  testLogger,
-		}
-		turn.game.Universe.buildMaps(game.Players)
+		s := singleFleetScenario(DesignSmallFreighter)
+		s.Planets[0].Cargo = Cargo{1000, 1000, 1000, 1000}
+		s.Players[0].Fleets = []ScenarioFleet{{Design: "Small Freighter", At: "Planet 1", RepeatOrders: true, Waypoints: []ScenarioWaypoint{
+			{
+				To:             "Planet 1",
+				Warp:           5,
+				Task:           WaypointTaskTransport,
+				TransportTasks: WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionLoadAll}},
+			},
+			{
+				Position:       Vector{50, 0},
+				Warp:           5,
+				Task:           WaypointTaskTransport,
+				TransportTasks: WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionUnloadAll}},
+			},
+		}}}
+		u := newTestUniverse(t, s)
+		game, planet, fleet := u.Game, u.Planet("Planet 1"), u.Fleet("Small Freighter #1")
 
 		// move one year
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// should have loaded, moved, but still have waypoints
 		assert.Equal(t, 120, fleet.Cargo.Ironium)
@@ -823,7 +509,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, 3, len(fleet.Waypoints))
 
 		// generate the second turn, should move to dest and unload
-		turn.generateTurn()
+		u.GenerateTurn()
 		assert.Equal(t, 0, fleet.Cargo.Ironium)
 		assert.Equal(t, Vector{50, 0}, fleet.Position)
 		assert.Equal(t, 2, len(fleet.Waypoints))
@@ -832,70 +518,55 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, 120, salvage.Cargo.Ironium)
 
 		// generate the third turn, should move back towards planet
-		turn.generateTurn()
+		u.GenerateTurn()
 		assert.Equal(t, Vector{25, 0}, fleet.Position)
 		assert.Equal(t, 3, len(fleet.Waypoints))
 
 		// generate a fourth turn, should arrive at planet and load ironium
-		turn.generateTurn()
+		u.GenerateTurn()
 		assert.Equal(t, Vector{0, 0}, fleet.Position)
 		assert.Equal(t, 120, fleet.Cargo.Ironium)
 		assert.Equal(t, 760, planet.Cargo.Ironium)
 		assert.Equal(t, 2, len(fleet.Waypoints))
 
 		// generate a fifth turn, should move again towards dest
-		turn.generateTurn()
+		u.GenerateTurn()
 		assert.Equal(t, Vector{25, 0}, fleet.Position)
 		assert.Equal(t, 3, len(fleet.Waypoints))
 
 	})
 
 	t.Run("TransportRepeat", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
-		player := game.Players[0]
-
-		planet1 := game.Planets[0]
-		// make a second planet we transfer cargo to
-		planet2 := &Planet{
-			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, Position: Vector{10, 0}, PlayerNum: player.Num},
-			Hab:       Hab{50, 50, 50},
-			BaseHab:   Hab{50, 50, 50},
+		s := singleFleetScenario(DesignGalleon)
+		s.Planets = []ScenarioPlanet{
+			{Name: "Planet 1", Owner: 1, Cargo: Cargo{1000, 1000, 1000, 10000}, Mines: 0},
+			{
+				Name:          "Planet 2",
+				Owner:         1,
+				Position:      Vector{10, 0},
+				Cargo:         Cargo{Colonists: 25},
+				Concentration: ScenarioValue(Mineral{}),
+			},
 		}
-		planet2.Spec = ComputePlanetSpec(&game.Rules, player, planet2)
-		game.Planets = []*Planet{planet1, planet2}
-		player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
-
-		// planet1 has pop, planet2 is a starter colony
-		planet1.Cargo = Cargo{1000, 1000, 1000, 10000}
-		planet2.Cargo = Cargo{Colonists: 25}
-
-		// make a new freighter for transport
-		fleet := testGalleon(player)
-		player.Designs[0] = fleet.Tokens[0].design
-		game.Fleets[0] = fleet
-
-		// set a waypoint nearby for the transport to load colonists from planet1 and dump them on planet2
-		// until planet2 has 25% capacity
-		fleet.RepeatOrders = true
-		fleet.OrbitingPlanetNum = planet1.Num
-		fleet.Waypoints[0] = NewPlanetWaypoint(planet1.Position, planet1.Num, planet1.Name, 5)
-		fleet.Waypoints[0].Task = WaypointTaskTransport
-		fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionLoadAll
-
-		// dump all colonists at this waypoint and return
-		fleet.Waypoints = append(fleet.Waypoints, NewPlanetWaypoint(planet2.Position, planet2.Num, planet2.Name, 5))
-		fleet.Waypoints[1].Task = WaypointTaskTransport
-		fleet.Waypoints[1].TransportTasks.Colonists.Action = TransportActionSetWaypointTo
-		fleet.Waypoints[1].TransportTasks.Colonists.Amount = 2500
-
-		turn := turnGenerator{
-			game: game,
-			log:  testLogger,
-		}
-		turn.game.Universe.buildMaps(game.Players)
+		s.Players[0].Fleets = []ScenarioFleet{{Design: "Galleon", At: "Planet 1", RepeatOrders: true, Waypoints: []ScenarioWaypoint{
+			{
+				To:             "Planet 1",
+				Warp:           5,
+				Task:           WaypointTaskTransport,
+				TransportTasks: WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionLoadAll}},
+			},
+			{
+				To:             "Planet 2",
+				Warp:           5,
+				Task:           WaypointTaskTransport,
+				TransportTasks: WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			},
+		}}}
+		u := newTestUniverse(t, s)
+		planet1, planet2, fleet := u.Planet("Planet 1"), u.Planet("Planet 2"), u.Fleet("Galleon #1")
 
 		// move one year
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// should have loaded, moved & dropped pop
 		assert.Equal(t, 9150, planet1.Cargo.Colonists) // 10000-1000+150
@@ -908,7 +579,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, 2, len(fleet.Waypoints))
 
 		// generate the second turn, should move back to planet 1
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// should have arrived back at homeworld & loaded more pop
 		assert.Equal(t, 8287, planet1.Cargo.Colonists)
@@ -922,7 +593,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, 2, len(fleet.Waypoints))
 
 		// generate the third turn, should move back to planet2 and unload
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		assert.Equal(t, 8499, planet1.Cargo.Colonists)
 		assert.Equal(t, Vector{10, 0}, fleet.Position)
@@ -935,9 +606,9 @@ func Test_turn_fleetMove(t *testing.T) {
 
 		// generate a couple more turns, we should eventually stop unloading cargo due to the SetAmountTo and growth
 		// p2 -> p1
-		turn.generateTurn()
+		u.GenerateTurn()
 		// p1 -> p2
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		assert.Equal(t, 7956, planet1.Cargo.Colonists)
 		assert.Equal(t, Vector{10, 0}, fleet.Position)
@@ -951,58 +622,44 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Wait for %", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
-		player := game.Players[0]
-
-		planet1 := game.Planets[0]
-		// make a second planet we transfer cargo to
-		planet2 := &Planet{
-			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, Position: Vector{10, 0}, PlayerNum: player.Num},
-			Hab:       Hab{50, 50, 50},
-			BaseHab:   Hab{50, 50, 50},
+		s := singleFleetScenario(DesignGalleon)
+		s.Planets = []ScenarioPlanet{
+			{Name: "Planet 1", Owner: 1, Cargo: Cargo{100, 100, 100, 10000}, Mines: 300},
+			{
+				Name:          "Planet 2",
+				Owner:         1,
+				Position:      Vector{10, 0},
+				Cargo:         Cargo{Colonists: 1000},
+				Concentration: ScenarioValue(Mineral{}),
+			},
 		}
-		planet2.Spec = ComputePlanetSpec(&game.Rules, player, planet2)
-		game.Planets = []*Planet{planet1, planet2}
-		player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
-
-		// pull from planet1 to planet2
-		planet1.MineralConcentration = Mineral{100, 100, 100}
-		planet1.Mines = 300
-		planet1.Cargo = Cargo{100, 100, 100, 10000} // start with cargo, mine the rest
-		planet2.Cargo = Cargo{0, 0, 0, 1000}
-
-		// make a new freighter for transport
-		fleet := testGalleon(player)
-		player.Designs[0] = fleet.Tokens[0].design
-		game.Fleets[0] = fleet
-
-		// set a waypoint nearby for the transport to wait until we have an even amount of cargo in the hold, then dump on planet2
-		fleet.RepeatOrders = true
-		fleet.OrbitingPlanetNum = planet1.Num
-		fleet.Waypoints[0] = NewPlanetWaypoint(planet1.Position, planet1.Num, planet1.Name, 5)
-		fleet.Waypoints[0].Task = WaypointTaskTransport
-		fleet.Waypoints[0].TransportTasks.Ironium.Action = TransportActionWaitForPercent
-		fleet.Waypoints[0].TransportTasks.Ironium.Amount = 33
-		fleet.Waypoints[0].TransportTasks.Boranium.Action = TransportActionWaitForPercent
-		fleet.Waypoints[0].TransportTasks.Boranium.Amount = 33
-		fleet.Waypoints[0].TransportTasks.Germanium.Action = TransportActionWaitForPercent
-		fleet.Waypoints[0].TransportTasks.Germanium.Amount = 34
-
-		// dump all at this waypoint and return
-		fleet.Waypoints = append(fleet.Waypoints, NewPlanetWaypoint(planet2.Position, planet2.Num, planet2.Name, 5))
-		fleet.Waypoints[1].Task = WaypointTaskTransport
-		fleet.Waypoints[1].TransportTasks.Ironium.Action = TransportActionUnloadAll
-		fleet.Waypoints[1].TransportTasks.Boranium.Action = TransportActionUnloadAll
-		fleet.Waypoints[1].TransportTasks.Germanium.Action = TransportActionUnloadAll
-
-		turn := turnGenerator{
-			game: game,
-			log:  testLogger,
-		}
-		turn.game.Universe.buildMaps(game.Players)
+		s.Players[0].Fleets = []ScenarioFleet{{Design: "Galleon", At: "Planet 1", RepeatOrders: true, Waypoints: []ScenarioWaypoint{
+			{
+				To:   "Planet 1",
+				Warp: 5,
+				Task: WaypointTaskTransport,
+				TransportTasks: WaypointTransportTasks{
+					Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 33},
+					Boranium:  WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 33},
+					Germanium: WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 34},
+				},
+			},
+			{
+				To:   "Planet 2",
+				Warp: 5,
+				Task: WaypointTaskTransport,
+				TransportTasks: WaypointTransportTasks{
+					Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
+					Boranium:  WaypointTransportTask{Action: TransportActionUnloadAll},
+					Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
+				},
+			},
+		}}}
+		u := newTestUniverse(t, s)
+		planet1, planet2, fleet := u.Planet("Planet 1"), u.Planet("Planet 2"), u.Fleet("Galleon #1")
 
 		// load and grow and wait
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// should have loaded all cargo, but waited for more to be generated
 		assert.Equal(t, Vector{0, 0}, fleet.Position)
@@ -1013,7 +670,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, 2, len(fleet.Waypoints))
 
 		// we should load the rest and move
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// should have loaded all cargo, and moved to planet2 to dump
 		assert.Equal(t, Vector{10, 0}, fleet.Position)
@@ -1031,45 +688,20 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Stopped by minefield", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
-		rules := &game.Rules
-
-		// change the rules so going 4 warp over the limit guarantee's a hit
-		stats := rules.MinefieldStatsByType[MinefieldTypeStandard]
-		stats.MaxSpeed = 5
-		stats.ChanceOfHit = 1
-		stats.MinDecay = 0 // turn off decay
-		rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
-
-		// create a new Minefield 20ly away with 10ly radius
-		radius := 10
-		minefieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-		minefieldPlayer.Race.Spec.MinefieldBaseDecayRate = 0
-		minefieldPlayer.Race.Spec.MinefieldMinDecayFactor = 0
-		minefieldPlayer.Race.Spec.MinefieldMaxDecayRate = 0
-		minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{20, 0})
-		// setup initial planet intels so turn generation works
-		minefieldPlayer.initDefaultPlanetIntels(game.Planets)
-
-		// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
-		player := game.Players[0]
-		player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
-
-		game.Players = append(game.Players, minefieldPlayer)
-		game.Minefields = append(game.Minefields, minefield)
-
-		// move us straight through a minefield
-		fleet := game.Fleets[0]
-		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{36, 0}, 6))
-
-		turn := turnGenerator{
-			game: game,
-			log:  testLogger,
-		}
-		turn.game.Universe.buildMaps(game.Players)
+		s := SingleUnitScenario()
+		s.Players[0].Player = NewPlayer(1, NewRace()).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+		s.Players = append(s.Players, ScenarioPlayer{
+			Minefields: []Minefield{{MapObject: MapObject{Position: Vector{20, 0}}, MinefieldType: MinefieldTypeStandard, NumMines: 100}},
+		})
+		s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Planet 1"}, {Position: Vector{36, 0}, Warp: 6}}
+		u := newTestUniverse(t, s)
+		game, fleet, minefield := u.Game, u.Fleet("Long Range Scout #1"), u.Game.Minefields[0]
+		stats := game.Rules.MinefieldStatsByType[MinefieldTypeStandard]
+		stats.MaxSpeed, stats.ChanceOfHit, stats.MinDecay = 5, 1, 0
+		game.Rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
 
 		// let's go!!
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// we should have struck the minefield and lost the ship
 		assert.True(t, fleet.Delete)
@@ -1082,45 +714,20 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Destroyed by minefield", func(t *testing.T) {
-		game := BuildScenario(SingleUnitScenario())
-		rules := &game.Rules
-
-		// change the rules so going 4 warp over the limit guarantee's a hit
-		stats := rules.MinefieldStatsByType[MinefieldTypeStandard]
-		stats.MaxSpeed = 5
-		stats.ChanceOfHit = .25
-		stats.MinDecay = 0 // turn off decay
-		rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
-
-		// create a new Minefield 20ly away with 10ly radius
-		radius := 10
-		minefieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-		minefieldPlayer.Race.Spec.MinefieldBaseDecayRate = 0
-		minefieldPlayer.Race.Spec.MinefieldMinDecayFactor = 0
-		minefieldPlayer.Race.Spec.MinefieldMaxDecayRate = 0
-		minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{20, 0})
-		// setup initial planet intels so turn generation works
-		minefieldPlayer.initDefaultPlanetIntels(game.Planets)
-
-		// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
-		player := game.Players[0]
-		player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
-
-		game.Players = append(game.Players, minefieldPlayer)
-		game.Minefields = append(game.Minefields, minefield)
-
-		// move us straight through a minefield
-		fleet := game.Fleets[0]
-		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{81, 0}, 9))
-
-		turn := turnGenerator{
-			game: game,
-			log:  testLogger,
-		}
-		turn.game.Universe.buildMaps(game.Players)
+		s := SingleUnitScenario()
+		s.Players[0].Player = NewPlayer(1, NewRace()).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+		s.Players = append(s.Players, ScenarioPlayer{
+			Minefields: []Minefield{{MapObject: MapObject{Position: Vector{20, 0}}, MinefieldType: MinefieldTypeStandard, NumMines: 100}},
+		})
+		s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Planet 1"}, {Position: Vector{81, 0}, Warp: 9}}
+		u := newTestUniverse(t, s)
+		game, fleet, minefield := u.Game, u.Fleet("Long Range Scout #1"), u.Game.Minefields[0]
+		stats := game.Rules.MinefieldStatsByType[MinefieldTypeStandard]
+		stats.MaxSpeed, stats.ChanceOfHit, stats.MinDecay = 5, .25, 0
+		game.Rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
 
 		// let's go!!
-		turn.generateTurn()
+		u.GenerateTurn()
 
 		// we should have struck the minefield and lost the ship
 		assert.True(t, fleet.Delete)
@@ -1133,22 +740,11 @@ func Test_turn_fleetMove(t *testing.T) {
 }
 
 func Test_turn_permaform(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-
-	player := game.Players[0]
-	planet := game.Planets[0]
-	planet.Hab = Hab{49, 49, 49}
-	planet.BaseHab = Hab{49, 49, 49}
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	// 10% chance to permaform
-	player.Race.Spec.PermaformChance = .1
-	player.Race.Spec.PermaformPopulation = 100
+	s := SingleUnitScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPRT(CA))
+	s.Planets[0].Hab = ScenarioValue(Hab{49, 49, 49})
+	u := newTestUniverse(t, s)
+	game, planet := u.Game, u.Planet("Planet 1")
 
 	// mock the random number generator to return temp as the hab to permaform
 	rng := testRandom{}
@@ -1156,196 +752,161 @@ func Test_turn_permaform(t *testing.T) {
 	rng.addInts(1)    // permaform temp
 	game.Rules.random = &rng
 
-	turn.permaform()
+	u.Run((*turnGenerator).permaform)
 
 	// should have permaformed the planet temp in one direction
 	assert.Equal(t, Hab{49, 50, 49}, planet.Hab)
 }
 
 func Test_turn_permaformNone(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-
-	player := game.Players[0]
-	planet := game.Planets[0]
-	planet.Hab = Hab{49, 49, 49}
-	planet.BaseHab = Hab{49, 49, 49}
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	// 10% chance to permaform
-	player.Race.Spec.PermaformChance = .1
-	player.Race.Spec.PermaformPopulation = 100
+	s := SingleUnitScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPRT(CA))
+	s.Planets[0].Hab = ScenarioValue(Hab{49, 49, 49})
+	u := newTestUniverse(t, s)
+	game, planet := u.Game, u.Planet("Planet 1")
 
 	// mock the random number generator to return temp as the hab to permaform
 	rng := testRandom{}
 	rng.addFloats(.2) // no permaform
 	game.Rules.random = &rng
 
-	turn.permaform()
+	u.Run((*turnGenerator).permaform)
 
 	// should have permaformed the planet temp in one direction
 	assert.Equal(t, Hab{49, 49, 49}, planet.Hab)
 }
 
+func remoteMiningScenario(at string, owner int, design ShipDesign, task WaypointTask, prt PRT) TestScenario {
+	s := singleFleetScenario(design)
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPRT(prt))
+	s.Players = append(s.Players, AIPlayer("Player 2"))
+	s.Planets = append(s.Planets, ScenarioPlanet{Name: "Mine", Owner: owner})
+	s.Players[0].Fleets[0].At = at
+	s.Players[0].Fleets[0].Quantity = 2
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: at, Task: task}}
+	return s
+}
+
 func Test_turn_fleetRemoteMine(t *testing.T) {
-
-	type fields struct {
-		task                    WaypointTask
-		planetPlayerNum         int
-		orbitingPlanetNum       int
-		miningRate              int
-		canRemoteMineOwnPlanets bool
-	}
-
 	tests := []struct {
 		name            string
-		fields          fields
+		scenario        TestScenario
 		wantCargo       Cargo
 		wantMessageType PlayerMessageType
 	}{
-		{name: "no task, do nothing", fields: fields{}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
-		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidDeepSpace},
-		{name: "owned planet, invalid message", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 2, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidInhabited},
-		{name: "owned by us, invalid", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidInhabited},
-		{name: "owned by us, but we can remote mine our own, should skip", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
-		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidNoMiners},
-		{name: "should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageFleetRemoteMined},
+		{
+			"no task, do nothing",
+			remoteMiningScenario("", 0, DesignLongRangeScout, WaypointTaskNone, JoaT),
+			Cargo{},
+			PlayerMessageNone,
+		},
+		{
+			"no planet, invalid message",
+			remoteMiningScenario("", 0, DesignLongRangeScout, WaypointTaskRemoteMining, JoaT),
+			Cargo{},
+			PlayerMessageFleetRemoteMineInvalidDeepSpace,
+		},
+		{
+			"owned planet, invalid message",
+			remoteMiningScenario("Mine", 2, DesignLongRangeScout, WaypointTaskRemoteMining, JoaT),
+			Cargo{},
+			PlayerMessageFleetRemoteMineInvalidInhabited,
+		},
+		{
+			"owned by us, invalid",
+			remoteMiningScenario("Mine", 1, DesignLongRangeScout, WaypointTaskRemoteMining, JoaT),
+			Cargo{},
+			PlayerMessageFleetRemoteMineInvalidInhabited,
+		},
+		{
+			"owned by us, but we can remote mine our own, should skip",
+			remoteMiningScenario("Mine", 1, DesignLongRangeScout, WaypointTaskRemoteMining, AR),
+			Cargo{},
+			PlayerMessageNone,
+		},
+		{
+			"no miners, invalid message",
+			remoteMiningScenario("Mine", 0, DesignLongRangeScout, WaypointTaskRemoteMining, JoaT),
+			Cargo{},
+			PlayerMessageFleetRemoteMineInvalidNoMiners,
+		},
+		{
+			"should mine",
+			remoteMiningScenario("Mine", 0, DesignPotatoBug, WaypointTaskRemoteMining, JoaT),
+			Cargo{10, 10, 10, 0},
+			PlayerMessageFleetRemoteMined,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			// create a new test game
-			game := BuildScenario(SingleUnitScenario())
-			player := game.Players[0]
-			fleet := game.Fleets[0]
-
-			// setup params
-			player.Race.Spec.CanRemoteMineOwnPlanets = tt.fields.canRemoteMineOwnPlanets
-			fleet.Waypoints[0].Task = tt.fields.task
-			fleet.Spec.MiningRate = tt.fields.miningRate
-			fleet.OrbitingPlanetNum = tt.fields.orbitingPlanetNum
-
-			// add a new planet
-			planet := &Planet{
-				MapObject:            MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: tt.fields.planetPlayerNum},
-				MineralConcentration: Mineral{100, 100, 100},
-			}
-			planet.Spec = ComputePlanetSpec(&game.Rules, player, planet)
-			game.Planets = append(game.Planets, planet)
-
-			turn := turnGenerator{
-				log:  testLogger,
-				game: game,
-			}
-			turn.game.Universe.buildMaps(game.Players)
-
-			// try and remote the planet
-			turn.fleetRemoteMine()
-
+			u := newTestUniverse(t, tt.scenario)
+			u.Run((*turnGenerator).fleetRemoteMine)
 			if tt.wantMessageType != PlayerMessageNone {
-				assert.Equal(t, 1, len(player.Messages))
-				assert.Equal(t, tt.wantMessageType, player.Messages[0].Type)
+				assert.Len(t, u.Player(1).Messages, 1)
+				assert.Len(t, u.Messages(1, tt.wantMessageType), 1)
 			} else {
-				assert.Equal(t, 0, len(player.Messages))
+				assert.Empty(t, u.Player(1).Messages)
 			}
-
-			// make sure the cargo matches what we want
-			assert.Equal(t, tt.wantCargo, planet.Cargo)
+			assert.Equal(t, tt.wantCargo, u.Planet("Mine").Cargo)
 		})
 	}
-
 }
 
 func Test_turn_fleetRemoteMineAR(t *testing.T) {
-
-	type fields struct {
-		task                    WaypointTask
-		planetPlayerNum         int
-		orbitingPlanetNum       int
-		miningRate              int
-		canRemoteMineOwnPlanets bool
-	}
-
 	tests := []struct {
 		name            string
-		fields          fields
+		scenario        TestScenario
 		wantCargo       Cargo
 		wantMessageType PlayerMessageType
 	}{
-		{name: "no task, do nothing", fields: fields{}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
-		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidDeepSpace},
-		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageFleetRemoteMineInvalidNoMiners},
-		{name: "owned by us, but we can remote mine our own, should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageFleetRemoteMined},
+		{
+			"no task, do nothing",
+			remoteMiningScenario("", 0, DesignLongRangeScout, WaypointTaskNone, AR),
+			Cargo{},
+			PlayerMessageNone,
+		},
+		{
+			"no planet, invalid message",
+			remoteMiningScenario("", 0, DesignLongRangeScout, WaypointTaskRemoteMining, AR),
+			Cargo{},
+			PlayerMessageFleetRemoteMineInvalidDeepSpace,
+		},
+		{
+			"no miners, invalid message",
+			remoteMiningScenario("Mine", 1, DesignLongRangeScout, WaypointTaskRemoteMining, AR),
+			Cargo{},
+			PlayerMessageFleetRemoteMineInvalidNoMiners,
+		},
+		{
+			"owned by us, but we can remote mine our own, should mine",
+			remoteMiningScenario("Mine", 1, DesignPotatoBug, WaypointTaskRemoteMining, AR),
+			Cargo{10, 10, 10, 0},
+			PlayerMessageFleetRemoteMined,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			// create a new test game
-			game := BuildScenario(SingleUnitScenario())
-			player := game.Players[0]
-			fleet := game.Fleets[0]
-
-			// setup params
-			player.Race.Spec.CanRemoteMineOwnPlanets = tt.fields.canRemoteMineOwnPlanets
-			fleet.Waypoints[0].Task = tt.fields.task
-			fleet.Spec.MiningRate = tt.fields.miningRate
-			fleet.OrbitingPlanetNum = tt.fields.orbitingPlanetNum
-
-			// add a new planet
-			planet := &Planet{
-				MapObject:            MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: tt.fields.planetPlayerNum},
-				MineralConcentration: Mineral{100, 100, 100},
-			}
-			planet.Spec = ComputePlanetSpec(&game.Rules, player, planet)
-			game.Planets = append(game.Planets, planet)
-
-			turn := turnGenerator{
-				log:  testLogger,
-				game: game,
-			}
-			turn.game.Universe.buildMaps(game.Players)
-
-			// try and remote the planet
-			turn.fleetRemoteMineAR()
-
+			u := newTestUniverse(t, tt.scenario)
+			u.Run((*turnGenerator).fleetRemoteMineAR)
 			if tt.wantMessageType != PlayerMessageNone {
-				assert.Equal(t, 1, len(player.Messages))
-				assert.Equal(t, tt.wantMessageType, player.Messages[0].Type)
+				assert.Len(t, u.Player(1).Messages, 1)
+				assert.Len(t, u.Messages(1, tt.wantMessageType), 1)
 			} else {
-				assert.Equal(t, 0, len(player.Messages))
+				assert.Empty(t, u.Player(1).Messages)
 			}
-
-			// make sure the cargo matches what we want
-			assert.Equal(t, tt.wantCargo, planet.Cargo)
+			assert.Equal(t, tt.wantCargo, u.Planet("Mine").Cargo)
 		})
 	}
-
 }
 
 func Test_turn_fleetLayMines(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	player := game.Players[0]
-
-	// make a test minelayer for
-	fleet := testMiniMineLayer(player)
-	player.Designs[0] = fleet.Tokens[0].design
-	game.Fleets[0] = fleet
-
-	// lay mines at current position
-	fleet.Waypoints[0].Task = WaypointTaskLayMinefield
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	s := singleFleetScenario(DesignMiniMineLayer)
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{Task: WaypointTaskLayMinefield, Warp: 5}}
+	u := newTestUniverse(t, s)
+	game := u.Game
 
 	// run for one year; should have created newminefield
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	assert.Equal(t, 1, len(game.Minefields))
 	minefield := game.Minefields[0]
@@ -1356,46 +917,17 @@ func Test_turn_fleetLayMines(t *testing.T) {
 }
 
 func Test_turn_fleetSweepMines(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
+	s := singleFleetScenario(DesignStalwartDefender)
+	s.Players = append(s.Players, ScenarioPlayer{Minefields: []Minefield{{MinefieldType: MinefieldTypeStandard, NumMines: 100}}})
+	u := newTestUniverse(t, s)
+	game, fleet, minefield := u.Game, u.Fleet("Stalwart Defender #1"), u.Game.Minefields[0]
 	rules := &game.Rules
-
-	// change the rules so we don't decay
 	stats := rules.MinefieldStatsByType[MinefieldTypeStandard]
-	stats.MinDecay = 0 // turn off decay
+	stats.MinDecay = 0
 	rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
 
-	player := game.Players[0]
-
-	// make a new destroyer to sweep mines
-	fleet := testStalwartDefender(player)
-	player.Designs[0] = fleet.Tokens[0].design
-	game.Fleets[0] = fleet
-
-	// create a new Minefield with 100 mines
-	// and make it not decay
-	radius := 10
-	minefieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	minefieldPlayer.Race.Spec.MinefieldBaseDecayRate = 0
-	minefieldPlayer.Race.Spec.MinefieldMinDecayFactor = 0
-	minefieldPlayer.Race.Spec.MinefieldMaxDecayRate = 0
-	minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{0, 0})
-	// setup initial planet intels so turn generation works
-	minefieldPlayer.initDefaultPlanetIntels(game.Planets)
-
-	game.Players = append(game.Players, minefieldPlayer)
-	game.Minefields = append(game.Minefields, minefield)
-
-	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-	minefieldPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
 	// sweep mines
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// we should clear out some mines
 	assert.Equal(t, 78, minefield.NumMines)
@@ -1403,11 +935,10 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 
 	// upgrade a mine sweeper weapon
 	fleet.Tokens[0].design.Slots[1].HullComponent = GatlingNeutrinoCannon.Name
-	fleet.Tokens[0].design.Spec, _ = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, fleet.Tokens[0].design)
-	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	u.Recompute()
 
 	// sweep mines
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// we should clear out some mines
 	assert.Equal(t, 0, minefield.NumMines)
@@ -1415,26 +946,15 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 }
 
 func Test_turn_instaform(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	player := game.Players[0]
-	planet := game.Planets[0]
-
-	// allow Grav3 terraform
-	player.Race.PRT = CA
-	player.TechLevels = TechLevel{Propulsion: 1, Biotechnology: 1}
-
-	planet.Hab = Hab{45, 50, 50}
-	planet.BaseHab = Hab{45, 50, 50}
-	planet.TerraformedAmount = Hab{}
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	s := SingleUnitScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPRT(CA)).WithTechLevels(TechLevel{Propulsion: 1, Biotechnology: 1})
+	s.Planets[0].Hab = ScenarioValue(Hab{45, 50, 50})
+	s.Planets[0].BaseHab = ScenarioValue(Hab{45, 50, 50})
+	u := newTestUniverse(t, s)
+	planet := u.Planet("Planet 1")
 
 	// instaform
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// should terraform 3 grav points
 	// TODO: sometimes this fails if we randomly permaform...
@@ -1442,30 +962,15 @@ func Test_turn_instaform(t *testing.T) {
 }
 
 func Test_turn_instaformTakenPlanet(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	player := game.Players[0]
-	planet := game.Planets[0]
-
-	// allow Grav3 terraform
-	player.Race.PRT = CA
-	player.TechLevels = TechLevel{Propulsion: 1, Biotechnology: 1}
-
-	// pretend this planet's hab was changed by another instaformer
-	// we should reset it to the base hab + our terraform ability
-	// normally this won't be an issue because the planet hab should be reset on invasion
-	// but I had a bug in a game, so this will fix that. :)
-	planet.Hab = Hab{40, 50, 50}
-	planet.BaseHab = Hab{45, 50, 50}
-	planet.TerraformedAmount = Hab{}
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	s := SingleUnitScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPRT(CA)).WithTechLevels(TechLevel{Propulsion: 1, Biotechnology: 1})
+	s.Planets[0].Hab = ScenarioValue(Hab{40, 50, 50})
+	s.Planets[0].BaseHab = ScenarioValue(Hab{45, 50, 50})
+	u := newTestUniverse(t, s)
+	planet := u.Planet("Planet 1")
 
 	// instaform
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// should terraform 3 grav points
 	// TODO: sometimes this fails if we randomly permaform...
@@ -1473,37 +978,20 @@ func Test_turn_instaformTakenPlanet(t *testing.T) {
 }
 
 func Test_turn_fleetRepair(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	player := game.Players[0]
-	fleet := game.Fleets[0]
-	planet := game.Planets[0]
+	s := SingleUnitScenario()
+	s.Players[0].Designs = Designs(DesignLongRangeScout, ShipDesign{Name: "Starbase", Hull: SpaceStation.Name})
+	s.Planets[0].Starbase = "Starbase"
+	s.Planets[0].StarbaseDamage = 400
+	s.Players[0].Fleets = []ScenarioFleet{{Tokens: []ScenarioShipToken{{Design: "Long Range Scout", QuantityDamaged: 1, Damage: 10}}, Name: "Scout", Fuel: 300}}
 
-	// create a new starbase
-	starbaseDesign := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
-	starbase := newStarbase(player, planet,
-		starbaseDesign,
-		"Starbase",
-	)
-	player.Designs = append(player.Designs, starbaseDesign)
-	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
-	starbase.Tokens[0].QuantityDamaged = 1
-	starbase.Tokens[0].Damage = 400
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	u := newTestUniverse(t, s)
+	fleet := u.Game.Fleets[0]
+	starbase := u.Planet("Planet 1").Starbase
 
 	// in space with 10 damage
-	fleet.OrbitingPlanetNum = None
-	fleet.Tokens[0].QuantityDamaged = 1
-	fleet.Tokens[0].Damage = 10
 
 	// repair
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// should repair fleet and starbase
 	assert.Equal(t, 9.0, fleet.Tokens[0].Damage)
@@ -1514,41 +1002,33 @@ func Test_turn_fleetRepair(t *testing.T) {
 }
 
 func Test_turn_fleetReproduce(t *testing.T) {
-	game := BuildScenario(TwoPlayerScenario())
-
-	// make an IS race for reproducing and an AR race for dieoff
-	isPlayer := game.Players[0]
-	isPlayer.Race.PRT = IS
-	isPlayer.Race.Spec = ComputeRaceSpec(&isPlayer.Race, &rules)
-	arPlayer := game.Players[1]
-	arPlayer.Race.PRT = AR
-	arPlayer.Race.Spec = ComputeRaceSpec(&arPlayer.Race, &rules)
-
-	// each player gets a freighter with some colonists
-	isFleet := testSmallFreighter(isPlayer)
-	isFleet.Cargo.Colonists = 50 // 5000 colonists
-	isPlayer.Designs[0] = isFleet.Tokens[0].design
-	game.Fleets[0] = isFleet
-	arFleet := testGalleon(arPlayer)
-	arFleet.Cargo.Colonists = 50 // 5000 colonists
-	arPlayer.Designs[0] = arFleet.Tokens[0].design
-	game.Fleets[1] = arFleet
-
-	// orbit a planet of ours
-	isPlanet := game.Planets[0]
-	isPlanet.PlayerNum = isPlayer.Num
-	isPlanet.Cargo.Colonists = 2500
-	isFleet.Waypoints[0] = NewPlanetWaypoint(isPlanet.Position, isPlanet.Num, isPlanet.Name, 5)
-	isFleet.OrbitingPlanetNum = isPlanet.Num
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
+		{
+			Player:  NewPlayer(1, NewRace().WithPRT(IS)),
+			Designs: Designs(DesignSmallFreighter),
+			Fleets: []ScenarioFleet{
+				{
+					Design:    "Small Freighter",
+					At:        "Planet 1",
+					Cargo:     Cargo{Colonists: 50},
+					Waypoints: []ScenarioWaypoint{{To: "Planet 1", Warp: 5}},
+				},
+			},
+		},
+		{
+			Player:  NewPlayer(1, NewRace().WithPRT(AR)),
+			Designs: Designs(DesignGalleon),
+			Fleets:  []ScenarioFleet{{Design: "Galleon", Cargo: Cargo{Colonists: 50}, Waypoints: []ScenarioWaypoint{{Warp: 5}}}},
+		},
+	}, Planets: []ScenarioPlanet{
+		{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 2500}},
+		{Name: "Planet 2", Owner: 2, Position: Vector{100, 0}, Cargo: Cargo{Colonists: 2500}},
+	}})
+	isPlayer, arPlayer := u.Player(1), u.Player(2)
+	isFleet, arFleet, isPlanet := u.Fleet("Small Freighter #1"), u.Fleet("Galleon #1"), u.Planet("Planet 1")
 
 	// don't generate a full turn, the planet will grow
-	turn.fleetReproduce()
+	u.Run((*turnGenerator).fleetReproduce)
 
 	// IS freighter should have grown; AT freighter should have lost pop slightly
 	assert.Equal(t, 53, isFleet.Cargo.Colonists)
@@ -1561,7 +1041,7 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	arFleet.Cargo.Colonists = 100
 
 	// reproduce again
-	turn.fleetReproduce()
+	u.Run((*turnGenerator).fleetReproduce)
 
 	// IS should have grown on freighter and beamed down to planet
 	assert.Equal(t, isFleet.Spec.CargoCapacity, isFleet.Cargo.Colonists)
@@ -1572,7 +1052,7 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	// IS should halt reproduction while AR should continue losing pop
 	isPlayer.Race.GrowthRate = 0
 	arPlayer.Race.GrowthRate = 0
-	turn.fleetReproduce()
+	u.Run((*turnGenerator).fleetReproduce)
 	assert.Equal(t, isFleet.Spec.CargoCapacity, isFleet.Cargo.Colonists)
 	assert.Equal(t, 2509, isPlanet.Cargo.Colonists)
 	assert.Equal(t, 95, arFleet.Cargo.Colonists) // should be 94 in base game, but leaving it for now since it rounds weird AF
@@ -1580,176 +1060,90 @@ func Test_turn_fleetReproduce(t *testing.T) {
 }
 
 func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-
-	// make an IS race for reproducing
-	player := game.Players[0]
-
-	// make a new freighter with some colonists
-	fleet := testSmallFreighter(player)
-	fleet.Cargo.Colonists = 50 // 5000 colonists
-	design := fleet.Tokens[0].design
-	player.Designs[0] = design
-	game.Fleets[0] = fleet
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	s := singleFleetScenario(DesignSmallFreighter)
+	s.Players[0].Fleets[0].Cargo = Cargo{Colonists: 50}
+	u := newTestUniverse(t, s)
+	player, fleet := u.Player(1), u.Fleet("Small Freighter #1")
+	design := player.Designs[0]
 
 	// generate turn to simulate die off; should not lose pop
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	assert.Equal(t, 50, fleet.Cargo.Colonists)
 
 	// add a radiating hydro ramscoop
 	design.Slots[0].HullComponent = RadiatingHydroRamScoop.Name
-	design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
-	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	u.Recompute()
 
 	// generate turn to simulate die off; should lose pop
-	turn.generateTurn()
+	u.GenerateTurn()
 	assert.Equal(t, 41, fleet.Cargo.Colonists)
 
 	// make the player a high rad race to prevent radiation damage
 	player.Race.HabHigh.Rad = 100
 	player.Race.HabLow.Rad = 80 // midpoint: 90mR
-	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
-	turn.generateTurn()
+	u.Recompute()
+	u.GenerateTurn()
 	assert.Equal(t, 41, fleet.Cargo.Colonists)
 
 }
 
 func Test_turn_detonateMines(t *testing.T) {
-
-	minefieldPlayer := NewPlayer(1, NewRace().WithPRT(SD).WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	otherPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
-
-	type args struct {
-		minefield *Minefield
-		fleet     *Fleet
-		players   []*Player
-	}
-
 	tests := []struct {
-		name string
-		args args
-		want []ShipToken
+		name     string
+		detonate bool
+		friendly bool
+		design   ShipDesign
+		want     ShipToken
 	}{
-		{
-			name: "no op",
-			args: args{
-				minefield: newMinefield(minefieldPlayer, MinefieldTypeStandard, 10*10, 1, Vector{}),
-				fleet:     testLongRangeScout(otherPlayer),
-				players:   []*Player{minefieldPlayer, otherPlayer},
-			},
-			want: []ShipToken{{Quantity: 1, QuantityDamaged: 0, Damage: 0}},
-		},
-		{
-			name: "detonate, destroy ship",
-			args: args{
-				minefield: newMinefield(minefieldPlayer, MinefieldTypeStandard, 10*10, 1, Vector{}).
-					withOrders(MinefieldOrders{Detonate: true}),
-				fleet:   testLongRangeScout(otherPlayer),
-				players: []*Player{minefieldPlayer, otherPlayer},
-			},
-			want: []ShipToken{{Quantity: 0, QuantityDamaged: 0, Damage: 500}},
-		},
-		{
-			name: "detonate, don't destroy mini mine layers",
-			args: args{
-				minefield: newMinefield(minefieldPlayer, MinefieldTypeStandard, 10*10, 1, Vector{}).
-					withOrders(MinefieldOrders{Detonate: true}),
-				fleet:   testMiniMineLayer(minefieldPlayer),
-				players: []*Player{minefieldPlayer},
-			},
-			want: []ShipToken{{Quantity: 1, QuantityDamaged: 0, Damage: 0}},
-		},
+		{"no op", false, false, DesignLongRangeScout, ShipToken{Quantity: 1}},
+		{"detonate, destroy ship", true, false, DesignLongRangeScout, ShipToken{Damage: 500}},
+		{"detonate, don't destroy mini mine layers", true, true, DesignMiniMineLayer, ShipToken{Quantity: 1}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			// create a new test game
-			client := NewGamer()
-			game := client.CreateGame(1, *NewGameSettings())
-
-			for _, player := range tt.args.players {
-				player.Relations = player.defaultRelationships(tt.args.players, false)
-				player.Intels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
+			s := TestScenario{
+				Players: []ScenarioPlayer{
+					{
+						Player:     NewPlayer(1, NewRace().WithPRT(SD)),
+						Minefields: []Minefield{{MinefieldType: MinefieldTypeStandard, NumMines: 100, MinefieldOrders: MinefieldOrders{Detonate: tt.detonate}}},
+					},
+				},
 			}
-
-			universe := NewUniverse(testLogger, &game.Rules)
-			universe.Fleets = []*Fleet{tt.args.fleet}
-			universe.Minefields = []*Minefield{tt.args.minefield}
-
-			fg := FullGame{
-				Game:      game,
-				Universe:  &universe,
-				TechStore: &StaticTechStore,
-				Players:   tt.args.players,
+			fleetPlayer := 0
+			if !tt.friendly {
+				s.Players = append(s.Players, ScenarioPlayer{})
+				fleetPlayer = 1
 			}
-
-			// make sure the player knows about the designs of the fleet
-			fleetPlayer := fg.getPlayer(tt.args.fleet.PlayerNum)
-			for _, token := range tt.args.fleet.Tokens {
-				fleetPlayer.Designs = append(fleetPlayer.Designs, token.design)
+			s.Players[fleetPlayer].Designs = Designs(tt.design)
+			s.Players[fleetPlayer].Fleets = []ScenarioFleet{{Design: tt.design.Name, Waypoints: []ScenarioWaypoint{{Warp: 5}}}}
+			u := newTestUniverse(t, s)
+			fleet := u.Game.Fleets[0]
+			u.GenerateTurn()
+			if tt.want.Quantity == 0 {
+				assert.True(t, fleet.Delete)
+				assert.Empty(t, fleet.Tokens)
+				return
 			}
-
-			turn := turnGenerator{
-				log:  testLogger,
-				game: &fg,
-			}
-			turn.game.Universe.buildMaps(fg.Players)
-
-			// try and remote the planet
-			turn.generateTurn()
-
-			for i := range tt.args.fleet.Tokens {
-				token := tt.args.fleet.Tokens[i]
-				if token.Quantity != tt.want[i].Quantity {
-					t.Errorf("Fleet.detonateMines() token %d gotQuantity = %v, wantQuantity %v", i, token.Quantity, tt.want[i].Quantity)
-				}
-				if token.Damage != tt.want[i].Damage {
-					t.Errorf("Fleet.detonateMines() token %d gotDamage = %v, wantDamage %v", i, token.Damage, tt.want[i].Damage)
-				}
-				if token.QuantityDamaged != tt.want[i].QuantityDamaged {
-					t.Errorf("Fleet.detonateMines() token %d gotQuantityDamaged = %v, wantQuantityDamaged %v", i, token.QuantityDamaged, tt.want[i].QuantityDamaged)
-				}
-			}
-
+			token := fleet.Tokens[0]
+			assert.Equal(t, tt.want.Quantity, token.Quantity)
+			assert.Equal(t, tt.want.Damage, token.Damage)
+			assert.Equal(t, tt.want.QuantityDamaged, token.QuantityDamaged)
 		})
 	}
-
 }
 
 func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
+	s := SingleUnitScenario()
+	s.Players = append(s.Players, ScenarioPlayer{
+		MineralPackets: []ScenarioMineralPacket{{To: "Planet 1", Position: Vector{25, 0}, WarpSpeed: 7, SafeWarpSpeed: 7, Cargo: Cargo{Ironium: 10}}},
+	})
 
-	player := game.Players[0]
-	planet := game.Planets[0]
-
-	// create a new packet heading towards the homeworld
-	packetPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
-	packet := newMineralPacket(packetPlayer, 1, 7, 7, Cargo{Ironium: 10}, Vector{25, 0}, planet.Num)
-
-	// setup initial planet intels so turn generation works
-	packetPlayer.initDefaultPlanetIntels(game.Planets)
-
-	game.Players = append(game.Players, packetPlayer)
-	game.MineralPackets = append(game.MineralPackets, packet)
-
-	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-	packetPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	u := newTestUniverse(t, s)
+	player, planet := u.Player(1), u.Planet("Planet 1")
 
 	// move packet, wipe out planet
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// packet hits, but planet is fine and we recover 1/3rd of the cargo
 	assert.NotEqual(t, 0, planet.exactPopulation())
@@ -1758,42 +1152,19 @@ func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 }
 
 func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
+	s := SingleUnitScenario()
+	s.Players = append(s.Players, ScenarioPlayer{
+		MineralPackets: []ScenarioMineralPacket{{To: "Planet 1", Position: Vector{25, 0}, WarpSpeed: 13, SafeWarpSpeed: 13, Cargo: Cargo{Ironium: 1000}}},
+	})
+	s.Planets[0].Starbase = "Starbase"
+	s.Players[0].Designs = append(s.Players[0].Designs, ShipDesign{Name: "Starbase", Hull: SpaceStation.Name})
 
-	player := game.Players[0]
-	planet := game.Planets[0]
-
-	// create a new packet heading towards the homeworld
-	packetPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
-	packet := newMineralPacket(packetPlayer, 1, 13, 13, Cargo{Ironium: 1000}, Vector{25, 0}, planet.Num)
-
-	// setup initial planet intels so turn generation works
-	packetPlayer.initDefaultPlanetIntels(game.Planets)
-
-	game.Players = append(game.Players, packetPlayer)
-	game.MineralPackets = append(game.MineralPackets, packet)
-
-	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-	packetPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-
-	// create a new starbase
-	starbaseDesign := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
-	starbase := newStarbase(player, planet,
-		starbaseDesign,
-		"Starbase",
-	)
-	player.Designs = append(player.Designs, starbaseDesign)
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	u := newTestUniverse(t, s)
+	planet := u.Planet("Planet 1")
+	starbase := planet.Starbase
 
 	// move packet, wipe out planet
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// no pop, no starbase
 	assert.Equal(t, 0, planet.exactPopulation())
@@ -1804,28 +1175,28 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 }
 
 func Test_turn_decayPackets(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	player := game.Players[0]
-
-	// create some Packets with 100kT of each mineral
-	packetSafe := newMineralPacket(player, 1, 5, 5, Cargo{100, 100, 100, 0}, Vector{200, 0}, 1)
-	packetTooFast := newMineralPacket(player, 1, 10, 7, Cargo{500, 500, 500, 0}, Vector{0, 200}, 1)
-	packetNewlyBuilt := newMineralPacket(player, 1, 8, 5, Cargo{100, 100, 100, 0}, Vector{200, 0}, 1)
+	s := SingleUnitScenario()
+	s.Players[0].MineralPackets = []ScenarioMineralPacket{
+		{Name: "Safe", To: "Planet 1", Position: Vector{200, 0}, WarpSpeed: 5, SafeWarpSpeed: 5, Cargo: Cargo{100, 100, 100, 0}},
+		{
+			Name:          "Too fast",
+			To:            "Planet 1",
+			Position:      Vector{0, 200},
+			WarpSpeed:     10,
+			SafeWarpSpeed: 7,
+			Cargo:         Cargo{500, 500, 500, 0},
+		},
+		{Name: "New", To: "Planet 1", Position: Vector{200, 0}, WarpSpeed: 8, SafeWarpSpeed: 5, Cargo: Cargo{100, 100, 100, 0}},
+	}
+	u := newTestUniverse(t, s)
+	packetSafe, packetTooFast, packetNewlyBuilt := u.Game.MineralPackets[0], u.Game.MineralPackets[1], u.Game.MineralPackets[2]
 	packetNewlyBuilt.builtThisTurn = true
 
-	game.MineralPackets = append(game.MineralPackets, packetSafe, packetTooFast, packetNewlyBuilt)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
 	// move and decay
-	turn.packetMove(false)
-	turn.packetMove(true)
-	turn.decayPackets(false)
-	turn.decayPackets(true)
+	u.Run(func(turn *turnGenerator) { turn.packetMove(false) })
+	u.Run(func(turn *turnGenerator) { turn.packetMove(true) })
+	u.Run(func(turn *turnGenerator) { turn.decayPackets(false) })
+	u.Run(func(turn *turnGenerator) { turn.decayPackets(true) })
 
 	// no decay, 50% decay, and half of 50% decay for a newly built overfast packet
 	assert.Equal(t, packetSafe.Cargo, Cargo{100, 100, 100, 0})
@@ -1834,25 +1205,17 @@ func Test_turn_decayPackets(t *testing.T) {
 }
 
 func Test_turn_randomCometStrikeOwnedPlanet(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	// make sure we are far enough along that comets will strike
-	// player worlds
+	s := SingleUnitScenario()
+
+	u := newTestUniverse(t, s)
+	game, planet := u.Game, u.Planet("Planet 1")
 	game.Year += game.Rules.RandomCometMinYear + game.Rules.RandomCometMinYearPlayerWorld
-
-	// player := game.Players[0]
-	planet := game.Planets[0]
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
 
 	startingPop := planet.exactPopulation()
 	startingIronium := planet.Cargo.Ironium
 	// strike planet
-	turn.game.Rules.random = newFloat64Random(0) // 100% chance to strike planet
-	turn.randomCometStrike()
+	u.Game.Rules.random = newFloat64Random(0) // 100% chance to strike planet
+	u.Run((*turnGenerator).randomCometStrike)
 
 	// comet hits, pop killed, minerals added
 	assert.NotEqual(t, startingPop, planet.exactPopulation())
@@ -1861,28 +1224,18 @@ func Test_turn_randomCometStrikeOwnedPlanet(t *testing.T) {
 }
 
 func Test_turn_randomCometStrikeOwnedPlanetAR(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	player := game.Players[0]
-	player.Race.PRT = AR
-	player.Race.Spec = ComputeRaceSpec(&player.Race, &game.Rules)
-	// make sure we are far enough along that comets will strike
-	// player worlds
+	s := SingleUnitScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPRT(AR))
+
+	u := newTestUniverse(t, s)
+	game, planet := u.Game, u.Planet("Planet 1")
 	game.Year += game.Rules.RandomCometMinYear + game.Rules.RandomCometMinYearPlayerWorld
-
-	// player := game.Players[0]
-	planet := game.Planets[0]
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
 
 	startingPop := planet.exactPopulation()
 	startingIronium := planet.Cargo.Ironium
 	// strike planet
-	turn.game.Rules.random = newFloat64Random(0) // 100% chance to strike planet
-	turn.randomCometStrike()
+	u.Game.Rules.random = newFloat64Random(0) // 100% chance to strike planet
+	u.Run((*turnGenerator).randomCometStrike)
 
 	// comet hits, pop not killed, minerals added
 	assert.Equal(t, startingPop, planet.exactPopulation())
@@ -1890,55 +1243,42 @@ func Test_turn_randomCometStrikeOwnedPlanetAR(t *testing.T) {
 }
 
 func Test_turn_fleetPatrol(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	rules := &game.Rules
-
-	// make a new destroyer to patrol within 50ly
-	player := game.Players[0]
-	fleet := testStalwartDefender(player)
-	fleet.Waypoints[0].Task = WaypointTaskPatrol
-	fleet.Waypoints[0].PatrolRange = 50
-	game.Fleets[0] = fleet
-
-	// create a new enemy player with a fleet 60ly away
-	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	enemyFleet1 := testLongRangeScout(enemyPlayer)
-	enemyFleet1.Position = Vector{60, 0}
-	game.Players = append(game.Players, enemyPlayer)
-	game.Fleets = append(game.Fleets, enemyFleet1)
-
-	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-	player.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
-	enemyPlayer.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
-	// setup initial planet intels so turn generation works
-	enemyPlayer.initDefaultPlanetIntels(game.Planets)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	s := singleFleetScenario(DesignStalwartDefender)
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{Warp: 5, Task: WaypointTaskPatrol, PatrolRange: 50}}
+	s.Players = append(s.Players, ScenarioPlayer{
+		Designs: Designs(DesignLongRangeScout),
+		Fleets: []ScenarioFleet{
+			{
+				Name:      "Distant scout",
+				Design:    "Long Range Scout",
+				Position:  Vector{60, 0},
+				Waypoints: []ScenarioWaypoint{{Position: Vector{60, 0}, Warp: 5}},
+			},
+			{
+				Name:      "Close scout",
+				Design:    "Long Range Scout",
+				Position:  Vector{100, 0},
+				Waypoints: []ScenarioWaypoint{{Position: Vector{100, 0}, Warp: 5}},
+			},
+		},
+	})
+	u := newTestUniverse(t, s)
+	fleet, enemyFleet1, enemyFleet2 := u.Fleet("Stalwart Defender #1"), u.Fleet("Distant scout"), u.Fleet("Close scout")
 
 	// no patrol target
-	err := turn.generateTurn()
-	if err != nil {
-		t.Error("failed to generate turn", err)
-	}
+	u.GenerateTurn()
 
 	// should not attack
 	assert.Equal(t, 1, len(fleet.Waypoints))
 
 	// make a second enemy fleet closer
-	enemyFleet2 := testLongRangeScout(enemyPlayer)
 	enemyFleet2.Position = Vector{30, 0}
-	game.Fleets = append(game.Fleets, enemyFleet2)
 
 	// move first fleet within range as well
 	enemyFleet1.Position = Vector{50, 0}
 
 	// generate
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// should attack fleet 2
 	assert.Equal(t, len(fleet.Waypoints), 2)
@@ -1950,83 +1290,34 @@ func Test_turn_fleetPatrol(t *testing.T) {
 }
 
 func Test_turn_fleetRemoteTerraform(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	rules := &game.Rules
+	u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
+		{
+			Player:    NewPlayer(1, NewRace().WithLRT(TT)),
+			Relations: []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}},
+			Designs:   Designs(DesignRemoteTerraformer),
+			Fleets: []ScenarioFleet{
+				{Name: "Enemy terraformer", Design: "Remote Terraformer", At: "Planet 1", Waypoints: []ScenarioWaypoint{{Warp: 5}}},
+				{Name: "Friendly terraformer", Design: "Remote Terraformer", At: "Planet 2", Waypoints: []ScenarioWaypoint{{Warp: 5}}},
+				{Name: "Gifted terraformer", Design: "Remote Terraformer", At: "Planet 3", Waypoints: []ScenarioWaypoint{{To: "Planet 3", Warp: 5, Task: WaypointTaskTransferFleet, TransferToPlayer: 3}}},
+			},
+		},
+		{
+			Relations: []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}},
+		},
+		{
+			Player:    NewPlayer(1, NewRace()).WithTechLevels(TechLevel{Propulsion: 1, Biotechnology: 1}),
+			Relations: []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}},
+		},
+	}, Planets: []ScenarioPlanet{
+		{Name: "Planet 1", Owner: 2, Cargo: Cargo{Colonists: 2500}},
+		{Name: "Planet 2", Owner: 3, Hab: ScenarioValue(Hab{48, 50, 50}), Cargo: Cargo{Colonists: 2500}},
+		{Name: "Planet 3", Owner: 3, Hab: ScenarioValue(Hab{48, 50, 50}), Cargo: Cargo{Colonists: 2500}},
+	}})
+	planet1, planet2, planet3 := u.Planet("Planet 1"), u.Planet("Planet 2"), u.Planet("Planet 3")
+	// A gift retains the donor's terraformer specs even with the recipient's lower tech.
+	u.Run((*turnGenerator).fleetTransferOwner)
 
-	// give player TT so it can terraform these other worlds
-	player := game.Players[0]
-	player.Race.LRTs |= Bitmask(TT)
-	player.Race.Spec = ComputeRaceSpec(&player.Race, rules)
-
-	// create a new enemy player and friendly player to own planets
-	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	friendlyPlayer := NewPlayer(3, NewRace().WithSpec(rules)).WithNum(3).WithTechLevels(TechLevel{Propulsion: 1, Biotechnology: 1}).withSpec(rules)
-	game.Players = append(game.Players, enemyPlayer, friendlyPlayer)
-
-	// make two new remote terraformers, one over each planet to test deterraforming and terraforming
-	fleet1 := testRemoteTerraformer(player)
-	fleet2 := testRemoteTerraformer(player)
-	player.Designs[0] = fleet1.Tokens[0].design
-
-	// give the friendly player a gifted fleet
-	fleet3 := testRemoteTerraformer(friendlyPlayer)
-	fleet3.Tokens[0].design.OriginalPlayerNum = player.Num
-	friendlyPlayer.Designs = []*ShipDesign{fleet3.Tokens[0].design}
-
-	game.Fleets = []*Fleet{fleet1, fleet2, fleet3}
-
-	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-	friendlyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-	player.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
-	enemyPlayer.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
-	friendlyPlayer.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
-
-	// give planet1 to the enemy and orbit it with fleet1
-	planet1 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: enemyPlayer.Num},
-		Cargo:     Cargo{Colonists: 2500},
-		Hab:       Hab{50, 50, 50},
-		BaseHab:   Hab{50, 50, 50},
-	}
-	planet1.Spec = ComputePlanetSpec(&game.Rules, player, planet1)
-	fleet1.OrbitingPlanetNum = planet1.Num
-
-	// give planet2 to the friend and orbit it with fleet2
-	planet2 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: friendlyPlayer.Num},
-		Cargo:     Cargo{Colonists: 2500},
-		Hab:       Hab{48, 50, 50},
-		BaseHab:   Hab{48, 50, 50},
-	}
-	planet2.Spec = ComputePlanetSpec(&game.Rules, player, planet2)
-	fleet2.OrbitingPlanetNum = planet2.Num
-
-	// give planet3 to the friend and orbit it with fleet3
-	planet3 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 3", Num: 3, PlayerNum: friendlyPlayer.Num},
-		Cargo:     Cargo{Colonists: 2500},
-		Hab:       Hab{48, 50, 50},
-		BaseHab:   Hab{48, 50, 50},
-	}
-	planet3.Spec = ComputePlanetSpec(&game.Rules, player, planet3)
-	fleet3.OrbitingPlanetNum = planet3.Num
-
-	game.Planets = []*Planet{planet1, planet2, planet3}
-	player.initDefaultPlanetIntels([]*Planet{planet1, planet2, planet3})
-	enemyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2, planet3})
-	friendlyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2, planet3})
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	err := turn.generateTurn()
-	if err != nil {
-		t.Error("failed to generate turn", err)
-	}
+	u.GenerateTurn()
 
 	// should deterraform planet1 2 points
 	assert.Equal(t, Hab{52, 50, 50}, planet1.Hab)
@@ -2040,35 +1331,18 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 }
 
 func Test_turn_fleetRefuel(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	player := game.Players[0]
-	fleet := game.Fleets[0]
-	planet := game.Planets[0]
+	s := SingleUnitScenario()
+	s.Players[0].Designs = Designs(DesignLongRangeScout, ShipDesign{Name: "Starbase", Hull: SpaceStation.Name})
+	s.Planets[0].Starbase = "Starbase"
+	s.Planets[0].StarbaseDamage = 100
+	s.Players[0].Fleets[0].EmptyFuel = true
+	s.Players[0].Fleets[0].Fuel = 0
 
-	// create a new starbase
-	starbaseDesign := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
-	starbase := newStarbase(player, planet,
-		starbaseDesign,
-		"Starbase",
-	)
-	player.Designs = append(player.Designs, starbaseDesign)
-	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
-	starbase.Tokens[0].QuantityDamaged = 1
-	starbase.Tokens[0].Damage = 100
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
+	u := newTestUniverse(t, s)
+	fleet := u.Game.Fleets[0]
 
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	// orbit and need fuel
-	fleet.Fuel = 0
-
-	// repair
-	turn.generateTurn()
+	// Refuel the empty tank at the starbase.
+	u.GenerateTurn()
 
 	// should refuel at starbase
 	assert.Equal(t, fleet.Spec.FuelCapacity, fleet.Fuel)
@@ -2076,29 +1350,18 @@ func Test_turn_fleetRefuel(t *testing.T) {
 }
 
 func Test_turn_playerResearch(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	planet := game.Planets[0]
-	player := game.Players[0]
-
-	// research energy and keep going
-	player.TechLevels = TechLevel{}
-	player.TechLevelsSpent = TechLevel{}
-	player.NextResearchField = NextResearchFieldEnergy
-	player.Researching = Energy
-	player.ResearchAmount = 100
-
-	// give us 1000 resources, 500 from pop, 500 from factories
-	planet.setPopulation(500_000)
-	planet.Factories = 500
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	s := SingleUnitScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace())
+	s.Players[0].Player.Researching = Energy
+	s.Players[0].Player.ResearchAmount = 100
+	s.Players[0].Player.NextResearchField = NextResearchFieldEnergy
+	s.Planets[0].Cargo = Cargo{Colonists: 5000}
+	s.Planets[0].Factories = 500
+	u := newTestUniverse(t, s)
+	player := u.Player(1)
 
 	// let's go!!
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// costs go up per level so
 	// 1. 50,
@@ -2115,33 +1378,29 @@ func Test_turn_playerResearch(t *testing.T) {
 }
 
 func Test_turn_buildStarbase(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	player := game.Players[0]
-	planet := game.Planets[0]
-	rCopy := rules
-	rCopy.RepairRates[RepairRateStarbase] = 0
-	game.Rules = rCopy
-
-	// create a new starbase design & add it to the queue
-	emptyBaseDesign := NewShipDesign(player.Num, 2).WithName("Sad empty base").WithHull(SpaceStation.Name).WithSpec(&rCopy, player)
-	player.Designs = append(player.Designs, emptyBaseDesign)
-
-	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: emptyBaseDesign.Num})
-	planet.Cargo = Cargo{1000, 1000, 1000, 10_000}
-	planet.Factories = 1000
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	s := SingleUnitScenario()
+	s.Players[0].Designs = Designs(DesignLongRangeScout, ShipDesign{Name: "Sad empty base", Hull: SpaceStation.Name}, ShipDesign{
+		Name: "LASER BASE!!!!!!",
+		Hull: SpaceStation.Name,
+		Slots: []ShipDesignSlot{
+			{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 1},
+			{HullComponent: Superlatanium.Name, HullSlotIndex: 4, Quantity: 1},
+		},
+	})
+	s.Planets[0].Cargo = Cargo{1000, 1000, 1000, 10000}
+	s.Planets[0].Factories = 1000
+	s.Planets[0].ProductionQueue = []ScenarioProductionQueueItem{{Type: QueueItemTypeStarbase, Quantity: 1, Design: "Sad empty base"}}
+	u := newTestUniverse(t, s)
+	game, player, planet := u.Game, u.Player(1), u.Planet("Planet 1")
+	game.Rules.RepairRates[RepairRateStarbase] = 0
+	emptyBaseDesign, starbaseDesignUpgrade := player.Designs[1], player.Designs[2]
 
 	// should have no starbase
 	assert.Nil(t, planet.Starbase)
 	assert.Equal(t, 0, len(game.Starbases))
 
 	// generate a turn to build the starbase
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	emptyBaseDesign.Spec.NumBuilt++ // increment numBuilt so json doesn't error
 
@@ -2155,13 +1414,6 @@ func Test_turn_buildStarbase(t *testing.T) {
 
 	// upgrade the starbase with A LASER!
 	// Also some superlat to check armor dmg stats
-	starbaseDesignUpgrade := NewShipDesign(player.Num, 3).WithName("LASER BASE!!!!!!").WithHull(SpaceStation.Name).WithSlots(
-		[]ShipDesignSlot{
-			{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 1},
-			{HullComponent: Superlatanium.Name, HullSlotIndex: 4, Quantity: 1},
-		}).WithSpec(&rCopy, player)
-	player.Designs = append(player.Designs, starbaseDesignUpgrade)
-
 	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{
 		Type:      QueueItemTypeStarbase,
 		Quantity:  1,
@@ -2169,7 +1421,7 @@ func Test_turn_buildStarbase(t *testing.T) {
 	})
 
 	// generate a turn to upgrade the starbase
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	starbaseDesignUpgrade.Spec.NumBuilt++
 
@@ -2189,43 +1441,30 @@ func Test_turn_buildStarbase(t *testing.T) {
 
 	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: emptyBaseDesign.Num})
 
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// should have the old base again, with the laser base marked for deletion
 	// still has roughly 90% damage
-	assert.Equal(t, 3, len(game.Starbases))
+	// the first base was removed before this turn, like the server does on save
+	assert.Equal(t, 2, len(game.Starbases))
 	test.CompareAsJSON(t, planet.Starbase.Tokens[0].design, emptyBaseDesign)
 	assert.InDelta(t, 0.9, planet.Starbase.Tokens[0].Damage/
 		float64(planet.Starbase.Tokens[0].design.Spec.Armor), 0.005)
 	assert.True(t, game.Starbases[0].Delete)
-	assert.True(t, game.Starbases[1].Delete)
-	assert.False(t, game.Starbases[2].Delete)
+	assert.False(t, game.Starbases[1].Delete)
 
 }
 
 func Test_turn_fleetTransferOwner(t *testing.T) {
-	game := BuildScenario(TwoPlayerScenario())
-	player1 := game.Players[0]
-	player2 := game.Players[1]
-	fleet := game.Fleets[0]
-
-	player1.Race.Name = "Rabbitoid"
-	player1.Race.PluralName = "Rabbitoids"
-
-	// make player2 like player1
-	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	fleet.Waypoints[0].Task = WaypointTaskTransferFleet
-	fleet.Waypoints[0].TransferToPlayer = player2.Num
+	s := TwoPlayerScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPluralName("Rabbitoids"))
+	s.Players[1].Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Planet 1", Task: WaypointTaskTransferFleet, TransferToPlayer: 2}}
+	u := newTestUniverse(t, s)
+	player1, player2, fleet := u.Player(1), u.Player(2), u.FleetFor(1, "Long Range Scout #1")
 
 	// transfer
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// should have transferred the fleet, updated the name and the design
 	assert.Equal(t, player2.Num, fleet.PlayerNum)
@@ -2240,40 +1479,34 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 }
 
 func Test_turn_fleetBattle(t *testing.T) {
-	game := BuildScenario(TwoPlayerScenario())
-	player1 := game.Players[0]
-	player2 := game.Players[1]
-
-	// make them enemies!
-	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
-	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
-
-	// replace player2 fleet with a destroyer
-	fleet2 := testStalwartDefender(player2)
-	player2.Designs[0] = fleet2.Tokens[0].design
-	game.Fleets[1] = fleet2
-
-	// move the fleets to deep space
-	fleet1 := game.Fleets[0]
-	fleet1.Position = Vector{100, 100}
-	fleet1.Waypoints = []Waypoint{NewPositionWaypoint(fleet1.Position, 5)}
-	fleet2.Position = fleet1.Position
-	fleet2.Waypoints = fleet1.Waypoints
-
-	player2.Race.Name = "Attacker"
-	player2.Race.PluralName = "Attackers"
-
-	design1 := fleet1.Tokens[0].design
-	design2 := fleet2.Tokens[0].design
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
+	s := TwoPlayerScenario()
+	s.Players[0].Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	s.Players[1].Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+	s.Players[1].Player.Race.PluralName = "Attackers"
+	s.Players[1].Designs = Designs(DesignStalwartDefender)
+	s.Players[0].Fleets = []ScenarioFleet{
+		{
+			Name:      "Scout",
+			Design:    "Long Range Scout",
+			Position:  Vector{100, 100},
+			Waypoints: []ScenarioWaypoint{{Position: Vector{100, 100}, Warp: 5}},
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	s.Players[1].Fleets = []ScenarioFleet{
+		{
+			Name:      "Destroyer",
+			Design:    "Stalwart Defender",
+			Position:  Vector{100, 100},
+			Waypoints: []ScenarioWaypoint{{Position: Vector{100, 100}, Warp: 5}},
+		},
+	}
+	u := newTestUniverse(t, s)
+	game, player1, player2 := u.Game, u.Player(1), u.Player(2)
+	fleet1 := u.Fleet("Scout")
+	design1, design2 := player1.Designs[0], player2.Designs[0]
 
 	// make sure our battle is always uses the same random seed
-	turn.fleetBattle()
+	u.Run((*turnGenerator).fleetBattle)
 
 	// should have a battle record
 	assert.Equal(t, 1, len(player1.BattleRecords))
@@ -2295,89 +1528,32 @@ func Test_turn_fleetBattle(t *testing.T) {
 }
 
 func Test_turn_fleetBattle3Players(t *testing.T) {
-	client := NewGamer()
-	game := client.CreateGame(1, *NewGameSettings())
-	game.Rules.ResetSeed(0) // keep the same seed for tests
-	player1 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
-	player1.Num = 1
-	player1.Name = "Player 1"
-	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-
-	player2 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
-	player2.Num = 2
-	player2.Name = "Player 2"
-	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-
-	player3 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
-	player3.Num = 3
-	player3.Name = "Player 3"
-	player3.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-
-	player1.Intels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2, player3})
-	player2.Intels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player1, player2, player3})
-	player3.Intels.PlayerIntels = player3.defaultPlayerIntels([]*Player{player1, player2, player3})
-
-	// make them enemies!
-	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}, {Relation: PlayerRelationEnemy}}
-	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
-	player3.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
-
-	// give them descriptive names for the logs
-	player1.Race.Name = "Player1"
-	player1.Race.PluralName = "Player1s"
-	player2.Race.Name = "Player2"
-	player2.Race.PluralName = "Player2s"
-	player3.Race.Name = "Player3"
-	player3.Race.PluralName = "Player3s"
-
-	// give player 1 and 2 a scout, player3 a warship
-	fleet1 := testLongRangeScout(player1)
-	fleet1.Waypoints = []Waypoint{
-		NewPositionWaypoint(Vector{}, 5),
-	}
-	player1.Designs = []*ShipDesign{
-		fleet1.Tokens[0].design,
-	}
-
-	fleet2 := testLongRangeScout(player2)
-	fleet2.Waypoints = []Waypoint{
-		NewPositionWaypoint(Vector{}, 5),
-	}
-	player2.Designs = []*ShipDesign{
-		fleet2.Tokens[0].design,
-	}
-
-	fleet3 := testStalwartDefender(player3)
-	fleet3.Tokens[0].Quantity = 5
-	fleet3.Waypoints = []Waypoint{
-		NewPositionWaypoint(Vector{}, 5),
-	}
-	player3.Designs = []*ShipDesign{
-		fleet3.Tokens[0].design,
-	}
-
-	players := []*Player{player1, player2, player3}
-
-	universe := NewUniverse(testLogger, &game.Rules)
-	universe.Fleets = append(universe.Fleets, fleet1, fleet2, fleet3)
-
-	universe.buildMaps(players)
-
-	fg := &FullGame{
-		Game:      game,
-		Universe:  &universe,
-		TechStore: &StaticTechStore,
-		Players:   players,
-	}
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: fg,
-	}
-	turn.game.Universe.buildMaps(fg.Players)
+	u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
+		{
+			Player:    NewPlayer(1, NewRace().WithPluralName("Player1s")),
+			Relations: []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}, {Relation: PlayerRelationEnemy}},
+			Designs:   Designs(DesignLongRangeScout),
+			Fleets:    []ScenarioFleet{{Name: "Scout 1", Design: "Long Range Scout", Waypoints: []ScenarioWaypoint{{Warp: 5}}}},
+		},
+		{
+			Player:    NewPlayer(1, NewRace().WithPluralName("Player2s")),
+			Relations: []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}},
+			Designs:   Designs(DesignLongRangeScout),
+			Fleets:    []ScenarioFleet{{Name: "Scout 2", Design: "Long Range Scout", Waypoints: []ScenarioWaypoint{{Warp: 5}}}},
+		},
+		{
+			Player:    NewPlayer(1, NewRace().WithPluralName("Player3s")),
+			Relations: []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}},
+			Designs:   Designs(DesignStalwartDefender),
+			Fleets:    []ScenarioFleet{{Name: "Warships", Design: "Stalwart Defender", Quantity: 5, Waypoints: []ScenarioWaypoint{{Warp: 5}}}},
+		},
+	}})
+	player1, player2, player3 := u.Player(1), u.Player(2), u.Player(3)
+	fleet2 := u.Fleet("Scout 2")
+	fg := u.Game
 
 	// make sure our battle is always uses the same random seed
-	turn.fleetBattle()
+	u.Run((*turnGenerator).fleetBattle)
 
 	// should have a battle record
 	assert.Equal(t, 1, len(player1.BattleRecords))
@@ -2412,56 +1588,41 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 // it should intercept and kill one fleet, then
 // return to base and target another
 func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
-	game := BuildScenario(TwoPlayerScenario())
-	player1 := game.Players[0]
-	player2 := game.Players[1]
-	planet := game.Planets[0]
-
-	// make them enemies!
-	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
-	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
-
-	// add a starbase at the planet for refueling
-	starbaseDesign := NewShipDesign(player1.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player1)
-	starbase := newStarbase(player1, planet,
-		starbaseDesign,
-		"Starbase",
-	)
-	player1.Designs = append(player1.Designs, starbaseDesign)
-	starbase.Spec = ComputeFleetSpec(&rules, player1, &starbase)
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
-
-	// replace player1's fleet with a destroyer and set it to patrol
-	fleet1 := testJihadCruiser(player1)
-	player1.Designs[0] = fleet1.Tokens[0].design
-	game.Fleets[0] = fleet1
-	fleet1.Waypoints = []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5).WithTask(WaypointTaskPatrol)}
-	fleet1.OrbitingPlanetNum = planet.Num
-	fleet1.RepeatOrders = true
-
-	// move player2's fleet out a bit
-	fleet2 := game.Fleets[1]
-	fleet2.Position = Vector{25, 0}
-	fleet2.OrbitingPlanetNum = None
-	fleet2.Waypoints[0] = NewPositionWaypoint(fleet2.Position, 5)
-
-	// create a third fleet farther away
-	// this fleet will be targeted after the ship returns to base
-	fleet3 := testLongRangeScout(player2)
-	fleet3.Num = fleet2.Num + 1
-	fleet3.Position = Vector{-30, 0}
-	fleet3.Waypoints[0] = NewPositionWaypoint(fleet3.Position, 5)
-	game.Fleets = append(game.Fleets, fleet3)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
+	s := TwoPlayerScenario()
+	s.Players[0].Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	s.Players[1].Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+	s.Players[0].Designs = Designs(DesignJihadCruiser, ShipDesign{Name: "Starbase", Hull: SpaceStation.Name})
+	s.Planets[0].Starbase = "Starbase"
+	s.Players[0].Fleets = []ScenarioFleet{
+		{
+			Design:       "Jihad Cruiser",
+			At:           "Planet 1",
+			RepeatOrders: true,
+			Waypoints:    []ScenarioWaypoint{{To: "Planet 1", Warp: 5, Task: WaypointTaskPatrol}},
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	s.Players[1].Designs = Designs(DesignLongRangeScout)
+	s.Players[1].Fleets = []ScenarioFleet{
+		{
+			Name:      "Scout 2",
+			Design:    "Long Range Scout",
+			Position:  Vector{25, 0},
+			Waypoints: []ScenarioWaypoint{{Position: Vector{25, 0}, Warp: 5}},
+		},
+		{
+			Name:      "Scout 3",
+			Design:    "Long Range Scout",
+			Position:  Vector{-30, 0},
+			Waypoints: []ScenarioWaypoint{{Position: Vector{-30, 0}, Warp: 5}},
+		},
+	}
+	u := newTestUniverse(t, s)
+	game, player1, player2 := u.Game, u.Player(1), u.Player(2)
+	fleet1, fleet2, fleet3 := u.Fleet("Jihad Cruiser #1"), u.Fleet("Scout 2"), u.Fleet("Scout 3")
+	planet := u.Planet("Planet 1")
 
 	// generate a turn to setup the patrol target
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// fleet1 should target fleet2
 	assert.Equal(t, 2, len(fleet1.Waypoints))
@@ -2469,7 +1630,7 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 	assert.Equal(t, fleet2.Num, fleet1.Waypoints[1].TargetNum)
 
 	// generate a turn to allow the player1 fleet to attack player2's fleet
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// fleet moves to intercept
 	assert.Equal(t, fleet1.Position, fleet2.Position)
@@ -2489,7 +1650,7 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 
 	// generate a turn to allow the fleet1 to return home
 	// and target fleet 3
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// fleet1 should target fleet3
 	assert.Equal(t, planet.Position, fleet1.Position)
@@ -2504,45 +1665,40 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 // it should intercept and kill one fleet, then target
 // another
 func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
-	game := BuildScenario(TwoPlayerScenario())
-	player1 := game.Players[0]
-	player2 := game.Players[1]
-	planet := game.Planets[0]
-
-	// make them enemies!
-	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
-	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
-
-	// replace player1's fleet with a destroyer and set it to patrol
-	player1.TechLevels = TechLevel{3, 3, 3, 3, 3, 3}
-	fleet1 := testJihadCruiser(player1)
-	player1.Designs[0] = fleet1.Tokens[0].design
-	game.Fleets[0] = fleet1
-	fleet1.Waypoints = []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5).WithTask(WaypointTaskPatrol)}
-	fleet1.OrbitingPlanetNum = planet.Num
-
-	// move player2's fleet out a bit
-	fleet2 := game.Fleets[1]
-	fleet2.Position = Vector{25, 0}
-	fleet2.OrbitingPlanetNum = None
-	fleet2.Waypoints[0] = NewPositionWaypoint(fleet2.Position, 5)
-
-	// create a third fleet farther away
-	// this fleet will be targeted after the ship returns to base
-	fleet3 := testLongRangeScout(player2)
-	fleet3.Num = fleet2.Num + 1
-	fleet3.Position = Vector{-30, 0}
-	fleet3.Waypoints[0] = NewPositionWaypoint(fleet3.Position, 5)
-	game.Fleets = append(game.Fleets, fleet3)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
+	s := TwoPlayerScenario()
+	s.Players[0].Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	s.Players[1].Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+	s.Players[0].Designs = Designs(DesignJihadCruiser, ShipDesign{Name: "Starbase", Hull: SpaceStation.Name})
+	s.Planets[0].Starbase = "Starbase"
+	s.Players[0].Fleets = []ScenarioFleet{
+		{
+			Design:       "Jihad Cruiser",
+			At:           "Planet 1",
+			RepeatOrders: false,
+			Waypoints:    []ScenarioWaypoint{{To: "Planet 1", Warp: 5, Task: WaypointTaskPatrol}},
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	s.Players[1].Designs = Designs(DesignLongRangeScout)
+	s.Players[1].Fleets = []ScenarioFleet{
+		{
+			Name:      "Scout 2",
+			Design:    "Long Range Scout",
+			Position:  Vector{25, 0},
+			Waypoints: []ScenarioWaypoint{{Position: Vector{25, 0}, Warp: 5}},
+		},
+		{
+			Name:      "Scout 3",
+			Design:    "Long Range Scout",
+			Position:  Vector{-30, 0},
+			Waypoints: []ScenarioWaypoint{{Position: Vector{-30, 0}, Warp: 5}},
+		},
+	}
+	u := newTestUniverse(t, s)
+	game, player1, player2 := u.Game, u.Player(1), u.Player(2)
+	fleet1, fleet2, fleet3 := u.Fleet("Jihad Cruiser #1"), u.Fleet("Scout 2"), u.Fleet("Scout 3")
 
 	// generate a turn to setup the patrol target
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// fleet1 should target fleet2
 	assert.Equal(t, 2, len(fleet1.Waypoints))
@@ -2550,7 +1706,7 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 	assert.Equal(t, fleet2.Num, fleet1.Waypoints[1].TargetNum)
 
 	// generate a turn to allow the player1 fleet to attack player2's fleet
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// fleet moves to intercept
 	assert.Equal(t, fleet1.Position, fleet2.Position)
@@ -2570,19 +1726,14 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderSpawn(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
+	u := newTestUniverse(t, SingleUnitScenario())
+	game := u.Game
 	game.RandomEvents = true
-	game.Rules.random = newIntRandom() // test random always rolls 0 by default
-	game.Year = game.Year + game.Rules.MysteryTraderRules.MinYear
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	game.Rules.random = newIntRandom()
+	game.Year += game.Rules.MysteryTraderRules.MinYear
 
 	// move to place
-	turn.mysteryTraderSpawn()
+	u.Run((*turnGenerator).mysteryTraderSpawn)
 
 	// should have consumed that waypoint and moved to the space
 	assert.Equal(t, 1, len(game.MysteryTraders))
@@ -2591,20 +1742,24 @@ func Test_turn_mysteryTraderSpawn(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMove(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{100, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardResearch,
+		},
+	}
+	u := newTestUniverse(t, s)
+	game := u.Game
 	game.RandomEvents = true
-	game.Rules.random = newIntRandom(1) // test random that returns 1 so we don't change course
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	game.Rules.random = newIntRandom(1)
 	mt := game.MysteryTraders[0]
 
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
 	// move to place
-	turn.mysteryTraderMove()
+	u.Run((*turnGenerator).mysteryTraderMove)
 
 	// should have moved to our location
 	assert.Equal(t, Vector{49, 0}, mt.Position)
@@ -2612,20 +1767,24 @@ func Test_turn_mysteryTraderMove(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{100, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardResearch,
+		},
+	}
+	u := newTestUniverse(t, s)
+	game := u.Game
 	game.RandomEvents = true
-	game.Rules.random = newIntRandom(0) // test random that returns 0 so we change course
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	game.Rules.random = newIntRandom(0)
 	mt := game.MysteryTraders[0]
 
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
 	// move to place
-	turn.mysteryTraderMove()
+	u.Run((*turnGenerator).mysteryTraderMove)
 
 	// should have changed course, so we won't move along the previous path
 	assert.NotEqual(t, Vector{49, 0}, mt.Position)
@@ -2635,20 +1794,24 @@ func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderFinished(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{49, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardResearch,
+		},
+	}
+	u := newTestUniverse(t, s)
+	game := u.Game
 	game.RandomEvents = true
-	game.Rules.random = newIntRandom(1, 1) // test random that returns 1 so we don't change course or go again
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
+	game.Rules.random = newIntRandom(1, 1)
 	mt := game.MysteryTraders[0]
 
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
 	// move to place
-	turn.mysteryTraderMove()
+	u.Run((*turnGenerator).mysteryTraderMove)
 
 	// should have changed course, so we won't move along the previous path
 	assert.Equal(t, Vector{49, 0}, mt.Position)
@@ -2656,20 +1819,24 @@ func Test_turn_mysteryTraderFinished(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderAgain(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{49, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardResearch,
+		},
+	}
+	u := newTestUniverse(t, s)
+	game := u.Game
 	game.RandomEvents = true
-	game.Rules.random = newIntRandom(1, 0) // test random that returns 1 so we don't change course or go again
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
+	game.Rules.random = newIntRandom(1, 0)
 	mt := game.MysteryTraders[0]
 
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
 	// move to place
-	turn.mysteryTraderMove()
+	u.Run((*turnGenerator).mysteryTraderMove)
 
 	// should have changed course, so we won't move along the previous path
 	assert.Equal(t, Vector{49, 0}, mt.Position)
@@ -2680,28 +1847,27 @@ func Test_turn_mysteryTraderAgain(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	game.RandomEvents = true
-	game.Rules.random = &testRandom{} // test random always rolls 0 by default
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
-	mt := game.MysteryTraders[0]
-
-	fleet := game.Fleets[0]
-	player := game.Players[0]
-	player.TechLevels = TechLevel{}
-
-	// meet up
-	fleet.Position = mt.Position
-	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{100, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardResearch,
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	s.Players[0].Fleets[0].At = ""
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Mystery Trader #1", Warp: 5}}
+	s.Players[0].Player = NewPlayer(1, NewRace())
+	u := newTestUniverse(t, s)
+	game := u.Game
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{}
+	fleet, player := u.Fleet("Long Range Scout #1"), u.Player(1)
 
 	// meet mystery trader
-	turn.mysteryTraderMeet()
+	u.RunE((*turnGenerator).mysteryTraderMeet)
 
 	// fleet should be left alone
 	assert.Equal(t, false, fleet.Delete)
@@ -2710,29 +1876,28 @@ func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetReward(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	game.RandomEvents = true
-	game.Rules.random = &testRandom{} // test random always rolls 0 by default
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
-	mt := game.MysteryTraders[0]
-
-	fleet := game.Fleets[0]
-	player := game.Players[0]
-	player.TechLevels = TechLevel{}
-
-	// meet up
-	fleet.Position = mt.Position
-	fleet.Cargo = Cargo{5000, 0, 0, 0}
-	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{100, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardResearch,
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	s.Players[0].Fleets[0].At = ""
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Mystery Trader #1", Warp: 5}}
+	s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 5000}
+	s.Players[0].Player = NewPlayer(1, NewRace())
+	u := newTestUniverse(t, s)
+	game := u.Game
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{}
+	fleet, player := u.Fleet("Long Range Scout #1"), u.Player(1)
 
 	// meet mystery trader
-	turn.mysteryTraderMeet()
+	u.RunE((*turnGenerator).mysteryTraderMeet)
 
 	// fleet should be deleted, player gained tech
 	assert.Equal(t, true, fleet.Delete)
@@ -2741,28 +1906,27 @@ func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	game.RandomEvents = true
-	game.Rules.random = &testRandom{} // test random always rolls 0 by default
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
-	mt := game.MysteryTraders[0]
-
-	fleet := game.Fleets[0]
-	player := game.Players[0]
-
-	// meet up
-	fleet.Position = mt.Position
-	fleet.Cargo = Cargo{5000, 0, 0, 0}
-	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{100, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardTorpedo,
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	s.Players[0].Fleets[0].At = ""
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Mystery Trader #1", Warp: 5}}
+	s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 5000}
+	u := newTestUniverse(t, s)
+	game := u.Game
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{}
+	fleet, player := u.Fleet("Long Range Scout #1"), u.Player(1)
 
 	// meet mystery trader
-	turn.mysteryTraderMeet()
+	u.RunE((*turnGenerator).mysteryTraderMeet)
 
 	// fleet should be deleted, player gained tech
 	assert.Equal(t, true, fleet.Delete)
@@ -2771,31 +1935,29 @@ func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	game.RandomEvents = true
-	game.Rules.random = &testRandom{} // test random always rolls 0 by default
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
-	mt := game.MysteryTraders[0]
-
-	fleet := game.Fleets[0]
-
-	// make this player already own the tech the MT is giving
-	player := game.Players[0]
-	player.AcquiredTechs[AntiMatterTorpedo.Name] = true
-
-	// meet up
-	fleet.Position = mt.Position
-	fleet.Cargo = Cargo{5000, 0, 0, 0}
-	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{100, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardTorpedo,
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	s.Players[0].Fleets[0].At = ""
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Mystery Trader #1", Warp: 5}}
+	s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 5000}
+	s.Players[0].Player = NewPlayer(1, NewRace())
+	s.Players[0].Player.AcquiredTechs = map[string]bool{AntiMatterTorpedo.Name: true}
+	u := newTestUniverse(t, s)
+	game := u.Game
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{}
+	fleet, player := u.Fleet("Long Range Scout #1"), u.Player(1)
 
 	// meet mystery trader
-	turn.mysteryTraderMeet()
+	u.RunE((*turnGenerator).mysteryTraderMeet)
 
 	// fleet should be deleted, player gained an additional tech
 	assert.Equal(t, true, fleet.Delete)
@@ -2804,30 +1966,28 @@ func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{100, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardLifeboat,
+		},
+	}
+	s.Players[0].Fleets[0].At = ""
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Mystery Trader #1", Warp: 5}}
+	s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 5000}
+	s.Players[0].Player = NewPlayer(1, NewRace())
+	u := newTestUniverse(t, s)
+	game := u.Game
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom()
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardLifeboat))
-	mt := game.MysteryTraders[0]
-
-	fleet := game.Fleets[0]
-	player := game.Players[0]
-	player.TechLevels = TechLevel{}
-
-	// meet up
-	fleet.Position = mt.Position
-	fleet.Cargo = Cargo{5000, 0, 0, 0}
-	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-
-	turn.game.Universe.buildMaps(game.Players)
+	fleet, player := u.Fleet("Long Range Scout #1"), u.Player(1)
 
 	// meet mystery trader
-	turn.mysteryTraderMeet()
+	u.RunE((*turnGenerator).mysteryTraderMeet)
 
 	// fleet should be deleted, player gained tech
 	assert.Equal(t, true, fleet.Delete)
@@ -2847,31 +2007,28 @@ func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	game.RandomEvents = true
-	game.Rules.random = &testRandom{} // test random always rolls 0 by default
-	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
-	mt := game.MysteryTraders[0]
-
-	fleet := game.Fleets[0]
-	player := game.Players[0]
-
-	// the player has already met this trader
-	mt.PlayersRewarded[player.Num] = true
-
-	// meet up
-	fleet.Position = mt.Position
-	fleet.Cargo = Cargo{5000, 0, 0, 0}
-	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{100, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardTorpedo,
+		},
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	s.Players[0].Fleets[0].At = ""
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Mystery Trader #1", Warp: 5}}
+	s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 5000}
+	s.MysteryTraders[0].PlayersRewarded = map[int]bool{1: true}
+	u := newTestUniverse(t, s)
+	game := u.Game
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{}
+	fleet, player := u.Fleet("Long Range Scout #1"), u.Player(1)
 
 	// meet mystery trader
-	turn.mysteryTraderMeet()
+	u.RunE((*turnGenerator).mysteryTraderMeet)
 
 	// fleet should be deleted, player gained tech
 	assert.Equal(t, PlayerMessageMysteryTraderAlreadyRewarded, player.Messages[0].Type)
@@ -2880,26 +2037,15 @@ func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
 }
 
 func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
-	game := BuildScenario(SingleUnitScenario())
-	planet := game.Planets[0]
-	game.Rules.MysteryTraderRules.GenesisDeviceCost = Cost{0, 0, 0, 100}
-
-	// build a genesis device
-	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeGenesisDevice, Quantity: 1})
-	planet.Cargo = Mineral{1000, 1000, 1000}.ToCargo()
-	planet.setPopulation(1_000_000)
-	planet.Defenses = 100
-	planet.Mines = 1000
-	planet.Factories = 1000
-
-	turn := turnGenerator{
-		log:  testLogger,
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
+	s := SingleUnitScenario()
+	s.Planets[0].Cargo = Cargo{1000, 1000, 1000, 10000}
+	s.Planets[0].Defenses, s.Planets[0].Mines, s.Planets[0].Factories = 100, 1000, 1000
+	s.Planets[0].ProductionQueue = []ScenarioProductionQueueItem{{Type: QueueItemTypeGenesisDevice, Quantity: 1}}
+	u := newTestUniverse(t, s)
+	u.Game.Rules.MysteryTraderRules.GenesisDeviceCost = Cost{0, 0, 0, 100}
 
 	// generate a turn to build a starbase
-	turn.generateTurn()
+	u.GenerateTurn()
 
 	// should have an upgraded starbase at the planet, and the other should be
 	// marked for deletion

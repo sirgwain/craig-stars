@@ -4,6 +4,7 @@ package cs
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 
 	"log/slog"
@@ -28,15 +29,7 @@ func testStalwartDefenderWithQuantity(player *Player, quantity int) *Fleet {
 				Quantity:  quantity,
 				design: NewShipDesign(player.Num, 1).
 					WithHull(Destroyer.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: BetaTorpedo.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: XRayLaser.Name, HullSlotIndex: 3, Quantity: 1},
-						{HullComponent: RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
-						{HullComponent: Crobmnium.Name, HullSlotIndex: 5, Quantity: 1},
-						{HullComponent: Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
-						{HullComponent: BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
-					}).
+					WithSlots(slices.Clone(DesignStalwartDefender.Slots)).
 					WithSpec(&rules, player)},
 		},
 		battlePlan:        &player.BattlePlans[0],
@@ -52,44 +45,6 @@ func testStalwartDefenderWithQuantity(player *Player, quantity int) *Fleet {
 	return fleet
 }
 
-func testJihadCruiser(player *Player) *Fleet {
-	fleet := &Fleet{
-		MapObject: MapObject{
-			Type:      MapObjectTypeFleet,
-			PlayerNum: player.Num,
-		},
-		BaseName: "Jihad Cruiser",
-		Tokens: []ShipToken{
-			{
-				DesignNum: 1,
-				Quantity:  1,
-				design: NewShipDesign(player.Num, 1).
-					WithHull(Cruiser.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 2},
-						{HullComponent: Overthruster.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: BattleNexus.Name, HullSlotIndex: 3, Quantity: 1},
-						{HullComponent: JihadMissile.Name, HullSlotIndex: 4, Quantity: 2},
-						{HullComponent: JihadMissile.Name, HullSlotIndex: 5, Quantity: 2},
-						{HullComponent: ElephantScanner.Name, HullSlotIndex: 6, Quantity: 2},
-						{HullComponent: Kelarium.Name, HullSlotIndex: 5, Quantity: 2},
-					}).
-					WithSpec(&rules, player)},
-		},
-		battlePlan:        &player.BattlePlans[0],
-		OrbitingPlanetNum: None,
-		FleetOrders: FleetOrders{
-			Waypoints: []Waypoint{
-				NewPositionWaypoint(Vector{}, 5),
-			},
-		},
-	}
-	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-	fleet.Fuel = fleet.Spec.FuelCapacity
-	return fleet
-}
-
-// create a new small freighter (with cargo pod) fleet for testing
 func testPrivateer(player *Player, quantity int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
@@ -103,13 +58,7 @@ func testPrivateer(player *Player, quantity int) *Fleet {
 				DesignNum: 1,
 				design: NewShipDesign(player.Num, 1).
 					WithHull(Privateer.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: CargoPod.Name, HullSlotIndex: 3, Quantity: 1},
-						{HullComponent: CargoPod.Name, HullSlotIndex: 4, Quantity: 1},
-						{HullComponent: CargoPod.Name, HullSlotIndex: 5, Quantity: 1},
-					}).
+					WithSlots(slices.Clone(DesignPrivateer.Slots)).
 					WithSpec(&rules, player)},
 		},
 		battlePlan:        &player.BattlePlans[0],

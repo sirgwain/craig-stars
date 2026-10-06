@@ -32,14 +32,26 @@ func Test_getScanners(t *testing.T) {
 		{"Single Long Range Scout", args{fleets: []*Fleet{testLongRangeScout(player).withPlayerNum(1)}}, []scanner{
 			{Range: 66, RangePen: 30, CloakReductionFactor: 1},
 		}},
-		{"Planet and Scout same position", args{planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)}, fleets: []*Fleet{testLongRangeScout(player).withPlayerNum(1)}}, []scanner{
+		{"Planet and Scout same position", args{
+			planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)},
+			fleets:  []*Fleet{testLongRangeScout(player).withPlayerNum(1)},
+		}, []scanner{
 			{Range: 150, RangePen: 30, CloakReductionFactor: 1},
 		}},
-		{"Planet and Scout, diff position", args{planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)}, fleets: []*Fleet{testLongRangeScout(player).withPlayerNum(1).withPosition(Vector{1, 1})}}, []scanner{
+		{"Planet and Scout, diff position", args{
+			planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)},
+			fleets:  []*Fleet{testLongRangeScout(player).withPlayerNum(1).withPosition(Vector{1, 1})},
+		}, []scanner{
 			{Range: 150, RangePen: 0, CloakReductionFactor: 1},
 			{Range: 66, RangePen: 30, Position: Vector{1, 1}, CloakReductionFactor: 1},
 		}},
-		{"Planet and two fleets, diff position", args{planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)}, fleets: []*Fleet{testLongRangeScout(player).withPlayerNum(1).withPosition(Vector{1, 1}), testSmallFreighter(player).withPlayerNum(1).withPosition(Vector{1, 1})}}, []scanner{
+		{"Planet and two fleets, diff position", args{
+			planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)},
+			fleets: []*Fleet{
+				testLongRangeScout(player).withPlayerNum(1).withPosition(Vector{1, 1}),
+				testSmallFreighter(player).withPlayerNum(1).withPosition(Vector{1, 1}),
+			},
+		}, []scanner{
 			{Range: 150, RangePen: 0, CloakReductionFactor: 1},
 			{Range: 66, RangePen: 30, Position: Vector{1, 1}, CloakReductionFactor: 1},
 		}},
@@ -76,10 +88,26 @@ func Test_getStargateScanners(t *testing.T) {
 		args args
 		want []scanner
 	}{
-		{"Single Planet, starbase with no gate", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithSpec(&rules))}, []scanner{}},
-		{"Single Planet, starbase with 100/250 gate, not IT", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithSpec(&rules)), stargate: &Stargate100_250}, []scanner{}},
-		{"Single Planet, starbase with 100/250 gate, IT", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)), stargate: &Stargate100_250}, []scanner{{RangePen: 250, CloakReductionFactor: 1}}},
-		{"Single Planet, starbase with 100/any gate, IT", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)), stargate: &Stargate100_Any}, []scanner{{RangePen: math.MaxInt16, CloakReductionFactor: 1}}},
+		{
+			"Single Planet, starbase with no gate",
+			args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithSpec(&rules))},
+			[]scanner{},
+		},
+		{
+			"Single Planet, starbase with 100/250 gate, not IT",
+			args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithSpec(&rules)), stargate: &Stargate100_250},
+			[]scanner{},
+		},
+		{
+			"Single Planet, starbase with 100/250 gate, IT",
+			args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)), stargate: &Stargate100_250},
+			[]scanner{{RangePen: 250, CloakReductionFactor: 1}},
+		},
+		{
+			"Single Planet, starbase with 100/any gate, IT",
+			args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)), stargate: &Stargate100_Any},
+			[]scanner{{RangePen: math.MaxInt16, CloakReductionFactor: 1}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -123,11 +151,51 @@ func Test_fleetInScannerRange(t *testing.T) {
 		args args
 		want bool
 	}{
-		{"fleet at 0, 0 in scan range with 0 range scanner", args{player, testLongRangeScout(player).withPosition(Vector{0, 0}), scanner{Range: 0, RangePen: NoScanner, CloakReductionFactor: 1}}, true},
-		{"fleet at 30, 0 in scan range with 30 range scanner", args{player, testLongRangeScout(player).withPosition(Vector{30, 0}), scanner{Range: 30, RangePen: NoScanner, CloakReductionFactor: 1}}, true},
-		{"fleet at 31, 0 not in scan range with 30 range scanner", args{player, testLongRangeScout(player).withPosition(Vector{31, 0}), scanner{Range: 30, RangePen: NoScanner, CloakReductionFactor: 1}}, false},
-		{"35% cloaked fleet at 66, 0 not in scan range with 100 range scanner", args{player, testCloakedScout(player).withPosition(Vector{66, 0}), scanner{Range: 100, RangePen: NoScanner, CloakReductionFactor: 1}}, false},
-		{"35% cloaked fleet at 65, 0 in scan range with 100 range scanner", args{player, testCloakedScout(player).withPosition(Vector{65, 0}), scanner{Range: 100, RangePen: NoScanner, CloakReductionFactor: 1}}, true},
+		{
+			"fleet at 0, 0 in scan range with 0 range scanner",
+			args{
+				player,
+				testLongRangeScout(player).withPosition(Vector{0, 0}),
+				scanner{Range: 0, RangePen: NoScanner, CloakReductionFactor: 1},
+			},
+			true,
+		},
+		{
+			"fleet at 30, 0 in scan range with 30 range scanner",
+			args{
+				player,
+				testLongRangeScout(player).withPosition(Vector{30, 0}),
+				scanner{Range: 30, RangePen: NoScanner, CloakReductionFactor: 1},
+			},
+			true,
+		},
+		{
+			"fleet at 31, 0 not in scan range with 30 range scanner",
+			args{
+				player,
+				testLongRangeScout(player).withPosition(Vector{31, 0}),
+				scanner{Range: 30, RangePen: NoScanner, CloakReductionFactor: 1},
+			},
+			false,
+		},
+		{
+			"35% cloaked fleet at 66, 0 not in scan range with 100 range scanner",
+			args{
+				player,
+				testCloakedScout(player).withPosition(Vector{66, 0}),
+				scanner{Range: 100, RangePen: NoScanner, CloakReductionFactor: 1},
+			},
+			false,
+		},
+		{
+			"35% cloaked fleet at 65, 0 in scan range with 100 range scanner",
+			args{
+				player,
+				testCloakedScout(player).withPosition(Vector{65, 0}),
+				scanner{Range: 100, RangePen: NoScanner, CloakReductionFactor: 1},
+			},
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -156,7 +224,7 @@ func Test_updateFleetTargets(t *testing.T) {
 			args: args{fleetPosition: Vector{0, 0}, targetPosition: Vector{10, 0}},
 			want: []Waypoint{
 				NewPositionWaypoint(Vector{}, warpSpeed),
-				NewFleetWaypoint(Vector{10, 0}, 1, 2, "", warpSpeed),
+				NewFleetWaypoint(Vector{10, 0}, 1, 2, "Target", warpSpeed),
 			},
 		},
 		{
@@ -177,32 +245,24 @@ func Test_updateFleetTargets(t *testing.T) {
 	}
 	for _, tt := range tests {
 
-		game := BuildScenario(SingleUnitScenario())
-		player := game.Players[0]
-		fleet := game.Fleets[0]
-
-		// create a new enemy player with a fleet at targetPosition
-		enemyPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
-		enemyFleet := testLongRangeScout(enemyPlayer)
-		enemyFleet.Position = tt.args.targetPosition
-		game.Players = append(game.Players, enemyPlayer)
-		game.Fleets = append(game.Fleets, enemyFleet)
-
-		player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-		enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-		player.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
-		enemyPlayer.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
-		// setup initial planet intels so turn generation works
-		enemyPlayer.initDefaultPlanetIntels(game.Planets)
-
-		// target the enemty fleet
-		fleet.Waypoints = []Waypoint{
-			NewPositionWaypoint(tt.args.fleetPosition, 5),
-			NewFleetWaypoint(enemyFleet.Position, enemyFleet.Num, enemyFleet.PlayerNum, enemyFleet.Name, 5),
-		}
-
 		t.Run(tt.name, func(t *testing.T) {
+			s := SingleUnitScenario()
+			s.Players = append(s.Players, ScenarioPlayer{
+				Designs: Designs(DesignLongRangeScout),
+				Fleets:  []ScenarioFleet{{Name: "Target", Design: "Long Range Scout", Position: tt.args.targetPosition}},
+			})
+			u := newTestUniverse(t, s)
+			game, player, fleet, enemyFleet := u.Game, u.Player(1), u.Fleet("Long Range Scout #1"), u.Fleet("Target")
+
+			// target the enemty fleet
+			fleet.Waypoints = []Waypoint{
+				NewPositionWaypoint(tt.args.fleetPosition, 5),
+				NewFleetWaypoint(enemyFleet.Position, enemyFleet.Num, enemyFleet.PlayerNum, enemyFleet.Name, 5),
+			}
+
 			enemyFleet.Delete = tt.args.targetDestroyed
+			game.buildMaps(game.Players)
+			player.clearTransientIntel()
 			scan := newPlayerScanner(game.Universe, game.Players, &game.Rules, player)
 			scan.scan()
 			// check the waypoints returned vs what we want
@@ -213,39 +273,18 @@ func Test_updateFleetTargets(t *testing.T) {
 }
 
 func Test_scanPlanetWithStargates(t *testing.T) {
-	game := BuildScenario(TwoPlayerScenario())
-	// setup a player1 and a  planet with a starbase with a scanner
-	player1 := game.Players[0]
-	planet1 := game.Planets[0]
-
-	// make player1 an IT
-	player1.Race.PRT = IT
-	player1.Race.Spec = ComputeRaceSpec(&player1.Race, &rules)
-
-	// add a stargate to the space station
-	starbase1 := testSpaceStation(player1, planet1)
-	design1 := starbase1.Tokens[0].design
-	design1.Slots = append(design1.Slots, ShipDesignSlot{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1})
-	design1.Spec, _ = ComputeShipDesignSpec(&rules, player1.TechLevels, player1.Race.Spec, design1)
-	starbase1.Spec = ComputeFleetSpec(&rules, player1, starbase1)
-
-	planet1.Starbase = starbase1
-	planet1.Spec = ComputePlanetSpec(&rules, player1, planet1)
-
-	// create a second player/planet
-	player2 := game.Players[1]
-	planet2 := game.Planets[1]
-	// add a stargate to the second space station
-	starbase2 := testSpaceStation(player2, planet2)
-	design2 := starbase2.Tokens[0].design
-	design2.Slots = append(design2.Slots, ShipDesignSlot{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1})
-	design2.Spec, _ = ComputeShipDesignSpec(&rules, player2.TechLevels, player2.Race.Spec, design2)
-	starbase2.Spec = ComputeFleetSpec(&rules, player2, starbase1)
-
-	planet2.Starbase = starbase1
-	planet2.Spec = ComputePlanetSpec(&rules, player2, planet2)
-
-	scan := playerScanner{game.Universe, &rules, player1, game.Players, make(map[int]bool), newDiscoverer(testLogger, player1)}
+	gatedStation := Designs(DesignSpaceStation)[0] // copy, so the preset is untouched
+	gatedStation.Slots = append(gatedStation.Slots, ShipDesignSlot{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1})
+	u := newTestUniverse(t, TestScenario{
+		Players: []ScenarioPlayer{{Player: NewPlayer(1, NewRace().WithPRT(IT)), Designs: Designs(gatedStation)}, {Designs: Designs(gatedStation)}},
+		Planets: []ScenarioPlanet{
+			{Name: "Planet 1", Owner: 1, Starbase: gatedStation.Name, Cargo: Cargo{Colonists: 2500}},
+			{Name: "Planet 2", Owner: 2, Starbase: gatedStation.Name, Position: Vector{500, 500}, Cargo: Cargo{Colonists: 2500}},
+		},
+	})
+	game, player1, planet2 := u.Game, u.Player(1), u.Planet("Planet 2")
+	starbase2 := planet2.Starbase
+	scan := playerScanner{game.Universe, &game.Rules, player1, game.Players, make(map[int]bool), newDiscoverer(testLogger, player1)}
 
 	// first test a faraway planet
 	planet2.Position = Vector{500, 500}
@@ -312,18 +351,17 @@ func Test_scanWormholes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1, NewRace().WithSpec(&rules))
+			scenario := TestScenario{Players: []ScenarioPlayer{{}}}
+			for _, wormhole := range tt.fields.wormholes {
+				scenario.Wormholes = append(scenario.Wormholes, *wormhole)
+			}
+			u := newTestUniverse(t, scenario)
+			player, players, universe := u.Player(1), u.Game.Players, u.Game.Universe
 			player.WormholeIntels = tt.fields.intel
-
-			players := []*Player{player}
-
-			universe := NewUniverse(testLogger, &rules)
-			universe.Wormholes = tt.fields.wormholes
-			universe.buildMaps(players)
 
 			// make a new scanner
 			discoverer := newDiscoverer(testLogger, player)
-			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.Intels.PlayerIntels)), discoverer}
+			scan := playerScanner{universe, &rules, player, players, make(map[int]bool, len(player.Intels.PlayerIntels)), discoverer}
 			scan.scanWormholes(tt.args.scanners)
 
 			// check the waypoints returned vs what we want
@@ -367,24 +405,40 @@ func Test_playerScan_fleetInScannerRange(t *testing.T) {
 		},
 		{
 			name: "cloaked",
-			args: args{fleetPosition: Vector{10, 0}, fleetCloak: 50, scanner: scanner{Position: Vector{}, RangePen: 10, CloakReductionFactor: 1}},
+			args: args{
+				fleetPosition: Vector{10, 0},
+				fleetCloak:    50,
+				scanner:       scanner{Position: Vector{}, RangePen: 10, CloakReductionFactor: 1},
+			},
 			want: false,
 		},
 		{
 			name: "cloaked but in range",
-			args: args{fleetPosition: Vector{5, 0}, fleetCloak: 50, scanner: scanner{Position: Vector{}, RangePen: 10, CloakReductionFactor: 1}},
+			args: args{
+				fleetPosition: Vector{5, 0},
+				fleetCloak:    50,
+				scanner:       scanner{Position: Vector{}, RangePen: 10, CloakReductionFactor: 1},
+			},
 			want: true,
 		},
 		{
 			name: "cloaked with tachyon scanner",
 			// 1 tachyon + 55% cloak is 52.25% effective cloaking, 47 dist is just in range
-			args: args{fleetPosition: Vector{47, 0}, fleetCloak: 55, scanner: scanner{Position: Vector{}, RangePen: 100, CloakReductionFactor: math.Pow(.95, math.Sqrt(1))}},
+			args: args{
+				fleetPosition: Vector{47, 0},
+				fleetCloak:    55,
+				scanner:       scanner{Position: Vector{}, RangePen: 100, CloakReductionFactor: math.Pow(.95, math.Sqrt(1))},
+			},
 			want: true,
 		},
 		{
 			name: "cloaked with tachyon scanner, JUST out of range",
 			// 1 tachyon + 55% cloak is 52.25% effective cloaking, 48 dist is just out of range
-			args: args{fleetPosition: Vector{48, 0}, fleetCloak: 55, scanner: scanner{Position: Vector{}, RangePen: 100, CloakReductionFactor: math.Pow(.95, math.Sqrt(1))}},
+			args: args{
+				fleetPosition: Vector{48, 0},
+				fleetCloak:    55,
+				scanner:       scanner{Position: Vector{}, RangePen: 100, CloakReductionFactor: math.Pow(.95, math.Sqrt(1))},
+			},
 			want: false,
 		},
 	}
@@ -453,18 +507,17 @@ func Test_scanMinefields(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1, NewRace().WithSpec(&rules))
+			scenario := TestScenario{Players: []ScenarioPlayer{{}, {}}}
+			for _, minefield := range tt.fields.minefields {
+				scenario.Players[1].Minefields = append(scenario.Players[1].Minefields, *minefield)
+			}
+			u := newTestUniverse(t, scenario)
+			player, players, universe := u.Player(1), u.Game.Players, u.Game.Universe
 			player.MinefieldIntels = tt.fields.intel
-
-			players := []*Player{player}
-
-			universe := NewUniverse(testLogger, &rules)
-			universe.Minefields = tt.fields.minefields
-			universe.buildMaps(players)
 
 			// make a new scanner
 			discoverer := newDiscoverer(testLogger, player)
-			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.Intels.PlayerIntels)), discoverer}
+			scan := playerScanner{universe, &rules, player, players, make(map[int]bool, len(player.Intels.PlayerIntels)), discoverer}
 			scan.scanMinefields(tt.args.scanners)
 
 			// check the waypoints returned vs what we want

@@ -84,7 +84,7 @@ func Test_checkForMinefieldCollision_Hit(t *testing.T) {
 
 	// make the speed minefield allow speed 5, 25% hit chance per warp
 	// we'll go warp 9 to guarantee a hit
-	rules := NewRules()
+	rules := NewRulesWithSeed(0)
 	stats := MinefieldStats{
 		MaxSpeed:    5,
 		ChanceOfHit: .25,

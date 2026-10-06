@@ -4,6 +4,7 @@ package cs
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -22,14 +23,7 @@ func testSpaceStation(player *Player, planet *Planet) *Fleet {
 				Quantity:  1,
 				design: NewShipDesign(player.Num, 1).
 					WithHull(SpaceStation.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
-						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
-						{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
-						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
-						{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
-						{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
-					}).
+					WithSlots(slices.Clone(DesignSpaceStation.Slots)).
 					WithSpec(&rules, player)},
 		},
 		battlePlan: &player.BattlePlans[0],
@@ -55,7 +49,7 @@ func testDeathStar(player *Player, planet *Planet) *Fleet {
 				Quantity:  1,
 				design: NewShipDesign(player.Num, 1).
 					WithHull(DeathStar.Name).
-					WithSlots([]ShipDesignSlot{}).
+					WithSlots(slices.Clone(DesignDeathStar.Slots)).
 					WithSpec(&rules, player)},
 		},
 		battlePlan: &player.BattlePlans[0],
@@ -358,7 +352,7 @@ func TestPlanet_randomize(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.planet
-			r := NewRules()
+			r := NewRulesWithSeed(0)
 			r.HabDropoffRange = tt.fields.habDropoff
 			r.MinHab = tt.fields.minHab
 			r.MaxHab = tt.fields.maxHab

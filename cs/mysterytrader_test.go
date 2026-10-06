@@ -55,7 +55,7 @@ func Test_generateRandomMysteryTraderCoords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rules := NewRules()
+			rules := NewRulesWithSeed(0)
 			rules.random = tt.args.rng
 			game := Game{Area: tt.args.area}
 			if gotCoords := generateRandomMysteryTraderCoords(&rules, &game); !reflect.DeepEqual(gotCoords, tt.wantCoords) {
@@ -83,7 +83,7 @@ func Test_generateRandomMysteryTraderDestination(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rules := NewRules()
+			rules := NewRulesWithSeed(0)
 			rules.random = tt.args.rng
 			game := Game{Area: tt.args.area}
 			if gotCoords := generateRandomMysteryTraderDestination(&rules, &game, tt.args.position); !reflect.DeepEqual(gotCoords, tt.wantCoords) {
@@ -232,7 +232,7 @@ func Test_generateMysteryTraderReward(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rules := NewRules()
+			rules := NewRulesWithSeed(0)
 			rules.random = &tt.args.rng
 			if got := generateMysteryTraderReward(&rules, tt.args.year, tt.args.warpSpeed); got != tt.want {
 				t.Errorf("generateMysteryTraderReward() = %v, want %v", got, tt.want)

@@ -10,11 +10,13 @@ import (
 
 func Test_victory_checkForVictor(t *testing.T) {
 	// create a game with 2 planets
-	game := BuildScenario(SingleUnitScenario())
-	game.Planets = append(game.Planets, NewPlanet().WithNum(2))
+	s := SingleUnitScenario()
+	s.Planets = append(s.Planets, ScenarioPlanet{Name: "Planet 2"})
+	u := newTestUniverse(t, s)
+	game := u.Game
 
 	// we own one planet and one fleet
-	player := game.Players[0]
+	player := u.Player(1)
 	player.ScoreHistory = []PlayerScore{{
 		Planets:      1,
 		UnarmedShips: 1,
@@ -42,22 +44,18 @@ func Test_victory_checkForVictor(t *testing.T) {
 }
 
 func Test_victory_checkForVictorExceedsSecondPlaceScore(t *testing.T) {
-	// create a game with 2 planets
-	game := BuildScenario(SingleUnitScenario())
-	player1 := game.Players[0]
-
-	// create a new player with a lower score
-	player2 := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
-	game.Players = append(game.Players, player2)
-	player3 := NewPlayer(3, NewRace().WithSpec(&rules)).WithNum(3).withSpec(&rules)
-	game.Players = append(game.Players, player3)
-
-	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
-	player3.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
-	player1.Intels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2, player3})
-	player2.Intels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player1, player2, player3})
-	player3.Intels.PlayerIntels = player3.defaultPlayerIntels([]*Player{player1, player2, player3})
+	u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
+		{
+			Relations: []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}},
+		},
+		{
+			Relations: []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}},
+		},
+		{
+			Relations: []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}},
+		},
+	}, Planets: []ScenarioPlanet{{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 2500}}}})
+	game, player1, player2, player3 := u.Game, u.Player(1), u.Player(2), u.Player(3)
 
 	// we own one planet and one fleet
 	player1.ScoreHistory = []PlayerScore{{

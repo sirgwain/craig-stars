@@ -34,7 +34,7 @@ func Test_techTrade_techLevelGained(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &techTrade{}
-			rules := NewRules()
+			rules := NewRulesWithSeed(0)
 			rules.random = tt.rng
 			if got := tr.techLevelGained(&rules, tt.args.current, tt.args.target); got != tt.want {
 				t.Errorf("techTrade.techLevelGained() = %v, want %v", got, tt.want)
@@ -204,7 +204,7 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &techTrade{}
-			rules := NewRules()
+			rules := NewRulesWithSeed(0)
 			player := NewPlayer(1, NewRace())
 			player.acquirablePartGained = tt.acquiredTech
 			for _, t := range tt.acquiredTechs {
@@ -267,7 +267,7 @@ func Test_checkAcquirablePartChance(t *testing.T) {
 		{name: "50 parts; fail -> success", qty: 50, rng: newFloat64Random(1, 0.125), want: true},
 	}
 	for _, tt := range tests {
-		rules := NewRules()
+		rules := NewRulesWithSeed(0)
 		rules.random = tt.rng
 		t.Run(tt.name, func(t *testing.T) {
 			if got := checkAcquirablePartChance(&rules, tt.qty); got != tt.want {
