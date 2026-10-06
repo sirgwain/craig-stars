@@ -50,7 +50,9 @@ test('Mystery Trader Test', async ({ testGamePage }) => {
 	// all other freighters should have been absorbed
 	expect(updatedUniverse?.fleets.length).toBe(1);
 	const rewardFleet = updatedUniverse?.fleets[0];
-	const rewardDesign = updatedUniverse?.designs.find((design) => design.num === rewardFleet?.tokens[0].designNum);
+	const rewardDesign = updatedUniverse?.designs.find(
+		(design) => design.num === rewardFleet?.tokens[0].designNum
+	);
 	expect(rewardDesign?.mysteryTrader).toBe(true);
 
 	// should have messages for various mystery trader meetups

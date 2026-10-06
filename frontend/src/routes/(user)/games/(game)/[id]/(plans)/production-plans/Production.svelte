@@ -7,7 +7,7 @@
 	} from '$lib/types/cs-proto';
 	import type { DesignFinder } from '$lib/services/Universe';
 	import { getQueueItemShortName } from '$lib/types/Planet';
-	import { isAuto } from '$lib/types/QueueItemType';
+	import { getAutoAlchemyDescription, hasQuantity, isAuto } from '$lib/types/QueueItemType';
 	import { create } from '@bufbuild/protobuf';
 	import ProductionItemsButtons from './ProductionItemsButtons.svelte';
 	import { planItemFromQueueItemType } from '$lib/types/Player';
@@ -64,10 +64,12 @@
 			return;
 		}
 
-		const quantity = quantityModifier;
+		const quantity = hasQuantity(item.type) ? quantityModifier : 1;
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type === item.type && selectedQueueItem.designNum === item.designNum) {
-				selectedQueueItem.quantity += quantity;
+				selectedQueueItem.quantity = hasQuantity(item.type)
+					? selectedQueueItem.quantity + quantity
+					: 1;
 			} else {
 				// insert a new item
 				queueItems.splice(
@@ -85,7 +87,7 @@
 		} else {
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
 			if (nextItem && nextItem.type === item.type && nextItem.designNum == item.designNum) {
-				nextItem.quantity++;
+				nextItem.quantity = hasQuantity(item.type) ? nextItem.quantity + quantity : 1;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
 			} else {
@@ -109,7 +111,9 @@
 
 	function removeItem() {
 		if (selectedQueueItem) {
-			selectedQueueItem.quantity -= quantityModifier;
+			selectedQueueItem.quantity = hasQuantity(selectedQueueItem.type)
+				? selectedQueueItem.quantity - quantityModifier
+				: 0;
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
@@ -203,6 +207,9 @@
 						<button
 							type="button"
 							onclick={() => queueItemClicked(index, queueItem)}
+							title={!hasQuantity(queueItem.type)
+								? getAutoAlchemyDescription(index < queueItems.length - 1)
+								: undefined}
 							class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ===
 							index
 								? 'bg-primary'
@@ -213,7 +220,7 @@
 									{queueItemDescription(queueItem, designFinder)}
 								</div>
 								<div>
-									{queueItem.quantity}
+									{#if hasQuantity(queueItem.type)}{queueItem.quantity}{/if}
 								</div>
 							</div>
 						</button>

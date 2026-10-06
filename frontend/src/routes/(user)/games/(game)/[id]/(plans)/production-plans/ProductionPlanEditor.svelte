@@ -39,6 +39,10 @@
 
 <!-- edit production -->
 <Production {designFinder} {availableItems} bind:queueItems={items} />
+<p class="my-2 text-sm">
+	Automatic alchemy before another order creates minerals as needed for that order. At the end of
+	the queue, it continuously converts remaining resources.
+</p>
 <div class="w-1/2 mr-14">
 	<label>
 		<input

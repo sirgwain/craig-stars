@@ -227,7 +227,7 @@ func ProductivePopulation(pop, maxPop int, overcrowdPenalty, overcrowdResourceMa
 // return true if this planet is able to build a ship with the given mass;
 // cost of ship not considered
 func (p *Planet) CanBuild(mass int) bool {
-	return p.Spec.HasStarbase && (p.Starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.Starbase.Spec.SpaceDock >= mass)
+	return p.Spec.HasStarbase && (p.Spec.DockCapacity == UnlimitedSpaceDock || p.Spec.DockCapacity >= mass)
 }
 
 // populate a starbase design for a planet
@@ -582,13 +582,16 @@ func ComputePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	if !race.Spec.InnateMining {
 		spec.MaxMines = getMaxInstallations(player.Race.NumMines, installationPop)
-		spec.MaxPossibleMines = spec.MaxPopulation * race.NumMines / 10000
+		spec.MaxPossibleMines = max(rules.MinMines, spec.MaxPopulation*race.NumMines/10000)
 	} else {
 		spec.MaxMines = planet.Mines
 	}
 
 	// Compute resources per year and mining output
 	spec.ComputeResourcesPerYear(player, planet.Factories, productivePop, installationPop)
+	if !race.Spec.InnateResources {
+		spec.MaxPossibleFactories = max(rules.MinFactories, spec.MaxPossibleFactories)
+	}
 	spec.MiningOutput = planet.getMineralOutput(rules, min(spec.MaxMines, planet.Mines), race.MineOutput)
 	spec.computeResourcesPerYearAvailable(player, planet)
 
@@ -753,9 +756,6 @@ func (planet *Planet) MaxBuildable(player *Player, itemType QueueItemType) int {
 			return 0
 		}
 		return 1
-	// TODO: Enable once auto alchemy gets fixed
-	/* case QueueItemTypeAutoMineralAlchemy:
-	return 1 */
 	default:
 		return Infinite
 	}

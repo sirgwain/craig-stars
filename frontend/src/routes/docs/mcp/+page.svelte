@@ -55,8 +55,8 @@ client_id = "codex"
 		<section class="flex flex-col gap-3">
 			<h2 class="text-xl font-semibold">Claude Code</h2>
 			<p class="text-base-content/75">
-				Add an HTTP MCP server named <code>craig-stars</code> with the hosted URL. When Claude asks
-				to authenticate, complete the browser sign-in and return to Claude Code.
+				Add an HTTP MCP server named <code>craig-stars</code> with the hosted URL. When Claude asks to
+				authenticate, complete the browser sign-in and return to Claude Code.
 			</p>
 			<div class="mockup-code text-sm">
 				<pre><code>{claudeAddCommand}</code></pre>

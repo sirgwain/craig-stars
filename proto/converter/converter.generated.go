@@ -818,6 +818,8 @@ func (c *ProtoConverter) ConvertCSRules(source *cs.Rules) *v1.Rules {
 		craig_starsv1Rules.WormholeCloak = IntToInt32((*source).WormholeCloak)
 		craig_starsv1Rules.WormholePairsForSize = SizeMapToIntMap(c, (*source).WormholePairsForSize)
 		craig_starsv1Rules.WormholeStatsByStability = WormholeStabilityMapToIntMap(c, (*source).WormholeStatsByStability)
+		craig_starsv1Rules.MinFactories = IntToInt32((*source).MinFactories)
+		craig_starsv1Rules.MinMines = IntToInt32((*source).MinMines)
 		pCraig_starsv1Rules = &craig_starsv1Rules
 	}
 	return pCraig_starsv1Rules
@@ -1949,6 +1951,8 @@ func (c *ProtoConverter) ConvertRules(source *v1.Rules) *cs.Rules {
 			}
 		}
 		csRules.MaxPopulation = Int32ToInt((*source).MaxPopulation)
+		csRules.MinFactories = Int32ToInt((*source).MinFactories)
+		csRules.MinMines = Int32ToInt((*source).MinMines)
 		csRules.MinPopFloor = Int32ToInt((*source).MinPopFloor)
 		csRules.MaxTechLevel = Int32ToInt((*source).MaxTechLevel)
 		csRules.MinefieldCloak = Int32ToInt((*source).MinefieldCloak)

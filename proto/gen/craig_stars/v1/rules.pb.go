@@ -1066,6 +1066,8 @@ type Rules struct {
 	WormholeCloak                      int32                     `protobuf:"varint,56,opt,name=wormhole_cloak,json=wormholeCloak,proto3" json:"wormhole_cloak,omitempty"`
 	WormholePairsForSize               map[int32]int32           `protobuf:"bytes,57,rep,name=wormhole_pairs_for_size,json=wormholePairsForSize,proto3" json:"wormhole_pairs_for_size,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`            // Size enum/spec definition needed
 	WormholeStatsByStability           map[int32]*WormholeStats  `protobuf:"bytes,58,rep,name=wormhole_stats_by_stability,json=wormholeStatsByStability,proto3" json:"wormhole_stats_by_stability,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // WormholeStability enum/spec definition needed
+	MinFactories                       int32                     `protobuf:"varint,59,opt,name=min_factories,json=minFactories,proto3" json:"min_factories,omitempty"`
+	MinMines                           int32                     `protobuf:"varint,60,opt,name=min_mines,json=minMines,proto3" json:"min_mines,omitempty"`
 	unknownFields                      protoimpl.UnknownFields
 	sizeCache                          protoimpl.SizeCache
 }
@@ -1506,6 +1508,20 @@ func (x *Rules) GetWormholeStatsByStability() map[int32]*WormholeStats {
 	return nil
 }
 
+func (x *Rules) GetMinFactories() int32 {
+	if x != nil {
+		return x.MinFactories
+	}
+	return 0
+}
+
+func (x *Rules) GetMinMines() int32 {
+	if x != nil {
+		return x.MinMines
+	}
+	return 0
+}
+
 var File_craig_stars_v1_rules_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_rules_proto_rawDesc = "" +
@@ -1593,7 +1609,7 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	" \x01(\x05R\aminWarp\x12\x19\n" +
 	"\bmin_year\x18\v \x01(\x05R\aminYear\x12%\n" +
 	"\x0erequested_boon\x18\f \x01(\x05R\rrequestedBoon\x12G\n" +
-	"\ttech_boon\x18\r \x03(\v2*.craig_stars.v1.MysteryTraderTechBoonRulesR\btechBoon\"\x90\"\n" +
+	"\ttech_boon\x18\r \x03(\v2*.craig_stars.v1.MysteryTraderTechBoonRulesR\btechBoon\"\xd2\"\n" +
 	"\x05Rules\x128\n" +
 	"\n" +
 	"cost_rules\x18\x01 \x01(\v2\x19.craig_stars.v1.CostRulesR\tcostRules\x12>\n" +
@@ -1656,7 +1672,9 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\x15torpedo_splash_damage\x187 \x01(\x01R\x13torpedoSplashDamage\x12%\n" +
 	"\x0ewormhole_cloak\x188 \x01(\x05R\rwormholeCloak\x12f\n" +
 	"\x17wormhole_pairs_for_size\x189 \x03(\v2/.craig_stars.v1.Rules.WormholePairsForSizeEntryR\x14wormholePairsForSize\x12r\n" +
-	"\x1bwormhole_stats_by_stability\x18: \x03(\v23.craig_stars.v1.Rules.WormholeStatsByStabilityEntryR\x18wormholeStatsByStability\x1a_\n" +
+	"\x1bwormhole_stats_by_stability\x18: \x03(\v23.craig_stars.v1.Rules.WormholeStatsByStabilityEntryR\x18wormholeStatsByStability\x12#\n" +
+	"\rmin_factories\x18; \x01(\x05R\fminFactories\x12\x1b\n" +
+	"\tmin_mines\x18< \x01(\x05R\bminMines\x1a_\n" +
 	"\x15CometStatsBySizeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x120\n" +
 	"\x05value\x18\x02 \x01(\v2\x1a.craig_stars.v1.CometStatsR\x05value:\x028\x01\x1aT\n" +

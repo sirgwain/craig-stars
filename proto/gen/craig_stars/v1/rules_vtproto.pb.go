@@ -762,6 +762,20 @@ func (m *Rules) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.MinMines != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.MinMines))
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0xe0
+	}
+	if m.MinFactories != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.MinFactories))
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0xd8
+	}
 	if len(m.WormholeStatsByStability) > 0 {
 		for k := range m.WormholeStatsByStability {
 			v := m.WormholeStatsByStability[k]
@@ -1906,6 +1920,12 @@ func (m *Rules) SizeVT() (n int) {
 			mapEntrySize := 1 + protohelpers.SizeOfVarint(uint64(k)) + l
 			n += mapEntrySize + 2 + protohelpers.SizeOfVarint(uint64(mapEntrySize))
 		}
+	}
+	if m.MinFactories != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.MinFactories))
+	}
+	if m.MinMines != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.MinMines))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -5835,6 +5855,44 @@ func (m *Rules) UnmarshalVT(dAtA []byte) error {
 			}
 			m.WormholeStatsByStability[mapkey] = mapvalue
 			iNdEx = postIndex
+		case 59:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinFactories", wireType)
+			}
+			m.MinFactories = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.MinFactories |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 60:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinMines", wireType)
+			}
+			m.MinMines = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.MinMines |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

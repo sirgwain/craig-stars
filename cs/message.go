@@ -212,6 +212,8 @@ const (
 	PlayerMessagePlayerAcquirablePartGainedScrapFleet
 	PlayerMessagePlayerAcquirablePartGainedBattle
 	PlayerMessageFleetByHandTransferIncomplete
+	PlayerMessagePlanetBuiltBeyondMaximum
+	PlayerMessagePlanetBuiltInvalidShip
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {

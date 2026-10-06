@@ -142,8 +142,8 @@
 	{:else}
 		<!-- our minefield was swept by fleet -->
 		{$universe.getPlayerName(message.target?.targetPlayerNum)}
-		{message.target?.targetName} has has swept {message.spec?.amount ?? 0} mines from your minefield
-		at {minefieldPosition}
+		{message.target?.targetName} has has swept {message.spec?.amount ?? 0} mines from your minefield at
+		{minefieldPosition}
 	{/if}
 {:else if message.type === PlayerMessageType.FLEET_LAID_MINES}
 	{@const minefield = $universe.getMinefield(
@@ -165,8 +165,8 @@
 		.target?.targetName}.
 {:else if message.type === PlayerMessageType.FLEET_REPRODUCE}
 	{#if !message.spec?.amount2 || !message.spec.mapObjectTarget?.targetNum}
-		Your colonists in {message.target?.targetName} have made good use of their time increasing their
-		on-board number by {message.spec?.amount} colonists.
+		Your colonists in {message.target?.targetName} have made good use of their time increasing their on-board
+		number by {message.spec?.amount} colonists.
 	{:else}
 		<!-- TODO: actually fix bug non jankily by multiplying message.amount2 by 100 during assignment-->
 		Breeding activities on {message.target?.targetName} have overflowed living space. {message.spec
@@ -261,7 +261,7 @@
 			module.
 		{:else if transfer.status === CargoTransferStatus.OWNED}
 			{#if $player.race.spec.livesOnStarbases}
-				{message.spec?.mapObjectTarget?.targetName} is owned by another player and your people 
+				{message.spec?.mapObjectTarget?.targetName} is owned by another player and your people
 			{:else}
 				{message.spec?.mapObjectTarget?.targetName} is owned by another player and {message.target
 					?.targetName}

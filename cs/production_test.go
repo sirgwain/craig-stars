@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_production_produceOneConcreteMine(t *testing.T) {
@@ -338,6 +339,13 @@ func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
 		{Type: QueueItemTypeAutoMaxTerraform, Quantity: 10},
 	}
 	planet.Cargo = Cargo{1000, 1000, 77, 3166}
+
+	// ships need a starbase to build them
+	starbaseDesign := NewShipDesign(player.Num, 3).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	player.Designs = append(player.Designs, starbaseDesign)
+	starbase := newStarbase(player, planet, starbaseDesign, "Starbase")
+	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
+	planet.Starbase = &starbase
 	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 	// should build nothing, but queue up a mine partially done
@@ -477,6 +485,413 @@ func Test_production_allocatePartialBuild(t *testing.T) {
 			if got := production.allocatePartialBuild(tt.args.costPerItem, tt.args.allocated); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Planet.allocatePartialBuild() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+// a planet with no installations or minerals, room for 100 of each installation
+func newProductionTestPlanet(resources int, minerals Mineral) (*Player, *Planet) {
+	player, planet := newTestPlayerPlanet()
+	planet.Mines, planet.Factories, planet.Defenses = 0, 0, 0
+	planet.Cargo = Cargo{Colonists: 1000}.AddMineral(minerals)
+	planet.Spec = PlanetSpec{
+		ResourcesPerYearAvailable: resources,
+		MaxPossibleMines:          100,
+		MaxPossibleFactories:      100,
+		MaxDefenses:               100,
+		MaxPopulation:             1_000_000,
+	}
+	return player, planet
+}
+
+// what a year of production did to the planet
+type productionTestResult struct {
+	alchemy   int // kT of each mineral made by alchemy
+	mines     int
+	factories int
+	defenses  int
+	ships     int
+	minerals  Mineral
+	leftover  int // resources left over for research
+	queue     []ProductionQueueItem
+	messages  []PlayerMessageType
+}
+
+// run one year of production and return what happened
+func runProduction(t *testing.T, rules *Rules, player *Player, planet *Planet) productionTestResult {
+	t.Helper()
+	producer := newProducer(testLogger, rules, planet, player)
+	result, err := producer.produce()
+	require.NoError(t, err)
+
+	got := productionTestResult{
+		alchemy:   result.alchemy,
+		mines:     planet.Mines,
+		factories: planet.Factories,
+		defenses:  planet.Defenses,
+		minerals:  planet.Cargo.ToMineral(),
+		leftover:  result.leftoverResources,
+	}
+	if len(planet.ProductionQueue) > 0 {
+		got.queue = planet.ProductionQueue
+	}
+	for _, token := range result.tokens {
+		got.ships += token.Quantity
+	}
+	for _, message := range result.messages {
+		got.messages = append(got.messages, message.Type)
+	}
+	return got
+}
+
+// Costs with the default rules and race:
+//
+//	alchemy:  100 resources for 1kT of each mineral
+//	factory:  10 resources, 4 germanium
+//	mine:     5 resources
+//	defenses: 15 resources, 5 of each mineral
+func Test_production_alchemy(t *testing.T) {
+	alchemy := ProductionQueueItem{Type: QueueItemTypeMineralAlchemy, Quantity: 1}
+	autoAlchemy := ProductionQueueItem{Type: QueueItemTypeAutoMineralAlchemy, Quantity: 1}
+	factory := ProductionQueueItem{Type: QueueItemTypeFactory, Quantity: 1}
+	autoFactory := ProductionQueueItem{Type: QueueItemTypeAutoFactories, Quantity: 1}
+	mine := ProductionQueueItem{Type: QueueItemTypeMine, Quantity: 1}
+
+	// a factory or alchemy we started last year
+	partialFactory := func(allocated Cost) ProductionQueueItem {
+		return ProductionQueueItem{Type: QueueItemTypeFactory, Quantity: 1, Allocated: allocated, index: -1}
+	}
+	partialAlchemy := func(resources int) ProductionQueueItem {
+		return ProductionQueueItem{Type: QueueItemTypeMineralAlchemy, Quantity: 1, Allocated: Cost{Resources: resources}, index: -1}
+	}
+
+	tests := []struct {
+		name      string
+		resources int
+		minerals  Mineral
+		factories int // factories already built
+		queue     []ProductionQueueItem
+		want      productionTestResult
+	}{
+		// concrete alchemy
+		{
+			name:      "alchemy makes minerals for the next order",
+			resources: 105, // alchemy, mine
+			queue:     []ProductionQueueItem{alchemy, mine},
+			want:      productionTestResult{alchemy: 1, mines: 1, minerals: Mineral{1, 1, 1}},
+		},
+		{
+			name:      "each alchemy order makes its own minerals",
+			resources: 200, // 2 alchemy
+			queue:     []ProductionQueueItem{alchemy, alchemy},
+			want:      productionTestResult{alchemy: 2, minerals: Mineral{2, 2, 2}},
+		},
+
+		// auto alchemy before another order
+		{
+			name:      "auto alchemy makes the germanium a factory needs",
+			resources: 410, // 4 alchemy, factory
+			queue:     []ProductionQueueItem{autoAlchemy, factory},
+			want:      productionTestResult{alchemy: 4, factories: 1, minerals: Mineral{4, 4, 0}},
+		},
+		{
+			name:      "auto alchemy does nothing when we have the minerals",
+			resources: 100,
+			minerals:  Mineral{Germanium: 4},
+			queue:     []ProductionQueueItem{autoAlchemy, factory},
+			want:      productionTestResult{factories: 1, leftover: 90},
+		},
+		{
+			name:      "auto alchemy only makes what a partly built factory still needs",
+			resources: 205, // 2 alchemy, the rest of the factory
+			queue: []ProductionQueueItem{autoAlchemy,
+				{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{Germanium: 2, Resources: 5}}},
+			want: productionTestResult{alchemy: 2, factories: 1, minerals: Mineral{2, 2, 0}},
+		},
+		{
+			name:      "auto alchemy makes up every mineral we're short on",
+			resources: 515, // 5 alchemy, defense
+			minerals:  Mineral{0, 3, 1},
+			queue:     []ProductionQueueItem{autoAlchemy, {Type: QueueItemTypeDefenses, Quantity: 1}},
+			want:      productionTestResult{alchemy: 5, defenses: 1, minerals: Mineral{0, 3, 1}},
+		},
+		{
+			name:      "auto alchemy only applies to the next order",
+			resources: 115, // factory, mine, 100 left over
+			minerals:  Mineral{Germanium: 4},
+			queue:     []ProductionQueueItem{autoAlchemy, factory, autoFactory, mine},
+			want:      productionTestResult{factories: 1, mines: 1, leftover: 100, queue: []ProductionQueueItem{autoFactory}},
+		},
+		{
+			name:      "auto alchemy stays in the queue with an auto order",
+			resources: 825, // 8 alchemy, 2 factories, mine
+			queue:     []ProductionQueueItem{autoAlchemy, {Type: QueueItemTypeAutoFactories, Quantity: 2}, mine},
+			want: productionTestResult{alchemy: 8, factories: 2, mines: 1, minerals: Mineral{8, 8, 0},
+				queue: []ProductionQueueItem{autoAlchemy, {Type: QueueItemTypeAutoFactories, Quantity: 2}}},
+		},
+		{
+			name:      "auto alchemy doesn't convert when we're short on resources",
+			resources: 5,
+			minerals:  Mineral{Germanium: 4},
+			queue:     []ProductionQueueItem{autoAlchemy, factory},
+			want: productionTestResult{minerals: Mineral{Germanium: 2},
+				queue: []ProductionQueueItem{autoAlchemy, {Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{Germanium: 2, Resources: 5}}}},
+		},
+		{
+			name:      "auto factory short on resources starts a partial factory",
+			resources: 5,
+			minerals:  Mineral{Germanium: 4},
+			queue:     []ProductionQueueItem{autoAlchemy, autoFactory, mine},
+			want: productionTestResult{minerals: Mineral{Germanium: 2},
+				queue: []ProductionQueueItem{partialFactory(Cost{Germanium: 2, Resources: 5}), autoAlchemy, autoFactory, mine}},
+		},
+		{
+			name:      "not enough resources to finish an alchemy saves it for next year",
+			resources: 150, // 1 alchemy, half of another
+			queue:     []ProductionQueueItem{autoAlchemy, factory, mine},
+			want: productionTestResult{alchemy: 1, minerals: Mineral{1, 1, 1},
+				queue: []ProductionQueueItem{partialAlchemy(50), autoAlchemy, factory, mine}},
+		},
+		{
+			name:      "next year we finish the alchemy, then the factory and mine",
+			resources: 265, // the rest of the alchemy, 2 alchemy, factory, mine
+			minerals:  Mineral{1, 1, 1},
+			queue:     []ProductionQueueItem{partialAlchemy(50), autoAlchemy, factory, mine},
+			want:      productionTestResult{alchemy: 3, factories: 1, mines: 1, minerals: Mineral{4, 4, 0}},
+		},
+		{
+			name:      "not enough resources to finish an alchemy for an auto factory saves it for next year",
+			resources: 150, // 1 alchemy, half of another
+			queue:     []ProductionQueueItem{autoAlchemy, autoFactory, mine},
+			want: productionTestResult{alchemy: 1, minerals: Mineral{1, 1, 1},
+				queue: []ProductionQueueItem{partialAlchemy(50), autoAlchemy, autoFactory, mine}},
+		},
+		{
+			name:      "next year we finish the alchemy, then the auto factory and mine",
+			resources: 265, // the rest of the alchemy, 2 alchemy, factory, mine
+			minerals:  Mineral{1, 1, 1},
+			queue:     []ProductionQueueItem{partialAlchemy(50), autoAlchemy, autoFactory, mine},
+			want: productionTestResult{alchemy: 3, factories: 1, mines: 1, minerals: Mineral{4, 4, 0},
+				queue: []ProductionQueueItem{autoAlchemy, autoFactory}},
+		},
+		{
+			name:      "a factory with no room is removed along with its auto alchemy",
+			resources: 105,
+			factories: 100,
+			queue:     []ProductionQueueItem{autoAlchemy, factory, mine},
+			want: productionTestResult{factories: 100, mines: 1, leftover: 100,
+				messages: []PlayerMessageType{PlayerMessagePlanetBuiltBeyondMaximum}},
+		},
+		{
+			name:      "an auto factory we can't build is skipped and keeps its auto alchemy",
+			resources: 105,
+			factories: 100,
+			queue:     []ProductionQueueItem{autoAlchemy, autoFactory, mine},
+			want: productionTestResult{factories: 100, mines: 1, leftover: 100,
+				queue: []ProductionQueueItem{autoAlchemy, autoFactory}},
+		},
+		{
+			name:      "auto factory short on any germanium waits, even when resources are shorter",
+			resources: 2,
+			minerals:  Mineral{Germanium: 3},
+			queue:     []ProductionQueueItem{autoFactory, mine},
+			want: productionTestResult{minerals: Mineral{Germanium: 3},
+				queue: []ProductionQueueItem{autoFactory, {Type: QueueItemTypeMine, Quantity: 1, Allocated: Cost{Resources: 2}}}},
+		},
+		{
+			name:      "auto factory with auto alchemy puts resources toward alchemy, even when resources are shorter",
+			resources: 5,
+			minerals:  Mineral{Germanium: 3},
+			queue:     []ProductionQueueItem{autoAlchemy, autoFactory, mine},
+			want: productionTestResult{minerals: Mineral{Germanium: 3},
+				queue: []ProductionQueueItem{partialAlchemy(5), autoAlchemy, autoFactory, mine}},
+		},
+		{
+			name:  "auto alchemy does nothing without resources",
+			queue: []ProductionQueueItem{autoAlchemy, factory},
+			want:  productionTestResult{queue: []ProductionQueueItem{autoAlchemy, factory}},
+		},
+
+		// auto alchemy at the end of the queue
+		{
+			name:      "auto alchemy at the end of the queue converts all our resources",
+			resources: 350, // 3 alchemy, half of another
+			queue:     []ProductionQueueItem{autoAlchemy},
+			want: productionTestResult{alchemy: 3, minerals: Mineral{3, 3, 3},
+				queue: []ProductionQueueItem{partialAlchemy(50), autoAlchemy}},
+		},
+		{
+			name:      "next year we finish the alchemy",
+			resources: 50,
+			queue:     []ProductionQueueItem{partialAlchemy(50), autoAlchemy},
+			want:      productionTestResult{alchemy: 1, minerals: Mineral{1, 1, 1}, queue: []ProductionQueueItem{autoAlchemy}},
+		},
+		{
+			name:  "auto alchemy at the end of the queue does nothing without resources",
+			queue: []ProductionQueueItem{autoAlchemy},
+			want:  productionTestResult{queue: []ProductionQueueItem{autoAlchemy}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player, planet := newProductionTestPlanet(tt.resources, tt.minerals)
+			planet.Factories = tt.factories
+			planet.ProductionQueue = tt.queue
+
+			assert.Equal(t, tt.want, runProduction(t, &rules, player, planet))
+		})
+	}
+}
+
+func Test_production_alchemyCost(t *testing.T) {
+	tests := []struct {
+		name        string
+		alchemyCost int
+		lrts        Bitmask
+		resources   int
+		want        productionTestResult
+	}{
+		{
+			name:        "custom alchemy cost",
+			alchemyCost: 115,
+			resources:   470, // 4 alchemy at 115, factory
+			want:        productionTestResult{alchemy: 4, factories: 1, minerals: Mineral{4, 4, 0}},
+		},
+		{
+			name:        "custom alchemy cost with MA",
+			alchemyCost: 115,
+			lrts:        Bitmask(MA),
+			resources:   170, // 4 alchemy at 40 (MA takes 75 off), factory
+			want:        productionTestResult{alchemy: 4, factories: 1, minerals: Mineral{4, 4, 0}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rules := rules
+			rules.MineralAlchemyCost = tt.alchemyCost
+			player, planet := newProductionTestPlanet(tt.resources, Mineral{})
+			player.Race.LRTs |= tt.lrts
+			player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
+			planet.ProductionQueue = []ProductionQueueItem{
+				{Type: QueueItemTypeAutoMineralAlchemy, Quantity: 1},
+				{Type: QueueItemTypeFactory, Quantity: 1},
+			}
+
+			assert.Equal(t, tt.want, runProduction(t, &rules, player, planet))
+		})
+	}
+}
+
+// concrete orders beyond what the planet can hold are reduced to the max
+func Test_production_ordersBeyondMaximum(t *testing.T) {
+	alchemy := ProductionQueueItem{Type: QueueItemTypeMineralAlchemy, Quantity: 1}
+	beyondMaximum := []PlayerMessageType{PlayerMessagePlanetBuiltBeyondMaximum}
+
+	tests := []struct {
+		name      string
+		resources int
+		minerals  Mineral
+		queue     []ProductionQueueItem
+		want      productionTestResult
+	}{
+		{
+			name:      "5 mines with room for 1, then alchemy",
+			resources: 105, // mine, alchemy
+			queue:     []ProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 5}, alchemy},
+			want:      productionTestResult{mines: 1, alchemy: 1, minerals: Mineral{1, 1, 1}, messages: beyondMaximum},
+		},
+		{
+			name:      "5 factories with room for 1, then alchemy",
+			resources: 110, // factory, alchemy
+			minerals:  Mineral{Germanium: 4},
+			queue:     []ProductionQueueItem{{Type: QueueItemTypeFactory, Quantity: 5}, alchemy},
+			want:      productionTestResult{factories: 1, alchemy: 1, minerals: Mineral{1, 1, 1}, messages: beyondMaximum},
+		},
+		{
+			name:      "5 defenses with room for 1, then alchemy",
+			resources: 115, // defense, alchemy
+			minerals:  Mineral{5, 5, 5},
+			queue:     []ProductionQueueItem{{Type: QueueItemTypeDefenses, Quantity: 5}, alchemy},
+			want:      productionTestResult{defenses: 1, alchemy: 1, minerals: Mineral{1, 1, 1}, messages: beyondMaximum},
+		},
+		{
+			name:      "5 terraforms with room for 1, then alchemy",
+			resources: 200, // terraform, alchemy
+			queue:     []ProductionQueueItem{{Type: QueueItemTypeTerraformEnvironment, Quantity: 5}, alchemy},
+			want:      productionTestResult{alchemy: 1, minerals: Mineral{1, 1, 1}, messages: beyondMaximum},
+		},
+		{
+			name:      "a second terraform is canceled once the first leaves nothing to terraform",
+			resources: 200, // terraform, 100 left over
+			queue: []ProductionQueueItem{
+				{Type: QueueItemTypeTerraformEnvironment, Quantity: 1},
+				{Type: QueueItemTypeTerraformEnvironment, Quantity: 1},
+			},
+			want: productionTestResult{leftover: 100, messages: beyondMaximum},
+		},
+		{
+			name:      "a reduced order keeps what we already spent on it",
+			resources: 3,
+			queue:     []ProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 5, Allocated: Cost{Resources: 1}}, alchemy},
+			want: productionTestResult{messages: beyondMaximum,
+				queue: []ProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1, Allocated: Cost{Resources: 4}}, alchemy}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player, planet := newProductionTestPlanet(tt.resources, tt.minerals)
+			// room for one of everything
+			planet.Spec.MaxPossibleMines, planet.Spec.MaxPossibleFactories, planet.Spec.MaxDefenses = 1, 1, 1
+			planet.Spec.TerraformAmount = Hab{Grav: 1}
+			planet.Hab, planet.BaseHab = Hab{49, 50, 50}, Hab{49, 50, 50}
+			player.Spec.Terraform[TerraformHabTypeAll] = &TotalTerraform3
+			planet.ProductionQueue = tt.queue
+
+			assert.Equal(t, tt.want, runProduction(t, &rules, player, planet))
+		})
+	}
+}
+
+// ships are only built at a starbase with a dock big enough for them
+func Test_production_ships(t *testing.T) {
+	invalidShip := []PlayerMessageType{PlayerMessagePlanetBuiltInvalidShip}
+
+	tests := []struct {
+		name         string
+		starbaseHull string // no starbase if empty
+		want         productionTestResult
+	}{
+		{
+			name:         "a space station builds a scout",
+			starbaseHull: SpaceStation.Name,
+			want:         productionTestResult{ships: 1, minerals: Mineral{96, 98, 96}, leftover: 91}, // a scout costs 4, 2, 4, 9
+		},
+		{
+			name: "a scout with no starbase is canceled",
+			want: productionTestResult{minerals: Mineral{100, 100, 100}, leftover: 100, messages: invalidShip},
+		},
+		{
+			name:         "a scout too big for an orbital fort's dock is canceled",
+			starbaseHull: OrbitalFort.Name,
+			want:         productionTestResult{minerals: Mineral{100, 100, 100}, leftover: 100, messages: invalidShip},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player, planet := newProductionTestPlanet(100, Mineral{100, 100, 100})
+			scout := NewShipDesign(player.Num, 1).WithHull(Scout.Name).WithSpec(&rules, player)
+			player.Designs = append(player.Designs, scout)
+			if tt.starbaseHull != "" {
+				starbaseDesign := NewShipDesign(player.Num, 2).WithHull(tt.starbaseHull).WithSpec(&rules, player)
+				player.Designs = append(player.Designs, starbaseDesign)
+				starbase := newStarbase(player, planet, starbaseDesign, "Starbase")
+				starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
+				planet.Starbase = &starbase
+				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
+			}
+			planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeShipToken, Quantity: 1, DesignNum: scout.Num, design: scout}}
+
+			assert.Equal(t, tt.want, runProduction(t, &rules, player, planet))
 		})
 	}
 }

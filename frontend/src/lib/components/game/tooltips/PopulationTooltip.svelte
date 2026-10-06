@@ -125,8 +125,8 @@
 			{/if}
 		{:else}
 			<p>
-				<span class="font-semibold">{planet.mapObject?.name}</span> is unexplored. Send a scout ship
-				to this planet to determine its habitability.
+				<span class="font-semibold">{planet.mapObject?.name}</span> is unexplored. Send a scout ship to
+				this planet to determine its habitability.
 			</p>
 		{/if}
 	</div>

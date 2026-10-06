@@ -49,8 +49,7 @@
 			In return, you have been given the plans for a new ship hull. The trader suggests you visit
 			other traders.
 		{:else if detail.type === MysteryTraderRewardType.LIFEBOAT}
-			In return, you have been given {detail.shipCount} of the Trader's auxillary ships for your own
-			use.
+			In return, you have been given {detail.shipCount} of the Trader's auxillary ships for your own use.
 		{:else if detail.type === MysteryTraderRewardType.GENESIS}
 			In return, you have been given the plans for a powerful planetary device. The trader suggests
 			you visit other traders.

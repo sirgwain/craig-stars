@@ -29,8 +29,8 @@
 		<span class="font-semibold">{resourcesPerYearResearch || 'None'}</span>
 		of these resources have been allocated to research.
 		{#if resourcesPerYearResearch != 0}
-			That leaves <span class="font-semibold">{resourcesPerYearAvailable}</span> resources avaliable
-			for use by the planet.
+			That leaves <span class="font-semibold">{resourcesPerYearAvailable}</span> resources avaliable for
+			use by the planet.
 		{/if}
 
 		{#if innateResources}

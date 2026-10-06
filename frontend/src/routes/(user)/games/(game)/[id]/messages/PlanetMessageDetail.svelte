@@ -6,6 +6,7 @@
 		CometSize,
 		PlayerMessageType,
 		ProductionQueueItemSchema,
+		QueueItemType,
 		type Planet,
 		type PlayerIntel,
 		type PlayerMessage
@@ -98,6 +99,22 @@
 		$universe
 	).toLowerCase()} on {planet.mapObject?.name}, but {planet.mapObject?.name}
 	is unable to build any of these. The order has been canceled.
+{:else if message.type === PlayerMessageType.PLANET_BUILT_INVALID_SHIP}
+	{#if planet.spec?.planetStarbaseSpec?.hasStarbase}
+		You have attempted to build a {message.spec?.name} on {planet.mapObject?.name}, but the starbase
+		can only build ships up to {message.spec?.amount2 ?? 0}kT. The order has been canceled.
+	{:else}
+		You have attempted to build a {message.spec?.name} on {planet.mapObject?.name}, but
+		{planet.mapObject?.name} has no starbase to build it. The order has been canceled.
+	{/if}
+{:else if message.type === PlayerMessageType.PLANET_BUILT_BEYOND_MAXIMUM}
+	{#if message.spec?.queueItemType === QueueItemType.TERRAFORM_ENVIRONMENT}
+		{planet.mapObject?.name} has orders to terraform beyond the maximum allowed. The orders have been
+		reduced to the maximum allowable.
+	{:else}
+		{planet.mapObject?.name} has orders to build planetary installations beyond the maximum allowed. The
+		orders have been reduced to the maximum allowable.
+	{/if}
 {:else if message.type === PlayerMessageType.PLANET_BUILT_INVALID_MINERAL_PACKET_NO_MASS_DRIVER}
 	You have attempted to build a mineral packet on {planet.mapObject?.name}, but you have no starbase
 	equipped with a mass driver on this planet. The order has been canceled.
@@ -159,8 +176,8 @@
 	{/if}
 {:else if [PlayerMessageType.PLANET_DISCOVERY, PlayerMessageType.PLANET_DISCOVERY_HABITABLE, PlayerMessageType.PLANET_DISCOVERY_TERRAFORMABLE, PlayerMessageType.PLANET_DISCOVERY_UNINHABITABLE].indexOf(message.type) != -1}
 	{#if owner}
-		You have found a planet occupied by someone else. {planet.mapObject?.name} is currently owned by
-		the {owner.racePluralName}.
+		You have found a planet occupied by someone else. {planet.mapObject?.name} is currently owned by the
+		{owner.racePluralName}.
 	{:else if $player.race.spec.instaforming && ((planet.spec?.terraformedHabitability && planet.spec.terraformedHabitability > 0) || (planet.spec?.habitability && planet.spec.habitability > 0))}
 		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
 			1,

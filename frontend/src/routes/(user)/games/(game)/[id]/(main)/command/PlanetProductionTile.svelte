@@ -37,7 +37,12 @@
 				{#if queueItems}
 					{#each queueItems as queueItem, index (index)}
 						<li class="pl-1 cursor-default">
-							<ProductionQueueItemLine item={queueItem} {index} shortName={true} />
+							<ProductionQueueItemLine
+								item={queueItem}
+								hasFollowingItem={index < queueItems.length - 1}
+								{index}
+								shortName={true}
+							/>
 						</li>
 					{/each}
 				{/if}

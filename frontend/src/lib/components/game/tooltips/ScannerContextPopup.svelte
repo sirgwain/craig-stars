@@ -6,11 +6,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { None } from '$lib/types/Consts';
 	import { MapObjectType } from '$lib/types/cs-proto';
-	import {
-		getMapObjectName,
-		ownedBy,
-		type MapObjectLike
-	} from '$lib/types/MapObject';
+	import { getMapObjectName, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
 	import { getDisplayColor } from '$lib/utils/colorUtils';
 	import { flatten } from 'lodash-es';
 

@@ -2,7 +2,7 @@
 	import type { ProductionPlan } from '$lib/types/cs-proto';
 	import type { DesignFinder } from '$lib/services/Universe';
 	import { getQueueItemShortName } from '$lib/types/Planet';
-	import { isAuto } from '$lib/types/QueueItemType';
+	import { getAutoAlchemyDescription, hasQuantity, isAuto } from '$lib/types/QueueItemType';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -38,12 +38,18 @@
 			<ul class="w-full h-full">
 				{#each plan.items as queueItem, index (index)}
 					<li class="pl-1">
-						<div class="flex flex-row justify-between" class:italic={isAuto(queueItem.type)}>
+						<div
+							class="flex flex-row justify-between"
+							class:italic={isAuto(queueItem.type)}
+							title={!hasQuantity(queueItem.type)
+								? getAutoAlchemyDescription(index < plan.items.length - 1)
+								: undefined}
+						>
 							<div>
 								{getQueueItemShortName(queueItem, designFinder)}
 							</div>
 							<div>
-								{queueItem.quantity}
+								{#if hasQuantity(queueItem.type)}{queueItem.quantity}{/if}
 							</div>
 						</div>
 					</li>

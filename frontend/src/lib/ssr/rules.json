@@ -1218,5 +1218,7 @@
 			"chanceToJump": 0.04,
 			"jiggleDistance": 10
 		}
-	}
+	},
+	"minFactories": 10,
+	"minMines": 10
 }

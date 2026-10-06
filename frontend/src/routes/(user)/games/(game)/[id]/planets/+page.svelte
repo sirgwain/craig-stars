@@ -403,6 +403,7 @@
 						{#if planet.planetOrders?.productionQueue.length}
 							<ProductionQueueItemLine
 								item={planet.planetOrders.productionQueue[0]}
+								hasFollowingItem={planet.planetOrders.productionQueue.length > 1}
 								index={0}
 								shortName={true}
 							/>

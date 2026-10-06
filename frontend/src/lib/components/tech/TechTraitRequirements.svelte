@@ -19,11 +19,11 @@
 		{#if tech.requirements?.hullsAllowed.length}
 			<div class="text-warning">
 				{#if tech.requirements.hullsAllowed.length === 1}
-					This {`${enumToString(TechCategory, tech.category).toLowerCase()}`} can only be mounted on
-					the {tech.requirements.hullsAllowed[0]} Hull.
+					This {`${enumToString(TechCategory, tech.category).toLowerCase()}`} can only be mounted on the
+					{tech.requirements.hullsAllowed[0]} Hull.
 				{:else}
-					This {`${enumToString(TechCategory, tech.category).toLowerCase()}`} can only be mounted on
-					these hulls: {tech.requirements.hullsAllowed.join(', ')}.
+					This {`${enumToString(TechCategory, tech.category).toLowerCase()}`} can only be mounted on these
+					hulls: {tech.requirements.hullsAllowed.join(', ')}.
 				{/if}
 			</div>
 		{/if}

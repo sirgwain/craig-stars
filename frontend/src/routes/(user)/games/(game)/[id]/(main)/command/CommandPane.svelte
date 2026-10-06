@@ -133,9 +133,6 @@
 			{onChangeWaypoint}
 			{onDeleteWaypoint}
 		/>
-		<FleetWaypointTaskTile
-			{onShowTransportTasksDialog}
-			{onChangeWaypoint}
-		/>
+		<FleetWaypointTaskTile {onShowTransportTasksDialog} {onChangeWaypoint} />
 	</div>
 {/if}

@@ -16,9 +16,14 @@
 	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import { divide, multiply } from '$lib/types/Cost';
+	import { divide } from '$lib/types/Cost';
 	import { CommandedPlanet } from '$lib/types/Planet';
-	import { getFullName, isAuto } from '$lib/types/QueueItemType';
+	import {
+		getAutoAlchemyDescription,
+		getFullName,
+		hasQuantity,
+		isAuto
+	} from '$lib/types/QueueItemType';
 	import { clone, create } from '@bufbuild/protobuf';
 	import {
 		ArrowLongDown,
@@ -99,7 +104,7 @@
 			selectedQueueItem,
 			$universe,
 			planet,
-			selectedQueueItem?.quantity
+			selectedQueueItem && hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
 		);
 	}
 
@@ -131,8 +136,13 @@
 
 		if (selectedQueueItemIndex !== -1) {
 			selectedQueueItem = queueItems[selectedQueueItemIndex];
-			const itemCost = await $player.getItemCost(cs, selectedQueueItem, $universe, planet);
-			selectedQueueItemCost = multiply(itemCost, selectedQueueItem.quantity);
+			selectedQueueItemCost = await $player.getItemCost(
+				cs,
+				selectedQueueItem,
+				$universe,
+				planet,
+				hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
+			);
 		}
 
 		for (let i = 0; i < availableItems.length; i++) {
@@ -177,7 +187,7 @@
 	}
 
 	async function getPercentComplete(item: ProductionQueueItem): Promise<number> {
-		if ((item.allocated?.resources ?? 0) === 0) {
+		if (!hasQuantity(item.type) || (item.allocated?.resources ?? 0) === 0) {
 			return 0;
 		}
 
@@ -199,14 +209,24 @@
 			itemType: item.type
 		});
 
-		const quantity = clamp(quantityModifer, 0, maxBuildable);
+		// concrete orders can't add up to more than the planet has room for
+		const queued = isAuto(item.type)
+			? 0
+			: queueItems
+					.filter((i) => i.type === item.type && i.designNum === item.designNum)
+					.reduce((total, i) => total + i.quantity, 0);
+		const quantity = hasQuantity(item.type)
+			? clamp(quantityModifer, 0, Math.max(0, maxBuildable - queued))
+			: 1;
 		if (quantity == 0) {
 			// don't add something we can't build any more of
 			return;
 		}
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type == item.type && selectedQueueItem.designNum == item.designNum) {
-				selectedQueueItem.quantity += quantity;
+				selectedQueueItem.quantity = hasQuantity(item.type)
+					? selectedQueueItem.quantity + quantity
+					: 1;
 			} else {
 				// insert a new item
 
@@ -226,13 +246,13 @@
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem.quantity
+					hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
 				);
 			}
 		} else {
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
 			if (nextItem && nextItem.type === item.type && nextItem.designNum == item.designNum) {
-				nextItem.quantity++;
+				nextItem.quantity = hasQuantity(item.type) ? nextItem.quantity + quantity : 1;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
 				selectedQueueItemCost = await $player.getItemCost(
@@ -240,7 +260,7 @@
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem.quantity
+					hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
 				);
 			} else {
 				// prepend a new queue item
@@ -259,7 +279,7 @@
 					selectedQueueItem,
 					$universe,
 					planet,
-					selectedQueueItem.quantity
+					hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
 				);
 			}
 		}
@@ -269,27 +289,26 @@
 
 	async function removeItem() {
 		if (selectedQueueItem) {
-			selectedQueueItem.quantity -= quantityModifer;
+			selectedQueueItem.quantity = hasQuantity(selectedQueueItem.type)
+				? selectedQueueItem.quantity - quantityModifer
+				: 0;
 			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
 				queueItems = queueItems.filter((item) => item != selectedQueueItem);
 				if (queueItems.length > 0) {
-					if (selectedQueueItemIndex > 0 && selectedQueueItemIndex < queueItems.length - 1) {
-						selectedQueueItem = queueItems[selectedQueueItemIndex - 1];
-					} else if (selectedQueueItemIndex >= queueItems.length) {
-						selectedQueueItem = queueItems[queueItems.length - 1];
-						selectedQueueItemIndex = queueItems.length - 1;
-					} else {
-						selectedQueueItem = queueItems[0];
-					}
+					selectedQueueItemIndex = Math.max(
+						0,
+						Math.min(selectedQueueItemIndex - 1, queueItems.length - 1)
+					);
+					selectedQueueItem = queueItems[selectedQueueItemIndex];
 					selectedQueueItemCost = await $player.getItemCost(
 						cs,
 						selectedQueueItem,
 						$universe,
 						planet,
-						selectedQueueItem.quantity
+						hasQuantity(selectedQueueItem.type) ? selectedQueueItem.quantity : 1
 					);
 				} else {
 					// no items left, clear
@@ -338,7 +357,7 @@
 				...plan.items.map((item) =>
 					create(ProductionQueueItemSchema, {
 						type: item.type,
-						quantity: item.quantity,
+						quantity: hasQuantity(item.type) ? item.quantity : 1,
 						designNum: item.designNum
 					})
 				)
@@ -413,7 +432,11 @@
 	async function resetQueue() {
 		contributesOnlyLeftoverToResearch = planet.planetOrders.contributesOnlyLeftoverToResearch;
 		queueItems = [
-			...planet.planetOrders.productionQueue.map((item) => clone(ProductionQueueItemSchema, item))
+			...planet.planetOrders.productionQueue.map((item) => {
+				const copy = clone(ProductionQueueItemSchema, item);
+				if (!hasQuantity(copy.type)) copy.quantity = 1;
+				return copy;
+			})
 		];
 		const genesisDevice = $techs.getTech(GenesisDevice);
 		availableItems = planet.getAvailableProductionQueueItems(
@@ -566,11 +589,13 @@
 											/></button
 										>
 									{:else}
-										Cost of {getFullName(selectedAvailableItem, $universe)}
+										{hasQuantity(selectedAvailableItem.type)
+											? `Cost of ${getFullName(selectedAvailableItem, $universe)}`
+											: 'Cost per alchemy conversion'}
 									{/if}
 								</h3>
 								<CostComponent cost={selectedAvailableItemCost} />
-								{#if selectedAvailableItem.queueItemCompletionEstimate?.yearsToBuildOne}
+								{#if hasQuantity(selectedAvailableItem.type) && selectedAvailableItem.queueItemCompletionEstimate?.yearsToBuildOne}
 									Completion {getCompletionDescription(selectedAvailableItem)}
 								{/if}
 							{/if}
@@ -664,6 +689,7 @@
 									<li class="cursor-default">
 										<ProductionQueueItemLine
 											item={queueItem}
+											hasFollowingItem={index < queueItems.length - 1}
 											{index}
 											{onQueueItemClicked}
 											selected={queueItem === selectedQueueItem}
@@ -688,12 +714,14 @@
 											/></button
 										>
 									{:else}
-										Cost of {getFullName(selectedQueueItem, $universe)} x {selectedQueueItem.quantity}
+										{hasQuantity(selectedQueueItem.type)
+											? `Cost of ${getFullName(selectedQueueItem, $universe)} x ${selectedQueueItem.quantity}`
+											: 'Cost per alchemy conversion'}
 									{/if}
 								</h3>
 								<CostComponent cost={selectedQueueItemCost} />
 								<div class="mt-1 text-base">
-									{#if selectedQueueItemPercentComplete}
+									{#if hasQuantity(selectedQueueItem.type) && selectedQueueItemPercentComplete}
 										<button
 											type="button"
 											onpointerdown={(e) => onAllocatedTooltip(e, selectedQueueItem?.allocated)}
@@ -704,7 +732,11 @@
 											/> Done,</button
 										>
 									{/if}
-									Completion {getCompletionDescription(selectedQueueItem)}
+									{#if hasQuantity(selectedQueueItem.type)}
+										Completion {getCompletionDescription(selectedQueueItem)}
+									{:else}
+										{getAutoAlchemyDescription(selectedQueueItemIndex < queueItems.length - 1)}
+									{/if}
 								</div>
 							{/if}
 						</div>

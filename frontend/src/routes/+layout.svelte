@@ -18,7 +18,8 @@
 
 	let { children }: Props = $props();
 
-	const publicRoute = $page.url.pathname.startsWith('/auth') || $page.url.pathname.startsWith('/docs');
+	const publicRoute =
+		$page.url.pathname.startsWith('/auth') || $page.url.pathname.startsWith('/docs');
 	const wasmExecUrl = new URL('$lib/wasm/wasm_exec.js', import.meta.url).href;
 
 	// check the user

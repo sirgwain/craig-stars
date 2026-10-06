@@ -24,6 +24,8 @@ type Rules struct {
 	InvasionDefenseCoverageFactor      float64                             `json:"invasionDefenseCoverageFactor"`
 	LRTSpecs                           map[LRT]LRTSpec                     `json:"lrtSpecs"`
 	MaxPopulation                      int                                 `json:"maxPopulation"`
+	MinFactories                       int                                 `json:"minFactories"`
+	MinMines                           int                                 `json:"minMines"`
 	MinPopFloor                        int                                 `json:"minPopFloor"`
 	MaxTechLevel                       int                                 `json:"maxTechLevel"`
 	MinefieldCloak                     int                                 `json:"minefieldCloak"`
@@ -347,6 +349,8 @@ func NewRulesWithSeed(seed int64) Rules {
 		TachyonCloakReduction:              .05, // 5% diminishing cloak reduction per detector
 		TachyonMaxCloakReduction:           .81, // tachyon detectors cap at 81% cloaking reduction
 		MaxPopulation:                      1_000_000,
+		MinFactories:                       10,   // planets always have room for at least 10 factories, even with a tiny max pop
+		MinMines:                           10,   // planets always have room for at least 10 mines, even with a tiny max pop
 		MinPopFloor:                        100,  // low value planets cannot fall below 100 pop from natural growth
 		MinHabFloor:                        5,    // minimum of 5% effective habitability for inhabited planet productivity/maxpop
 		PopulationOvercrowdDieoffRate:      .04,  // overcrowded pops die off at 4% per 100% over cap

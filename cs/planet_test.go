@@ -597,3 +597,59 @@ func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
 		})
 	}
 }
+
+func Test_computePlanetSpec_maxPossibleInstallations(t *testing.T) {
+	type want struct {
+		mines     int
+		factories int
+	}
+	tests := []struct {
+		name  string
+		floor int // the floor for both mines and factories
+		prt   PRT
+		hab   Hab
+		want  want
+	}{
+		{
+			name:  "a hostile planet has room for 60 at the minimum hab, above the floor of 10",
+			floor: 10,
+			prt:   JoaT,
+			hab:   Hab{1, 1, 1},
+			want:  want{mines: 60, factories: 60},
+		},
+		{
+			name:  "a floor above what the max pop supports gives room for the floor",
+			floor: 100,
+			prt:   JoaT,
+			hab:   Hab{1, 1, 1},
+			want:  want{mines: 100, factories: 100},
+		},
+		{
+			name:  "an ideal planet has room for its max pop",
+			floor: 100,
+			prt:   JoaT,
+			hab:   Hab{50, 50, 50},
+			want:  want{mines: 1200, factories: 1200},
+		},
+		{
+			name:  "AR races don't build mines or factories",
+			floor: 100,
+			prt:   AR,
+			hab:   Hab{50, 50, 50},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rules := rules
+			rules.MinMines, rules.MinFactories = tt.floor, tt.floor
+			player, planet := newTestPlayerPlanet()
+			player.Race.PRT = tt.prt
+			player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
+			planet.Hab = tt.hab
+			planet.setPopulation(1000)
+
+			spec := ComputePlanetSpec(&rules, player, planet)
+			assert.Equal(t, tt.want, want{mines: spec.MaxPossibleMines, factories: spec.MaxPossibleFactories})
+		})
+	}
+}

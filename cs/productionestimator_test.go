@@ -4,9 +4,12 @@ package cs
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
@@ -332,6 +335,44 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			wantLeftoverResources: 0,
 		},
 		{
+			name: "5 auto factories, then 5 auto mines, mines finish first but factories still get estimates",
+			args: args{
+				items: []ProductionQueueItem{
+					{
+						Type:     QueueItemTypeAutoFactories,
+						Quantity: 5,
+					},
+					{
+						Type:     QueueItemTypeAutoMines,
+						Quantity: 5,
+					},
+				},
+				surfaceMinerals: Mineral{}, // no germanium for factories until the mines dig some up
+				population:      35_000,
+			},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 2,
+						YearsToBuildAll: 5,
+						YearsToSkipAuto: 1,
+					},
+					Type:     QueueItemTypeAutoFactories,
+					Quantity: 5,
+				},
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 1,
+						YearsToBuildAll: 1,
+						YearsToSkipAuto: Infinite,
+					},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 5,
+				},
+			},
+			wantLeftoverResources: 5,
+		},
+		{
 			name: "Test later year planet with high everything",
 			args: args{
 				items: []ProductionQueueItem{
@@ -455,4 +496,57 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_completionEstimate_autoAlchemy(t *testing.T) {
+	autoAlchemy := ProductionQueueItem{Type: QueueItemTypeAutoMineralAlchemy, Quantity: 1}
+	factory := ProductionQueueItem{Type: QueueItemTypeFactory, Quantity: 1}
+
+	tests := []struct {
+		name  string
+		queue []ProductionQueueItem
+		want  []QueueItemCompletionEstimate
+	}{
+		{
+			name:  "auto alchemy before a factory has no estimate, the factory builds this year",
+			queue: []ProductionQueueItem{autoAlchemy, factory},
+			want: []QueueItemCompletionEstimate{
+				{YearsToBuildOne: Infinite, YearsToBuildAll: Infinite, YearsToSkipAuto: Infinite},
+				{YearsToBuildOne: 1, YearsToBuildAll: 1, YearsToSkipAuto: Infinite},
+			},
+		},
+		{
+			name:  "auto alchemy at the end of the queue builds this year and never finishes",
+			queue: []ProductionQueueItem{autoAlchemy},
+			want: []QueueItemCompletionEstimate{
+				{YearsToBuildOne: 1, YearsToBuildAll: Infinite, YearsToSkipAuto: Infinite},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player, planet := newProductionTestPlanet(410, Mineral{}) // enough for 4 alchemy and a factory
+			planet.ProductionQueue = tt.queue
+
+			items, leftover, err := NewCompletionEstimator().GetProductionWithEstimates(&rules, player, *planet)
+			require.NoError(t, err)
+
+			got := make([]QueueItemCompletionEstimate, len(items))
+			for i, item := range items {
+				got[i] = item.QueueItemCompletionEstimate
+			}
+			assert.Equal(t, tt.want, got)
+			assert.Zero(t, leftover)
+		})
+	}
+}
+
+func Test_completionEstimate_doesNotChangeQueue(t *testing.T) {
+	player, planet := newProductionTestPlanet(5, Mineral{}) // enough to start a factory, not finish it
+	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeFactory, Quantity: 1}, {Type: QueueItemTypeMine, Quantity: 1}}
+	queue := slices.Clone(planet.ProductionQueue)
+
+	_, _, err := NewCompletionEstimator().GetProductionWithEstimates(&rules, player, *planet)
+	require.NoError(t, err)
+	assert.Equal(t, queue, planet.ProductionQueue)
 }

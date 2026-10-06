@@ -46,6 +46,15 @@ export const isAuto = (type: QueueItemType): boolean => {
 	}
 };
 
+// Automatic alchemy is a queue modifier, or continuous conversion at the end of the queue.
+export const hasQuantity = (type: QueueItemType): boolean =>
+	type !== QueueItemType.AUTO_MINERAL_ALCHEMY;
+
+export const getAutoAlchemyDescription = (hasFollowingItem: boolean): string =>
+	hasFollowingItem
+		? 'Creates minerals as needed to build the next order.'
+		: 'Continuously converts remaining resources into minerals.';
+
 /**
  * Get the concrete type for a queue item type,
  * @param type The QueueItemType.
@@ -77,7 +86,7 @@ export function getFullName(item: ProductionQueueItem, designFinder: DesignFinde
 		case QueueItemType.SHIP_TOKEN:
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
 		case QueueItemType.AUTO_MINERAL_ALCHEMY:
-			return 'Alchemy (Auto Build)';
+			return 'Alchemy (Auto)';
 		case QueueItemType.MINERAL_ALCHEMY:
 			return 'Alchemy';
 		case QueueItemType.AUTO_MINES:

@@ -902,6 +902,10 @@ func PlayerMessageTypeToCSPlayerMessageType(m craig_starsv1.PlayerMessageType) c
 		return cs.PlayerMessagePlayerAcquirablePartGainedBattle
 	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_BY_HAND_TRANSFER_INCOMPLETE:
 		return cs.PlayerMessageFleetByHandTransferIncomplete
+	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_BUILT_BEYOND_MAXIMUM:
+		return cs.PlayerMessagePlanetBuiltBeyondMaximum
+	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_BUILT_INVALID_SHIP:
+		return cs.PlayerMessagePlanetBuiltInvalidShip
 	default:
 		return cs.PlayerMessageType(0)
 	}
@@ -1113,6 +1117,10 @@ func CSPlayerMessageTypeToPlayerMessageType(m cs.PlayerMessageType) craig_starsv
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLAYER_ACQUIRABLE_PART_GAINED_BATTLE
 	case cs.PlayerMessageFleetByHandTransferIncomplete:
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_BY_HAND_TRANSFER_INCOMPLETE
+	case cs.PlayerMessagePlanetBuiltBeyondMaximum:
+		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_BUILT_BEYOND_MAXIMUM
+	case cs.PlayerMessagePlanetBuiltInvalidShip:
+		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_BUILT_INVALID_SHIP
 	default:
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_UNSPECIFIED
 	}

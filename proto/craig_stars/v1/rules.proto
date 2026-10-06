@@ -193,4 +193,6 @@ message Rules {
   int32 wormhole_cloak = 56;
   map<int32, int32> wormhole_pairs_for_size = 57; // Size enum/spec definition needed
   map<int32, WormholeStats> wormhole_stats_by_stability = 58; // WormholeStability enum/spec definition needed
+  int32 min_factories = 59;
+  int32 min_mines = 60;
 }

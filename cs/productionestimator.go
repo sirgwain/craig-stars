@@ -3,6 +3,7 @@ package cs
 import (
 	"log/slog"
 	"math"
+	"slices"
 )
 
 // The CompletionEstimator is used for populating completion estimates in a planet's production queue
@@ -60,7 +61,13 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		player.Spec = ComputePlayerSpec(player, rules)
 	}
 
+	// the planet is a copy, but its queue is shared with the caller, so clone it before we
+	// index it and produce from it
+	planet.ProductionQueue = slices.Clone(planet.ProductionQueue)
+
 	// reset any estimates
+	// we simulate until every item's estimate is settled
+	settled := make([]bool, len(items))
 	for i := range items {
 		planet.ProductionQueue[i].index = i
 		item := &items[i]
@@ -69,6 +76,9 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			YearsToBuildAll: Infinite,
 			YearsToSkipAuto: Infinite,
 		}
+
+		// auto alchemy in front of another item doesn't build anything itself
+		settled[i] = item.Type == QueueItemTypeAutoMineralAlchemy && i < len(items)-1
 	}
 
 	// keep track of items built so we know how many auto items are completed
@@ -108,11 +118,16 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 						item.YearsToSkipAuto = year
 					}
 				}
+				// an auto item at capacity is done, but one waiting on minerals may build later
+				if maxBuildable == 0 {
+					settled[itemBuilt.index] = true
+				}
 				continue
 			}
 
 			// this item will never complete
 			if itemBuilt.never {
+				settled[itemBuilt.index] = true
 				continue
 			}
 			numBuiltSoFar := numBuilt[itemBuilt.index] + itemBuilt.numBuilt
@@ -123,6 +138,11 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			if first == Infinite {
 				// we built one, update the years to build one
 				item.YearsToBuildOne = year
+			}
+			// Trailing auto alchemy is continuous; its stored quantity is not a quota.
+			if item.Type == QueueItemTypeAutoMineralAlchemy {
+				settled[itemBuilt.index] = true
+				continue
 			}
 
 			// check if we built the last one of this group
@@ -140,10 +160,13 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 					}
 				}
 			}
+			if item.YearsToBuildAll != Infinite {
+				settled[itemBuilt.index] = true
+			}
 		}
 
-		if result.completed {
-			// we built everything in the queue, no need to loop anymore
+		if !slices.Contains(settled, false) {
+			// every item's estimate is settled, no need to loop anymore
 			break
 		}
 
