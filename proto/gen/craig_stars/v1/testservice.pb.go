@@ -210,10 +210,10 @@ const file_craig_stars_v1_testservice_proto_rawDesc = "" +
 	"\x04game\x18\x01 \x01(\v2\x1f.craig_stars.v1.GameWithPlayersR\x04game\"\x19\n" +
 	"\x17GetTestGameNamesRequest\"0\n" +
 	"\x18GetTestGameNamesResponse\x12\x14\n" +
-	"\x05names\x18\x01 \x03(\tR\x05names2\xd5\x01\n" +
+	"\x05names\x18\x01 \x03(\tR\x05names2\xda\x01\n" +
 	"\vTestService\x12_\n" +
-	"\x0eCreateTestGame\x12%.craig_stars.v1.CreateTestGameRequest\x1a&.craig_stars.v1.CreateTestGameResponse\x12e\n" +
-	"\x10GetTestGameNames\x12'.craig_stars.v1.GetTestGameNamesRequest\x1a(.craig_stars.v1.GetTestGameNamesResponseB\xc3\x01\n" +
+	"\x0eCreateTestGame\x12%.craig_stars.v1.CreateTestGameRequest\x1a&.craig_stars.v1.CreateTestGameResponse\x12j\n" +
+	"\x10GetTestGameNames\x12'.craig_stars.v1.GetTestGameNamesRequest\x1a(.craig_stars.v1.GetTestGameNamesResponse\"\x03\x90\x02\x01B\xc3\x01\n" +
 	"\x12com.craig_stars.v1B\x10TestserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

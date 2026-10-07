@@ -239,10 +239,10 @@ const file_craig_stars_v1_planetservice_proto_rawDesc = "" +
 	"planet_num\x18\x02 \x01(\x05R\tplanetNum\x12A\n" +
 	"\rplanet_orders\x18\x04 \x01(\v2\x1c.craig_stars.v1.PlanetOrdersR\fplanetOrders\"L\n" +
 	"\x1aUpdatePlanetOrdersResponse\x12.\n" +
-	"\x06planet\x18\x01 \x01(\v2\x16.craig_stars.v1.PlanetR\x06planet2\xce\x01\n" +
-	"\rPlanetService\x12P\n" +
-	"\tGetPlanet\x12 .craig_stars.v1.GetPlanetRequest\x1a!.craig_stars.v1.GetPlanetResponse\x12k\n" +
-	"\x12UpdatePlanetOrders\x12).craig_stars.v1.UpdatePlanetOrdersRequest\x1a*.craig_stars.v1.UpdatePlanetOrdersResponseB\xc5\x01\n" +
+	"\x06planet\x18\x01 \x01(\v2\x16.craig_stars.v1.PlanetR\x06planet2\xd8\x01\n" +
+	"\rPlanetService\x12U\n" +
+	"\tGetPlanet\x12 .craig_stars.v1.GetPlanetRequest\x1a!.craig_stars.v1.GetPlanetResponse\"\x03\x90\x02\x01\x12p\n" +
+	"\x12UpdatePlanetOrders\x12).craig_stars.v1.UpdatePlanetOrdersRequest\x1a*.craig_stars.v1.UpdatePlanetOrdersResponse\"\x03\x90\x02\x02B\xc5\x01\n" +
 	"\x12com.craig_stars.v1B\x12PlanetserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

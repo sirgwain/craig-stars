@@ -7,10 +7,16 @@ import "craig_stars/v1/planet.proto";
 import "craig_stars/v1/shipdesign.proto";
 
 service ShipDesignService {
-  rpc GetShipDesign(GetShipDesignRequest) returns (GetShipDesignResponse);
-  rpc GetShipDesigns(GetShipDesignsRequest) returns (GetShipDesignsResponse);
+  rpc GetShipDesign(GetShipDesignRequest) returns (GetShipDesignResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc GetShipDesigns(GetShipDesignsRequest) returns (GetShipDesignsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   rpc CreateShipDesign(CreateShipDesignRequest) returns (CreateShipDesignResponse);
-  rpc UpdateShipDesign(UpdateShipDesignRequest) returns (UpdateShipDesignResponse);
+  rpc UpdateShipDesign(UpdateShipDesignRequest) returns (UpdateShipDesignResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
   rpc DeleteShipDesign(DeleteShipDesignRequest) returns (DeleteShipDesignResponse);
 }
 

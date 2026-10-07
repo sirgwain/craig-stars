@@ -368,11 +368,11 @@ const file_craig_stars_v1_userservice_proto_rawDesc = "" +
 	"\x1aUpdateUserSettingsResponse\x12(\n" +
 	"\x04user\x18\x01 \x01(\v2\x14.craig_stars.v1.UserR\x04user\"\x1b\n" +
 	"\x19TestDiscordWebhookRequest\"\x1c\n" +
-	"\x1aTestDiscordWebhookResponse2\xf9\x02\n" +
-	"\vUserService\x12D\n" +
-	"\x05GetMe\x12\x1c.craig_stars.v1.GetMeRequest\x1a\x1d.craig_stars.v1.GetMeResponse\x12J\n" +
-	"\aGetUser\x12\x1e.craig_stars.v1.GetUserRequest\x1a\x1f.craig_stars.v1.GetUserResponse\x12k\n" +
-	"\x12UpdateUserSettings\x12).craig_stars.v1.UpdateUserSettingsRequest\x1a*.craig_stars.v1.UpdateUserSettingsResponse\x12k\n" +
+	"\x1aTestDiscordWebhookResponse2\x88\x03\n" +
+	"\vUserService\x12I\n" +
+	"\x05GetMe\x12\x1c.craig_stars.v1.GetMeRequest\x1a\x1d.craig_stars.v1.GetMeResponse\"\x03\x90\x02\x01\x12O\n" +
+	"\aGetUser\x12\x1e.craig_stars.v1.GetUserRequest\x1a\x1f.craig_stars.v1.GetUserResponse\"\x03\x90\x02\x01\x12p\n" +
+	"\x12UpdateUserSettings\x12).craig_stars.v1.UpdateUserSettingsRequest\x1a*.craig_stars.v1.UpdateUserSettingsResponse\"\x03\x90\x02\x02\x12k\n" +
 	"\x12TestDiscordWebhook\x12).craig_stars.v1.TestDiscordWebhookRequest\x1a*.craig_stars.v1.TestDiscordWebhookResponseB\xc3\x01\n" +
 	"\x12com.craig_stars.v1B\x10UserserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 

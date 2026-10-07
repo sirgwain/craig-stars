@@ -540,12 +540,12 @@ const file_craig_stars_v1_shipdesignservice_proto_rawDesc = "" +
 	"\x18DeleteShipDesignResponse\x12-\n" +
 	"\x06fleets\x18\x01 \x03(\v2\x15.craig_stars.v1.FleetR\x06fleets\x123\n" +
 	"\tstarbases\x18\x02 \x03(\v2\x15.craig_stars.v1.FleetR\tstarbases\x120\n" +
-	"\aplanets\x18\x03 \x03(\v2\x16.craig_stars.v1.PlanetR\aplanets2\x87\x04\n" +
-	"\x11ShipDesignService\x12\\\n" +
-	"\rGetShipDesign\x12$.craig_stars.v1.GetShipDesignRequest\x1a%.craig_stars.v1.GetShipDesignResponse\x12_\n" +
-	"\x0eGetShipDesigns\x12%.craig_stars.v1.GetShipDesignsRequest\x1a&.craig_stars.v1.GetShipDesignsResponse\x12e\n" +
-	"\x10CreateShipDesign\x12'.craig_stars.v1.CreateShipDesignRequest\x1a(.craig_stars.v1.CreateShipDesignResponse\x12e\n" +
-	"\x10UpdateShipDesign\x12'.craig_stars.v1.UpdateShipDesignRequest\x1a(.craig_stars.v1.UpdateShipDesignResponse\x12e\n" +
+	"\aplanets\x18\x03 \x03(\v2\x16.craig_stars.v1.PlanetR\aplanets2\x96\x04\n" +
+	"\x11ShipDesignService\x12a\n" +
+	"\rGetShipDesign\x12$.craig_stars.v1.GetShipDesignRequest\x1a%.craig_stars.v1.GetShipDesignResponse\"\x03\x90\x02\x01\x12d\n" +
+	"\x0eGetShipDesigns\x12%.craig_stars.v1.GetShipDesignsRequest\x1a&.craig_stars.v1.GetShipDesignsResponse\"\x03\x90\x02\x01\x12e\n" +
+	"\x10CreateShipDesign\x12'.craig_stars.v1.CreateShipDesignRequest\x1a(.craig_stars.v1.CreateShipDesignResponse\x12j\n" +
+	"\x10UpdateShipDesign\x12'.craig_stars.v1.UpdateShipDesignRequest\x1a(.craig_stars.v1.UpdateShipDesignResponse\"\x03\x90\x02\x02\x12e\n" +
 	"\x10DeleteShipDesign\x12'.craig_stars.v1.DeleteShipDesignRequest\x1a(.craig_stars.v1.DeleteShipDesignResponseB\xc9\x01\n" +
 	"\x12com.craig_stars.v1B\x16ShipdesignserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 

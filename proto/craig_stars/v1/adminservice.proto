@@ -12,13 +12,19 @@ service AdminService {
   rpc ConvertGuestUser(ConvertGuestUserRequest) returns (ConvertGuestUserResponse);
 
   // GetAllGames returns all games with their players.
-  rpc GetAllGames(GetAllGamesRequest) returns (GetAllGamesResponse);
+  rpc GetAllGames(GetAllGamesRequest) returns (GetAllGamesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // GetUserGames returns all games for a specified user.
-  rpc GetUserGames(GetUserGamesRequest) returns (GetUserGamesResponse);
+  rpc GetUserGames(GetUserGamesRequest) returns (GetUserGamesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // GetUsers returns all users
-  rpc GetUsers(GetUsersRequest) returns (GetUsersResponse);
+  rpc GetUsers(GetUsersRequest) returns (GetUsersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
 
 message ConvertGuestUserRequest {

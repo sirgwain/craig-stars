@@ -1826,29 +1826,29 @@ const file_craig_stars_v1_playerservice_proto_rawDesc = "" +
 	"\x1aDeleteTransportPlanRequest\x12\x17\n" +
 	"\agame_id\x18\x01 \x01(\x03R\x06gameId\x12\x10\n" +
 	"\x03num\x18\x02 \x01(\x05R\x03num\"\x1d\n" +
-	"\x1bDeleteTransportPlanResponse2\xcc\x04\n" +
-	"\rPlayerService\x12P\n" +
-	"\tGetPlayer\x12 .craig_stars.v1.GetPlayerRequest\x1a!.craig_stars.v1.GetPlayerResponse\x12V\n" +
-	"\vGetUniverse\x12\".craig_stars.v1.GetUniverseRequest\x1a#.craig_stars.v1.GetUniverseResponse\x12S\n" +
+	"\x1bDeleteTransportPlanResponse2\xe0\x04\n" +
+	"\rPlayerService\x12U\n" +
+	"\tGetPlayer\x12 .craig_stars.v1.GetPlayerRequest\x1a!.craig_stars.v1.GetPlayerResponse\"\x03\x90\x02\x01\x12[\n" +
+	"\vGetUniverse\x12\".craig_stars.v1.GetUniverseRequest\x1a#.craig_stars.v1.GetUniverseResponse\"\x03\x90\x02\x01\x12S\n" +
 	"\n" +
 	"SubmitTurn\x12!.craig_stars.v1.SubmitTurnRequest\x1a\".craig_stars.v1.SubmitTurnResponse\x12Y\n" +
-	"\fUnsubmitTurn\x12#.craig_stars.v1.UnsubmitTurnRequest\x1a$.craig_stars.v1.UnsubmitTurnResponse\x12k\n" +
-	"\x12UpdatePlayerOrders\x12).craig_stars.v1.UpdatePlayerOrdersRequest\x1a*.craig_stars.v1.UpdatePlayerOrdersResponse\x12t\n" +
-	"\x15UpdatePlayerRelations\x12,.craig_stars.v1.UpdatePlayerRelationsRequest\x1a-.craig_stars.v1.UpdatePlayerRelationsResponse2\xa6\x03\n" +
-	"\x11BattlePlanService\x12\\\n" +
-	"\rGetBattlePlan\x12$.craig_stars.v1.GetBattlePlanRequest\x1a%.craig_stars.v1.GetBattlePlanResponse\x12e\n" +
-	"\x10CreateBattlePlan\x12'.craig_stars.v1.CreateBattlePlanRequest\x1a(.craig_stars.v1.CreateBattlePlanResponse\x12e\n" +
-	"\x10UpdateBattlePlan\x12'.craig_stars.v1.UpdateBattlePlanRequest\x1a(.craig_stars.v1.UpdateBattlePlanResponse\x12e\n" +
-	"\x10DeleteBattlePlan\x12'.craig_stars.v1.DeleteBattlePlanRequest\x1a(.craig_stars.v1.DeleteBattlePlanResponse2\xda\x03\n" +
-	"\x15ProductionPlanService\x12h\n" +
-	"\x11GetProductionPlan\x12(.craig_stars.v1.GetProductionPlanRequest\x1a).craig_stars.v1.GetProductionPlanResponse\x12q\n" +
-	"\x14CreateProductionPlan\x12+.craig_stars.v1.CreateProductionPlanRequest\x1a,.craig_stars.v1.CreateProductionPlanResponse\x12q\n" +
-	"\x14UpdateProductionPlan\x12+.craig_stars.v1.UpdateProductionPlanRequest\x1a,.craig_stars.v1.UpdateProductionPlanResponse\x12q\n" +
-	"\x14DeleteProductionPlan\x12+.craig_stars.v1.DeleteProductionPlanRequest\x1a,.craig_stars.v1.DeleteProductionPlanResponse2\xcd\x03\n" +
-	"\x14TransportPlanService\x12e\n" +
-	"\x10GetTransportPlan\x12'.craig_stars.v1.GetTransportPlanRequest\x1a(.craig_stars.v1.GetTransportPlanResponse\x12n\n" +
-	"\x13CreateTransportPlan\x12*.craig_stars.v1.CreateTransportPlanRequest\x1a+.craig_stars.v1.CreateTransportPlanResponse\x12n\n" +
-	"\x13UpdateTransportPlan\x12*.craig_stars.v1.UpdateTransportPlanRequest\x1a+.craig_stars.v1.UpdateTransportPlanResponse\x12n\n" +
+	"\fUnsubmitTurn\x12#.craig_stars.v1.UnsubmitTurnRequest\x1a$.craig_stars.v1.UnsubmitTurnResponse\x12p\n" +
+	"\x12UpdatePlayerOrders\x12).craig_stars.v1.UpdatePlayerOrdersRequest\x1a*.craig_stars.v1.UpdatePlayerOrdersResponse\"\x03\x90\x02\x02\x12y\n" +
+	"\x15UpdatePlayerRelations\x12,.craig_stars.v1.UpdatePlayerRelationsRequest\x1a-.craig_stars.v1.UpdatePlayerRelationsResponse\"\x03\x90\x02\x022\xb0\x03\n" +
+	"\x11BattlePlanService\x12a\n" +
+	"\rGetBattlePlan\x12$.craig_stars.v1.GetBattlePlanRequest\x1a%.craig_stars.v1.GetBattlePlanResponse\"\x03\x90\x02\x01\x12e\n" +
+	"\x10CreateBattlePlan\x12'.craig_stars.v1.CreateBattlePlanRequest\x1a(.craig_stars.v1.CreateBattlePlanResponse\x12j\n" +
+	"\x10UpdateBattlePlan\x12'.craig_stars.v1.UpdateBattlePlanRequest\x1a(.craig_stars.v1.UpdateBattlePlanResponse\"\x03\x90\x02\x02\x12e\n" +
+	"\x10DeleteBattlePlan\x12'.craig_stars.v1.DeleteBattlePlanRequest\x1a(.craig_stars.v1.DeleteBattlePlanResponse2\xe4\x03\n" +
+	"\x15ProductionPlanService\x12m\n" +
+	"\x11GetProductionPlan\x12(.craig_stars.v1.GetProductionPlanRequest\x1a).craig_stars.v1.GetProductionPlanResponse\"\x03\x90\x02\x01\x12q\n" +
+	"\x14CreateProductionPlan\x12+.craig_stars.v1.CreateProductionPlanRequest\x1a,.craig_stars.v1.CreateProductionPlanResponse\x12v\n" +
+	"\x14UpdateProductionPlan\x12+.craig_stars.v1.UpdateProductionPlanRequest\x1a,.craig_stars.v1.UpdateProductionPlanResponse\"\x03\x90\x02\x02\x12q\n" +
+	"\x14DeleteProductionPlan\x12+.craig_stars.v1.DeleteProductionPlanRequest\x1a,.craig_stars.v1.DeleteProductionPlanResponse2\xd7\x03\n" +
+	"\x14TransportPlanService\x12j\n" +
+	"\x10GetTransportPlan\x12'.craig_stars.v1.GetTransportPlanRequest\x1a(.craig_stars.v1.GetTransportPlanResponse\"\x03\x90\x02\x01\x12n\n" +
+	"\x13CreateTransportPlan\x12*.craig_stars.v1.CreateTransportPlanRequest\x1a+.craig_stars.v1.CreateTransportPlanResponse\x12s\n" +
+	"\x13UpdateTransportPlan\x12*.craig_stars.v1.UpdateTransportPlanRequest\x1a+.craig_stars.v1.UpdateTransportPlanResponse\"\x03\x90\x02\x02\x12n\n" +
 	"\x13DeleteTransportPlan\x12*.craig_stars.v1.DeleteTransportPlanRequest\x1a+.craig_stars.v1.DeleteTransportPlanResponseB\xc5\x01\n" +
 	"\x12com.craig_stars.v1B\x12PlayerserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 

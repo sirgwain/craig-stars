@@ -63,12 +63,14 @@ func NewMinefieldServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			httpClient,
 			baseURL+MinefieldServiceGetMinefieldProcedure,
 			connect.WithSchema(minefieldServiceMethods.ByName("GetMinefield")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		updateMinefieldOrders: connect.NewClient[v1.UpdateMinefieldOrdersRequest, v1.UpdateMinefieldOrdersResponse](
 			httpClient,
 			baseURL+MinefieldServiceUpdateMinefieldOrdersProcedure,
 			connect.WithSchema(minefieldServiceMethods.ByName("UpdateMinefieldOrders")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -107,12 +109,14 @@ func NewMinefieldServiceHandler(svc MinefieldServiceHandler, opts ...connect.Han
 		MinefieldServiceGetMinefieldProcedure,
 		svc.GetMinefield,
 		connect.WithSchema(minefieldServiceMethods.ByName("GetMinefield")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	minefieldServiceUpdateMinefieldOrdersHandler := connect.NewUnaryHandler(
 		MinefieldServiceUpdateMinefieldOrdersProcedure,
 		svc.UpdateMinefieldOrders,
 		connect.WithSchema(minefieldServiceMethods.ByName("UpdateMinefieldOrders")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.MinefieldService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -8,32 +8,52 @@ import "craig_stars/v1/planet.proto";
 import "craig_stars/v1/player.proto";
 
 service PlayerService {
-  rpc GetPlayer(GetPlayerRequest) returns (GetPlayerResponse);
-  rpc GetUniverse(GetUniverseRequest) returns (GetUniverseResponse);
+  rpc GetPlayer(GetPlayerRequest) returns (GetPlayerResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc GetUniverse(GetUniverseRequest) returns (GetUniverseResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   rpc SubmitTurn(SubmitTurnRequest) returns (SubmitTurnResponse);
   rpc UnsubmitTurn(UnsubmitTurnRequest) returns (UnsubmitTurnResponse);
-  rpc UpdatePlayerOrders(UpdatePlayerOrdersRequest) returns (UpdatePlayerOrdersResponse);
-  rpc UpdatePlayerRelations(UpdatePlayerRelationsRequest) returns (UpdatePlayerRelationsResponse);
+  rpc UpdatePlayerOrders(UpdatePlayerOrdersRequest) returns (UpdatePlayerOrdersResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+  rpc UpdatePlayerRelations(UpdatePlayerRelationsRequest) returns (UpdatePlayerRelationsResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
 }
 
 service BattlePlanService {
-  rpc GetBattlePlan(GetBattlePlanRequest) returns (GetBattlePlanResponse);
+  rpc GetBattlePlan(GetBattlePlanRequest) returns (GetBattlePlanResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   rpc CreateBattlePlan(CreateBattlePlanRequest) returns (CreateBattlePlanResponse);
-  rpc UpdateBattlePlan(UpdateBattlePlanRequest) returns (UpdateBattlePlanResponse);
+  rpc UpdateBattlePlan(UpdateBattlePlanRequest) returns (UpdateBattlePlanResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
   rpc DeleteBattlePlan(DeleteBattlePlanRequest) returns (DeleteBattlePlanResponse);
 }
 
 service ProductionPlanService {
-  rpc GetProductionPlan(GetProductionPlanRequest) returns (GetProductionPlanResponse);
+  rpc GetProductionPlan(GetProductionPlanRequest) returns (GetProductionPlanResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   rpc CreateProductionPlan(CreateProductionPlanRequest) returns (CreateProductionPlanResponse);
-  rpc UpdateProductionPlan(UpdateProductionPlanRequest) returns (UpdateProductionPlanResponse);
+  rpc UpdateProductionPlan(UpdateProductionPlanRequest) returns (UpdateProductionPlanResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
   rpc DeleteProductionPlan(DeleteProductionPlanRequest) returns (DeleteProductionPlanResponse);
 }
 
 service TransportPlanService {
-  rpc GetTransportPlan(GetTransportPlanRequest) returns (GetTransportPlanResponse);
+  rpc GetTransportPlan(GetTransportPlanRequest) returns (GetTransportPlanResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   rpc CreateTransportPlan(CreateTransportPlanRequest) returns (CreateTransportPlanResponse);
-  rpc UpdateTransportPlan(UpdateTransportPlanRequest) returns (UpdateTransportPlanResponse);
+  rpc UpdateTransportPlan(UpdateTransportPlanRequest) returns (UpdateTransportPlanResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
   rpc DeleteTransportPlan(DeleteTransportPlanRequest) returns (DeleteTransportPlanResponse);
 }
 

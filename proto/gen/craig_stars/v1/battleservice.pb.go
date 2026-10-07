@@ -145,9 +145,9 @@ const file_craig_stars_v1_battleservice_proto_rawDesc = "" +
 	"\x06intels\x18\x02 \x01(\v2\x16.craig_stars.v1.IntelsR\x06intels\x124\n" +
 	"\adesigns\x18\x03 \x03(\v2\x1a.craig_stars.v1.ShipDesignR\adesigns\x12-\n" +
 	"\x06fleets\x18\x04 \x03(\v2\x15.craig_stars.v1.FleetR\x06fleets\x124\n" +
-	"\x06battle\x18\x05 \x01(\v2\x1c.craig_stars.v1.BattleRecordR\x06battle2m\n" +
-	"\rBattleService\x12\\\n" +
-	"\rGetTestBattle\x12$.craig_stars.v1.GetTestBattleRequest\x1a%.craig_stars.v1.GetTestBattleResponseB\xc5\x01\n" +
+	"\x06battle\x18\x05 \x01(\v2\x1c.craig_stars.v1.BattleRecordR\x06battle2r\n" +
+	"\rBattleService\x12a\n" +
+	"\rGetTestBattle\x12$.craig_stars.v1.GetTestBattleRequest\x1a%.craig_stars.v1.GetTestBattleResponse\"\x03\x90\x02\x01B\xc5\x01\n" +
 	"\x12com.craig_stars.v1B\x12BattleserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

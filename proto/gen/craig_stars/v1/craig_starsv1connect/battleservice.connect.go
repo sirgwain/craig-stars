@@ -59,6 +59,7 @@ func NewBattleServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			httpClient,
 			baseURL+BattleServiceGetTestBattleProcedure,
 			connect.WithSchema(battleServiceMethods.ByName("GetTestBattle")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -90,6 +91,7 @@ func NewBattleServiceHandler(svc BattleServiceHandler, opts ...connect.HandlerOp
 		BattleServiceGetTestBattleProcedure,
 		svc.GetTestBattle,
 		connect.WithSchema(battleServiceMethods.ByName("GetTestBattle")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.BattleService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

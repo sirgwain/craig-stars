@@ -358,10 +358,10 @@ const file_craig_stars_v1_techservice_proto_rawDesc = "" +
 	"\x0etech_planetary\x18\x04 \x01(\v2\x1d.craig_stars.v1.TechPlanetaryH\x00R\rtechPlanetary\x12S\n" +
 	"\x13tech_hull_component\x18\x05 \x01(\v2!.craig_stars.v1.TechHullComponentH\x00R\x11techHullComponent\x127\n" +
 	"\ttech_hull\x18\x06 \x01(\v2\x18.craig_stars.v1.TechHullH\x00R\btechHullB\x06\n" +
-	"\x04tech2\xa8\x01\n" +
-	"\vTechService\x12M\n" +
-	"\bGetTechs\x12\x1f.craig_stars.v1.GetTechsRequest\x1a .craig_stars.v1.GetTechsResponse\x12J\n" +
-	"\aGetTech\x12\x1e.craig_stars.v1.GetTechRequest\x1a\x1f.craig_stars.v1.GetTechResponseB\xc3\x01\n" +
+	"\x04tech2\xb2\x01\n" +
+	"\vTechService\x12R\n" +
+	"\bGetTechs\x12\x1f.craig_stars.v1.GetTechsRequest\x1a .craig_stars.v1.GetTechsResponse\"\x03\x90\x02\x01\x12O\n" +
+	"\aGetTech\x12\x1e.craig_stars.v1.GetTechRequest\x1a\x1f.craig_stars.v1.GetTechResponse\"\x03\x90\x02\x01B\xc3\x01\n" +
 	"\x12com.craig_stars.v1B\x10TechserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

@@ -63,12 +63,14 @@ func NewTechServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+TechServiceGetTechsProcedure,
 			connect.WithSchema(techServiceMethods.ByName("GetTechs")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getTech: connect.NewClient[v1.GetTechRequest, v1.GetTechResponse](
 			httpClient,
 			baseURL+TechServiceGetTechProcedure,
 			connect.WithSchema(techServiceMethods.ByName("GetTech")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -109,12 +111,14 @@ func NewTechServiceHandler(svc TechServiceHandler, opts ...connect.HandlerOption
 		TechServiceGetTechsProcedure,
 		svc.GetTechs,
 		connect.WithSchema(techServiceMethods.ByName("GetTechs")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	techServiceGetTechHandler := connect.NewUnaryHandler(
 		TechServiceGetTechProcedure,
 		svc.GetTech,
 		connect.WithSchema(techServiceMethods.ByName("GetTech")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.TechService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

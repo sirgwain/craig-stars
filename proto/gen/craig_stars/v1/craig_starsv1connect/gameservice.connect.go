@@ -114,6 +114,7 @@ func NewGameServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+GameServiceArchiveGameProcedure,
 			connect.WithSchema(gameServiceMethods.ByName("ArchiveGame")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		createGame: connect.NewClient[v1.CreateGameRequest, v1.CreateGameResponse](
@@ -144,24 +145,28 @@ func NewGameServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+GameServiceGetGameProcedure,
 			connect.WithSchema(gameServiceMethods.ByName("GetGame")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getGameByInviteHash: connect.NewClient[v1.GetGameByInviteHashRequest, v1.GetGameByInviteHashResponse](
 			httpClient,
 			baseURL+GameServiceGetGameByInviteHashProcedure,
 			connect.WithSchema(gameServiceMethods.ByName("GetGameByInviteHash")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getGames: connect.NewClient[v1.GetGamesRequest, v1.GetGamesResponse](
 			httpClient,
 			baseURL+GameServiceGetGamesProcedure,
 			connect.WithSchema(gameServiceMethods.ByName("GetGames")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getGuestUser: connect.NewClient[v1.GetGuestUserRequest, v1.GetGuestUserResponse](
 			httpClient,
 			baseURL+GameServiceGetGuestUserProcedure,
 			connect.WithSchema(gameServiceMethods.ByName("GetGuestUser")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		joinGame: connect.NewClient[v1.JoinGameRequest, v1.JoinGameResponse](
@@ -192,12 +197,14 @@ func NewGameServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+GameServiceUnarchiveGameProcedure,
 			connect.WithSchema(gameServiceMethods.ByName("UnarchiveGame")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		updateGame: connect.NewClient[v1.UpdateGameRequest, v1.UpdateGameResponse](
 			httpClient,
 			baseURL+GameServiceUpdateGameProcedure,
 			connect.WithSchema(gameServiceMethods.ByName("UpdateGame")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -340,6 +347,7 @@ func NewGameServiceHandler(svc GameServiceHandler, opts ...connect.HandlerOption
 		GameServiceArchiveGameProcedure,
 		svc.ArchiveGame,
 		connect.WithSchema(gameServiceMethods.ByName("ArchiveGame")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	gameServiceCreateGameHandler := connect.NewUnaryHandler(
@@ -370,24 +378,28 @@ func NewGameServiceHandler(svc GameServiceHandler, opts ...connect.HandlerOption
 		GameServiceGetGameProcedure,
 		svc.GetGame,
 		connect.WithSchema(gameServiceMethods.ByName("GetGame")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	gameServiceGetGameByInviteHashHandler := connect.NewUnaryHandler(
 		GameServiceGetGameByInviteHashProcedure,
 		svc.GetGameByInviteHash,
 		connect.WithSchema(gameServiceMethods.ByName("GetGameByInviteHash")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	gameServiceGetGamesHandler := connect.NewUnaryHandler(
 		GameServiceGetGamesProcedure,
 		svc.GetGames,
 		connect.WithSchema(gameServiceMethods.ByName("GetGames")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	gameServiceGetGuestUserHandler := connect.NewUnaryHandler(
 		GameServiceGetGuestUserProcedure,
 		svc.GetGuestUser,
 		connect.WithSchema(gameServiceMethods.ByName("GetGuestUser")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	gameServiceJoinGameHandler := connect.NewUnaryHandler(
@@ -418,12 +430,14 @@ func NewGameServiceHandler(svc GameServiceHandler, opts ...connect.HandlerOption
 		GameServiceUnarchiveGameProcedure,
 		svc.UnarchiveGame,
 		connect.WithSchema(gameServiceMethods.ByName("UnarchiveGame")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	gameServiceUpdateGameHandler := connect.NewUnaryHandler(
 		GameServiceUpdateGameProcedure,
 		svc.UpdateGame,
 		connect.WithSchema(gameServiceMethods.ByName("UpdateGame")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.GameService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

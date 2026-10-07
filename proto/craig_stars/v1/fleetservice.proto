@@ -10,13 +10,19 @@ import "craig_stars/v1/player.proto";
 import "craig_stars/v1/salvage.proto";
 
 service FleetService {
-  rpc GetFleet(GetFleetRequest) returns (GetFleetResponse);
-  rpc UpdateFleetOrders(UpdateFleetOrdersRequest) returns (UpdateFleetOrdersResponse);
+  rpc GetFleet(GetFleetRequest) returns (GetFleetResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc UpdateFleetOrders(UpdateFleetOrdersRequest) returns (UpdateFleetOrdersResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
   rpc SplitFleet(SplitFleetRequest) returns (SplitFleetResponse);
   rpc SplitAllFleets(SplitAllFleetsRequest) returns (SplitAllFleetsResponse);
   rpc MergeFleets(MergeFleetsRequest) returns (MergeFleetsResponse);
   rpc TransferCargo(TransferCargoRequest) returns (TransferCargoResponse);
-  rpc RenameFleet(RenameFleetRequest) returns (RenameFleetResponse);
+  rpc RenameFleet(RenameFleetRequest) returns (RenameFleetResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
 }
 
 enum UpdateWaypointResult {

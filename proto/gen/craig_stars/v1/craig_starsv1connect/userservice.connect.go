@@ -70,18 +70,21 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+UserServiceGetMeProcedure,
 			connect.WithSchema(userServiceMethods.ByName("GetMe")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getUser: connect.NewClient[v1.GetUserRequest, v1.GetUserResponse](
 			httpClient,
 			baseURL+UserServiceGetUserProcedure,
 			connect.WithSchema(userServiceMethods.ByName("GetUser")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		updateUserSettings: connect.NewClient[v1.UpdateUserSettingsRequest, v1.UpdateUserSettingsResponse](
 			httpClient,
 			baseURL+UserServiceUpdateUserSettingsProcedure,
 			connect.WithSchema(userServiceMethods.ByName("UpdateUserSettings")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		testDiscordWebhook: connect.NewClient[v1.TestDiscordWebhookRequest, v1.TestDiscordWebhookResponse](
@@ -141,18 +144,21 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		UserServiceGetMeProcedure,
 		svc.GetMe,
 		connect.WithSchema(userServiceMethods.ByName("GetMe")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userServiceGetUserHandler := connect.NewUnaryHandler(
 		UserServiceGetUserProcedure,
 		svc.GetUser,
 		connect.WithSchema(userServiceMethods.ByName("GetUser")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userServiceUpdateUserSettingsHandler := connect.NewUnaryHandler(
 		UserServiceUpdateUserSettingsProcedure,
 		svc.UpdateUserSettings,
 		connect.WithSchema(userServiceMethods.ByName("UpdateUserSettings")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	userServiceTestDiscordWebhookHandler := connect.NewUnaryHandler(

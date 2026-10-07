@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { page } from '$app/state';
+	import { page, updated } from '$app/state';
 	import { authGuard } from '#lib/authGuard.js';
 	import HomePage from '#lib/components/HomePage.svelte';
+	import VersionToast from '#lib/components/VersionToast.svelte';
 	import { me } from '#lib/services/Stores.js';
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
@@ -39,3 +40,5 @@
 {:else if $me.status == UserStatuses.NotFound}
 	<HomePage />
 {/if}
+
+<VersionToast frontendUpdated={updated.current} />

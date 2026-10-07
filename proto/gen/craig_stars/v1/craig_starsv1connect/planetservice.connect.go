@@ -62,12 +62,14 @@ func NewPlanetServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			httpClient,
 			baseURL+PlanetServiceGetPlanetProcedure,
 			connect.WithSchema(planetServiceMethods.ByName("GetPlanet")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		updatePlanetOrders: connect.NewClient[v1.UpdatePlanetOrdersRequest, v1.UpdatePlanetOrdersResponse](
 			httpClient,
 			baseURL+PlanetServiceUpdatePlanetOrdersProcedure,
 			connect.WithSchema(planetServiceMethods.ByName("UpdatePlanetOrders")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -106,12 +108,14 @@ func NewPlanetServiceHandler(svc PlanetServiceHandler, opts ...connect.HandlerOp
 		PlanetServiceGetPlanetProcedure,
 		svc.GetPlanet,
 		connect.WithSchema(planetServiceMethods.ByName("GetPlanet")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	planetServiceUpdatePlanetOrdersHandler := connect.NewUnaryHandler(
 		PlanetServiceUpdatePlanetOrdersProcedure,
 		svc.UpdatePlanetOrders,
 		connect.WithSchema(planetServiceMethods.ByName("UpdatePlanetOrders")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.PlanetService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

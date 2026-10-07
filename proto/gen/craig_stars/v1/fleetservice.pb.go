@@ -1039,16 +1039,16 @@ const file_craig_stars_v1_fleetservice_proto_rawDesc = "" +
 	"\"UPDATE_WAYPOINT_RESULT_UNSPECIFIED\x10\x00\x12,\n" +
 	"(UPDATE_WAYPOINT_RESULT_PREVIOUS_WAYPOINT\x10\x01\x12(\n" +
 	"$UPDATE_WAYPOINT_RESULT_NEXT_WAYPOINT\x10\x02\x12\"\n" +
-	"\x1eUPDATE_WAYPOINT_RESULT_UPDATED\x10\x032\x8b\x05\n" +
-	"\fFleetService\x12M\n" +
-	"\bGetFleet\x12\x1f.craig_stars.v1.GetFleetRequest\x1a .craig_stars.v1.GetFleetResponse\x12h\n" +
-	"\x11UpdateFleetOrders\x12(.craig_stars.v1.UpdateFleetOrdersRequest\x1a).craig_stars.v1.UpdateFleetOrdersResponse\x12S\n" +
+	"\x1eUPDATE_WAYPOINT_RESULT_UPDATED\x10\x032\x9a\x05\n" +
+	"\fFleetService\x12R\n" +
+	"\bGetFleet\x12\x1f.craig_stars.v1.GetFleetRequest\x1a .craig_stars.v1.GetFleetResponse\"\x03\x90\x02\x01\x12m\n" +
+	"\x11UpdateFleetOrders\x12(.craig_stars.v1.UpdateFleetOrdersRequest\x1a).craig_stars.v1.UpdateFleetOrdersResponse\"\x03\x90\x02\x02\x12S\n" +
 	"\n" +
 	"SplitFleet\x12!.craig_stars.v1.SplitFleetRequest\x1a\".craig_stars.v1.SplitFleetResponse\x12_\n" +
 	"\x0eSplitAllFleets\x12%.craig_stars.v1.SplitAllFleetsRequest\x1a&.craig_stars.v1.SplitAllFleetsResponse\x12V\n" +
 	"\vMergeFleets\x12\".craig_stars.v1.MergeFleetsRequest\x1a#.craig_stars.v1.MergeFleetsResponse\x12\\\n" +
-	"\rTransferCargo\x12$.craig_stars.v1.TransferCargoRequest\x1a%.craig_stars.v1.TransferCargoResponse\x12V\n" +
-	"\vRenameFleet\x12\".craig_stars.v1.RenameFleetRequest\x1a#.craig_stars.v1.RenameFleetResponseB\xc4\x01\n" +
+	"\rTransferCargo\x12$.craig_stars.v1.TransferCargoRequest\x1a%.craig_stars.v1.TransferCargoResponse\x12[\n" +
+	"\vRenameFleet\x12\".craig_stars.v1.RenameFleetRequest\x1a#.craig_stars.v1.RenameFleetResponse\"\x03\x90\x02\x02B\xc4\x01\n" +
 	"\x12com.craig_stars.v1B\x11FleetserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

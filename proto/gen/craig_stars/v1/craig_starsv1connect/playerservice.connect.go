@@ -120,12 +120,14 @@ func NewPlayerServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			httpClient,
 			baseURL+PlayerServiceGetPlayerProcedure,
 			connect.WithSchema(playerServiceMethods.ByName("GetPlayer")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getUniverse: connect.NewClient[v1.GetUniverseRequest, v1.GetUniverseResponse](
 			httpClient,
 			baseURL+PlayerServiceGetUniverseProcedure,
 			connect.WithSchema(playerServiceMethods.ByName("GetUniverse")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		submitTurn: connect.NewClient[v1.SubmitTurnRequest, v1.SubmitTurnResponse](
@@ -144,12 +146,14 @@ func NewPlayerServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			httpClient,
 			baseURL+PlayerServiceUpdatePlayerOrdersProcedure,
 			connect.WithSchema(playerServiceMethods.ByName("UpdatePlayerOrders")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		updatePlayerRelations: connect.NewClient[v1.UpdatePlayerRelationsRequest, v1.UpdatePlayerRelationsResponse](
 			httpClient,
 			baseURL+PlayerServiceUpdatePlayerRelationsProcedure,
 			connect.WithSchema(playerServiceMethods.ByName("UpdatePlayerRelations")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -216,12 +220,14 @@ func NewPlayerServiceHandler(svc PlayerServiceHandler, opts ...connect.HandlerOp
 		PlayerServiceGetPlayerProcedure,
 		svc.GetPlayer,
 		connect.WithSchema(playerServiceMethods.ByName("GetPlayer")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	playerServiceGetUniverseHandler := connect.NewUnaryHandler(
 		PlayerServiceGetUniverseProcedure,
 		svc.GetUniverse,
 		connect.WithSchema(playerServiceMethods.ByName("GetUniverse")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	playerServiceSubmitTurnHandler := connect.NewUnaryHandler(
@@ -240,12 +246,14 @@ func NewPlayerServiceHandler(svc PlayerServiceHandler, opts ...connect.HandlerOp
 		PlayerServiceUpdatePlayerOrdersProcedure,
 		svc.UpdatePlayerOrders,
 		connect.WithSchema(playerServiceMethods.ByName("UpdatePlayerOrders")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	playerServiceUpdatePlayerRelationsHandler := connect.NewUnaryHandler(
 		PlayerServiceUpdatePlayerRelationsProcedure,
 		svc.UpdatePlayerRelations,
 		connect.WithSchema(playerServiceMethods.ByName("UpdatePlayerRelations")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.PlayerService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -318,6 +326,7 @@ func NewBattlePlanServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			httpClient,
 			baseURL+BattlePlanServiceGetBattlePlanProcedure,
 			connect.WithSchema(battlePlanServiceMethods.ByName("GetBattlePlan")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createBattlePlan: connect.NewClient[v1.CreateBattlePlanRequest, v1.CreateBattlePlanResponse](
@@ -330,6 +339,7 @@ func NewBattlePlanServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			httpClient,
 			baseURL+BattlePlanServiceUpdateBattlePlanProcedure,
 			connect.WithSchema(battlePlanServiceMethods.ByName("UpdateBattlePlan")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		deleteBattlePlan: connect.NewClient[v1.DeleteBattlePlanRequest, v1.DeleteBattlePlanResponse](
@@ -388,6 +398,7 @@ func NewBattlePlanServiceHandler(svc BattlePlanServiceHandler, opts ...connect.H
 		BattlePlanServiceGetBattlePlanProcedure,
 		svc.GetBattlePlan,
 		connect.WithSchema(battlePlanServiceMethods.ByName("GetBattlePlan")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	battlePlanServiceCreateBattlePlanHandler := connect.NewUnaryHandler(
@@ -400,6 +411,7 @@ func NewBattlePlanServiceHandler(svc BattlePlanServiceHandler, opts ...connect.H
 		BattlePlanServiceUpdateBattlePlanProcedure,
 		svc.UpdateBattlePlan,
 		connect.WithSchema(battlePlanServiceMethods.ByName("UpdateBattlePlan")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	battlePlanServiceDeleteBattlePlanHandler := connect.NewUnaryHandler(
@@ -466,6 +478,7 @@ func NewProductionPlanServiceClient(httpClient connect.HTTPClient, baseURL strin
 			httpClient,
 			baseURL+ProductionPlanServiceGetProductionPlanProcedure,
 			connect.WithSchema(productionPlanServiceMethods.ByName("GetProductionPlan")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createProductionPlan: connect.NewClient[v1.CreateProductionPlanRequest, v1.CreateProductionPlanResponse](
@@ -478,6 +491,7 @@ func NewProductionPlanServiceClient(httpClient connect.HTTPClient, baseURL strin
 			httpClient,
 			baseURL+ProductionPlanServiceUpdateProductionPlanProcedure,
 			connect.WithSchema(productionPlanServiceMethods.ByName("UpdateProductionPlan")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		deleteProductionPlan: connect.NewClient[v1.DeleteProductionPlanRequest, v1.DeleteProductionPlanResponse](
@@ -537,6 +551,7 @@ func NewProductionPlanServiceHandler(svc ProductionPlanServiceHandler, opts ...c
 		ProductionPlanServiceGetProductionPlanProcedure,
 		svc.GetProductionPlan,
 		connect.WithSchema(productionPlanServiceMethods.ByName("GetProductionPlan")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	productionPlanServiceCreateProductionPlanHandler := connect.NewUnaryHandler(
@@ -549,6 +564,7 @@ func NewProductionPlanServiceHandler(svc ProductionPlanServiceHandler, opts ...c
 		ProductionPlanServiceUpdateProductionPlanProcedure,
 		svc.UpdateProductionPlan,
 		connect.WithSchema(productionPlanServiceMethods.ByName("UpdateProductionPlan")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	productionPlanServiceDeleteProductionPlanHandler := connect.NewUnaryHandler(
@@ -615,6 +631,7 @@ func NewTransportPlanServiceClient(httpClient connect.HTTPClient, baseURL string
 			httpClient,
 			baseURL+TransportPlanServiceGetTransportPlanProcedure,
 			connect.WithSchema(transportPlanServiceMethods.ByName("GetTransportPlan")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createTransportPlan: connect.NewClient[v1.CreateTransportPlanRequest, v1.CreateTransportPlanResponse](
@@ -627,6 +644,7 @@ func NewTransportPlanServiceClient(httpClient connect.HTTPClient, baseURL string
 			httpClient,
 			baseURL+TransportPlanServiceUpdateTransportPlanProcedure,
 			connect.WithSchema(transportPlanServiceMethods.ByName("UpdateTransportPlan")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		deleteTransportPlan: connect.NewClient[v1.DeleteTransportPlanRequest, v1.DeleteTransportPlanResponse](
@@ -686,6 +704,7 @@ func NewTransportPlanServiceHandler(svc TransportPlanServiceHandler, opts ...con
 		TransportPlanServiceGetTransportPlanProcedure,
 		svc.GetTransportPlan,
 		connect.WithSchema(transportPlanServiceMethods.ByName("GetTransportPlan")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	transportPlanServiceCreateTransportPlanHandler := connect.NewUnaryHandler(
@@ -698,6 +717,7 @@ func NewTransportPlanServiceHandler(svc TransportPlanServiceHandler, opts ...con
 		TransportPlanServiceUpdateTransportPlanProcedure,
 		svc.UpdateTransportPlan,
 		connect.WithSchema(transportPlanServiceMethods.ByName("UpdateTransportPlan")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	transportPlanServiceDeleteTransportPlanHandler := connect.NewUnaryHandler(

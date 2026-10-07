@@ -70,12 +70,14 @@ func NewRaceServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+RaceServiceGetRacesProcedure,
 			connect.WithSchema(raceServiceMethods.ByName("GetRaces")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getRace: connect.NewClient[v1.GetRaceRequest, v1.GetRaceResponse](
 			httpClient,
 			baseURL+RaceServiceGetRaceProcedure,
 			connect.WithSchema(raceServiceMethods.ByName("GetRace")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createRace: connect.NewClient[v1.CreateRaceRequest, v1.CreateRaceResponse](
@@ -88,6 +90,7 @@ func NewRaceServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+RaceServiceUpdateRaceProcedure,
 			connect.WithSchema(raceServiceMethods.ByName("UpdateRace")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		deleteRace: connect.NewClient[v1.DeleteRaceRequest, v1.DeleteRaceResponse](
@@ -153,12 +156,14 @@ func NewRaceServiceHandler(svc RaceServiceHandler, opts ...connect.HandlerOption
 		RaceServiceGetRacesProcedure,
 		svc.GetRaces,
 		connect.WithSchema(raceServiceMethods.ByName("GetRaces")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	raceServiceGetRaceHandler := connect.NewUnaryHandler(
 		RaceServiceGetRaceProcedure,
 		svc.GetRace,
 		connect.WithSchema(raceServiceMethods.ByName("GetRace")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	raceServiceCreateRaceHandler := connect.NewUnaryHandler(
@@ -171,6 +176,7 @@ func NewRaceServiceHandler(svc RaceServiceHandler, opts ...connect.HandlerOption
 		RaceServiceUpdateRaceProcedure,
 		svc.UpdateRace,
 		connect.WithSchema(raceServiceMethods.ByName("UpdateRace")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	raceServiceDeleteRaceHandler := connect.NewUnaryHandler(
