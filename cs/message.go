@@ -84,12 +84,15 @@ type PlayerMessageSpecMysteryTrader struct {
 }
 
 type PlayerMessageSpecInvasion struct {
-	FleetName         string `json:"fleetName,omitempty"`
-	AttackerPlayerNum int    `json:"attackerPlayerNum"`
-	DefenderPlayerNum int    `json:"defenderPlayerNum"`
-	AttackersKilled   int    `json:"attackersKilled"`
-	DefendersKilled   int    `json:"defendersKilled"`
-	Successful        bool   `json:"successful"`
+	FleetName                 string `json:"fleetName,omitempty"`
+	AttackerPlayerNum         int    `json:"attackerPlayerNum"`
+	Attackers                 int    `json:"attackers"`
+	DefenderPlayerNum         int    `json:"defenderPlayerNum"`
+	Defenders                 int    `json:"defenders"`
+	AttackersKilled           int    `json:"attackersKilled"`
+	AttackersKilledByDefenses int    `json:"attackersKilledByDefenses"`
+	DefendersKilled           int    `json:"defendersKilled"`
+	Successful                bool   `json:"successful"`
 }
 
 type PlayerMessageSpecCargoTransfer struct {
@@ -824,22 +827,25 @@ func (m *messageClient) planetInstaform(player *Player, planet *Planet, terrafor
 		withSpec(PlayerMessageSpec{TerraformAmount: terraformAmount}))
 }
 
-// Amount and Amount2 snapshot the initial attacking and defending populations in colonists.
-func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackers int, defenders int, attackersKilled int, defendersKilled int, successful bool) {
+// Invasion snapshots the initial populations and casualties in colonists.
+func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackers int, defenders int, attackersKilled int, defendersKilled int, attackersKilledByDefenses int, successful bool) {
 	invasion := PlayerMessageSpecInvasion{
-		FleetName:         fleetName,
-		AttackerPlayerNum: attacker.Num,
-		DefenderPlayerNum: defender.Num,
-		AttackersKilled:   attackersKilled,
-		DefendersKilled:   defendersKilled,
-		Successful:        successful,
+		FleetName:                 fleetName,
+		AttackerPlayerNum:         attacker.Num,
+		Attackers:                 attackers,
+		DefenderPlayerNum:         defender.Num,
+		Defenders:                 defenders,
+		AttackersKilled:           attackersKilled,
+		AttackersKilledByDefenses: attackersKilledByDefenses,
+		DefendersKilled:           defendersKilled,
+		Successful:                successful,
 	}
 	if player.Num == attacker.Num {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageFleetInvadedPlanet, planet).
-			withSpec(PlayerMessageSpec{Amount: attackers, Amount2: defenders, Invasion: &invasion}))
+			withSpec(PlayerMessageSpec{Invasion: &invasion}))
 	} else {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetInvaded, planet).
-			withSpec(PlayerMessageSpec{Amount: attackers, Amount2: defenders, Invasion: &invasion}))
+			withSpec(PlayerMessageSpec{Invasion: &invasion}))
 	}
 }
 

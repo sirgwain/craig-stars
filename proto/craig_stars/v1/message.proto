@@ -226,6 +226,9 @@ message PlayerMessageSpecInvasion {
   int32 attackers_killed = 4;
   int32 defenders_killed = 5;
   bool successful = 6;
+  int32 attackers = 7;
+  int32 defenders = 8;
+  int32 attackers_killed_by_defenses = 9;
 }
 
 message PlayerMessageSpecCargoTransfer {

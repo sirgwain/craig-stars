@@ -30,3 +30,26 @@ func Test_message_newSpecsRoundTrip(t *testing.T) {
 		require.Equal(t, message, C.ConvertPlayer(&v1.Player{Race: &v1.Race{}, Messages: []*v1.PlayerMessage{decoded}}).Messages[0])
 	}
 }
+
+func Test_message_invasionCountsRoundTrip(t *testing.T) {
+	for _, messageType := range []cs.PlayerMessageType{cs.PlayerMessageFleetInvadedPlanet, cs.PlayerMessagePlanetInvaded} {
+		for _, counts := range []struct{ attackers, defenders, killedByDefenses int }{{12000, 10000, 1200}, {0, 0, 0}} {
+			message := cs.PlayerMessage{Type: messageType, Spec: cs.PlayerMessageSpec{
+				Invasion: &cs.PlayerMessageSpecInvasion{FleetName: "Invaders", AttackerPlayerNum: 1, DefenderPlayerNum: 2,
+					Attackers: counts.attackers, Defenders: counts.defenders, AttackersKilled: 8700, DefendersKilled: 10000,
+					AttackersKilledByDefenses: counts.killedByDefenses, Successful: true},
+			}}
+			pb := C.ConvertCSPlayer(&cs.Player{Messages: []cs.PlayerMessage{message}}).Messages[0]
+			data, err := proto.Marshal(pb)
+			require.NoError(t, err)
+			decoded := &v1.PlayerMessage{}
+			require.NoError(t, proto.Unmarshal(data, decoded))
+			require.Equal(t, message, C.ConvertPlayer(&v1.Player{Race: &v1.Race{}, Messages: []*v1.PlayerMessage{decoded}}).Messages[0])
+			data, err = pb.MarshalVT()
+			require.NoError(t, err)
+			decoded = &v1.PlayerMessage{}
+			require.NoError(t, decoded.UnmarshalVT(data))
+			require.Equal(t, message, C.ConvertPlayer(&v1.Player{Race: &v1.Race{}, Messages: []*v1.PlayerMessage{decoded}}).Messages[0])
+		}
+	}
+}

@@ -393,8 +393,8 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	initialDefenders := planet.GetPopulation()
 	u.GenerateTurn()
 	for _, message := range append(u.Messages(1, PlayerMessageFleetInvadedPlanet), u.Messages(2, PlayerMessagePlanetInvaded)...) {
-		assert.Equal(t, 500000, message.Spec.Amount)
-		assert.Equal(t, initialDefenders, message.Spec.Amount2)
+		assert.Equal(t, 500000, message.Spec.Invasion.Attackers)
+		assert.Equal(t, initialDefenders, message.Spec.Invasion.Defenders)
 	}
 
 	// should have invaded the planet and taken it over

@@ -102,11 +102,14 @@ func Test_message_invasionStartingPopulations(t *testing.T) {
 	attacker, defender := &Player{Num: 1}, &Player{Num: 2}
 	planet := &Planet{MapObject: MapObject{Num: 3, Name: "Earth", PlayerNum: 2}}
 	for _, player := range []*Player{attacker, defender} {
-		messager.planetInvaded(player, planet, "Invaders", attacker, defender, 12000, 10000, 8700, 10000, true)
+		messager.planetInvaded(player, planet, "Invaders", attacker, defender, 12000, 10000, 8700, 10000, 1200, true)
 		message := player.Messages[0]
-		assert.Equal(t, 12000, message.Spec.Amount)
-		assert.Equal(t, 10000, message.Spec.Amount2)
+		assert.Equal(t, 12000, message.Spec.Invasion.Attackers)
+		assert.Equal(t, 10000, message.Spec.Invasion.Defenders)
+		assert.Zero(t, message.Spec.Amount)
+		assert.Zero(t, message.Spec.Amount2)
 		assert.Equal(t, 8700, message.Spec.Invasion.AttackersKilled)
+		assert.Equal(t, 1200, message.Spec.Invasion.AttackersKilledByDefenses)
 		assert.Equal(t, 10000, message.Spec.Invasion.DefendersKilled)
 		assert.Equal(t, "Earth", message.TargetName)
 	}

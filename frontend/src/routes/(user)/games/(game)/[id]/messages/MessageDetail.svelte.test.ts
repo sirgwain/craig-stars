@@ -361,56 +361,129 @@ describe('player and legacy messages', () => {
 
 describe('invasion reports', () => {
 	it.each([
-		[Type.FLEET_INVADED_PLANET, true],
-		[Type.FLEET_INVADED_PLANET, false],
-		[Type.PLANET_INVADED, true],
-		[Type.PLANET_INVADED, false]
-	] as const)('renders invasion %s, successful %s', async (type, successful) => {
-		const view = render(MessageDetail, {
-			message: create(PlayerMessageSchema, {
-				type,
-				target: planetTarget,
-				spec: {
-					amount: 12000,
-					amount2: 10000,
-					invasion: {
-						fleetName: 'Invaders',
-						attackerPlayerNum: 2,
-						defenderPlayerNum: 3,
-						attackersKilled: 8700,
-						defendersKilled: 10000,
-						successful
+		[
+			Type.FLEET_INVADED_PLANET,
+			true,
+			0,
+			"Your troops crush Visitors's Colonists on Earth. You are now in control of the planet."
+		],
+		[
+			Type.FLEET_INVADED_PLANET,
+			false,
+			0,
+			'The 12,000 Colonists you dropped on Earth were massacred by the ground troops of Visitors.'
+		],
+		[
+			Type.FLEET_INVADED_PLANET,
+			false,
+			1200,
+			'Of the 12,000 Colonists you dropped on Earth, 10% were destroyed by planetary defenses, the rest were massacred by the ground troops of Visitors.'
+		],
+		[
+			Type.PLANET_INVADED,
+			true,
+			0,
+			'Visitors have attacked you on Earth with 12,000 first-rate storm troopers. Though your colonists put up a spirited defense they are crushed.'
+		],
+		[
+			Type.PLANET_INVADED,
+			false,
+			0,
+			'Your ground troops on Earth valiantly destroyed the 12,000 attacking barbarians of Visitors!'
+		],
+		[
+			Type.PLANET_INVADED,
+			false,
+			1200,
+			'Your planetary defenses and ground troops on Earth destroyed the 12,000 invading troops of Visitors.'
+		]
+	] as const)(
+		'renders original invasion %s, successful %s, defense losses %s',
+		async (type, successful, attackersKilledByDefenses, original) => {
+			const view = render(MessageDetail, {
+				message: create(PlayerMessageSchema, {
+					type,
+					target: planetTarget,
+					spec: {
+						invasion: {
+							attackers: 12000,
+							defenders: 10000,
+							fleetName: 'Invaders',
+							attackerPlayerNum: 2,
+							defenderPlayerNum: 3,
+							attackersKilled: 8700,
+							defendersKilled: 10000,
+							attackersKilledByDefenses,
+							successful
+						}
 					}
-				}
-			})
-		});
-		await expect
-			.element(
-				page.getByText('12,000 attacking colonists and 10,000 defending colonists', {
-					exact: false
 				})
-			)
-			.toBeInTheDocument();
-		await expect.element(page.getByText('Visitors', { exact: false })).toBeInTheDocument();
-		await expect
-			.element(page.getByText('Private race notes', { exact: false }))
-			.not.toBeInTheDocument();
-		if (type === Type.PLANET_INVADED) {
+			});
+			await expect.element(page.getByText(original, { exact: false })).toBeInTheDocument();
 			await expect
-				.element(page.getByText('Your troops beaming down', { exact: false }))
+				.element(
+					page.getByText('12,000 attacking colonists and 10,000 defending colonists', {
+						exact: false
+					})
+				)
+				.toBeInTheDocument();
+			await expect.element(page.getByText('Visitors', { exact: false })).toBeInTheDocument();
+			await expect
+				.element(page.getByText('Private race notes', { exact: false }))
 				.not.toBeInTheDocument();
+			if (type === Type.PLANET_INVADED) {
+				await expect
+					.element(page.getByText('Your troops beaming down', { exact: false }))
+					.not.toBeInTheDocument();
+			}
+			// Old messages did not record starting counts. Some have the former
+			// generic amounts; ignore those and retain the outcome and casualties.
+			for (const counts of [
+				{},
+				{ attackers: 0, defenders: 0 },
+				{ attackers: 12000, defenders: 0 },
+				{ attackers: 0, defenders: 10000 }
+			]) {
+				await view.rerender({
+					message: create(PlayerMessageSchema, {
+						type,
+						target: planetTarget,
+						spec: {
+							amount: 12000,
+							amount2: 10000,
+							invasion: {
+								...counts,
+								successful,
+								fleetName: 'Invaders',
+								attackerPlayerNum: 2,
+								defenderPlayerNum: 3,
+								attackersKilled: 8700,
+								defendersKilled: 10000
+							}
+						}
+					})
+				});
+				await expect
+					.element(page.getByText('The invasion began', { exact: false }))
+					.not.toBeInTheDocument();
+				const outcome =
+					type === Type.FLEET_INVADED_PLANET
+						? successful
+							? 'You are now in control of the planet.'
+							: 'were massacred by the ground troops of Visitors.'
+						: successful
+							? 'Though your colonists put up a spirited defense they are crushed.'
+							: 'attacking barbarians of Visitors!';
+				await expect.element(page.getByText(outcome, { exact: false })).toBeInTheDocument();
+				await expect
+					.element(page.getByText(/\b0 (Colonists|first-rate|attacking|defending)/))
+					.not.toBeInTheDocument();
+				await expect
+					.element(page.getByText(successful ? '8,700' : '10,000', { exact: false }))
+					.toBeInTheDocument();
+			}
 		}
-		await view.rerender({
-			message: create(PlayerMessageSchema, {
-				type,
-				target: planetTarget,
-				spec: { invasion: { successful, attackersKilled: 8700, defendersKilled: 10000 } }
-			})
-		});
-		await expect
-			.element(page.getByText('The invasion began', { exact: false }))
-			.not.toBeInTheDocument();
-	});
+	);
 });
 
 describe('production and orbital adjustment reports', () => {

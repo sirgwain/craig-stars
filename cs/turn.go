@@ -259,8 +259,8 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 		}
 
 		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
-		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
+		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.attackersKilledByDefenses, invasion.successful)
+		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.attackersKilledByDefenses, invasion.successful)
 
 		if !invasion.successful {
 			// reduce the population to however many colonists remain and move on

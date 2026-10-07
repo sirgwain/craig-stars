@@ -1075,15 +1075,18 @@ func (x *PlayerMessageSpecMysteryTrader) GetFleetNum() int32 {
 }
 
 type PlayerMessageSpecInvasion struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	FleetName         string                 `protobuf:"bytes,1,opt,name=fleet_name,json=fleetName,proto3" json:"fleet_name,omitempty"`
-	AttackerPlayerNum int32                  `protobuf:"varint,2,opt,name=attacker_player_num,json=attackerPlayerNum,proto3" json:"attacker_player_num,omitempty"`
-	DefenderPlayerNum int32                  `protobuf:"varint,3,opt,name=defender_player_num,json=defenderPlayerNum,proto3" json:"defender_player_num,omitempty"`
-	AttackersKilled   int32                  `protobuf:"varint,4,opt,name=attackers_killed,json=attackersKilled,proto3" json:"attackers_killed,omitempty"`
-	DefendersKilled   int32                  `protobuf:"varint,5,opt,name=defenders_killed,json=defendersKilled,proto3" json:"defenders_killed,omitempty"`
-	Successful        bool                   `protobuf:"varint,6,opt,name=successful,proto3" json:"successful,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"open.v1"`
+	FleetName                 string                 `protobuf:"bytes,1,opt,name=fleet_name,json=fleetName,proto3" json:"fleet_name,omitempty"`
+	AttackerPlayerNum         int32                  `protobuf:"varint,2,opt,name=attacker_player_num,json=attackerPlayerNum,proto3" json:"attacker_player_num,omitempty"`
+	DefenderPlayerNum         int32                  `protobuf:"varint,3,opt,name=defender_player_num,json=defenderPlayerNum,proto3" json:"defender_player_num,omitempty"`
+	AttackersKilled           int32                  `protobuf:"varint,4,opt,name=attackers_killed,json=attackersKilled,proto3" json:"attackers_killed,omitempty"`
+	DefendersKilled           int32                  `protobuf:"varint,5,opt,name=defenders_killed,json=defendersKilled,proto3" json:"defenders_killed,omitempty"`
+	Successful                bool                   `protobuf:"varint,6,opt,name=successful,proto3" json:"successful,omitempty"`
+	Attackers                 int32                  `protobuf:"varint,7,opt,name=attackers,proto3" json:"attackers,omitempty"`
+	Defenders                 int32                  `protobuf:"varint,8,opt,name=defenders,proto3" json:"defenders,omitempty"`
+	AttackersKilledByDefenses int32                  `protobuf:"varint,9,opt,name=attackers_killed_by_defenses,json=attackersKilledByDefenses,proto3" json:"attackers_killed_by_defenses,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *PlayerMessageSpecInvasion) Reset() {
@@ -1156,6 +1159,27 @@ func (x *PlayerMessageSpecInvasion) GetSuccessful() bool {
 		return x.Successful
 	}
 	return false
+}
+
+func (x *PlayerMessageSpecInvasion) GetAttackers() int32 {
+	if x != nil {
+		return x.Attackers
+	}
+	return 0
+}
+
+func (x *PlayerMessageSpecInvasion) GetDefenders() int32 {
+	if x != nil {
+		return x.Defenders
+	}
+	return 0
+}
+
+func (x *PlayerMessageSpecInvasion) GetAttackersKilledByDefenses() int32 {
+	if x != nil {
+		return x.AttackersKilledByDefenses
+	}
+	return 0
 }
 
 type PlayerMessageSpecCargoTransfer struct {
@@ -1464,7 +1488,7 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"\x04ship\x18\x04 \x01(\v2\x1a.craig_stars.v1.ShipDesignR\x04ship\x12\x1d\n" +
 	"\n" +
 	"ship_count\x18\x05 \x01(\x05R\tshipCount\x12\x1b\n" +
-	"\tfleet_num\x18\x06 \x01(\x05R\bfleetNum\"\x90\x02\n" +
+	"\tfleet_num\x18\x06 \x01(\x05R\bfleetNum\"\x8d\x03\n" +
 	"\x19PlayerMessageSpecInvasion\x12\x1d\n" +
 	"\n" +
 	"fleet_name\x18\x01 \x01(\tR\tfleetName\x12.\n" +
@@ -1474,7 +1498,10 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"\x10defenders_killed\x18\x05 \x01(\x05R\x0fdefendersKilled\x12\x1e\n" +
 	"\n" +
 	"successful\x18\x06 \x01(\bR\n" +
-	"successful\"\xd2\x01\n" +
+	"successful\x12\x1c\n" +
+	"\tattackers\x18\a \x01(\x05R\tattackers\x12\x1c\n" +
+	"\tdefenders\x18\b \x01(\x05R\tdefenders\x12?\n" +
+	"\x1cattackers_killed_by_defenses\x18\t \x01(\x05R\x19attackersKilledByDefenses\"\xd2\x01\n" +
 	"\x1ePlayerMessageSpecCargoTransfer\x12;\n" +
 	"\n" +
 	"cargo_type\x18\x01 \x01(\x0e2\x1c.craig_stars.v1.ResourceTypeR\tcargoType\x12\x1e\n" +

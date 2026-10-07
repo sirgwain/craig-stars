@@ -313,22 +313,38 @@
 {:else if message.type === PlayerMessageType.FLEET_INVADED_PLANET}
 	{@const invasion = message.spec?.invasion}
 	{#if invasion}
-		{#if (message.spec?.amount ?? 0) > 0}
-			The invasion began with {(message.spec?.amount ?? 0).toLocaleString()} attacking colonists and {(
-				message.spec?.amount2 ?? 0
-			).toLocaleString()} defending colonists.
+		{#if invasion.successful}
+			Your troops crush {$universe.getPlayerPluralName(invasion.defenderPlayerNum)}'s Colonists on
+			{planetName}. You are now in control of the planet.
+		{:else if invasion.attackersKilledByDefenses > 0}
+			Of the {#if invasion.attackers > 0}{`${invasion.attackers.toLocaleString()} `}
+			{/if}Colonists you dropped on {planetName},
+			{#if invasion.attackers > 0}
+				{((invasion.attackersKilledByDefenses / invasion.attackers) * 100).toLocaleString(
+					undefined,
+					{
+						maximumFractionDigits: 2
+					}
+				)}%
+			{:else}
+				{invasion.attackersKilledByDefenses.toLocaleString()}
+			{/if}
+			were destroyed by planetary defenses, the rest were massacred by the ground troops of
+			{$universe.getPlayerPluralName(invasion.defenderPlayerNum)}.
+		{:else}
+			The {#if invasion.attackers > 0}{`${invasion.attackers.toLocaleString()} `}
+			{/if}Colonists you dropped on
+			{planetName} were massacred by the ground troops of
+			{$universe.getPlayerPluralName(invasion.defenderPlayerNum)}.
+		{/if}
+		{#if invasion.attackers > 0 && invasion.defenders > 0}
+			The invasion began with {invasion.attackers.toLocaleString()} attacking colonists and
+			{invasion.defenders.toLocaleString()} defending colonists.
 		{/if}
 		{#if invasion.successful}
-			Your troops beaming down from {invasion.fleetName || 'multiple fleets'} have successfully wrested
-			{planetName}
-			from the {$universe.getPlayerPluralName(invasion.defenderPlayerNum)}, killing off all their
-			colonists with only {invasion.attackersKilled.toLocaleString()} casualties.
+			You lost {invasion.attackersKilled.toLocaleString()} colonists in the invasion.
 		{:else}
-			Your troops beaming down from {invasion.fleetName || 'multiple fleets'} tried to invade {planetName},
-			but all of them were massacred by the {$universe.getPlayerPluralName(
-				invasion.defenderPlayerNum
-			)}. Your valiant fighters managed to kill {invasion.defendersKilled.toLocaleString()} of their colonists
-			in return.
+			Your troops killed {invasion.defendersKilled.toLocaleString()} defending colonists.
 		{/if}
 	{:else}
 		{planetName} was invaded, but your spies know nothing of the outcome.
@@ -336,19 +352,29 @@
 {:else if message.type === PlayerMessageType.PLANET_INVADED}
 	{@const invasion = message.spec?.invasion}
 	{#if invasion}
-		{#if (message.spec?.amount ?? 0) > 0}
-			The invasion began with {(message.spec?.amount ?? 0).toLocaleString()} attacking colonists and {(
-				message.spec?.amount2 ?? 0
-			).toLocaleString()} defending colonists.
+		{#if invasion.successful}
+			{$universe.getPlayerPluralName(invasion.attackerPlayerNum)} have attacked you on {planetName}
+			with {#if invasion.attackers > 0}{`${invasion.attackers.toLocaleString()} `}
+			{/if}first-rate storm troopers. Though your colonists put up a spirited defense they are
+			crushed.
+		{:else if invasion.attackersKilledByDefenses > 0}
+			Your planetary defenses and ground troops on {planetName} destroyed the
+			{#if invasion.attackers > 0}{`${invasion.attackers.toLocaleString()} `}
+			{/if}invading troops of
+			{$universe.getPlayerPluralName(invasion.attackerPlayerNum)}.
+		{:else}
+			Your ground troops on {planetName} valiantly destroyed the
+			{#if invasion.attackers > 0}{`${invasion.attackers.toLocaleString()} `}
+			{/if}attacking barbarians of
+			{$universe.getPlayerPluralName(invasion.attackerPlayerNum)}!
+		{/if}
+		{#if invasion.attackers > 0 && invasion.defenders > 0}
+			The invasion began with {invasion.attackers.toLocaleString()} attacking colonists and
+			{invasion.defenders.toLocaleString()} defending colonists.
 		{/if}
 		{#if invasion.successful}
-			{$universe.getPlayerPluralName(invasion.attackerPlayerNum)}'s {invasion.fleetName ||
-				'multiple fleets'} have successfully invaded {planetName} and wrested it from your control. Your
-			colonists managed to defeat {invasion.attackersKilled.toLocaleString()} of their invaders before
-			being overrun.
+			Your colonists killed {invasion.attackersKilled.toLocaleString()} invaders before being overrun.
 		{:else}
-			{$universe.getPlayerPluralName(invasion.attackerPlayerNum)}'s {invasion.fleetName ||
-				'multiple fleets'} tried to invade {planetName}, but your troops were able to fend them off.
 			You lost {invasion.defendersKilled.toLocaleString()} colonists in the process.
 		{/if}
 	{:else}

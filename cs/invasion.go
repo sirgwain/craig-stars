@@ -12,12 +12,13 @@ type invasion struct {
 
 type invasionResult struct {
 	invasion
-	defenders          int
-	attackersKilled    int
-	defendersKilled    int
-	remainingAttackers int
-	remainingDefenders int
-	successful         bool
+	defenders                 int
+	attackersKilled           int
+	attackersKilledByDefenses int
+	defendersKilled           int
+	remainingAttackers        int
+	remainingDefenders        int
+	successful                bool
 }
 
 type invader struct {
@@ -117,12 +118,13 @@ func (i invasion) resolve(rules *Rules) invasionResult {
 	}
 
 	return invasionResult{
-		invasion:           i,
-		defenders:          defenders,
-		attackersKilled:    attackersKilled,
-		defendersKilled:    defendersKilled,
-		remainingAttackers: remainingAttackers,
-		remainingDefenders: remainingDefenders,
-		successful:         successful,
+		invasion:                  i,
+		defenders:                 defenders,
+		attackersKilled:           attackersKilled,
+		attackersKilledByDefenses: i.attackers - attackersAfterDefense,
+		defendersKilled:           defendersKilled,
+		remainingAttackers:        remainingAttackers,
+		remainingDefenders:        remainingDefenders,
+		successful:                successful,
 	}
 }
