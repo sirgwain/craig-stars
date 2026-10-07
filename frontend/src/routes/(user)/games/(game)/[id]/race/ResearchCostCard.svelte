@@ -10,7 +10,7 @@
 	let { field, value }: Props = $props();
 </script>
 
-<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full md:w-48">
+<div class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 w-full md:w-48">
 	<div class="card-body p-3 gap-0">
 		<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
 			{enumToString(TechField, field)} Research

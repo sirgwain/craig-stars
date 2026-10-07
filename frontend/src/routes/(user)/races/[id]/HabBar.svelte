@@ -136,7 +136,7 @@
 		{#if actualWidth != null && low != null && !isImmune}
 			<rect
 				bind:this={ref}
-				class="cursor-pointer focus:outline-none"
+				class="cursor-pointer focus:outline-hidden"
 				x={low + 2}
 				y="2"
 				width={actualWidth}

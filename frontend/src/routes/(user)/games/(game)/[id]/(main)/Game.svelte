@@ -402,7 +402,7 @@
 	</div>
 
 	<div class="flex flex-col grow">
-		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
+		<div class="flex flex-col grow border-gray-700 border-2 shadow-xs">
 			<ScannerToolbar
 				onShowSearch={() => (showSearchDialog = true)}
 				onCycleMapObject={() => selectNextMapObject()}

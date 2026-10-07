@@ -46,10 +46,10 @@
 		}}
 	>
 		{#if $me.role === UserRole.GUEST}
-			<label class="label" for="name">Name</label>
-			<input name="name" bind:value={name} class="input input-bordered" />
+			<label class="cs-form-label" for="name">Name</label>
+			<input name="name" bind:value={name} class="input" />
 		{/if}
-		<fieldset name="players" class="form-control mt-3">
+		<fieldset name="players" class="cs-form-control mt-3">
 			<PlayerChooser
 				raceUpdated={(updated, raceValid) => {
 					race = updated;

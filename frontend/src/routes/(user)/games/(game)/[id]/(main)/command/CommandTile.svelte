@@ -11,7 +11,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="md:w-[14rem] card bg-base-200 shadow rounded-sm border-2 border-base-300 select-none"
+	class="md:w-[14rem] card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 select-none"
 	data-type="command-tile"
 	data-id={title}
 	oncontextmenu={(e) => e.preventDefault()}

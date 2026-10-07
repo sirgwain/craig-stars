@@ -54,7 +54,7 @@
 
 {#if src.spec}
 	<div
-		class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300"
+		class="flex h-full bg-base-200 shadow-sm max-h-fit min-h-fit rounded-xs border-2 border-base-300"
 	>
 		<div class="flex-col h-full w-full">
 			<div class="flex flex-col h-full w-full">

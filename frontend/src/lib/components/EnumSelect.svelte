@@ -27,7 +27,7 @@
 		value = $bindable(),
 		tooltip,
 		enumType,
-		titleClass = 'label-text w-32 text-right',
+		titleClass = 'cs-label-text w-32 text-right',
 		typeFilter = (_: TT) => true,
 		showEmpty = false,
 		...rest
@@ -39,10 +39,10 @@
 	let typeTitle = $derived(rest.typeTitle ?? defaultTypeTitleFunc);
 </script>
 
-<div class="w-full flex-grow">
-	<label class="label"
+<div class="w-full grow">
+	<label class="cs-form-label"
 		><span class={titleClass}>{title}</span>
-		<select class="select input-bordered ml-2 flex-grow" {name} bind:value {...rest}>
+		<select class="select ml-2 grow" {name} bind:value {...rest}>
 			{#each eu(enumType).getValues() as type (type)}
 				{#if typeFilter(type) && (showEmpty || type !== 0)}
 					<option value={type}>{typeTitle(type)}</option>
@@ -51,7 +51,7 @@
 		</select>
 		{#if tooltip}
 			<div class="tooltip tooltip-left mx-2" data-tip={tooltip}>
-				<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
+				<Icon src={QuestionMarkCircle} size="16" class="cursor-help inline-block" />
 			</div>
 		{/if}
 	</label>

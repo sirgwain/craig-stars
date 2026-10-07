@@ -15,7 +15,7 @@
 </script>
 
 <div class={textClass}>
-	<div class="label"><span class="w-32 text-right">{title}</span></div>
+	<div class="cs-form-label"><span class="w-32 text-right">{title}</span></div>
 </div>
 <div class="col-span-2">
 	<EnumSelect

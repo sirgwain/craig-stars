@@ -229,7 +229,7 @@
 						name="name"
 						bind:value={name}
 						required
-						titleClass="label-text w-16 text-right"
+						titleClass="cs-label-text w-16 text-right"
 					/>
 				</div>
 			</div>
@@ -298,7 +298,7 @@
 							><Icon
 								src={QuestionMarkCircle}
 								size="16"
-								class=" cursor-help hover:stroke-accent"
+								class="cursor-help hover:stroke-accent"
 							/></span
 						>
 					</div>

@@ -148,7 +148,7 @@
 		</select>
 
 		{#if selectedMapObject}
-			<div class="flex justify-between my-1 btn-group">
+			<div class="flex justify-between my-1">
 				<div class="tooltip" data-tip="goto fleet">
 					<button
 						onclick={gotoTarget}

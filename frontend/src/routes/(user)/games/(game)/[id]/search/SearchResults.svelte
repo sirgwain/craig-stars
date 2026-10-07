@@ -140,7 +140,7 @@
 		type="search"
 		name="search"
 		placeholder="search"
-		class="input input-bordered input-sm sm:w-auto mt-1"
+		class="input input-sm sm:w-auto mt-1"
 		autocomplete="off"
 		autocorrect="off"
 		autocapitalize="off"

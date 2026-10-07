@@ -66,9 +66,9 @@
 <div class="w-full">
 	<div class="flex flex-row justify-between m-2">
 		<TableSearchInput bind:value={search} />
-		<div class="form-control">
-			<label class="label cursor-pointer">
-				<span class="label-text mr-1">Show All Messages</span>
+		<div class="cs-form-control">
+			<label class="cs-form-label cursor-pointer">
+				<span class="cs-label-text mr-1">Show All Messages</span>
 				<input
 					type="checkbox"
 					class="toggle"

@@ -83,7 +83,7 @@
 </script>
 
 <div
-	class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full select-none"
+	class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 w-full select-none"
 	data-type="map-object-summary"
 	data-id={getMapObjectName($selectedMapObject)}
 >

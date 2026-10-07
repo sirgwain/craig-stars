@@ -150,7 +150,7 @@
 					<GameCard game={$game} />
 				{/if}
 			</div>
-			<div class="w-full bg-base-200 shadow rounded-sm border-2 border-base-300 py-2 m-2">
+			<div class="w-full bg-base-200 shadow-sm rounded-xs border-2 border-base-300 py-2 m-2">
 				<div class="grid grid-cols-2 gap-x-5 px-2" class:grid-cols-3={hasGuests}>
 					<div class="text-center border-b border-b-secondary mb-1">Player</div>
 					<div class="text-center border-b border-b-secondary mb-1 font-semibold text-xl">

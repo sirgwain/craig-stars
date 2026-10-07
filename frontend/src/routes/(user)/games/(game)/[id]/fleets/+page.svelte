@@ -145,9 +145,9 @@
 <div class="w-full">
 	<div class="flex flex-row justify-between m-2">
 		<div><TableSearchInput bind:value={search} /></div>
-		<div class="form-control">
-			<label class="label cursor-pointer">
-				<span class="label-text mr-1">Idle Fleets Only</span>
+		<div class="cs-form-control">
+			<label class="cs-form-label cursor-pointer">
+				<span class="cs-label-text mr-1">Idle Fleets Only</span>
 				<input
 					type="checkbox"
 					class="toggle"

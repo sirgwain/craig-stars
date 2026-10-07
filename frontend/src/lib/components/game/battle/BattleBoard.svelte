@@ -65,7 +65,7 @@
 					<div class="text-xl font-semibold text-center">
 						Round {action?.round ?? 0} of {battle.totalRounds}
 					</div>
-					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300 mb-2">
+					<div class="w-full card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 mb-2">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
 								{`Phase ${phase} of ${battle.totalPhases}`}
@@ -77,7 +77,7 @@
 					<div class="text-xl font-semibold text-center">&nbsp</div>
 				{/if}
 				{#if selectedToken}
-					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300 mb-2">
+					<div class="w-full card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 mb-2">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
 								{#if selectedToken.action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_BEAM_FIRE' || selectedToken.action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_TORPEDO_FIRE'}
@@ -91,7 +91,7 @@
 					</div>
 				{/if}
 				{#if target && selectedToken?.num === actionToken?.num}
-					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300">
+					<div class="w-full card bg-base-200 shadow-sm rounded-xs border-2 border-base-300">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">Target</h2>
 							<BattleBoardTokenDetails {battle} token={target} {phase} />

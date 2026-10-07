@@ -79,7 +79,7 @@
 
 		<div class="px-1 my-auto">
 			<input
-				class="input input-sm input-bordered w-16 pr-0 pl-1"
+				class="input input-sm w-16 pr-0 pl-1"
 				type="number"
 				min={0}
 				max={100}

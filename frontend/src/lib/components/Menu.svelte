@@ -49,7 +49,7 @@
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
 				tabindex="0"
-				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-48"
+				class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-100 rounded-box w-48"
 			>
 				{#if user}
 					<li>{user.username}</li>

@@ -40,11 +40,8 @@
 </script>
 
 {#if races.length > 0}
-	<label class="label" for="hostRace">Race</label>
-	<select
-		class="select select-bordered"
-		onchange={(e) => raceChanged(BigInt(e.currentTarget.value))}
-	>
+	<label class="cs-form-label" for="hostRace">Race</label>
+	<select class="select" onchange={(e) => raceChanged(BigInt(e.currentTarget.value))}>
 		{#each races as race (race.id)}
 			<option value={race.id}>{race.name}</option>
 		{/each}

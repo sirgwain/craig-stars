@@ -34,12 +34,12 @@
 </script>
 
 <div>
-	<label class="label justify-start">
+	<label class="cs-form-label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionOwnPlanets}
 		/>
-		<span class="label-text mr-1">
+		<span class="cs-label-text mr-1">
 			Owns
 			<VictoryConditionInput
 				bind:value={victoryConditions.ownPlanets}
@@ -50,12 +50,12 @@
 			of all planets.
 		</span>
 	</label>
-	<label class="label justify-start">
+	<label class="cs-form-label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionAttainTechLevels}
 		/>
-		<span class="label-text mr-1">
+		<span class="cs-label-text mr-1">
 			Attains Tech
 			<VictoryConditionInput bind:value={victoryConditions.attainTechLevel} min={8} max={26} />
 			in
@@ -67,23 +67,23 @@
 			fields.
 		</span>
 	</label>
-	<label class="label justify-start">
+	<label class="cs-form-label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionExceedsScore}
 		/>
-		<span class="label-text mr-1">
+		<span class="cs-label-text mr-1">
 			Exceeds a score of
 			<VictoryConditionInput bind:value={victoryConditions.exceedsScore} min={1000} max={20000} />
 			.
 		</span>
 	</label>
-	<label class="label justify-start">
+	<label class="cs-form-label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionExceedsSecondPlaceScore}
 		/>
-		<span class="label-text mr-1">
+		<span class="cs-label-text mr-1">
 			Exceeds second place score by
 			<VictoryConditionInput
 				bind:value={victoryConditions.exceedsSecondPlaceScore}
@@ -94,12 +94,12 @@
 			.
 		</span>
 	</label>
-	<label class="label justify-start">
+	<label class="cs-form-label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionProductionCapacity}
 		/>
-		<span class="label-text mr-1">
+		<span class="cs-label-text mr-1">
 			Has a production capacity of
 			<VictoryConditionInput
 				bind:value={victoryConditions.productionCapacity}
@@ -109,12 +109,12 @@
 			/>,000 resources/yr.
 		</span>
 	</label>
-	<label class="label justify-start">
+	<label class="cs-form-label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionOwnCapitalShips}
 		/>
-		<span class="label-text mr-1">
+		<span class="cs-label-text mr-1">
 			Owns
 			<VictoryConditionInput
 				bind:value={victoryConditions.ownCapitalShips}
@@ -125,12 +125,12 @@
 			capital ships.
 		</span>
 	</label>
-	<label class="label justify-start">
+	<label class="cs-form-label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionHighestScoreAfterYears}
 		/>
-		<span class="label-text mr-1">
+		<span class="cs-label-text mr-1">
 			Has the highest score after
 			<VictoryConditionInput
 				bind:value={victoryConditions.highestScoreAfterYears}
@@ -141,15 +141,15 @@
 			years.
 		</span>
 	</label>
-	<label class="label justify-start">
-		<span class="label-text mr-1">
+	<label class="cs-form-label justify-start">
+		<span class="cs-label-text mr-1">
 			Winner must meet
 			<VictoryConditionInput bind:value={victoryConditions.numCriteriaRequired} min={1} max={7} />
 			of the above selected criteria.
 		</span>
 	</label>
-	<label class="label justify-start">
-		<span class="label-text mr-1">
+	<label class="cs-form-label justify-start">
+		<span class="cs-label-text mr-1">
 			At least
 			<VictoryConditionInput
 				bind:value={victoryConditions.yearsPassed}

@@ -40,7 +40,9 @@
 </script>
 
 <ItemTitle>Research</ItemTitle>
-<div class="stats stats-vertical sm:stats-horizontal sm:flex shadow border border-base-200 w-full">
+<div
+	class="stats stats-vertical sm:stats-horizontal sm:flex shadow-sm border border-base-200 w-full"
+>
 	<div class="stat place-items-center sm:grow">
 		<div class="stat-title">Researching</div>
 		<div class="stat-figure"><Icon class="w-8 h-8" src={Beaker} /></div>
@@ -64,7 +66,9 @@
 		</div>
 	</div>
 </div>
-<div class="stats stats-vertical sm:stats-horizontal sm:flex shadow border border-base-200 w-full">
+<div
+	class="stats stats-vertical sm:stats-horizontal sm:flex shadow-sm border border-base-200 w-full"
+>
 	<div class="stat place-items-center sm:grow">
 		<div class="stat-title">Spent Last Year</div>
 		<div class="stat-figure"><Microscope class="w-8 h-8 fill-primary" /></div>
@@ -107,9 +111,9 @@
 				Current Level <div class="divider secondary w-[90%]"></div>
 			</div>
 			{#each TechFields as field (field)}
-				<div class="form-control">
-					<label class="label cursor-pointer">
-						<span class="label-text">{enumToString(TechField, field)}</span>
+				<div class="cs-form-control">
+					<label class="cs-form-label cursor-pointer">
+						<span class="cs-label-text">{enumToString(TechField, field)}</span>
 						<input
 							type="radio"
 							name="researching"

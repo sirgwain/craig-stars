@@ -56,7 +56,7 @@
 					<ul
 						id="commands"
 						tabindex="0"
-						class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
+						class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-300"
 					>
 						<li><a href={`/games/${$game.id}/research`}>Research</a></li>
 						<li><a href={`/games/${$game.id}/designer`}>Ship Designer</a></li>
@@ -74,7 +74,7 @@
 					<ul
 						id="reports"
 						tabindex="0"
-						class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
+						class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-300"
 					>
 						<li><a href={`/games/${$game.id}/players`}>Players</a></li>
 						<li><a href={`/games/${$game.id}/planets`}>Planets</a></li>
@@ -103,7 +103,7 @@
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<div
 				tabindex="0"
-				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-[22rem] md:w-auto"
+				class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-300 w-[22rem] md:w-auto"
 			>
 				<div class="flex flex-row justify-between">
 					<ul class="mt-11">

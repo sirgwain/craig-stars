@@ -35,7 +35,7 @@
 
 {#if fleet}
 	<CommandTile title={planet ? `Orbiting ${planet.mapObject?.name}` : 'In Deep Space'}>
-		<div class="flex justify-between my-1 btn-group">
+		<div class="flex justify-between my-1">
 			<button
 				onclick={gotoTarget}
 				disabled={!planet || !ownedBy(planet, $player.num)}

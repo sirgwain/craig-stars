@@ -83,7 +83,7 @@
 	bind:this={component}
 	class:block={!!$tooltipComponent}
 	class:hidden={!$tooltipComponent}
-	class="fixed bg-base-300 rounded-sm p-2 border-2 shadow-md z-[1000] text-base select-none w-full md:w-max top-0 left-0 max-h-full"
+	class="fixed bg-base-300 rounded-xs p-2 border-2 shadow-md z-[1000] text-base select-none w-full md:w-max top-0 left-0 max-h-full"
 	role="tooltip"
 >
 	{#if $tooltipComponent}

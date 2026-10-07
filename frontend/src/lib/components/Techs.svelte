@@ -96,9 +96,9 @@
 
 <div class="flex justify-between">
 	<div><TableSearchInput bind:value={filter} /></div>
-	<div class="form-control" class:hidden={!player}>
-		<label class="label cursor-pointer">
-			<span class="label-text mr-1">Show All</span>
+	<div class="cs-form-control" class:hidden={!player}>
+		<label class="cs-form-label cursor-pointer">
+			<span class="cs-label-text mr-1">Show All</span>
 			<input type="checkbox" class="toggle" class:toggle-accent={showAll} bind:checked={showAll} />
 		</label>
 	</div>

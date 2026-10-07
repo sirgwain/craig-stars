@@ -518,7 +518,9 @@
 	});
 </script>
 
-<div class="flex flex-col h-full bg-base-200 shadow rounded-sm border-2 border-base-300 text-base">
+<div
+	class="flex flex-col h-full bg-base-200 shadow-sm rounded-xs border-2 border-base-300 text-base"
+>
 	<div class="text-center"><h2 class="text-lg">{planet.mapObject.name}</h2></div>
 	<div class="flex-col h-full w-full">
 		<div class="flex flex-col h-full w-full">

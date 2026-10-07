@@ -25,7 +25,7 @@
 	<ResearchCostField bind:value={researchCost.biotechnology} field={TechField.BIOTECHNOLOGY} />
 </div>
 
-<label class="label justify-start mt-2">
+<label class="cs-form-label justify-start mt-2">
 	<input
 		class="checkbox"
 		type="checkbox"

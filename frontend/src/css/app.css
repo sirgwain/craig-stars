@@ -1,6 +1,226 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@plugin 'daisyui' {
+	themes: false;
+}
+
+/* Preserve the app's compact type scale and manually selected dark mode. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+	--text-*: initial;
+	--text-sm: 10px;
+	--text-base: 12px;
+	--text-lg: 14px;
+	--text-xl: 18px;
+	--text-2xl: 20px;
+	--text-3xl: 30px;
+	--text-4xl: 40px;
+	--text-5xl: 48px;
+}
+
+@theme inline {
+	--color-gauge: var(--gauge);
+}
+
+@utility grid-cols-label-value {
+	grid-template-columns: auto minmax(0, 1fr);
+}
+
+@plugin 'daisyui/theme' {
+	name: 'business';
+	default: true;
+	prefersdark: true;
+	color-scheme: dark;
+	--color-primary: oklch(41.7036% 0.099057 251.473931);
+	--color-primary-content: oklch(88.3407% 0.019811 251.473931);
+	--color-secondary: oklch(64.0924% 0.027405 229.389418);
+	--color-secondary-content: oklch(12.8185% 0.005481 229.389418);
+	--color-accent: oklch(67.271% 0.167726 35.791525);
+	--color-accent-content: oklch(13.4542% 0.033545 35.791525);
+	--color-neutral: oklch(27.441% 0.01325 253.041249);
+	--color-neutral-content: oklch(85.4882% 0.00265 253.041249);
+	--color-base-100: oklch(26.448% 0 0);
+	--color-base-200: oklch(24.7759% 0 0);
+	--color-base-300: oklch(19.5735% 0 0);
+	--color-base-content: oklch(85.2896% 0 0);
+	--color-info: oklch(62.6163% 0.143511 240.033697);
+	--color-info-content: oklch(12.5233% 0.028702 240.033697);
+	--color-success: oklch(70.2268% 0.094594 156.59611);
+	--color-success-content: oklch(14.0454% 0.018919 156.59611);
+	--color-warning: oklch(77.4824% 0.115704 81.519177);
+	--color-warning-content: oklch(15.4965% 0.023141 81.519177);
+	--color-error: oklch(51.6105% 0.14678 29.674507);
+	--color-error-content: oklch(90.3221% 0.029356 29.674507);
+	--radius-selector: 0.125rem;
+	--radius-field: 0.125rem;
+	--radius-box: 0.25rem;
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--border: 1px;
+	--depth: 0;
+	--noise: 0;
+	--gauge: #151515;
+}
+
+@plugin 'daisyui/theme' {
+	name: 'emerald';
+	default: false;
+	prefersdark: false;
+	color-scheme: light;
+	--color-primary: oklch(62.3519% 0.107165 153.979713);
+	--color-primary-content: oklch(33.3872% 0.040618 162.240129);
+	--color-secondary: oklch(61.3028% 0.202368 261.294233);
+	--color-secondary-content: oklch(100% 0 0);
+	--color-accent: oklch(72.7725% 0.149783 33.200363);
+	--color-accent-content: oklch(0% 0 0);
+	--color-neutral: oklch(35.5192% 0.032071 262.988584);
+	--color-neutral-content: oklch(98.4625% 0.001706 247.838921);
+	--color-base-100: oklch(100% 0 0);
+	--color-base-200: oklch(81.7193% 0 0);
+	--color-base-300: oklch(75.9989% 0 0);
+	--color-base-content: oklch(35.5192% 0.032071 262.988584);
+	--color-info: oklch(72.06% 0.191 231.6);
+	--color-info-content: oklch(0% 0 0);
+	--color-success: oklch(64.8% 0.15 160);
+	--color-success-content: oklch(0% 0 0);
+	--color-warning: oklch(55.5283% 0.145505 48.99753);
+	--color-warning-content: oklch(91.1057% 0.029101 48.99753);
+	--color-error: oklch(71.76% 0.221 22.18);
+	--color-error-content: oklch(0% 0 0);
+	--radius-selector: 1.9rem;
+	--radius-field: 0.5rem;
+	--radius-box: 1rem;
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--border: 1px;
+	--depth: 0;
+	--noise: 0;
+	--gauge: #555555;
+}
+
+/* Keep the former border defaults and pointer behavior. */
+@layer base {
+	*,
+	::before,
+	::after,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-gray-200, currentColor);
+	}
+	button:not(:disabled),
+	[role='button']:not(:disabled) {
+		cursor: pointer;
+	}
+}
+
+/* Preserve the existing game density; explicit sizing utilities still take precedence. */
+@layer utilities.daisyui {
+	/* Compatibility styles for the former daisyUI form helpers. */
+	.cs-form-control {
+		@apply flex flex-col;
+	}
+	.cs-form-label {
+		@apply flex select-none items-center justify-between px-1 py-2;
+	}
+	.cs-label-text {
+		@apply text-base-content;
+		font-size: 0.875rem;
+	}
+	.cs-label-text-alt {
+		@apply text-base-content;
+		font-size: 0.75rem;
+	}
+
+	/* Closed menus leave the accessibility tree immediately, including during exit transitions. */
+	.dropdown.dropdown-close .dropdown-content,
+	.dropdown:not(details, .dropdown-open, .dropdown-hover:hover, :focus-within) .dropdown-content {
+		visibility: hidden;
+	}
+	:where(.navbar > *:not(script, style)) {
+		display: inline-flex;
+		align-items: center;
+	}
+	.card-body {
+		font-size: var(--text-base);
+	}
+	.btn {
+		--size: 3rem;
+		--fontsize: 0.875rem;
+		line-height: 1;
+		border-radius: 0;
+	}
+	.btn-xs {
+		--size: 1.5rem;
+		--fontsize: 0.75rem;
+	}
+	.btn-sm {
+		--size: 2rem;
+		--fontsize: 0.875rem;
+	}
+	.btn-md {
+		--size: 3rem;
+		--fontsize: 0.875rem;
+	}
+	.btn-lg {
+		--size: 4rem;
+		--fontsize: 1.125rem;
+	}
+	.input,
+	.select {
+		--size: 3rem;
+		width: auto;
+		padding-inline: 1rem;
+		line-height: 1.5rem;
+	}
+	.input {
+		font-size: 1rem;
+	}
+	.select {
+		font-size: 0.875rem;
+		padding-inline-end: 2.5rem;
+	}
+	.input-xs,
+	.select-xs {
+		--size: 1.5rem;
+		font-size: 0.75rem;
+		padding-inline-start: 0.5rem;
+	}
+	.input-sm,
+	.select-sm {
+		--size: 2rem;
+		font-size: 0.875rem;
+		padding-inline-start: 0.75rem;
+	}
+	.input-md,
+	.select-md {
+		--size: 3rem;
+		font-size: 0.875rem;
+	}
+	.input-lg,
+	.select-lg {
+		--size: 4rem;
+		font-size: 1.125rem;
+		padding-inline-start: 1.5rem;
+	}
+	.input-xs {
+		padding-inline-end: 0.5rem;
+	}
+	.input-sm {
+		padding-inline-end: 0.75rem;
+	}
+	.input-lg {
+		padding-inline-end: 1.5rem;
+	}
+	.select-xs,
+	.select-sm,
+	.select-lg {
+		padding-inline-end: 2rem;
+	}
+	.checkbox {
+		border-radius: var(--radius-field);
+	}
+}
 
 :root {
 	--scanner-background: #000000;
@@ -58,26 +278,20 @@
 
 @layer components {
 	.bg-primary-focus {
-		@apply bg-[color-mix(in_oklab,oklch(var(--p)),black_7%)];
+		@apply bg-[color-mix(in_oklab,var(--color-primary),black_7%)];
 	}
 	.stroke-primary-focus {
-		@apply stroke-[color-mix(in_oklab,oklch(var(--p)),black_7%)];
+		@apply stroke-[color-mix(in_oklab,var(--color-primary),black_7%)];
 	}
 	.bg-neutral-focus {
-		@apply bg-[color-mix(in_oklab,oklch(var(--n)),black_7%)];
+		@apply bg-[color-mix(in_oklab,var(--color-neutral),black_7%)];
 	}
 	.text-secondary-focus {
-		@apply text-[color-mix(in_oklab,oklch(var(--s)),black_7%)];
+		@apply text-[color-mix(in_oklab,var(--color-secondary),black_7%)];
 	}
 
-	.btn {
-		@apply touch-manipulation rounded-none;
-	}
 	.cs-link {
 		@apply text-primary hover:text-accent;
-	}
-	.card-body {
-		@apply text-base;
 	}
 	.text-habitable {
 		@apply text-[#058405] dark:text-[#00FF00] font-bold;

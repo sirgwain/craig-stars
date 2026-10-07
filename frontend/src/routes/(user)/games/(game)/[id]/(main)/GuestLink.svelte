@@ -40,7 +40,7 @@
 	<InfoToast bind:text={copiedText} />
 	<div class="flex flex-row">
 		<div class="my-auto grow" class:hidden={hideText}>
-			<input class="input input-sm input-bordered w-full" readonly value={link} />
+			<input class="input input-sm w-full" readonly value={link} />
 		</div>
 		<div>
 			<div class="tooltip" data-tip="Copy Invite Link">

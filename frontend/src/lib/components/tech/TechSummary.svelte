@@ -83,7 +83,7 @@
 {#if techLike.tech}
 	{@const tech = techLike.tech}
 	<div
-		class="card bg-base-200 shadow rounded-sm border-2 border-base-300 max-h-fit min-h-fit w-full h-full"
+		class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 max-h-fit min-h-fit w-full h-full"
 	>
 		<div class="card-body p-3 gap-0">
 			<div class="text-lg font-semibold text-center mb-1 text-secondary">
