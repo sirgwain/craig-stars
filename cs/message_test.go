@@ -97,3 +97,45 @@ func Test_message_packetImpactSnapshot(t *testing.T) {
 	assert.Equal(t, 3, message.Spec.MineralPacketDamage.DefensesDestroyed)
 	assert.Equal(t, 50, message.Spec.MineralPacketDamage.Uncaught)
 }
+
+func Test_message_invasionStartingPopulations(t *testing.T) {
+	attacker, defender := &Player{Num: 1}, &Player{Num: 2}
+	planet := &Planet{MapObject: MapObject{Num: 3, Name: "Earth", PlayerNum: 2}}
+	for _, player := range []*Player{attacker, defender} {
+		messager.planetInvaded(player, planet, "Invaders", attacker, defender, 12000, 10000, 8700, 10000, 1200, true)
+		message := player.Messages[0]
+		assert.Equal(t, 12000, message.Spec.Invasion.Attackers)
+		assert.Equal(t, 10000, message.Spec.Invasion.Defenders)
+		assert.Zero(t, message.Spec.Amount)
+		assert.Zero(t, message.Spec.Amount2)
+		assert.Equal(t, 8700, message.Spec.Invasion.AttackersKilled)
+		assert.Equal(t, 1200, message.Spec.Invasion.AttackersKilledByDefenses)
+		assert.Equal(t, 10000, message.Spec.Invasion.DefendersKilled)
+		assert.Equal(t, "Earth", message.TargetName)
+	}
+	assert.Equal(t, PlayerMessageFleetInvadedPlanet, attacker.Messages[0].Type)
+	assert.Equal(t, PlayerMessagePlanetInvaded, defender.Messages[0].Type)
+}
+
+func Test_message_remoteTerraformPlanetOwnerValue(t *testing.T) {
+	planetPlayer, planet := newTestPlayerPlanet()
+	sender := NewPlayer(2, NewRace())
+	sender.Race.ImmuneGrav, sender.Race.ImmuneTemp, sender.Race.ImmuneRad = true, true, true
+	fleet := &Fleet{
+		MapObject: MapObject{PlayerNum: 2, Num: 4, Name: "Adjuster"},
+		Tokens:    []ShipToken{{design: &ShipDesign{Hull: "Mini-Miner"}}},
+	}
+	initialHab := Hab{48, 48, 50}
+	planet.Hab = Hab{50, 50, 50}
+	for _, recipient := range []*Player{sender, planetPlayer} {
+		messager.planetRemoteTerraform(recipient, planetPlayer, planet, fleet, initialHab, false)
+		message := recipient.Messages[len(recipient.Messages)-1]
+		// The sender is immune to all habitats, but both reports use the planet owner's value.
+		assert.Equal(t, 97, message.Spec.PrevAmount)
+		assert.Equal(t, 100, message.Spec.Amount)
+		assert.Equal(t, 1, message.Spec.Amount2)
+		assert.Equal(t, Hab{2, 2, 0}, message.Spec.TerraformAmount)
+	}
+	planet.Hab = Hab{0, 0, 0}
+	assert.Equal(t, 100, sender.Messages[len(sender.Messages)-1].Spec.Amount)
+}

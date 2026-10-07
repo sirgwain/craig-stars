@@ -12,6 +12,7 @@ import (
 
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // many functions require a copy of the current game's rules.
@@ -389,7 +390,12 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	player1, player2, fleet, planet := u.Player(1), u.Player(2), u.FleetFor(1, "Long Range Scout #1"), u.Planet("Planet 2")
 
 	// transfer
+	initialDefenders := planet.GetPopulation()
 	u.GenerateTurn()
+	for _, message := range append(u.Messages(1, PlayerMessageFleetInvadedPlanet), u.Messages(2, PlayerMessagePlanetInvaded)...) {
+		assert.Equal(t, 500000, message.Spec.Invasion.Attackers)
+		assert.Equal(t, initialDefenders, message.Spec.Invasion.Defenders)
+	}
 
 	// should have invaded the planet and taken it over
 	assert.Equal(t, planet.PlayerNum, fleet.PlayerNum)
@@ -705,8 +711,8 @@ func Test_turn_fleetMove(t *testing.T) {
 
 		// we should have struck the minefield and lost the ship
 		assert.True(t, fleet.Delete)
-		assert.Equal(t, 2, len(game.Players[0].Messages))
-		assert.Equal(t, 2, len(game.Players[1].Messages))
+		assert.Len(t, u.Messages(1, PlayerMessageFleetMinefieldHit), 1)
+		assert.Len(t, u.Messages(2, PlayerMessageFleetMinefieldHit), 1)
 
 		// the Minefield should have lost some mines in the collision
 		assert.Equal(t, 88, minefield.NumMines)
@@ -731,8 +737,8 @@ func Test_turn_fleetMove(t *testing.T) {
 
 		// we should have struck the minefield and lost the ship
 		assert.True(t, fleet.Delete)
-		assert.Equal(t, 2, len(game.Players[0].Messages))
-		assert.Equal(t, 2, len(game.Players[1].Messages))
+		assert.Len(t, u.Messages(1, PlayerMessageFleetMinefieldHit), 1)
+		assert.Len(t, u.Messages(2, PlayerMessageFleetMinefieldHit), 1)
 
 		// the Minefield should have lost some mines in the collision
 		assert.Equal(t, 88, minefield.NumMines)
@@ -1381,6 +1387,30 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	// should terraform planet3 2 points
 	assert.Equal(t, Hab{50, 50, 50}, planet3.Hab)
 
+	// Both foreign owners receive a single report per fleet; our own world
+	// receives one report, rather than duplicate sender/recipient reports.
+	assert.Len(t, u.Messages(1, PlayerMessagePlanetRemoteTerraform), 2)
+	assert.Len(t, u.Messages(2, PlayerMessagePlanetRemoteTerraform), 1)
+	assert.Len(t, u.Messages(3, PlayerMessagePlanetRemoteTerraform), 2)
+	enemyReport := u.Messages(2, PlayerMessagePlanetRemoteTerraform)[0]
+	assert.Equal(t, planet1.Num, enemyReport.TargetNum)
+	assert.Equal(t, 1, enemyReport.Spec.SourcePlayerNum)
+	assert.Equal(t, 100, enemyReport.Spec.PrevAmount)
+	assert.Equal(t, 99, enemyReport.Spec.Amount)
+	assert.Equal(t, -1, enemyReport.Spec.Amount2)
+	assert.Equal(t, Hab{Grav: 2}, enemyReport.Spec.TerraformAmount)
+	assert.NotEqual(t, "Enemy terraformer", enemyReport.Spec.TargetName)
+
+	// Optimal planets and neutral relationships produce no notification.
+	for _, player := range u.Game.Players {
+		player.Messages = nil
+	}
+	u.Player(1).Relations[1].Relation = PlayerRelationNeutral
+	u.Fleet("Enemy terraformer").battlePlan.AttackWho = BattleAttackWhoEnemies
+	u.Run((*turnGenerator).fleetRemoteTerraform)
+	for _, player := range u.Game.Players {
+		assert.Empty(t, u.Messages(player.Num, PlayerMessagePlanetRemoteTerraform))
+	}
 }
 
 func Test_turn_fleetRefuel(t *testing.T) {
@@ -2103,4 +2133,41 @@ func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
 	// should have an upgraded starbase at the planet, and the other should be
 	// marked for deletion
 	// TODO: not sure how to test this. Random number gen I guess...
+}
+
+func Test_turn_productionQueueMessages(t *testing.T) {
+	for _, tt := range []struct {
+		name      string
+		queue     []ScenarioProductionQueueItem
+		resources int
+		want      PlayerMessageType
+	}{
+		{name: "empty", resources: 100, want: PlayerMessagePlanetProductionQueueEmpty},
+		{name: "completed", queue: []ScenarioProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1}}, resources: 100, want: PlayerMessagePlanetProductionQueueComplete},
+		{name: "blocked", queue: []ScenarioProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1}}, resources: 0},
+		{name: "automatic", queue: []ScenarioProductionQueueItem{{Type: QueueItemTypeAutoMines, Quantity: 1}}, resources: 100},
+		{name: "canceled", queue: []ScenarioProductionQueueItem{{Type: QueueItemTypeShipToken, Design: "Long Range Scout", Quantity: 1}}, resources: 100, want: PlayerMessagePlanetProductionQueueEmpty},
+		{name: "completed and canceled", queue: []ScenarioProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1}, {Type: QueueItemTypeShipToken, Design: "Long Range Scout", Quantity: 1}}, resources: 100, want: PlayerMessagePlanetProductionQueueEmpty},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			s := SingleUnitScenario()
+			s.Planets[0].ProductionQueue = tt.queue
+			u := newTestUniverse(t, s)
+			planet := u.Game.Planets[0]
+			planet.Spec.ResourcesPerYearAvailable = tt.resources
+			planet.Cargo.Ironium, planet.Cargo.Boranium, planet.Cargo.Germanium = 1000, 1000, 1000
+			u.RunE((*turnGenerator).planetProduction)
+			empty := u.Messages(1, PlayerMessagePlanetProductionQueueEmpty)
+			complete := u.Messages(1, PlayerMessagePlanetProductionQueueComplete)
+			if tt.want == PlayerMessageNone {
+				assert.Empty(t, empty)
+				assert.Empty(t, complete)
+			} else {
+				messages := append(empty, complete...)
+				require.Len(t, messages, 1)
+				assert.Equal(t, tt.want, messages[0].Type)
+				assert.Equal(t, planet.Num, messages[0].TargetNum)
+			}
+		})
+	}
 }

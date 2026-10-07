@@ -84,12 +84,15 @@ type PlayerMessageSpecMysteryTrader struct {
 }
 
 type PlayerMessageSpecInvasion struct {
-	FleetName         string `json:"fleetName,omitempty"`
-	AttackerPlayerNum int    `json:"attackerPlayerNum"`
-	DefenderPlayerNum int    `json:"defenderPlayerNum"`
-	AttackersKilled   int    `json:"attackersKilled"`
-	DefendersKilled   int    `json:"defendersKilled"`
-	Successful        bool   `json:"successful"`
+	FleetName                 string `json:"fleetName,omitempty"`
+	AttackerPlayerNum         int    `json:"attackerPlayerNum"`
+	Attackers                 int    `json:"attackers"`
+	DefenderPlayerNum         int    `json:"defenderPlayerNum"`
+	Defenders                 int    `json:"defenders"`
+	AttackersKilled           int    `json:"attackersKilled"`
+	AttackersKilledByDefenses int    `json:"attackersKilledByDefenses"`
+	DefendersKilled           int    `json:"defendersKilled"`
+	Successful                bool   `json:"successful"`
 }
 
 type PlayerMessageSpecCargoTransfer struct {
@@ -238,6 +241,7 @@ const (
 	PlayerMessagePlanetInvadeInvalidStarbase
 	PlayerMessageFleetStargateDestroyed
 	PlayerMessageFleetEngineStrainDestroyed
+	PlayerMessagePlanetRemoteTerraform
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -687,6 +691,34 @@ func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, 
  * Planet Messages
  */
 
+func (m *messageClient) planetProductionQueueStatus(player *Player, planet *Planet, completed bool) {
+	messageType := PlayerMessagePlanetProductionQueueEmpty
+	if completed {
+		messageType = PlayerMessagePlanetProductionQueueComplete
+	}
+	player.Messages = append(player.Messages, newPlanetMessage(messageType, planet))
+}
+
+// PrevAmount and Amount snapshot the planet owner's habitability before and after
+// the fleet's work. Amount2 is 1 for improving and -1 for degrading the planet;
+// TerraformAmount records the actual changes to each habitat axis.
+func (m *messageClient) planetRemoteTerraform(player, planetPlayer *Player, planet *Planet, fleet *Fleet, initialHab Hab, deterraform bool) {
+	direction := 1
+	if deterraform {
+		direction = -1
+	}
+	spec := PlayerMessageSpec{
+		PrevAmount:      planetPlayer.Race.GetPlanetHabitability(initialHab),
+		Amount:          planetPlayer.Race.GetPlanetHabitability(planet.Hab),
+		Amount2:         direction,
+		TerraformAmount: planet.Hab.Subtract(initialHab),
+		SourcePlayerNum: fleet.PlayerNum,
+	}.withTargetFleet(fleet)
+	// Use the same public fleet name as other fleet reports for the planet owner.
+	spec.TargetName = newFleetMessage(player, PlayerMessagePlanetRemoteTerraform, fleet).TargetName
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetRemoteTerraform, planet).withSpec(spec))
+}
+
 func (m *messageClient) planetHomeworld(player *Player, planet *Planet) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetHomeworld, planet))
 }
@@ -795,14 +827,18 @@ func (m *messageClient) planetInstaform(player *Player, planet *Planet, terrafor
 		withSpec(PlayerMessageSpec{TerraformAmount: terraformAmount}))
 }
 
-func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackersKilled int, defendersKilled int, successful bool) {
+// Invasion snapshots the initial populations and casualties in colonists.
+func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackers int, defenders int, attackersKilled int, defendersKilled int, attackersKilledByDefenses int, successful bool) {
 	invasion := PlayerMessageSpecInvasion{
-		FleetName:         fleetName,
-		AttackerPlayerNum: attacker.Num,
-		DefenderPlayerNum: defender.Num,
-		AttackersKilled:   attackersKilled,
-		DefendersKilled:   defendersKilled,
-		Successful:        successful,
+		FleetName:                 fleetName,
+		AttackerPlayerNum:         attacker.Num,
+		Attackers:                 attackers,
+		DefenderPlayerNum:         defender.Num,
+		Defenders:                 defenders,
+		AttackersKilled:           attackersKilled,
+		AttackersKilledByDefenses: attackersKilledByDefenses,
+		DefendersKilled:           defendersKilled,
+		Successful:                successful,
 	}
 	if player.Num == attacker.Num {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageFleetInvadedPlanet, planet).

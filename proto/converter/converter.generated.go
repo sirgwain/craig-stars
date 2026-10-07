@@ -3664,8 +3664,11 @@ func (c *ProtoConverter) pCraig_starsv1PlayerMessageSpecInvasionToPCsPlayerMessa
 		var csPlayerMessageSpecInvasion cs.PlayerMessageSpecInvasion
 		csPlayerMessageSpecInvasion.FleetName = (*source).FleetName
 		csPlayerMessageSpecInvasion.AttackerPlayerNum = Int32ToInt((*source).AttackerPlayerNum)
+		csPlayerMessageSpecInvasion.Attackers = Int32ToInt((*source).Attackers)
 		csPlayerMessageSpecInvasion.DefenderPlayerNum = Int32ToInt((*source).DefenderPlayerNum)
+		csPlayerMessageSpecInvasion.Defenders = Int32ToInt((*source).Defenders)
 		csPlayerMessageSpecInvasion.AttackersKilled = Int32ToInt((*source).AttackersKilled)
+		csPlayerMessageSpecInvasion.AttackersKilledByDefenses = Int32ToInt((*source).AttackersKilledByDefenses)
 		csPlayerMessageSpecInvasion.DefendersKilled = Int32ToInt((*source).DefendersKilled)
 		csPlayerMessageSpecInvasion.Successful = (*source).Successful
 		pCsPlayerMessageSpecInvasion = &csPlayerMessageSpecInvasion
@@ -4264,6 +4267,9 @@ func (c *ProtoConverter) pCsPlayerMessageSpecInvasionToPCraig_starsv1PlayerMessa
 		craig_starsv1PlayerMessageSpecInvasion.AttackersKilled = IntToInt32((*source).AttackersKilled)
 		craig_starsv1PlayerMessageSpecInvasion.DefendersKilled = IntToInt32((*source).DefendersKilled)
 		craig_starsv1PlayerMessageSpecInvasion.Successful = (*source).Successful
+		craig_starsv1PlayerMessageSpecInvasion.Attackers = IntToInt32((*source).Attackers)
+		craig_starsv1PlayerMessageSpecInvasion.Defenders = IntToInt32((*source).Defenders)
+		craig_starsv1PlayerMessageSpecInvasion.AttackersKilledByDefenses = IntToInt32((*source).AttackersKilledByDefenses)
 		pCraig_starsv1PlayerMessageSpecInvasion = &craig_starsv1PlayerMessageSpecInvasion
 	}
 	return pCraig_starsv1PlayerMessageSpecInvasion

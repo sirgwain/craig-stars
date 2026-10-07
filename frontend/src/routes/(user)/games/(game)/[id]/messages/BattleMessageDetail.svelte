@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { getBattleRecordDetails } from '#lib/types/Battle.js';
-	import { PlayerMessageType, type PlayerMessage } from '#lib/types/cs-proto.js';
+	import { create } from '@bufbuild/protobuf';
+	import {
+		BattleRecordSchema,
+		PlayerMessageType,
+		type PlayerMessage
+	} from '#lib/types/cs-proto.js';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { player, universe } = getGameContext();
@@ -24,9 +29,14 @@
 	};
 
 	function getBattleMessageDetails(message: PlayerMessage): Details | undefined {
-		const battle = $universe.getBattle(message.battleNum);
+		const battle =
+			$universe.getBattle(message.battleNum) ??
+			(message.spec?.battle
+				? create(BattleRecordSchema, { num: message.battleNum, stats: message.spec.battle })
+				: undefined);
 		if (battle) {
-			return getBattleRecordDetails(battle, $player, $universe);
+			const details = getBattleRecordDetails(battle, $player, $universe);
+			return { ...details, location: message.spec?.name || details.location };
 		}
 	}
 
@@ -55,10 +65,16 @@
 			Your {details.ours}
 			{details.ours === 1 ? 'ship' : 'ships'}
 			and the enemy's {details.theirs}
-			{details.theirs === 1 ? 'ships' : 'ships'}
+			{details.theirs === 1 ? 'ship' : 'ships'}
 			completely destroyed each other. No survivors were left on either side.
 		{:else}
-			Both you and the enemy suffered losses during the exchange.
+			{#if details.ourDead === 0}
+				Only the enemy suffered losses during the exchange.
+			{:else if details.theirDead === 0}
+				Only you suffered losses during the exchange.
+			{:else}
+				Both you and the enemy suffered losses during the exchange.
+			{/if}
 			{#if details.ours === details.ourDead && details.theirs > details.theirDead}
 				Your {details.ours}
 				{details.ours === 1 ? 'ship was' : 'ships were'}
@@ -95,10 +111,16 @@
 			Your ally's {details.ours}
 			{details.ours === 1 ? 'ship' : 'ships'}
 			and the enemy's {details.theirs}
-			{details.theirs === 1 ? 'vessels' : 'vessels'}
+			{details.theirs === 1 ? 'vessel' : 'vessels'}
 			completely destroyed each other. No survivors were left on either side.
 		{:else}
-			Both your ally and the enemy suffered losses during the exchange.
+			{#if details.ourDead === 0}
+				Only the enemy suffered losses during the exchange.
+			{:else if details.theirDead === 0}
+				Only your ally suffered losses during the exchange.
+			{:else}
+				Both your ally and the enemy suffered losses during the exchange.
+			{/if}
 			{#if details.ours === details.ourDead && details.theirs > details.theirDead}
 				Your ally's {details.ours}
 				{details.ours === 1 ? 'ship was' : 'ships were'}

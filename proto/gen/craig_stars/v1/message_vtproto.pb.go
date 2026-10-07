@@ -573,6 +573,21 @@ func (m *PlayerMessageSpecInvasion) MarshalToSizedBufferVT(dAtA []byte) (int, er
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.AttackersKilledByDefenses != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.AttackersKilledByDefenses))
+		i--
+		dAtA[i] = 0x48
+	}
+	if m.Defenders != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.Defenders))
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.Attackers != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.Attackers))
+		i--
+		dAtA[i] = 0x38
+	}
 	if m.Successful {
 		i--
 		if m.Successful {
@@ -1046,6 +1061,15 @@ func (m *PlayerMessageSpecInvasion) SizeVT() (n int) {
 	}
 	if m.Successful {
 		n += 2
+	}
+	if m.Attackers != 0 {
+		n += 1 + protohelpers.SizeOfVarint(uint64(m.Attackers))
+	}
+	if m.Defenders != 0 {
+		n += 1 + protohelpers.SizeOfVarint(uint64(m.Defenders))
+	}
+	if m.AttackersKilledByDefenses != 0 {
+		n += 1 + protohelpers.SizeOfVarint(uint64(m.AttackersKilledByDefenses))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -2813,6 +2837,63 @@ func (m *PlayerMessageSpecInvasion) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.Successful = bool(v != 0)
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Attackers", wireType)
+			}
+			m.Attackers = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Attackers |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Defenders", wireType)
+			}
+			m.Defenders = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Defenders |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AttackersKilledByDefenses", wireType)
+			}
+			m.AttackersKilledByDefenses = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AttackersKilledByDefenses |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

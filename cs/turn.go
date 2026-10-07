@@ -259,8 +259,8 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 		}
 
 		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
-		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
+		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.attackersKilledByDefenses, invasion.successful)
+		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.attackersKilledByDefenses, invasion.successful)
 
 		if !invasion.successful {
 			// reduce the population to however many colonists remain and move on
@@ -1598,6 +1598,16 @@ func (t *turnGenerator) planetProduction() error {
 			}
 		}
 
+		// Report an empty queue, distinguishing completed work from canceled orders.
+		if len(planet.ProductionQueue) == 0 {
+			completed := slices.ContainsFunc(result.itemsBuilt, func(item itemBuilt) bool {
+				return item.numBuilt > 0
+			}) && !slices.ContainsFunc(result.itemsBuilt, func(item itemBuilt) bool {
+				return item.never
+			})
+			messager.planetProductionQueueStatus(player, planet, completed)
+		}
+
 		// any leftover resources go back to the player for research
 		// TODO: auto dump this in alchemy if techs are maxed
 		player.leftoverResources += result.leftoverResources
@@ -2826,6 +2836,7 @@ func (t *turnGenerator) fleetRemoteTerraform() {
 		}
 
 		terraformer := NewTerraformer()
+		initialHab := planet.Hab
 		for i := 0; i < fleet.Spec.TerraformRate; i++ {
 			result := terraformer.TerraformOneStep(planet, planetPlayer, player, deterraform)
 			if result != (TerraformResult{}) {
@@ -2835,6 +2846,14 @@ func (t *turnGenerator) fleetRemoteTerraform() {
 					slog.String("Planet", planet.Name),
 					slog.String("HabType", result.Type.String()),
 				)
+			}
+		}
+		// Like the original remote terraforming report, summarize the fleet's
+		// work using the planet owner's value before and after terraforming.
+		if planet.Hab != initialHab {
+			messager.planetRemoteTerraform(player, planetPlayer, planet, fleet, initialHab, deterraform)
+			if planetPlayer.Num != player.Num {
+				messager.planetRemoteTerraform(planetPlayer, planetPlayer, planet, fleet, initialHab, deterraform)
 			}
 		}
 	}

@@ -18,13 +18,19 @@ vi.mock('#lib/services/GameContext.js', async () => {
 	const { writable } = await import('svelte/store');
 	const context = {
 		game: writable({ id: 1n }),
-		player: writable({ num: 1, race: { growthRate: 15, spec: { growthFactor: 1 } } }),
+		player: writable({
+			num: 1,
+			getAllies: () => [1],
+			race: { growthRate: 15, spec: { growthFactor: 1 } }
+		}),
 		universe: writable({
 			// Merged fleets and landed packets are absent from the current universe.
 			getMapObject: () => undefined,
 			getFleet: () => undefined,
 			getPlayerIntel: () => undefined,
-			getPlayerName: () => 'Visitors',
+			getPlayerName: () => 'Private race notes',
+			getBattle: () => undefined,
+			getBattleLocation: () => 'Earth',
 			getPlayerPluralName: () => 'Visitors',
 			battleRecords: []
 		})
@@ -351,4 +357,246 @@ describe('player and legacy messages', () => {
 				.toBeInTheDocument();
 		}
 	);
+});
+
+describe('invasion reports', () => {
+	it.each([
+		[
+			Type.FLEET_INVADED_PLANET,
+			true,
+			0,
+			"Your troops crush Visitors's Colonists on Earth. You are now in control of the planet."
+		],
+		[
+			Type.FLEET_INVADED_PLANET,
+			false,
+			0,
+			'The 12,000 Colonists you dropped on Earth were massacred by the ground troops of Visitors.'
+		],
+		[
+			Type.FLEET_INVADED_PLANET,
+			false,
+			1200,
+			'Of the 12,000 Colonists you dropped on Earth, 10% were destroyed by planetary defenses, the rest were massacred by the ground troops of Visitors.'
+		],
+		[
+			Type.PLANET_INVADED,
+			true,
+			0,
+			'Visitors have attacked you on Earth with 12,000 first-rate storm troopers. Though your colonists put up a spirited defense they are crushed.'
+		],
+		[
+			Type.PLANET_INVADED,
+			false,
+			0,
+			'Your ground troops on Earth valiantly destroyed the 12,000 attacking barbarians of Visitors!'
+		],
+		[
+			Type.PLANET_INVADED,
+			false,
+			1200,
+			'Your planetary defenses and ground troops on Earth destroyed the 12,000 invading troops of Visitors.'
+		]
+	] as const)(
+		'renders original invasion %s, successful %s, defense losses %s',
+		async (type, successful, attackersKilledByDefenses, original) => {
+			const view = render(MessageDetail, {
+				message: create(PlayerMessageSchema, {
+					type,
+					target: planetTarget,
+					spec: {
+						invasion: {
+							attackers: 12000,
+							defenders: 10000,
+							fleetName: 'Invaders',
+							attackerPlayerNum: 2,
+							defenderPlayerNum: 3,
+							attackersKilled: 8700,
+							defendersKilled: 10000,
+							attackersKilledByDefenses,
+							successful
+						}
+					}
+				})
+			});
+			await expect.element(page.getByText(original, { exact: false })).toBeInTheDocument();
+			await expect
+				.element(
+					page.getByText('12,000 attacking colonists and 10,000 defending colonists', {
+						exact: false
+					})
+				)
+				.toBeInTheDocument();
+			await expect.element(page.getByText('Visitors', { exact: false })).toBeInTheDocument();
+			await expect
+				.element(page.getByText('Private race notes', { exact: false }))
+				.not.toBeInTheDocument();
+			if (type === Type.PLANET_INVADED) {
+				await expect
+					.element(page.getByText('Your troops beaming down', { exact: false }))
+					.not.toBeInTheDocument();
+			}
+			// Old messages did not record starting counts. Some have the former
+			// generic amounts; ignore those and retain the outcome and casualties.
+			for (const counts of [
+				{},
+				{ attackers: 0, defenders: 0 },
+				{ attackers: 12000, defenders: 0 },
+				{ attackers: 0, defenders: 10000 }
+			]) {
+				await view.rerender({
+					message: create(PlayerMessageSchema, {
+						type,
+						target: planetTarget,
+						spec: {
+							amount: 12000,
+							amount2: 10000,
+							invasion: {
+								...counts,
+								successful,
+								fleetName: 'Invaders',
+								attackerPlayerNum: 2,
+								defenderPlayerNum: 3,
+								attackersKilled: 8700,
+								defendersKilled: 10000
+							}
+						}
+					})
+				});
+				await expect
+					.element(page.getByText('The invasion began', { exact: false }))
+					.not.toBeInTheDocument();
+				const outcome =
+					type === Type.FLEET_INVADED_PLANET
+						? successful
+							? 'You are now in control of the planet.'
+							: 'were massacred by the ground troops of Visitors.'
+						: successful
+							? 'Though your colonists put up a spirited defense they are crushed.'
+							: 'attacking barbarians of Visitors!';
+				await expect.element(page.getByText(outcome, { exact: false })).toBeInTheDocument();
+				await expect
+					.element(page.getByText(/\b0 (Colonists|first-rate|attacking|defending)/))
+					.not.toBeInTheDocument();
+				await expect
+					.element(page.getByText(successful ? '8,700' : '10,000', { exact: false }))
+					.toBeInTheDocument();
+			}
+		}
+	);
+});
+
+describe('production and orbital adjustment reports', () => {
+	it.each([
+		[Type.PLANET_PRODUCTION_QUEUE_EMPTY, 'production queue on Earth is empty'],
+		[
+			Type.PLANET_PRODUCTION_QUEUE_COMPLETE,
+			'Earth has completed its orders. The production queue is empty.'
+		]
+	] as const)('renders production status %s', async (type, expected) => {
+		render(MessageDetail, { message: create(PlayerMessageSchema, { type, target: planetTarget }) });
+		await expect.element(page.getByText(expected, { exact: false })).toBeInTheDocument();
+	});
+	it.each([
+		[1, 60, 80, 1, 'Your fleet Adjuster has improved Earth from a value of 60% to 80%.'],
+		[2, 80, 60, -1, 'A Visitors fleet Adjuster has degraded Earth from a value of 80% to 60%.'],
+		[1, 60, 60, 1, 'is currently unable to improve the value of Earth beyond 60%.'],
+		[2, -10, -10, -1, 'is currently unable to degrade the value of Earth beyond -10%.'],
+		[1, -10, -5, 1, 'has improved Earth from a value of -10% to -5%.']
+	] as const)(
+		'renders original-style planet value for owner %s, %s to %s',
+		async (sourcePlayerNum, prevAmount, amount, amount2, expected) => {
+			render(MessageDetail, {
+				message: create(PlayerMessageSchema, {
+					type: Type.PLANET_REMOTE_TERRAFORM,
+					target: planetTarget,
+					spec: {
+						sourcePlayerNum,
+						prevAmount,
+						amount,
+						amount2,
+						terraformAmount: { grav: -2, temp: 1 },
+						mapObjectTarget: { targetName: 'Adjuster' }
+					}
+				})
+			});
+			await expect.element(page.getByText(expected, { exact: false })).toBeInTheDocument();
+			await expect
+				.element(page.getByText('Gravity has decreased by 2%.', { exact: false }))
+				.toBeInTheDocument();
+			await expect
+				.element(page.getByText('Temperature has increased by 1%.', { exact: false }))
+				.toBeInTheDocument();
+			await expect
+				.element(page.getByText('Radiation has', { exact: false }))
+				.not.toBeInTheDocument();
+		}
+	);
+
+	it.each([
+		[1, 1, 'Your fleet Adjuster', 'increasing'],
+		[2, -1, 'A Visitors fleet Adjuster', 'decreasing']
+	] as const)(
+		'renders remote terraforming by %s',
+		async (sourcePlayerNum, amount, owner, direction) => {
+			render(MessageDetail, {
+				message: create(PlayerMessageSchema, {
+					type: Type.PLANET_REMOTE_TERRAFORM,
+					target: planetTarget,
+					spec: {
+						sourcePlayerNum,
+						amount,
+						amount2: 60,
+						habType: TerraformHabType.TEMP,
+						mapObjectTarget: { targetName: 'Adjuster' }
+					}
+				})
+			});
+			await expect.element(page.getByText(owner, { exact: false })).toBeInTheDocument();
+			await expect
+				.element(page.getByText(`${direction} its Temperature by 1% to 40°C`, { exact: false }))
+				.toBeInTheDocument();
+		}
+	);
+});
+
+describe('battle loss reports', () => {
+	for (const type of [Type.BATTLE, Type.BATTLE_ALLY]) {
+		it.each([
+			[0, 0, 'No ships were lost by either side.'],
+			[1, 0, type === Type.BATTLE ? 'Only you suffered losses' : 'Only your ally suffered losses'],
+			[0, 1, 'Only the enemy suffered losses'],
+			[
+				1,
+				1,
+				type === Type.BATTLE
+					? 'Both you and the enemy suffered losses'
+					: 'Both your ally and the enemy suffered losses'
+			],
+			[2, 0, 'was annihilated'],
+			[0, 6, 'without suffering a single casualty'],
+			[2, 6, 'completely destroyed each other']
+		] as const)(
+			`renders battle type ${type} with losses %s/%s`,
+			async (ourDead, theirDead, expected) => {
+				render(MessageDetail, {
+					message: create(PlayerMessageSchema, {
+						type,
+						battleNum: 1,
+						spec: {
+							name: 'Earth',
+							battle: {
+								numShipsByPlayer: { 1: 2, 2: 6 },
+								shipsDestroyedByPlayer: { 1: ourDead, 2: theirDead }
+							}
+						}
+					})
+				});
+				await expect.element(page.getByText(expected, { exact: false })).toBeInTheDocument();
+				if (ourDead === 0 || theirDead === 0) {
+					await expect.element(page.getByText('Both', { exact: false })).not.toBeInTheDocument();
+				}
+			}
+		);
+	}
 });
