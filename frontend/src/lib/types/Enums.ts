@@ -1,4 +1,4 @@
-import { BattleTarget, GameStartMode } from '#lib/types/cs-proto.js';
+import { BattleTactic, BattleTarget, GameStartMode } from '#lib/types/cs-proto.js';
 
 import { camelCase, startCase } from 'lodash-es';
 
@@ -44,3 +44,21 @@ export const GameStartModeFullNames: {
 export function battleTargetToString(target: BattleTarget): string {
 	return target === BattleTarget.UNSPECIFIED ? 'None' : enumToString(BattleTarget, target);
 }
+
+export const BattleTacticDescriptions: {
+	[key in BattleTactic]: string;
+} = {
+	[BattleTactic.UNSPECIFIED]: '',
+	[BattleTactic.DISENGAGE]:
+		'Ships will not attack and will move away from enemy weapons, leaving the battle after 7 moves.',
+	[BattleTactic.DISENGAGE_IF_CHALLENGED]:
+		'Ships will fight until they take damage, then try to leave the battle like Disengage.',
+	[BattleTactic.MINIMIZE_DAMAGE_TO_SELF]:
+		'Ships will move to where they take the least damage, attacking any targets in range.',
+	[BattleTactic.MAXIMIZE_NET_DAMAGE]:
+		'Ships will move to where the damage they do minus the damage they take is highest.',
+	[BattleTactic.MAXIMIZE_DAMAGE_RATIO]:
+		'Ships will move to where the damage they do compared to the damage they take is highest, preferring positions where they take no damage.',
+	[BattleTactic.MAXIMIZE_DAMAGE]:
+		'Ships will move to where they do the most damage, regardless of the damage they take.'
+};
