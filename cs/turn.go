@@ -163,6 +163,7 @@ func (t *turnGenerator) fleetInit() {
 		// remove previous position, it will be reset on move
 		fleet.PreviousPosition = nil
 		fleet.warped = false
+		fleet.jumpedFrom = nil
 
 		wp0 := &fleet.Waypoints[0]
 		wp0.processed = false
@@ -907,9 +908,13 @@ func (t *turnGenerator) mysteryTraderMove() {
 	}
 }
 
+// fleetMove moves fleets through space, like MoveFleets.
+//
+// Fleets pursuing another fleet move in passes after everyone else. Each pass, a pursuer moves up to
+// 1/5 of its move toward its target's current position, or the rest of its move once its target is done
+// moving, so chains of pursuers follow each other.
 func (t *turnGenerator) fleetMove() {
-
-	fleetsTargetingMovers := []*Fleet{}
+	pursuits := []*fleetMove{}
 
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
@@ -919,123 +924,235 @@ func (t *turnGenerator) fleetMove() {
 			continue
 		}
 
-		if len(fleet.Waypoints) > 1 {
-			wp0 := fleet.Waypoints[0]
-			wp1 := fleet.Waypoints[1]
-
-			// no move this turn, we wait
-			if wp0.WaitAtWaypoint {
-				continue
-			}
-
-			if wp1.TargetType == MapObjectTypeFleet || wp1.TargetType == MapObjectTypeMineralPacket || wp1.TargetType == MapObjectTypeMysteryTrader {
-				// move this after all the fleets not targeting fleets move
-				fleetsTargetingMovers = append(fleetsTargetingMovers, fleet)
-				continue
-			}
-
-			t.moveFleet(fleet)
-		} else {
+		if len(fleet.Waypoints) <= 1 {
 			fleet.WarpSpeed = 0
 			fleet.Heading = VectorFloat64{}
+			continue
+		}
+
+		// no move this turn, we wait
+		if fleet.Waypoints[0].WaitAtWaypoint {
+			continue
+		}
+
+		t.updateFleetTarget(fleet)
+		wp1 := fleet.Waypoints[1]
+		player := t.game.getPlayer(fleet.PlayerNum)
+		move := newFleetMove(fleet)
+
+		if wp1.WarpSpeed == StargateWarpSpeed {
+			// yeah, gate!
+			fleet.gateFleet(&t.game.Rules, t.game.Universe, t.game)
+			t.finishFleetMove(move)
+			continue
+		}
+
+		if interrupted := fleet.startMove(&t.game.Rules, player); interrupted != nil {
+			t.fleetMoveInterrupted(fleet, interrupted)
+			t.finishFleetMove(move)
+			continue
+		}
+
+		if wp1.TargetType == MapObjectTypeFleet {
+			// pursue this fleet after everyone else moves
+			move.target = t.game.getFleet(wp1.TargetPlayerNum, wp1.TargetNum)
+			pursuits = append(pursuits, move)
+			continue
+		}
+
+		if interrupted := fleet.moveStep(&t.game.Rules, t.game.Universe, t.game, move, move.budget); interrupted != nil {
+			t.fleetMoveInterrupted(fleet, interrupted)
+		}
+		if !fleet.Delete {
+			fleet.finishMove(t.game.Universe, player, move)
+		}
+		t.finishFleetMove(move)
+	}
+
+	t.fleetPursue(pursuits)
+}
+
+// fleetPursue moves fleets pursuing other fleets in up to 10 passes
+func (t *turnGenerator) fleetPursue(pursuits []*fleetMove) {
+	movesByFleet := make(map[*Fleet]*fleetMove, len(pursuits))
+	for _, move := range pursuits {
+		movesByFleet[move.fleet] = move
+	}
+
+	// a target is done moving if it isn't pursuing anything, or its pursuit is done
+	targetDone := func(target *Fleet) bool {
+		move, ok := movesByFleet[target]
+		return !ok || move.done
+	}
+
+	for pass := 1; pass <= 10; pass++ {
+		anyMoved := false
+		for _, move := range pursuits {
+			if move.done {
+				continue
+			}
+			fleet := move.fleet
+			target := move.target
+			wp1 := &fleet.Waypoints[1]
+
+			switch {
+			case target.Delete:
+				// target went away, head for where it was last seen
+				t.clearWaypointTarget(fleet, wp1)
+			case target.jumpedFrom != nil && target.PlayerNum != fleet.PlayerNum:
+				// other players' pursuers lose track of a fleet that jumped through a stargate or wormhole
+				// and head for where it jumped
+				wp1.Position = *target.jumpedFrom
+			default:
+				wp1.Position = target.Position
+			}
+
+			// move 1/5 of our move toward a target still moving, or the rest of our move if it's done
+			targetIsDone := target.Delete || targetDone(target)
+			step := move.budget - move.moved
+			if !targetIsDone {
+				step = min(step, math.Ceil(move.budget/5))
+			}
+
+			moved := move.moved
+			interrupted := fleet.moveStep(&t.game.Rules, t.game.Universe, t.game, move, step)
+			if move.moved > moved {
+				anyMoved = true
+			}
+
+			if interrupted != nil {
+				t.fleetMoveInterrupted(fleet, interrupted)
+				move.done = true
+			} else if move.ranOutOfFuel || move.moved >= move.budget || (fleet.Position == wp1.Position && targetIsDone) {
+				// a pursuer that catches a target still moving keeps following it with the rest of its move
+				move.done = true
+			}
+
+			if move.done {
+				t.finishPursuit(move)
+			}
+		}
+
+		if !anyMoved {
+			break
 		}
 	}
 
-	// move all the fleets targeting other fleets
-	// TODO: build a directed graph and detect cycles and all that jazz
-	for _, fleet := range fleetsTargetingMovers {
-		t.moveFleet(fleet)
+	for _, move := range pursuits {
+		if !move.done {
+			move.done = true
+			t.finishPursuit(move)
+		}
 	}
 }
 
-// move the actual fleet in the universe from a to b handling minefield destruction, engine strain, stargates, etc
-func (t *turnGenerator) moveFleet(fleet *Fleet) {
-	player := t.game.getPlayer(fleet.PlayerNum)
-	originalPosition := fleet.Position
-	wp0 := fleet.Waypoints[0]
+// finish a pursuer's move after its last pass
+func (t *turnGenerator) finishPursuit(move *fleetMove) {
+	fleet := move.fleet
+	if !fleet.Delete {
+		fleet.finishMove(t.game.Universe, t.game.getPlayer(fleet.PlayerNum), move)
+	}
+	t.finishFleetMove(move)
+}
+
+// update a fleet's wp1 with its target's current position, or clear the target if it's gone
+func (t *turnGenerator) updateFleetTarget(fleet *Fleet) {
 	wp1 := &fleet.Waypoints[1]
-	if wp1.TargetNum != None {
-		target := t.game.getMapObject(wp1.TargetType, wp1.TargetNum, wp1.TargetPlayerNum)
-		if target == nil || target.Delete {
-			// target went away
-			wp1.TargetName = ""
-			wp1.TargetNum = None
-			wp1.TargetType = MapObjectTypeNone
-			wp1.TargetPlayerNum = None
-			t.log.Debug("fleet target gone, using position only",
-				slog.Int("Player", fleet.PlayerNum),
-				slog.String("Fleet", fleet.Name),
-			)
-		} else if target.Position != wp1.Position {
-			// update the position
-			wp1.Position = target.Position
-			t.log.Debug("fleet target moved, updating position",
-				slog.Int("Player", fleet.PlayerNum),
-				slog.String("Fleet", fleet.Name),
-			)
-		}
+	if wp1.TargetNum == None {
+		return
 	}
 
-	if wp1.WarpSpeed == StargateWarpSpeed {
-		// yeah, gate!
-		fleet.gateFleet(&t.game.Rules, t.game.Universe, t.game)
-	} else {
-		interrupted := fleet.moveFleet(&t.game.Rules, t.game.Universe, t.game)
-		if interrupted != nil {
-			switch interrupted.reason {
-			case fleetMoveInterruptedHitMinefield:
-				// damage the fleet in the minefield
-				minefield := interrupted.minefield
-				minefieldPlayer := t.game.getPlayer(minefield.PlayerNum)
-				stats := t.game.Rules.MinefieldStatsByType[minefield.MinefieldType]
+	target := t.game.getMapObject(wp1.TargetType, wp1.TargetNum, wp1.TargetPlayerNum)
+	if target == nil || target.Delete {
+		t.clearWaypointTarget(fleet, wp1)
+	} else if target.Position != wp1.Position {
+		// update the position
+		wp1.Position = target.Position
+		t.log.Debug("fleet target moved, updating position",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+		)
+	}
+}
 
-				damage := minefield.damageFleet(fleet, player, stats)
-				minefield.reduceMinefieldOnImpact()
-				if minefieldPlayer.Race.Spec.MinefieldsAreScanners {
-					// SD races discover the exact fleet makeup
-					for _, token := range fleet.Tokens {
-						// SD races discover the exact fleet makeup
-						minefieldPlayer.discoverer.discoverDesign(token.design, true)
-					}
-				}
+// the target of a waypoint went away, keep heading for its last known position
+func (t *turnGenerator) clearWaypointTarget(fleet *Fleet, wp *Waypoint) {
+	wp.TargetName = ""
+	wp.TargetNum = None
+	wp.TargetType = MapObjectTypeNone
+	wp.TargetPlayerNum = None
+	t.log.Debug("fleet target gone, using position only",
+		slog.Int("Player", fleet.PlayerNum),
+		slog.String("Fleet", fleet.Name),
+	)
+}
 
-				// tell the fleet owner and the minefield owner the fleet was hit
-				messager.fleetMinefieldHit(player, fleet, minefield, damage)
-				if minefield.PlayerNum != player.Num {
-					messager.fleetMinefieldHit(minefieldPlayer, fleet, minefield, damage)
-				}
+// handle a fleet that hit a minefield or was destroyed by engine strain
+func (t *turnGenerator) fleetMoveInterrupted(fleet *Fleet, interrupted *fleetMoveInterrupted) {
+	player := t.game.getPlayer(fleet.PlayerNum)
+	switch interrupted.reason {
+	case fleetMoveInterruptedHitMinefield:
+		// damage the fleet in the minefield
+		minefield := interrupted.minefield
+		minefieldPlayer := t.game.getPlayer(minefield.PlayerNum)
+		stats := t.game.Rules.MinefieldStatsByType[minefield.MinefieldType]
 
-				t.log.Debug("minefield damaged fleet",
-					slog.Int("Player", minefield.PlayerNum),
-					slog.String("Minefield", minefield.Name),
-					slog.String("Fleet", fleet.Name),
-					slog.Int("FleetPlayer", fleet.PlayerNum),
-					slog.Int("TotalDamage", damage.Damage),
-					slog.Int("ShipsDestroyed", damage.ShipsDestroyed),
-					slog.Bool("FleetDestroyed", damage.FleetDestroyed),
-				)
-
-			case fleetMoveInterruptedDestroyed:
-				t.log.Debug("fleet destroyed due to unsafe warp",
-					slog.Int("Player", fleet.PlayerNum),
-					slog.String("Fleet", fleet.Name),
-					slog.Int("Warp", wp1.WarpSpeed),
-				)
+		damage := minefield.damageFleet(fleet, player, stats)
+		minefield.reduceMinefieldOnImpact()
+		if minefieldPlayer.Race.Spec.MinefieldsAreScanners {
+			// SD races discover the exact fleet makeup
+			for _, token := range fleet.Tokens {
+				minefieldPlayer.discoverer.discoverDesign(token.design, true)
 			}
 		}
+
+		// tell the fleet owner and the minefield owner the fleet was hit
+		messager.fleetMinefieldHit(player, fleet, minefield, damage)
+		if minefield.PlayerNum != player.Num {
+			messager.fleetMinefieldHit(minefieldPlayer, fleet, minefield, damage)
+		}
+
+		t.log.Debug("minefield damaged fleet",
+			slog.Int("Player", minefield.PlayerNum),
+			slog.String("Minefield", minefield.Name),
+			slog.String("Fleet", fleet.Name),
+			slog.Int("FleetPlayer", fleet.PlayerNum),
+			slog.Int("TotalDamage", damage.Damage),
+			slog.Int("ShipsDestroyed", damage.ShipsDestroyed),
+			slog.Bool("FleetDestroyed", damage.FleetDestroyed),
+		)
+
+	case fleetMoveInterruptedDestroyed:
+		t.log.Debug("fleet destroyed due to unsafe warp",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+			slog.Int("Warp", fleet.Waypoints[1].WarpSpeed),
+		)
 	}
+}
+
+// finishFleetMove updates the universe after a fleet's move, deleting it if it lost all its ships
+// and repeating its orders
+func (t *turnGenerator) finishFleetMove(move *fleetMove) {
+	fleet := move.fleet
+	player := t.game.getPlayer(fleet.PlayerNum)
+	wp0 := move.wp0
 
 	t.log.Debug("moved fleet",
 		slog.Int("Player", fleet.PlayerNum),
 		slog.String("Fleet", fleet.Name),
 		slog.String("Fuel", fmt.Sprintf("%d/%d", fleet.Fuel, fleet.Spec.FuelCapacity)),
 		slog.Int("WarpSpeed", fleet.WarpSpeed),
-		slog.String("Start", wp0.Position.String()),
+		slog.String("Start", move.start.String()),
 		slog.String("End", fleet.Position.String()),
 	)
 
+	if fleet.Delete {
+		return
+	}
+
 	// update the game dictionaries with this fleet's new position
-	t.game.moveFleet(fleet, originalPosition)
+	t.game.moveFleet(fleet, move.start)
 
 	// make sure we have tokens left after move
 	fleet.removeEmptyTokens()

@@ -742,6 +742,26 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 	}
 }
 
+func TestFleet_moveStepFuel(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+	fleet := testLongRangeScout(player).
+		withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{200, 0}, 9)).
+		withFuel(300)
+	universe := Universe{log: testLogger, Fleets: []*Fleet{fleet}}
+	universe.buildMaps([]*Player{player})
+	move := newFleetMove(fleet)
+
+	// a pursuer moves 1/5 of its move each pass, 17+17+17+17+13 = 81ly
+	for _, step := range []float64{17, 17, 17, 17, 13} {
+		fleet.moveStep(&rules, &universe, newTestPlayerGetter(player), move, step)
+	}
+
+	// charged for 81ly at once, 91.125mg rounded up, not 20+20+20+20+15mg for each step
+	assert.Equal(t, Vector{81, 0}, fleet.Position)
+	assert.Equal(t, 92, move.fuelUsed)
+	assert.Equal(t, 300-92, fleet.Fuel)
+}
+
 func TestFleet_moveFleetEngineStrain(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 

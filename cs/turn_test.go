@@ -877,6 +877,107 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	assert.Equal(t, 10, arFleet.Cargo.Colonists)
 }
 
+func Test_turn_fleetPursuit(t *testing.T) {
+	scout := func(name string, position Vector) ScenarioFleet {
+		return ScenarioFleet{Name: name, Design: "Long Range Scout", Position: position, Fuel: 300}
+	}
+	newUniverse := func(t *testing.T, fleets []ScenarioFleet, otherFleets []ScenarioFleet) *testUniverse {
+		other := AIPlayer("Player 2")
+		other.Designs = Designs(DesignLongRangeScout)
+		other.Fleets = otherFleets
+		return newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{{Designs: Designs(DesignLongRangeScout), Fleets: fleets}, other},
+			Planets: []ScenarioPlanet{
+				{Name: "Planet 1", Owner: 1, Position: Vector{1000, 1000}, Cargo: Cargo{Colonists: 2500}},
+				{Name: "Planet 2", Owner: 2, Position: Vector{-1000, 1000}, Cargo: Cargo{Colonists: 2500}},
+			},
+			Wormholes: []Wormhole{
+				{MapObject: MapObject{Position: Vector{20, 0}}, DestinationNum: 2},
+				{MapObject: MapObject{Position: Vector{500, 500}}, DestinationNum: 1},
+			},
+		})
+	}
+	moveTo := func(fleet *Fleet, position Vector, warp int) {
+		fleet.Waypoints = []Waypoint{NewPositionWaypoint(fleet.Position, 0), NewPositionWaypoint(position, warp)}
+	}
+	pursue := func(fleet, target *Fleet, warp int) {
+		fleet.Waypoints = []Waypoint{
+			NewPositionWaypoint(fleet.Position, 0),
+			NewFleetWaypoint(target.Position, target.Num, target.PlayerNum, target.Name, warp),
+		}
+	}
+
+	t.Run("pursuer follows a pursuer to where it ends up", func(t *testing.T) {
+		u := newUniverse(t, []ScenarioFleet{scout("A", Vector{-100, 0}), scout("B", Vector{-50, 0}), scout("C", Vector{0, 0})}, nil)
+		a, b, c := u.Fleet("A"), u.Fleet("B"), u.Fleet("C")
+		pursue(a, b, 9)
+		pursue(b, c, 5)
+		moveTo(c, Vector{100, 0}, 5)
+
+		u.Run((*turnGenerator).fleetMove)
+
+		// C moves 25ly, B follows it 25ly, and A catches B where B ends up, not where B started
+		assert.Equal(t, Vector{25, 0}, c.Position)
+		assert.Equal(t, Vector{-25, 0}, b.Position)
+		assert.Equal(t, Vector{-25, 0}, a.Position)
+	})
+
+	t.Run("caught fleet keeps moving", func(t *testing.T) {
+		u := newUniverse(t, []ScenarioFleet{scout("A", Vector{-55, 0}), scout("B", Vector{-50, 0}), scout("C", Vector{0, 0})}, nil)
+		a, b, c := u.Fleet("A"), u.Fleet("B"), u.Fleet("C")
+		pursue(a, b, 9)
+		pursue(b, c, 5)
+		moveTo(c, Vector{100, 0}, 5)
+
+		u.Run((*turnGenerator).fleetMove)
+
+		// A catches B in the first pass, but B keeps following C and A keeps following B (2.8)
+		assert.Equal(t, Vector{-25, 0}, b.Position)
+		assert.Equal(t, Vector{-25, 0}, a.Position)
+	})
+
+	t.Run("pursuers move in steps toward a moving target", func(t *testing.T) {
+		u := newUniverse(t, []ScenarioFleet{scout("A", Vector{0, 50}), scout("B", Vector{0, 0}), scout("C", Vector{100, 0})}, nil)
+		a, b, c := u.Fleet("A"), u.Fleet("B"), u.Fleet("C")
+		pursue(a, b, 5)
+		pursue(b, c, 9)
+		moveTo(c, Vector{100, 100}, 5)
+
+		u.Run((*turnGenerator).fleetMove)
+
+		// B moves 81ly toward C at (100, 25)
+		assert.Equal(t, Vector{100, 25}, c.Position)
+		assert.Equal(t, Vector{79, 20}, b.Position)
+		// A moves 5ly toward B at (0, 0) before B moves, then its other 20ly toward B at (79, 20)
+		assert.Equal(t, Vector{19, 39}, a.Position)
+	})
+
+	t.Run("other players lose track through a wormhole", func(t *testing.T) {
+		u := newUniverse(t,
+			[]ScenarioFleet{scout("Target", Vector{0, 0}), scout("Own Pursuer", Vector{0, -50})},
+			[]ScenarioFleet{scout("Enemy Pursuer", Vector{0, 50})},
+		)
+		target, own, enemy := u.FleetFor(1, "Target"), u.FleetFor(1, "Own Pursuer"), u.FleetFor(2, "Enemy Pursuer")
+		wormhole := u.Game.Wormholes[0]
+		target.Waypoints = []Waypoint{NewPositionWaypoint(target.Position, 0), NewPositionWaypoint(wormhole.Position, 5)}
+		target.Waypoints[1].TargetType = MapObjectTypeWormhole
+		target.Waypoints[1].TargetNum = wormhole.Num
+		pursue(own, target, 9)
+		pursue(enemy, target, 9)
+
+		u.Run((*turnGenerator).fleetMove)
+
+		// the target goes through the wormhole
+		assert.Equal(t, Vector{500, 500}, target.Position)
+		// the enemy pursuer goes to where it jumped, in space
+		assert.Equal(t, wormhole.Position, enemy.Position)
+		assert.Equal(t, None, enemy.OrbitingPlanetNum)
+		// our own pursuer heads for the far side
+		assert.Greater(t, own.Position.X, wormhole.Position.X)
+		assert.Greater(t, own.Position.Y, 0)
+	})
+}
+
 func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 	s := singleFleetScenario(DesignSmallFreighter)
 	s.Players[0].Fleets[0].Cargo = Cargo{Colonists: 50}
