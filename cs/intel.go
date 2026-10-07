@@ -13,7 +13,7 @@ const Unowned = 0
 // intel with knowledge about the universe.
 type discoverer interface {
 	discoverPlayer(player *Player)
-	discoverPlayerScores(player *Player)
+	discoverPlayerScores(player *Player, hiddenYears int)
 	discoverPlanet(rules *Rules, planet *Planet, penScanned, exactPop bool) error
 	clearPlanetOwnerIntel(planet *Planet) error
 	discoverPlanetStarbase(planet *Planet) error
@@ -687,13 +687,15 @@ func (d *discover) discoverPlayer(player *Player) {
 	}
 }
 
-// discover a player's score history
-// TODO: Hide first 20 years of score for non-dead players
-func (d *discover) discoverPlayerScores(player *Player) {
+// discover a player's score history. The first hiddenYears of history are left empty
+// so players can't see how other players started the game.
+func (d *discover) discoverPlayerScores(player *Player, hiddenYears int) {
 	intel := &d.player.Intels.ScoreIntels[player.Num-1]
 
 	intel.ScoreHistory = make([]PlayerScore, len(player.ScoreHistory))
-	copy(intel.ScoreHistory, player.ScoreHistory)
+	if hiddenYears < len(player.ScoreHistory) {
+		copy(intel.ScoreHistory[hiddenYears:], player.ScoreHistory[hiddenYears:])
+	}
 }
 
 func (d *discovererWithAllies) discoverPlayer(player *Player) {
@@ -704,11 +706,11 @@ func (d *discovererWithAllies) discoverPlayer(player *Player) {
 		}
 	}
 }
-func (d *discovererWithAllies) discoverPlayerScores(player *Player) {
-	d.playerDiscoverer.discoverPlayerScores(player)
+func (d *discovererWithAllies) discoverPlayerScores(player *Player, hiddenYears int) {
+	d.playerDiscoverer.discoverPlayerScores(player, hiddenYears)
 	for _, allyDiscoverer := range d.allyDiscoverers {
 		if allyDiscoverer.player.Num != player.Num {
-			allyDiscoverer.discoverPlayerScores(player)
+			allyDiscoverer.discoverPlayerScores(player, hiddenYears)
 		}
 	}
 }

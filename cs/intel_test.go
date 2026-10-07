@@ -97,3 +97,34 @@ func Test_discover_forgetWormhole2(t *testing.T) {
 	assert.Equal(t, 1, len(player.WormholeIntels))
 	assert.Equal(t, None, player.WormholeIntels[0].DestinationNum)
 }
+
+func Test_discover_discoverPlayerScores(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
+	otherPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
+	player.Intels.ScoreIntels = make([]ScoreIntel, 2)
+
+	// 25 years of scores
+	otherPlayer.ScoreHistory = make([]PlayerScore, 25)
+	for i := range otherPlayer.ScoreHistory {
+		otherPlayer.ScoreHistory[i] = PlayerScore{Score: i + 1}
+	}
+
+	d := newDiscoverer(testLogger, player)
+	d.discoverPlayerScores(otherPlayer, 20)
+
+	history := player.Intels.ScoreIntels[1].ScoreHistory
+	assert.Equal(t, 25, len(history))
+	// the first 20 years are hidden
+	for i := range 20 {
+		assert.Equal(t, PlayerScore{}, history[i])
+	}
+	// the rest are visible
+	for i := 20; i < 25; i++ {
+		assert.Equal(t, i+1, history[i].Score)
+	}
+
+	// shorter history than the hidden years is all hidden
+	otherPlayer.ScoreHistory = otherPlayer.ScoreHistory[:10]
+	d.discoverPlayerScores(otherPlayer, 20)
+	assert.Equal(t, make([]PlayerScore, 10), player.Intels.ScoreIntels[1].ScoreHistory)
+}
