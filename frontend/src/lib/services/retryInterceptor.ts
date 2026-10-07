@@ -6,7 +6,10 @@ import { Code, ConnectError, type Interceptor } from '@connectrpc/connect';
 // request that did reach the server can't be applied twice.
 export function createRetryInterceptor(delaysMs = [500, 1000, 2000, 2000]): Interceptor {
 	return (next) => async (req) => {
-		if (req.stream || req.method.idempotency === MethodOptions_IdempotencyLevel.IDEMPOTENCY_UNKNOWN) {
+		if (
+			req.stream ||
+			req.method.idempotency === MethodOptions_IdempotencyLevel.IDEMPOTENCY_UNKNOWN
+		) {
 			return next(req);
 		}
 
@@ -14,7 +17,11 @@ export function createRetryInterceptor(delaysMs = [500, 1000, 2000, 2000]): Inte
 			try {
 				return await next(req);
 			} catch (error) {
-				if (!(error instanceof ConnectError) || error.code !== Code.Unavailable || req.signal.aborted) {
+				if (
+					!(error instanceof ConnectError) ||
+					error.code !== Code.Unavailable ||
+					req.signal.aborted
+				) {
 					throw error;
 				}
 			}

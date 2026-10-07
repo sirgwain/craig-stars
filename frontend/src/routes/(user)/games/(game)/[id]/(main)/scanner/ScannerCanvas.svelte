@@ -174,6 +174,28 @@
 		requestDraw();
 	});
 
+	// Canvas pixels can be discarded while a phone sleeps, even when scene data hasn't
+	// changed. Redraw after restoration and when returning to the page.
+	$effect(() => {
+		if (!canvas) {
+			return;
+		}
+		const element = canvas;
+		const visible = () => {
+			if (document.visibilityState === 'visible') {
+				requestDraw();
+			}
+		};
+		element.addEventListener('contextrestored', requestDraw);
+		document.addEventListener('visibilitychange', visible);
+		window.addEventListener('pageshow', requestDraw);
+		return () => {
+			element.removeEventListener('contextrestored', requestDraw);
+			document.removeEventListener('visibilitychange', visible);
+			window.removeEventListener('pageshow', requestDraw);
+		};
+	});
+
 	// When the scanner is resized (like when the summary below it changes size on a phone),
 	// redraw right away. Resize observers run before paint, so the resized scanner shows up in the
 	// same frame instead of flashing a stretched image for a frame.

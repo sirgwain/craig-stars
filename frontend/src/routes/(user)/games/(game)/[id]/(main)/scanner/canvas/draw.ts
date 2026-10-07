@@ -116,8 +116,7 @@ function drawScanners(ctx: CanvasRenderingContext2D, view: ScannerView, frame: S
 	}
 }
 
-// minefields are filled with a dot pattern, one pattern per color
-const minefieldPatterns = new Map<string, HTMLCanvasElement>();
+// minefields are filled with a dot pattern, one pattern per color per frame
 const minefieldDots = [
 	[4, 0],
 	[2, 2],
@@ -132,18 +131,17 @@ function minefieldPattern(
 	view: ScannerView,
 	color: string
 ): CanvasPattern | null {
-	let tile = minefieldPatterns.get(color);
-	if (!tile) {
-		tile = document.createElement('canvas');
-		tile.width = 8;
-		tile.height = 8;
-		const tileCtx = tile.getContext('2d');
-		if (tileCtx) {
-			tileCtx.fillStyle = color;
-			minefieldDots.forEach(([x, y]) => tileCtx.fillRect(x, y, 1, 1));
-		}
-		minefieldPatterns.set(color, tile);
+	// Don't retain canvas bitmaps between frames: Chrome can discard them while a phone
+	// sleeps. Restoring the main canvas doesn't restore the pixels of cached pattern tiles.
+	const tile = document.createElement('canvas');
+	tile.width = 8;
+	tile.height = 8;
+	const tileCtx = tile.getContext('2d');
+	if (!tileCtx) {
+		return null;
 	}
+	tileCtx.fillStyle = color;
+	minefieldDots.forEach(([x, y]) => tileCtx.fillRect(x, y, 1, 1));
 	const pattern = ctx.createPattern(tile, 'repeat');
 	// anchor the pattern to the map so it doesn't swim while panning. The context is already
 	// scaled by the dpr, so one tile pixel is one css pixel
