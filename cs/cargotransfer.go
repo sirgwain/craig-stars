@@ -39,6 +39,8 @@ const (
 	// if a starbase is present, you cannot drop invaders
 	CargoTransferStatusDestStarbase
 	CargoTransferStatusDestUnowned
+	// colonists can't survive in deep space or salvage
+	CargoTransferStatusDeepSpace
 )
 
 func (r CargoTransferStatus) String() string {
@@ -59,6 +61,8 @@ func (r CargoTransferStatus) String() string {
 		return "Destination Has Starbase"
 	case CargoTransferStatusDestUnowned:
 		return "Destination Unowned"
+	case CargoTransferStatusDeepSpace:
+		return "Deep Space"
 	default:
 		return fmt.Sprintf("Unknown %d", r)
 	}
@@ -531,6 +535,9 @@ func (t *cargoTransferer) settleByHandUnloads(s *byHandSettlement, deficit *Carg
 		if amount > 0 {
 			if !found {
 				status = CargoTransferStatusDestCargoCapacity
+			} else if _, ok := dest.(*Salvage); ok && cargoType == Colonists {
+				// colonists can't survive in space. Orders reject this, this guards against old data
+				status = CargoTransferStatusDeepSpace
 			} else if planet, ok := dest.(*Planet); ok && cargoType == Colonists && !planet.OwnedBy(s.player.Num) {
 				unloaded, status = 0, CargoTransferStatusOwned
 				if fleet != nil {
@@ -678,6 +685,11 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 	player := t.game.getPlayer(fleet.PlayerNum)
 	if transferAmount > 0 {
 		switch dest := dest.(type) {
+		case *Salvage:
+			if cargoType == Colonists {
+				// colonists can't survive in space, they stay aboard
+				return 0, CargoTransferStatusDeepSpace
+			}
 		case *Planet:
 			if cargoType == Colonists && !dest.OwnedBy(fleet.PlayerNum) {
 				invaders, status := t.invade(player, fleet, dest, transferAmount)

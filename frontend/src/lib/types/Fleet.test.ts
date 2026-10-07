@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { moveDamagedTokens } from './Fleet';
-import type { ShipTokenJson } from '#lib/types/cs-proto.js';
+import { canTransferCargoType, moveDamagedTokens } from './Fleet';
+import {
+	FleetSchema,
+	MapObjectType,
+	ResourceType,
+	SalvageSchema,
+	type ShipTokenJson
+} from '#lib/types/cs-proto.js';
+import { create } from '@bufbuild/protobuf';
 
 describe('ShipToken moveDamagedTokens test', () => {
 	it('transfer no damaged tokens', () => {
@@ -23,5 +30,21 @@ describe('ShipToken moveDamagedTokens test', () => {
 		moveDamagedTokens(srcToken, destToken, 1);
 		expect(srcToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 0, damage: 0 });
 		expect(destToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 2, damage: 7.5 });
+	});
+});
+
+describe('canTransferCargoType test', () => {
+	const fleet = create(FleetSchema, { mapObject: { playerNum: 1, type: MapObjectType.FLEET } });
+
+	it('does not jettison colonists or fuel into deep space', () => {
+		expect(canTransferCargoType(fleet, undefined, ResourceType.COLONISTS)).toBe(false);
+		expect(canTransferCargoType(fleet, undefined, ResourceType.FUEL)).toBe(false);
+		expect(canTransferCargoType(fleet, undefined, ResourceType.IRONIUM)).toBe(true);
+	});
+
+	it('does not put colonists in salvage', () => {
+		const salvage = create(SalvageSchema, { mapObject: { type: MapObjectType.SALVAGE } });
+		expect(canTransferCargoType(fleet, salvage, ResourceType.COLONISTS)).toBe(false);
+		expect(canTransferCargoType(fleet, salvage, ResourceType.GERMANIUM)).toBe(true);
 	});
 });

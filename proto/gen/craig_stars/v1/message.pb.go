@@ -509,6 +509,7 @@ const (
 	CargoTransferStatus_CARGO_TRANSFER_STATUS_DEST_CARGO_CAPACITY CargoTransferStatus = 5
 	CargoTransferStatus_CARGO_TRANSFER_STATUS_DEST_STARBASE       CargoTransferStatus = 6
 	CargoTransferStatus_CARGO_TRANSFER_STATUS_DEST_UNOWNED        CargoTransferStatus = 7
+	CargoTransferStatus_CARGO_TRANSFER_STATUS_DEEP_SPACE          CargoTransferStatus = 8
 )
 
 // Enum value maps for CargoTransferStatus.
@@ -522,6 +523,7 @@ var (
 		5: "CARGO_TRANSFER_STATUS_DEST_CARGO_CAPACITY",
 		6: "CARGO_TRANSFER_STATUS_DEST_STARBASE",
 		7: "CARGO_TRANSFER_STATUS_DEST_UNOWNED",
+		8: "CARGO_TRANSFER_STATUS_DEEP_SPACE",
 	}
 	CargoTransferStatus_value = map[string]int32{
 		"CARGO_TRANSFER_STATUS_UNSPECIFIED":         0,
@@ -532,6 +534,7 @@ var (
 		"CARGO_TRANSFER_STATUS_DEST_CARGO_CAPACITY": 5,
 		"CARGO_TRANSFER_STATUS_DEST_STARBASE":       6,
 		"CARGO_TRANSFER_STATUS_DEST_UNOWNED":        7,
+		"CARGO_TRANSFER_STATUS_DEEP_SPACE":          8,
 	}
 )
 
@@ -1664,7 +1667,7 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"2PLAYER_MESSAGE_TYPE_PLANET_INVADE_INVALID_STARBASE\x10x\x120\n" +
 	",PLAYER_MESSAGE_TYPE_FLEET_STARGATE_DESTROYED\x10y\x125\n" +
 	"1PLAYER_MESSAGE_TYPE_FLEET_ENGINE_STRAIN_DESTROYED\x10z\x12/\n" +
-	"+PLAYER_MESSAGE_TYPE_PLANET_REMOTE_TERRAFORM\x10{*\xce\x02\n" +
+	"+PLAYER_MESSAGE_TYPE_PLANET_REMOTE_TERRAFORM\x10{*\xf4\x02\n" +
 	"\x13CargoTransferStatus\x12%\n" +
 	"!CARGO_TRANSFER_STATUS_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bCARGO_TRANSFER_STATUS_OWNED\x10\x01\x12\x1f\n" +
@@ -1673,7 +1676,8 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	" CARGO_TRANSFER_STATUS_DEST_CARGO\x10\x04\x12-\n" +
 	")CARGO_TRANSFER_STATUS_DEST_CARGO_CAPACITY\x10\x05\x12'\n" +
 	"#CARGO_TRANSFER_STATUS_DEST_STARBASE\x10\x06\x12&\n" +
-	"\"CARGO_TRANSFER_STATUS_DEST_UNOWNED\x10\aB\xbf\x01\n" +
+	"\"CARGO_TRANSFER_STATUS_DEST_UNOWNED\x10\a\x12$\n" +
+	" CARGO_TRANSFER_STATUS_DEEP_SPACE\x10\bB\xbf\x01\n" +
 	"\x12com.craig_stars.v1B\fMessageProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

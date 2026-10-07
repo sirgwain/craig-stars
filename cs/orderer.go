@@ -208,6 +208,13 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		destName = dest.GetMapObject().Name
 	}
 
+	if transferAmount.Colonists < 0 {
+		switch dest.GetMapObject().Type {
+		case MapObjectTypeNone, MapObjectTypeSalvage:
+			return fmt.Errorf("fleet %s cannot transfer colonists to %s, they can't survive in deep space", fleet.Name, destName)
+		}
+	}
+
 	if fleet.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", fleet.Name, fleet.availableCargoSpace(), transferAmount.Total(), destName)
 	}

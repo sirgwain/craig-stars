@@ -216,6 +216,35 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 		assert.Empty(t, player.CargoTransfers)
 	})
 
+	t.Run("colonists can't be put in space", func(t *testing.T) {
+		u := newByHandTestUniverse(t)
+		player := u.Player(1)
+		fleet := u.FleetFor(1, "Teamster #1").withCargo(Cargo{Colonists: 10})
+		orderer := NewOrderer()
+		assert.Error(t, orderer.TransferByHand(&u.Game.Rules, player, fleet, nil, CargoTransferRequest{Cargo: Cargo{Colonists: -10}}))
+		assert.Error(t, orderer.TransferByHand(&u.Game.Rules, player, fleet, player.GetSalvageIntel(u.Game.Salvages[0].Num), CargoTransferRequest{Cargo: Cargo{Colonists: -10}}))
+		assert.Equal(t, Cargo{Colonists: 10}, fleet.Cargo)
+		assert.Empty(t, player.CargoTransfers)
+	})
+
+	t.Run("colonists recorded in space come back", func(t *testing.T) {
+		u := newByHandTestUniverse(t)
+		player := u.Player(1)
+		fleet := u.FleetFor(1, "Teamster #1")
+		// orders reject this now, but transfers recorded before that still settle
+		player.CargoTransfers = CargoTransfers{fleet.Position.String(): []ByHandCargoTransfer{
+			{SourceFleetNum: fleet.Num, MapObjectTarget: MapObjectTarget{TargetPosition: fleet.Position}, Cargo: Cargo{Colonists: 10}},
+		}}
+
+		u.turn.fleetByHandTransfers()
+
+		assert.Equal(t, 10, fleet.Cargo.Colonists)
+		messages := byHandIncompleteMessages(player)
+		if assert.Len(t, messages, 1) {
+			assert.Equal(t, CargoTransferStatusDeepSpace, messages[0].Spec.CargoTransfer.Status)
+		}
+	})
+
 	t.Run("transfers follow merged fleets", func(t *testing.T) {
 		u := newByHandTestUniverse(t)
 		player := u.Player(1)

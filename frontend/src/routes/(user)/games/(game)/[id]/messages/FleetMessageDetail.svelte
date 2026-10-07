@@ -355,6 +355,8 @@
 		{:else if transfer.status === CargoTransferStatus.DEST_UNOWNED}
 			The planet is unoccupied. Your colonists refuse to be beamed down without a colonization
 			module.
+		{:else if transfer.status === CargoTransferStatus.DEEP_SPACE}
+			Colonists can't survive in deep space, so they stayed aboard.
 		{:else if transfer.status === CargoTransferStatus.OWNED}
 			{message.spec?.mapObjectTarget?.targetName} is owned by another player and {message.target
 				?.targetName}
@@ -394,6 +396,8 @@
 		{:else if transfer.status === CargoTransferStatus.DEST_UNOWNED}
 			The planet is unoccupied. Your colonists refuse to be beamed down without a colonization
 			module.
+		{:else if transfer.status === CargoTransferStatus.DEEP_SPACE}
+			Colonists can't survive in deep space, so they stayed aboard.
 		{:else if transfer.status === CargoTransferStatus.OWNED}
 			{#if $player.race.spec.livesOnStarbases}
 				{message.spec?.mapObjectTarget?.targetName} is owned by another player and your people

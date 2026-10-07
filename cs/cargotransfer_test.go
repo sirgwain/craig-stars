@@ -544,6 +544,19 @@ func TestCargoTransferer_waypointTransfers(t *testing.T) {
 		assert.Equal(t, Cargo{}, dest.Cargo)
 	})
 
+	t.Run("colonists stay aboard in deep space", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Colonists: 10, Ironium: 10})
+		salvage := newSalvage(Vector{}, 1, player1.Num, Cargo{})
+		results := tr.unload(fleet, salvage, WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
+			Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
+		})
+		assert.Equal(t, CargoTransferStatusDeepSpace, results[1].status)
+		assert.Equal(t, Cargo{Colonists: 10}, fleet.Cargo)
+		assert.Equal(t, Cargo{Ironium: 10}, salvage.Cargo)
+	})
+
 	t.Run("enemies don't accept cargo", func(t *testing.T) {
 		enemy := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).
 			WithRelations([]PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}})

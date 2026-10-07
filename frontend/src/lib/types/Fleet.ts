@@ -228,10 +228,13 @@ export function canTransferCargoType(fleet: Fleet, dest: CargoDest, cargoType: C
 				return fleet.mapObject?.playerNum === dest?.mapObject?.playerNum;
 		}
 	}
+	// no dest means jettison into deep space
 	if (
-		dest?.mapObject?.type === MapObjectType.SALVAGE ||
-		dest?.mapObject?.type === MapObjectType.MINERAL_PACKET
+		!dest ||
+		dest.mapObject?.type === MapObjectType.SALVAGE ||
+		dest.mapObject?.type === MapObjectType.MINERAL_PACKET
 	) {
+		// fuel only moves between fleets, and colonists can't survive in space
 		switch (cargoType) {
 			case ResourceType.COLONISTS:
 			case ResourceType.FUEL:
