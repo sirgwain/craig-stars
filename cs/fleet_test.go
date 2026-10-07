@@ -742,6 +742,124 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 	}
 }
 
+func TestFleet_moveFleetEngineStrain(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+
+	// a Trans-Star 10 freighter is safe at warp 10
+	transStarFreighter := NewShipDesign(player.Num, 2).
+		WithName("Trans-Star Freighter").
+		WithHull(SmallFreighter.Name).
+		WithSlots(slices.Clone(DesignSmallFreighter.Slots))
+	transStarFreighter.Slots[0].HullComponent = TransStar10.Name
+	transStarFreighter.WithSpec(&rules, player)
+	player.Designs = append(player.Designs, transStarFreighter)
+
+	type want struct {
+		ships          int
+		cargo          Cargo
+		destroyed      bool
+		messageType    PlayerMessageType
+		explodedAmount int
+	}
+	tests := []struct {
+		name       string
+		transStars int // Trans-Star 10 freighters added to the Quick Jump 5 freighter
+		cargo      Cargo
+		random     rng
+		want       want
+	}{
+		{
+			name:   "safe roll",
+			random: newFloat64Random(0.5),
+			want:   want{ships: 1},
+		},
+		{
+			name:   "fleet destroyed",
+			random: newFloat64Random(0),
+			want:   want{destroyed: true, messageType: PlayerMessageFleetEngineStrainDestroyed},
+		},
+		{
+			// the Quick Jump 5 freighter has half the fleet's capacity and takes half the cargo with it
+			name:       "lost ship takes its share of cargo",
+			transStars: 1,
+			cargo:      Cargo{Ironium: 100, Colonists: 20},
+			random:     newFloat64Random(0),
+			want:       want{ships: 1, cargo: Cargo{Ironium: 50, Colonists: 10}, messageType: PlayerMessageFleetExceededSafeSpeed, explodedAmount: 1},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player.Messages = nil
+			fleet := testSmallFreighter(player)
+			if tt.transStars > 0 {
+				fleet.Tokens = append(fleet.Tokens, ShipToken{Quantity: tt.transStars, DesignNum: 2, design: transStarFreighter})
+			}
+			fleet.withCargo(tt.cargo).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{999, 0}, 10))
+			fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+			fleet.Fuel = 10000 // plenty of fuel for warp 10
+			universe := Universe{log: testLogger, Fleets: []*Fleet{fleet}}
+			universe.buildMaps([]*Player{player})
+
+			rules := NewRulesWithSeed(0)
+			rules.random = tt.random
+
+			interrupted := fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
+
+			if tt.want.destroyed {
+				assert.Equal(t, fleetMoveInterruptedDestroyed, int(interrupted.reason))
+				assert.Empty(t, fleet.Tokens)
+				assert.Equal(t, Vector{0, 0}, fleet.Position)
+			} else {
+				assert.Equal(t, tt.want.ships, fleet.Spec.TotalShips)
+				assert.Equal(t, tt.want.cargo, fleet.Cargo)
+				assert.Equal(t, Vector{100, 0}, fleet.Position)
+			}
+
+			if tt.want.messageType == PlayerMessageNone {
+				assert.Empty(t, player.Messages)
+			} else {
+				assert.Len(t, player.Messages, 1)
+				assert.Equal(t, tt.want.messageType, player.Messages[0].Type)
+				assert.Equal(t, tt.want.explodedAmount, player.Messages[0].Spec.Amount)
+			}
+		})
+	}
+}
+
+func TestFleet_gateFleetDumpCargoOnAlly(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+	ally := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2)
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
+	ally.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
+
+	stargate := PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{HasStargate: true, SafeRange: 150, SafeHullMass: 150, MaxRange: 500, MaxHullMass: 500}}
+	sourcePlanet := NewPlanet().WithNum(1).WithPlayerNum(ally.Num)
+	sourcePlanet.Spec = stargate
+	destPlanet := NewPlanet().WithNum(2).WithPlayerNum(player.Num)
+	destPlanet.Spec = stargate
+
+	fleet := testSmallFreighter(player).
+		withCargo(Cargo{Ironium: 10}).
+		withOrbitingPlanetNum(sourcePlanet.Num).
+		withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed))
+	universe := Universe{
+		log:          testLogger,
+		Fleets:       []*Fleet{fleet},
+		Planets:      []*Planet{sourcePlanet, destPlanet},
+		designsByNum: map[playerObject]*ShipDesign{},
+	}
+	universe.buildMaps([]*Player{player, ally})
+
+	fleet.gateFleet(&rules, &universe, newTestPlayerGetter(player, ally))
+
+	assert.Equal(t, Vector{50, 0}, fleet.Position)
+	assert.Equal(t, Cargo{Ironium: 10}, sourcePlanet.Cargo)
+	assert.Len(t, player.Messages, 1)
+	assert.Equal(t, PlayerMessageFleetDumpedCargo, player.Messages[0].Type)
+	assert.Len(t, ally.Messages, 1)
+	assert.Equal(t, PlayerMessageFleetDumpedCargo, ally.Messages[0].Type)
+}
+
 func TestFleet_gateFleet(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}}
@@ -1070,7 +1188,7 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 			}},
 			race:      NewRace().WithLRT(IFE).WithSpec(&rules),
 			warpSpeed: 6,
-			want:      2654, // 2673 in base game
+			want:      2666, // 2673 in base game
 		},
 		{
 			name: "multiple copies, same range",
@@ -1160,9 +1278,132 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 				fleet.Fuel = tt.fuel
 			}
 
-			if got := fleet.getEstimatedRange(player, tt.warpSpeed, fleet.Spec.CargoCapacity); got != tt.want {
+			if got := fleet.getEstimatedRange(player, tt.warpSpeed); got != tt.want {
 				t.Errorf("Fleet.getEstimatedRange() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func TestFleet_GetFuelCost(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+
+	// two scouts in separate tokens
+	scoutTokens := testLongRangeScout(player)
+	scoutTokens.Tokens = append(scoutTokens.Tokens, scoutTokens.Tokens[0])
+	scoutTokens.Spec = ComputeFleetSpec(&rules, player, scoutTokens)
+
+	// a Quick Jump 5 freighter and a Long Hump 6 freighter
+	mixedFreighters := testSmallFreighter(player)
+	longHumpFreighter := NewShipDesign(player.Num, 2).
+		WithName("Long Hump Freighter").
+		WithHull(SmallFreighter.Name).
+		WithSlots(slices.Clone(DesignSmallFreighter.Slots))
+	longHumpFreighter.Slots[0].HullComponent = LongHump6.Name
+	longHumpFreighter.WithSpec(&rules, player)
+	mixedFreighters.Tokens = append(mixedFreighters.Tokens, ShipToken{Quantity: 1, DesignNum: 2, design: longHumpFreighter})
+	mixedFreighters.Cargo = Cargo{Ironium: 120}
+	mixedFreighters.Spec = ComputeFleetSpec(&rules, player, mixedFreighters)
+
+	tests := []struct {
+		name      string
+		fleet     *Fleet
+		warpSpeed int
+		distance  float64
+		want      int
+	}{
+		// 25kT * 100 * 25ly / 20000 = 3.125mg
+		{"scout", testLongRangeScout(player), 5, 25, 4},
+		// 2 * 3.125mg = 6.25mg, rounded once for the fleet, not per token
+		{"two scout tokens round once", scoutTokens, 5, 25, 7},
+		{"two scouts in one token", testLongRangeScoutWithQuantity(player, 2), 5, 25, 7},
+		// all 120kT of cargo goes on the Long Hump 6 freighter, it uses less fuel at warp 6
+		// (41kT + 120kT) * 105 * 100ly / 20000 + 36kT * 180 * 100ly / 20000 = 116.925mg
+		{"cargo on most efficient ships", mixedFreighters, 6, 100, 117},
+		{"stargate is free", testLongRangeScout(player), StargateWarpSpeed, 100, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.fleet.GetFuelCost(player, tt.warpSpeed, tt.distance))
+		})
+	}
+}
+
+func TestFleet_moveFleetFuel(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+
+	type want struct {
+		position  Vector
+		fuel      int
+		warpSpeed int // wp1 warp speed after the move
+	}
+	tests := []struct {
+		name      string
+		engine    string // replaces the scout's Long Hump 6
+		dest      Vector
+		warpSpeed int
+		fuel      int
+		want      want
+	}{
+		{
+			// warp 9 for 81ly costs 92mg (91.125mg), 46mg gets us 46/91.125 of the way
+			name:      "out of fuel stops where the fuel runs out",
+			dest:      Vector{200, 0},
+			warpSpeed: 9,
+			fuel:      46,
+			want:      want{position: Vector{41, 0}, fuel: 0, warpSpeed: 1},
+		},
+		{
+			name:      "no fuel doesn't move",
+			dest:      Vector{200, 0},
+			warpSpeed: 9,
+			fuel:      0,
+			want:      want{position: Vector{0, 0}, fuel: 0, warpSpeed: 1},
+		},
+		{
+			// the fuel mizer travels free at warp 4, but makes no fuel on a turn it ran out
+			name:      "ramscoop makes no fuel when out of fuel",
+			engine:    FuelMizer.Name,
+			dest:      Vector{200, 0},
+			warpSpeed: 9,
+			fuel:      1,
+			want:      want{position: Vector{3, 0}, fuel: 0, warpSpeed: 4},
+		},
+		{
+			// 51ly at warp 7 costs 29mg, but 49ly costs 28mg and the last 2ly cost 2mg
+			name:      "top up fuel lost to rounding",
+			dest:      Vector{51, 0},
+			warpSpeed: 7,
+			fuel:      29,
+			want:      want{position: Vector{49, 0}, fuel: 2, warpSpeed: 7},
+		},
+		{
+			name:      "no top up without enough fuel to arrive",
+			dest:      Vector{200, 0},
+			warpSpeed: 7,
+			fuel:      200,
+			want:      want{position: Vector{49, 0}, fuel: 172, warpSpeed: 7},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fleet := testLongRangeScout(player)
+			if tt.engine != "" {
+				design := fleet.Tokens[0].design
+				design.Slots[0].HullComponent = tt.engine
+				design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+				fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+			}
+			fleet.withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(tt.dest, tt.warpSpeed)).
+				withFuel(tt.fuel)
+			universe := Universe{log: testLogger, Fleets: []*Fleet{fleet}}
+			universe.buildMaps([]*Player{player})
+
+			fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
+
+			assert.Equal(t, tt.want.position, fleet.Position)
+			assert.Equal(t, tt.want.fuel, fleet.Fuel)
+			assert.Equal(t, tt.want.warpSpeed, fleet.Waypoints[1].WarpSpeed)
 		})
 	}
 }

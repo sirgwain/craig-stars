@@ -74,7 +74,6 @@ func (t *turnGenerator) generateTurn() error {
 	t.fleetReproduce()
 	t.decaySalvage()
 	t.decayPackets(false)
-	t.wormholeJiggle()
 	t.detonateMines()
 	t.fleetRemoteMineAR() // sort of a wp1 task, for AR races it happens before production and works on the turn of arrival
 	t.planetMine()
@@ -84,6 +83,7 @@ func (t *turnGenerator) generateTurn() error {
 	t.playerResearch()
 	t.permaform()
 	t.planetGrow()
+	t.wormholeJiggle()   // wormholes move after production, like the original
 	t.packetMove(true)   // move packets built this turn
 	t.decayPackets(true) // decay packets built this turn
 	t.fleetRefuel()      // refuel after production so fleets will refuel at planets that just built a starbase this turn
@@ -152,6 +152,7 @@ func (t *turnGenerator) fleetInit() {
 
 		// remove previous position, it will be reset on move
 		fleet.PreviousPosition = nil
+		fleet.warped = false
 
 		wp0 := &fleet.Waypoints[0]
 		wp0.processed = false
@@ -1032,19 +1033,12 @@ func (t *turnGenerator) moveFleet(fleet *Fleet) {
 					slog.Bool("FleetDestroyed", damage.FleetDestroyed),
 				)
 
-			}
-		} else {
-			// check for exploded ships from overwarp
-			explodedShips := fleet.applyOverwarpPenalty(&t.game.Rules)
-			// tell the player they lost ships
-			if explodedShips > 0 {
-				t.log.Debug("fleet ships exploded due to unsafe warp",
+			case fleetMoveInterruptedDestroyed:
+				t.log.Debug("fleet destroyed due to unsafe warp",
 					slog.Int("Player", fleet.PlayerNum),
 					slog.String("Fleet", fleet.Name),
-					slog.Int("ExplodedShips", explodedShips),
 					slog.Int("Warp", wp1.WarpSpeed),
 				)
-				messager.fleetExceededSafeSpeed(player, fleet, explodedShips)
 			}
 		}
 	}
@@ -1103,8 +1097,8 @@ func (t *turnGenerator) fleetRadiatingEngineDieoff() {
 			continue
 		}
 
-		// no radiation in this fleet or no colonists to kill
-		if !fleet.Spec.Radiating || fleet.Cargo.Colonists == 0 {
+		// no radiation in this fleet, no colonists to kill, or the engines didn't run this turn
+		if !fleet.Spec.Radiating || fleet.Cargo.Colonists == 0 || !fleet.warped {
 			continue
 		}
 
@@ -1115,12 +1109,12 @@ func (t *turnGenerator) fleetRadiatingEngineDieoff() {
 		}
 
 		habCenter := player.Race.Spec.HabCenter
-		clicksAway := max(0, t.game.Rules.RadiatingImmune-habCenter.Rad)
-		if clicksAway <= 0 {
+		if habCenter.Rad >= t.game.Rules.RadiatingImmune {
 			// race has high enough of a hab center to be unaffected by radiation
 			continue
 		}
-		deathRate := math.Round(float64(clicksAway)/2) / 100
+		// DeathRate % = int((86 - C) / 2)
+		deathRate := math.Floor(float64(t.game.Rules.RadiatingImmune+1-habCenter.Rad)/2) / 100
 
 		killed := max(1, int(deathRate*float64(fleet.Cargo.Colonists)))
 		fleet.Cargo.Colonists -= killed
@@ -1134,6 +1128,9 @@ func (t *turnGenerator) fleetRadiatingEngineDieoff() {
 		)
 	}
 }
+
+// AR freighters only lose colonists to warp acceleration when carrying more than this many (in kT)
+const freighterDieoffMinColonists = 10
 
 func (t *turnGenerator) fleetReproduce() {
 	for _, fleet := range t.game.Fleets {
@@ -1150,9 +1147,13 @@ func (t *turnGenerator) fleetReproduce() {
 
 		var growth int
 		if fg.Absolute {
+			// colonists only die off (AR) from the rigors of warp acceleration, when the fleet
+			// made a warp move with more than 1000 colonists aboard
+			if fg.GrowthFactor < 0 && (!fleet.warped || fleet.Cargo.Colonists <= freighterDieoffMinColonists) {
+				continue
+			}
 			// calculate absolute pop growth on fleets
-			// TODO: Check rounding on this...?
-			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists))
+			growth = int(math.Round(fg.GrowthFactor * float64(fleet.Cargo.Colonists)))
 		} else {
 			// Calculate relative pop growth based on growth rate
 			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists*player.Race.GrowthRate) / 100)
@@ -1638,7 +1639,7 @@ func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToke
 	fleet.Position = position
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
-	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 	fleet.Tags = tags
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
@@ -1951,7 +1952,7 @@ func (t *turnGenerator) fleetRefuel() {
 
 		if fleet.Spec.FuelGeneration > 0 {
 			fleet.Fuel = Clamp(fleet.Fuel+fleet.Spec.FuelGeneration, 0, fleet.Spec.FuelCapacity)
-			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 			t.log.Debug("fleet generated fuel",
 				slog.Int("Player", fleet.PlayerNum),
 				slog.String("Fleet", fleet.Name),
@@ -1971,7 +1972,7 @@ func (t *turnGenerator) fleetRefuel() {
 		planetPlayer := t.game.getPlayer(planet.PlayerNum)
 		if planetPlayer.IsFriend(fleet.PlayerNum) {
 			fleet.Fuel = fleet.Spec.FuelCapacity
-			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 
 			t.log.Debug("fleet refueled at starbase",
 				slog.Int("Player", fleet.PlayerNum),

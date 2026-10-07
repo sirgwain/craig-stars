@@ -1001,6 +1001,41 @@ func Test_turn_fleetRepair(t *testing.T) {
 
 }
 
+func Test_turn_colonizeAfterTravel(t *testing.T) {
+	tests := []struct {
+		name       string
+		scenario   TestScenario
+		population int
+		starbase   bool
+	}{
+		{"normal colonizer", ScenarioColonizerTest(), 2500, false},
+		{"AR colonizer", ScenarioColonizerTestAR(), 2400, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, tt.scenario)
+			fleet := u.Fleet("Santa Maria #1")
+			planet := u.Planet("Planet 2")
+			u.TransferByHand(1, fleet.Name, "Planet 1", Cargo{Colonists: 25})
+			wp := NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
+			wp.Task = WaypointTaskColonize
+			fleet.Waypoints = append(fleet.Waypoints, wp)
+
+			u.GenerateTurn()
+
+			// AR warp dieoff happens before arrival colonization: 3% of 25kT
+			// rounds to 1kT lost. The new colony doesn't grow until next turn.
+			assert.Equal(t, 1, planet.PlayerNum)
+			assert.Equal(t, tt.population, planet.GetPopulation())
+			assert.True(t, fleet.Delete)
+			assert.Equal(t, tt.starbase, planet.Spec.HasStarbase)
+			if tt.starbase {
+				assert.Equal(t, "Starter Colony", planet.Spec.StarbaseDesignName)
+			}
+		})
+	}
+}
+
 func Test_turn_fleetReproduce(t *testing.T) {
 	u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
 		{
@@ -1027,13 +1062,16 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	isPlayer, arPlayer := u.Player(1), u.Player(2)
 	isFleet, arFleet, isPlanet := u.Fleet("Small Freighter #1"), u.Fleet("Galleon #1"), u.Planet("Planet 1")
 
+	// AR colonists only die off when the fleet made a warp move
+	arFleet.warped = true
+
 	// don't generate a full turn, the planet will grow
 	u.Run((*turnGenerator).fleetReproduce)
 
-	// IS freighter should have grown; AT freighter should have lost pop slightly
+	// IS freighter should have grown; AR freighter should have lost pop slightly
 	assert.Equal(t, 53, isFleet.Cargo.Colonists)
 	assert.Equal(t, 2500, isPlanet.Cargo.Colonists)
-	assert.Equal(t, 49, arFleet.Cargo.Colonists)
+	assert.Equal(t, 48, arFleet.Cargo.Colonists) // 3% of 50 is 1.5, rounded to 2 (49 in base game)
 
 	// fill IS freighter up fully to overflow onto planet;
 	// set AR freighter to 10K (we lose 3% or 300)
@@ -1055,8 +1093,18 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	u.Run((*turnGenerator).fleetReproduce)
 	assert.Equal(t, isFleet.Spec.CargoCapacity, isFleet.Cargo.Colonists)
 	assert.Equal(t, 2509, isPlanet.Cargo.Colonists)
-	assert.Equal(t, 95, arFleet.Cargo.Colonists) // should be 94 in base game, but leaving it for now since it rounds weird AF
+	assert.Equal(t, 94, arFleet.Cargo.Colonists)
 
+	// AR colonists don't die off if the fleet didn't move
+	arFleet.warped = false
+	u.Run((*turnGenerator).fleetReproduce)
+	assert.Equal(t, 94, arFleet.Cargo.Colonists)
+
+	// or with 1000 colonists or fewer aboard
+	arFleet.warped = true
+	arFleet.Cargo.Colonists = 10
+	u.Run((*turnGenerator).fleetReproduce)
+	assert.Equal(t, 10, arFleet.Cargo.Colonists)
 }
 
 func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
@@ -1075,7 +1123,12 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 	design.Slots[0].HullComponent = RadiatingHydroRamScoop.Name
 	u.Recompute()
 
-	// generate turn to simulate die off; should lose pop
+	// the engines didn't run, no radiation
+	u.GenerateTurn()
+	assert.Equal(t, 50, fleet.Cargo.Colonists)
+
+	// move the fleet; should lose int((86 - 50) / 2) = 18% of the pop
+	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{1000, 0}, 5))
 	u.GenerateTurn()
 	assert.Equal(t, 41, fleet.Cargo.Colonists)
 

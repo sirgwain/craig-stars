@@ -243,6 +243,8 @@ test('Colonizer Test AR builds starter starbase', async ({ testGamePage }) => {
 
 	const updatedPlanet2 = updatedUniverse?.planets[1];
 	expect(updatedPlanet2?.mapObject?.playerNum).toBe(player.num);
+	// AR loses 3% of its 25kT colonists during warp travel, rounded to 1kT.
+	expect(updatedPlanet2?.cargo?.colonists).toBe(24);
 	expect(updatedPlanet2?.spec?.planetStarbaseSpec?.hasStarbase).toBe(true);
 	expect(updatedPlanet2?.spec?.planetStarbaseSpec?.starbaseDesignName).toBe('Starter Colony');
 
@@ -265,5 +267,5 @@ test('Colonizer Test AR builds starter starbase', async ({ testGamePage }) => {
 			.filter({ hasText: /^Planet 2$/ })
 			.first()
 	).toBeVisible();
-	await expect(mapObjectSummary).toContainText('Population: 2,500');
+	await expect(mapObjectSummary).toContainText('Population: 2,400');
 });
