@@ -4,7 +4,7 @@
 	import { techs } from '#lib/services/Stores.js';
 	import type { DesignFinder, PlayerFinder } from '#lib/services/Universe.js';
 	import type { Battle, PhaseToken } from '#lib/types/Battle.js';
-	import { enumToString } from '#lib/types/Enums.js';
+	import { battleTargetToString, enumToString } from '#lib/types/Enums.js';
 	import {
 		BattleTactic,
 		BattleTacticSchema,
@@ -109,16 +109,14 @@
 			)}
 		</div>
 		<div>
-			Primary Target: {enumToString(
-				BattleTarget,
+			Primary Target: {battleTargetToString(
 				token.primaryTarget
 					? enumFromJson(BattleTargetSchema, token.primaryTarget)
 					: BattleTarget.UNSPECIFIED
 			)}
 		</div>
 		<div>
-			Secondary Target: {enumToString(
-				BattleTarget,
+			Secondary Target: {battleTargetToString(
 				token.secondaryTarget
 					? enumFromJson(BattleTargetSchema, token.secondaryTarget)
 					: BattleTarget.UNSPECIFIED

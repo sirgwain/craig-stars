@@ -1,4 +1,4 @@
-import { GameStartMode } from '#lib/types/cs-proto.js';
+import { BattleTarget, GameStartMode } from '#lib/types/cs-proto.js';
 
 import { camelCase, startCase } from 'lodash-es';
 
@@ -37,3 +37,10 @@ export const GameStartModeFullNames: {
 	[GameStartMode.ACC_BBS]: 'Accelerated BBS Play',
 	[GameStartMode.MAX]: 'Max Start'
 };
+
+/**
+ * Converts a BattleTarget into display text. An unspecified target is BattleTargetNone on the server.
+ */
+export function battleTargetToString(target: BattleTarget): string {
+	return target === BattleTarget.UNSPECIFIED ? 'None' : enumToString(BattleTarget, target);
+}
