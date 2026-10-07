@@ -2848,16 +2848,12 @@ func (t *turnGenerator) fleetRemoteTerraform() {
 				)
 			}
 		}
-		// Report each changed axis once, even when many adjusters work in the fleet.
-		for _, habType := range HabTypes {
-			change := planet.Hab.Get(habType) - initialHab.Get(habType)
-			if change == 0 {
-				continue
-			}
-			result := TerraformResult{Type: habType, Direction: change}
-			messager.planetRemoteTerraform(player, planet, fleet, result)
+		// Like the original remote terraforming report, summarize the fleet's
+		// work using the planet owner's value before and after terraforming.
+		if planet.Hab != initialHab {
+			messager.planetRemoteTerraform(player, planetPlayer, planet, fleet, initialHab, deterraform)
 			if planetPlayer.Num != player.Num {
-				messager.planetRemoteTerraform(planetPlayer, planet, fleet, result)
+				messager.planetRemoteTerraform(planetPlayer, planetPlayer, planet, fleet, initialHab, deterraform)
 			}
 		}
 	}

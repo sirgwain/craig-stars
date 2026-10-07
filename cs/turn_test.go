@@ -1387,7 +1387,7 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	// should terraform planet3 2 points
 	assert.Equal(t, Hab{50, 50, 50}, planet3.Hab)
 
-	// Both foreign owners receive a single report per changed axis; our own world
+	// Both foreign owners receive a single report per fleet; our own world
 	// receives one report, rather than duplicate sender/recipient reports.
 	assert.Len(t, u.Messages(1, PlayerMessagePlanetRemoteTerraform), 2)
 	assert.Len(t, u.Messages(2, PlayerMessagePlanetRemoteTerraform), 1)
@@ -1395,8 +1395,10 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	enemyReport := u.Messages(2, PlayerMessagePlanetRemoteTerraform)[0]
 	assert.Equal(t, planet1.Num, enemyReport.TargetNum)
 	assert.Equal(t, 1, enemyReport.Spec.SourcePlayerNum)
-	assert.Equal(t, 2, enemyReport.Spec.Amount)
-	assert.Equal(t, 52, enemyReport.Spec.Amount2)
+	assert.Equal(t, 100, enemyReport.Spec.PrevAmount)
+	assert.Equal(t, 99, enemyReport.Spec.Amount)
+	assert.Equal(t, -1, enemyReport.Spec.Amount2)
+	assert.Equal(t, Hab{Grav: 2}, enemyReport.Spec.TerraformAmount)
 	assert.NotEqual(t, "Enemy terraformer", enemyReport.Spec.TargetName)
 
 	// Optimal planets and neutral relationships produce no notification.

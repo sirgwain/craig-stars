@@ -696,10 +696,19 @@ func (m *messageClient) planetProductionQueueStatus(player *Player, planet *Plan
 	player.Messages = append(player.Messages, newPlanetMessage(messageType, planet))
 }
 
-// Amount is the signed change; Amount2 is the resulting raw habitat value.
-func (m *messageClient) planetRemoteTerraform(player *Player, planet *Planet, fleet *Fleet, result TerraformResult) {
+// PrevAmount and Amount snapshot the planet owner's habitability before and after
+// the fleet's work. Amount2 is 1 for improving and -1 for degrading the planet;
+// TerraformAmount records the actual changes to each habitat axis.
+func (m *messageClient) planetRemoteTerraform(player, planetPlayer *Player, planet *Planet, fleet *Fleet, initialHab Hab, deterraform bool) {
+	direction := 1
+	if deterraform {
+		direction = -1
+	}
 	spec := PlayerMessageSpec{
-		HabType: FromHabType(result.Type), Amount: result.Direction, Amount2: planet.Hab.Get(result.Type),
+		PrevAmount:      planetPlayer.Race.GetPlanetHabitability(initialHab),
+		Amount:          planetPlayer.Race.GetPlanetHabitability(planet.Hab),
+		Amount2:         direction,
+		TerraformAmount: planet.Hab.Subtract(initialHab),
 		SourcePlayerNum: fleet.PlayerNum,
 	}.withTargetFleet(fleet)
 	// Use the same public fleet name as other fleet reports for the planet owner.

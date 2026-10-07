@@ -7,11 +7,12 @@
 		PlayerMessageType,
 		ProductionQueueItemSchema,
 		QueueItemType,
+		TerraformHabType,
 		type Planet,
 		type PlayerIntel,
 		type PlayerMessage
 	} from '#lib/types/cs-proto.js';
-	import { absSum, getTerraformHabValueString } from '#lib/types/Hab.js';
+	import { absSum, getHabValue, getTerraformHabValueString } from '#lib/types/Hab.js';
 	import { getLongHabName } from '#lib/types/Tech.js';
 	import { getFullName } from '#lib/types/QueueItemType.js';
 	import { create } from '@bufbuild/protobuf';
@@ -39,7 +40,7 @@
 {:else if message.type === PlayerMessageType.PLANET_PRODUCTION_QUEUE_EMPTY}
 	The production queue on {planetName} is empty.
 {:else if message.type === PlayerMessageType.PLANET_PRODUCTION_QUEUE_COMPLETE}
-	{planetName} has completed its production queue.
+	{planetName} has completed its orders. The production queue is empty.
 {:else if message.type === PlayerMessageType.PLANET_REMOTE_TERRAFORM}
 	{@const spec = message.spec}
 	{#if spec?.sourcePlayerNum === $player.num}
@@ -47,12 +48,33 @@
 	{:else}
 		A {$universe.getPlayerPluralName(spec?.sourcePlayerNum)} fleet
 	{/if}
-	{spec?.mapObjectTarget?.targetName} has remotely terraformed {planetName},
-	{(spec?.amount ?? 0) > 0 ? 'increasing' : 'decreasing'} its {getLongHabName(spec?.habType ?? 0)}
-	by {Math.abs(spec?.amount ?? 0)}% to {getTerraformHabValueString(
-		spec?.habType ?? 0,
-		spec?.amount2 ?? 0
-	)}.
+	{spec?.mapObjectTarget?.targetName}
+	{#if spec && absSum(spec.terraformAmount) > 0}
+		{#if spec.amount !== spec.prevAmount}
+			has {spec.amount > spec.prevAmount ? 'improved' : 'degraded'}
+			{planetName} from a value of
+			{spec.prevAmount}% to {spec.amount}%.
+		{:else}
+			is currently unable to {spec.amount2 < 0 ? 'degrade' : 'improve'} the value of {planetName}
+			beyond {spec.amount}%.
+		{/if}
+		{#each [TerraformHabType.GRAV, TerraformHabType.TEMP, TerraformHabType.RAD] as habType (habType)}
+			{@const change = getHabValue(spec.terraformAmount, habType - 1)}
+			{#if change !== 0}
+				{getLongHabName(habType)} has {change > 0 ? 'increased' : 'decreased'} by {Math.abs(
+					change
+				)}%.
+			{/if}
+		{/each}
+	{:else}
+		<!-- Preserve earlier remote terraforming reports containing an axis and raw habitat value. -->
+		has remotely terraformed {planetName},
+		{(spec?.amount ?? 0) > 0 ? 'increasing' : 'decreasing'} its {getLongHabName(spec?.habType ?? 0)}
+		by {Math.abs(spec?.amount ?? 0)}% to {getTerraformHabValueString(
+			spec?.habType ?? 0,
+			spec?.amount2 ?? 0
+		)}.
+	{/if}
 {:else if message.type === PlayerMessageType.PLANET_INVADE_INVALID_EMPTY}
 	{message.spec?.mapObjectTarget?.targetName} has orders to beam colonists to {planetName}, but the
 	planet is uninhabited. The order has been canceled.

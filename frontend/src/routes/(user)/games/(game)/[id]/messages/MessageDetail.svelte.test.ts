@@ -416,11 +416,50 @@ describe('invasion reports', () => {
 describe('production and orbital adjustment reports', () => {
 	it.each([
 		[Type.PLANET_PRODUCTION_QUEUE_EMPTY, 'production queue on Earth is empty'],
-		[Type.PLANET_PRODUCTION_QUEUE_COMPLETE, 'Earth has completed its production queue']
+		[
+			Type.PLANET_PRODUCTION_QUEUE_COMPLETE,
+			'Earth has completed its orders. The production queue is empty.'
+		]
 	] as const)('renders production status %s', async (type, expected) => {
 		render(MessageDetail, { message: create(PlayerMessageSchema, { type, target: planetTarget }) });
 		await expect.element(page.getByText(expected, { exact: false })).toBeInTheDocument();
 	});
+	it.each([
+		[1, 60, 80, 1, 'Your fleet Adjuster has improved Earth from a value of 60% to 80%.'],
+		[2, 80, 60, -1, 'A Visitors fleet Adjuster has degraded Earth from a value of 80% to 60%.'],
+		[1, 60, 60, 1, 'is currently unable to improve the value of Earth beyond 60%.'],
+		[2, -10, -10, -1, 'is currently unable to degrade the value of Earth beyond -10%.'],
+		[1, -10, -5, 1, 'has improved Earth from a value of -10% to -5%.']
+	] as const)(
+		'renders original-style planet value for owner %s, %s to %s',
+		async (sourcePlayerNum, prevAmount, amount, amount2, expected) => {
+			render(MessageDetail, {
+				message: create(PlayerMessageSchema, {
+					type: Type.PLANET_REMOTE_TERRAFORM,
+					target: planetTarget,
+					spec: {
+						sourcePlayerNum,
+						prevAmount,
+						amount,
+						amount2,
+						terraformAmount: { grav: -2, temp: 1 },
+						mapObjectTarget: { targetName: 'Adjuster' }
+					}
+				})
+			});
+			await expect.element(page.getByText(expected, { exact: false })).toBeInTheDocument();
+			await expect
+				.element(page.getByText('Gravity has decreased by 2%.', { exact: false }))
+				.toBeInTheDocument();
+			await expect
+				.element(page.getByText('Temperature has increased by 1%.', { exact: false }))
+				.toBeInTheDocument();
+			await expect
+				.element(page.getByText('Radiation has', { exact: false }))
+				.not.toBeInTheDocument();
+		}
+	);
+
 	it.each([
 		[1, 1, 'Your fleet Adjuster', 'increasing'],
 		[2, -1, 'A Visitors fleet Adjuster', 'decreasing']
