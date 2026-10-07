@@ -183,7 +183,7 @@ func (s *gameService) JoinGame(ctx context.Context, req *connect.Request[craig_s
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("name cannot be empty"))
 	}
 
-	race := converter.C.ConvertRaceP(req.Msg.Race)
+	race := converter.C.ConvertRaceP(req.Msg.Race).WithDefaults()
 	race.DBObject = cs.DBObject{}
 	if err := gr.JoinGame(game.ID, user.ID, req.Msg.Name, *race); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to join game: %w", err))
