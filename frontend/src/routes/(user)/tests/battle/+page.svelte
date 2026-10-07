@@ -1,11 +1,11 @@
 <script lang="ts">
-	import BattleView from '$lib/components/game/battle/BattleView.svelte';
-	import Popup from '$lib/components/game/tooltips/Popup.svelte';
-	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
-	import { battleClient } from '$lib/services/connect';
-	import { Universe } from '$lib/services/Universe';
-	import { PlayerUniverseSchema, type BattleRecord } from '$lib/types/cs-proto';
-	import { CommandedPlayer } from '$lib/types/Player';
+	import BattleView from '#lib/components/game/battle/BattleView.svelte';
+	import Popup from '#lib/components/game/tooltips/Popup.svelte';
+	import Tooltip from '#lib/components/game/tooltips/Tooltip.svelte';
+	import { battleClient } from '#lib/services/connect.js';
+	import { Universe } from '#lib/services/Universe.js';
+	import { PlayerUniverseSchema, type BattleRecord } from '#lib/types/cs-proto.js';
+	import { CommandedPlayer } from '#lib/types/Player.js';
 	import { create } from '@bufbuild/protobuf';
 	import { onMount } from 'svelte';
 

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import CargoTransferDialog from '../../games/(game)/[id]/dialogs/cargo/CargoTransfer.svelte';
 
-	import { CommandedFleet } from '$lib/types/Fleet';
-	import { CommandedPlanet } from '$lib/types/Planet';
-	import { MapObjectType } from '$lib/types/cs-proto';
+	import { CommandedFleet } from '#lib/types/Fleet.js';
+	import { CommandedPlanet } from '#lib/types/Planet.js';
+	import { MapObjectType } from '#lib/types/cs-proto.js';
 
 	const planet: CommandedPlanet = new CommandedPlanet();
 

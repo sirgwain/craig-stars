@@ -11,16 +11,16 @@
 	let {
 		name,
 		checked = $bindable(),
-		titleClass = 'label-text w-32 text-right',
+		titleClass = 'cs-label-text w-32 text-right',
 		...rest
 	}: Props = $props();
 
 	let title = $derived(rest.title ?? startCase(name));
 </script>
 
-<div class="w-full flex-grow">
-	<div class="form-control">
-		<label class="label"
+<div class="w-full grow">
+	<div class="cs-form-control">
+		<label class="cs-form-label"
 			><span class={titleClass}>{title}</span>
 			<input class="checkbox ml-2" type="checkbox" {name} bind:checked />
 		</label>

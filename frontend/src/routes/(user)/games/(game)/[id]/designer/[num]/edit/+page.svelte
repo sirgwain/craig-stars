@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
-	import { type ShipDesign } from '$lib/types/cs-proto';
-	import { addError } from '$lib/services/Errors';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import ShipDesigner from '#lib/components/game/design/ShipDesigner.svelte';
+	import { type ShipDesign } from '#lib/types/cs-proto.js';
+	import { addError } from '#lib/services/Errors.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
 	import type { ConnectError } from '@connectrpc/connect';
 
 	const { game, universe, updateDesign } = getGameContext();

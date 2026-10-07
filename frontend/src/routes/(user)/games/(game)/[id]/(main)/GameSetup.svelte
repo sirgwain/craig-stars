@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import GameCard from '$lib/components/game/GameCard.svelte';
-	import GameSettingsEditor from '$lib/components/game/newgame/GameSettingsEditor.svelte';
-	import { addError } from '$lib/services/Errors';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { me } from '$lib/services/Stores';
-	import { gameClient, playerClient } from '$lib/services/connect';
-	import type { Player } from '$lib/types/cs-proto';
-	import { GameSettingsSchema, PlayerType, type GameSettings } from '$lib/types/cs-proto';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import GameCard from '#lib/components/game/GameCard.svelte';
+	import GameSettingsEditor from '#lib/components/game/newgame/GameSettingsEditor.svelte';
+	import { addError } from '#lib/services/Errors.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { me } from '#lib/services/Stores.js';
+	import { gameClient, playerClient } from '#lib/services/connect.js';
+	import type { Player } from '#lib/types/cs-proto.js';
+	import { GameSettingsSchema, PlayerType, type GameSettings } from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import type { ConnectError } from '@connectrpc/connect';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
@@ -150,7 +150,7 @@
 					<GameCard game={$game} />
 				{/if}
 			</div>
-			<div class="w-full bg-base-200 shadow rounded-sm border-2 border-base-300 py-2 m-2">
+			<div class="w-full bg-base-200 shadow-sm rounded-xs border-2 border-base-300 py-2 m-2">
 				<div class="grid grid-cols-2 gap-x-5 px-2" class:grid-cols-3={hasGuests}>
 					<div class="text-center border-b border-b-secondary mb-1">Player</div>
 					<div class="text-center border-b border-b-secondary mb-1 font-semibold text-xl">

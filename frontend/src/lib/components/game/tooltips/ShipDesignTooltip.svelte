@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import Design from '$lib/components/game/design/Design.svelte';
+	import Design from '#lib/components/game/design/Design.svelte';
 
 	let { design }: ShipDesignTooltipProps = $props();
 </script>

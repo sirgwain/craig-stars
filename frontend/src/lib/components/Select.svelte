@@ -20,7 +20,7 @@
 	let {
 		name,
 		value = $bindable(),
-		titleClass = 'label-text w-32 text-right',
+		titleClass = 'cs-label-text w-32 text-right',
 		values = [],
 		...rest
 	}: Props = $props();
@@ -28,10 +28,10 @@
 	let title = $derived(rest.title ?? startCase(name));
 </script>
 
-<div class="w-full flex-grow">
-	<label class="label"
+<div class="w-full grow">
+	<label class="cs-form-label"
 		><span class={titleClass}>{title}</span>
-		<select class="select input-bordered ml-2 flex-grow" bind:value {...rest}>
+		<select class="select ml-2 grow" bind:value {...rest}>
 			{#each values as value, index (index)}
 				<option value={value.value}>{value.title}</option>
 			{/each}

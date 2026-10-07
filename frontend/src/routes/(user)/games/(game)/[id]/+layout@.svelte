@@ -1,33 +1,30 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import ErrorPage from '$lib/components/ErrorPage.svelte';
-	import Menu from '$lib/components/Menu.svelte';
-	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
-	import { gameClient, playerClient } from '$lib/services/connect';
-	import { FullGame } from '$lib/services/FullGame';
-	import { createGameContext, gameKey, type GameContext } from '$lib/services/GameContext';
-	import { clearLoadingModalText, me, setLoadingModalText } from '$lib/services/Stores';
-	import { Universe } from '$lib/services/Universe';
-	import { GameState } from '$lib/types/cs-proto';
-	import { getGameWithPlayersFlat } from '$lib/types/Game';
-	import { CommandedPlayer, CommandedPlayerRace } from '$lib/types/Player';
-	import { wait } from '$lib/wait';
-	import { loadWasm } from '$lib/wasm';
+	import { page } from '$app/state';
+	import ErrorPage from '#lib/components/ErrorPage.svelte';
+	import Menu from '#lib/components/Menu.svelte';
+	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '#lib/navigationHotkeys.js';
+	import { gameClient, playerClient } from '#lib/services/connect.js';
+	import { FullGame } from '#lib/services/FullGame.js';
+	import { createGameContext, gameKey, type GameContext } from '#lib/services/GameContext.js';
+	import { clearLoadingModalText, me, setLoadingModalText } from '#lib/services/Stores.js';
+	import { Universe } from '#lib/services/Universe.js';
+	import { GameState } from '#lib/types/cs-proto.js';
+	import { getGameWithPlayersFlat } from '#lib/types/Game.js';
+	import { CommandedPlayer, CommandedPlayerRace } from '#lib/types/Player.js';
+	import { wait } from '#lib/wait.js';
+	import { loadWasm } from '#lib/wasm.js';
 	import { Code, type ConnectError } from '@connectrpc/connect';
 	import hotkeys from 'hotkeys-js';
 	import { onDestroy, onMount, setContext, type Snippet } from 'svelte';
 	import type { Unsubscriber } from 'svelte/store';
 	import { get } from 'svelte/store';
 	import GameLayout from './GameLayout.svelte';
-	type Props = {
-		children?: Snippet;
-	};
+
+	type Props = { children?: Snippet };
 
 	let { children }: Props = $props();
-
-	let id = parseInt($page.params.id || '0');
-
+	let id = parseInt(page.params.id || '0');
 	let context: GameContext | undefined = $state(undefined);
 	let error: string | undefined = $state(undefined);
 	let contextSetup = $state(false);
@@ -145,7 +142,7 @@
 			unbindNavigationHotkeys();
 			hotkeys.unbind('F9', 'root');
 
-			bindNavigationHotkeys(get(context.game).id, page);
+			bindNavigationHotkeys(get(context.game).id);
 			hotkeys('F9', 'root', () => {
 				onSubmitTurn();
 			});
@@ -187,13 +184,15 @@
 
 {#if contextSetup}
 	<GameLayout {onSubmitTurn}>
-		{#if children}{@render children()}{:else}Game{/if}
+		{#if children}
+			{@render children()}
+		{:else}
+			Game
+		{/if}
 	</GameLayout>
 {:else if error}
 	<main class="flex flex-col">
-		<div class="flex-initial">
-			<Menu user={$me} />
-		</div>
+		<div class="flex-initial"><Menu user={$me} /></div>
 		<ErrorPage {error} />
 	</main>
 {/if}

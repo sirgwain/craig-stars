@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import Select from '$lib/components/Select.svelte';
-	import { adminClient } from '$lib/services/connect';
-	import { UserRole, type GameWithPlayers, type User } from '$lib/types/cs-proto';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import SectionHeader from '#lib/components/SectionHeader.svelte';
+	import Select from '#lib/components/Select.svelte';
+	import { adminClient } from '#lib/services/connect.js';
+	import { UserRole, type GameWithPlayers, type User } from '#lib/types/cs-proto.js';
 	import { onMount } from 'svelte';
 
 	let users: User[] = $state([]);

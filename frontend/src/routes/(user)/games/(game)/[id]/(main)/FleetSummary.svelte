@@ -1,15 +1,15 @@
 <script lang="ts">
-	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
-	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { getHullIcon } from '$lib/techicon';
-	import { StargateWarpSpeed } from '$lib/types/Consts';
-	import { WaypointTask, type Fleet, type ShipDesign } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { canTransferCargo, CommandedFleet, getDamagePercentForToken } from '$lib/types/Fleet';
-	import { ownedBy } from '$lib/types/MapObject';
+	import CargoBar from '#lib/components/game/CargoBar.svelte';
+	import FuelBar from '#lib/components/game/FuelBar.svelte';
+	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
+	import type { ShowCargoTransferDialogProps } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { getHullIcon } from '#lib/techicon.js';
+	import { StargateWarpSpeed } from '#lib/types/Consts.js';
+	import { WaypointTask, type Fleet, type ShipDesign } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { canTransferCargo, CommandedFleet, getDamagePercentForToken } from '#lib/types/Fleet.js';
+	import { ownedBy } from '#lib/types/MapObject.js';
 
 	const { player, universe } = getGameContext();
 

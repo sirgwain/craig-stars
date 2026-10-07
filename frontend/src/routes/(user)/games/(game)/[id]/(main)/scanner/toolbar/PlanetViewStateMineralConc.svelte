@@ -1,7 +1,7 @@
 <script lang="ts">
-	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { PlanetViewState } from '$lib/types/PlayerSettings';
+	import MineralConcentration from '#lib/components/icons/MineralConcentration.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { PlanetViewState } from '#lib/types/PlayerSettings.js';
 
 	const { settings } = getGameContext();
 </script>

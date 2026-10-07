@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { me } from '$lib/services/Stores';
+	import { me } from '#lib/services/Stores.js';
 	import Menu from './Menu.svelte';
 
 	type Props = {

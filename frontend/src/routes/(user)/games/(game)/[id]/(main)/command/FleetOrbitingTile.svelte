@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/Consts';
-	import { canTransferCargo, type CommandedFleet } from '$lib/types/Fleet';
-	import { ownedBy } from '$lib/types/MapObject';
+	import type { ShowCargoTransferDialogProps } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { None } from '#lib/types/Consts.js';
+	import { canTransferCargo, type CommandedFleet } from '#lib/types/Fleet.js';
+	import { ownedBy } from '#lib/types/MapObject.js';
 	import CommandTile from './CommandTile.svelte';
 
 	const { player, universe, commandMapObject } = getGameContext();
@@ -35,7 +35,7 @@
 
 {#if fleet}
 	<CommandTile title={planet ? `Orbiting ${planet.mapObject?.name}` : 'In Deep Space'}>
-		<div class="flex justify-between my-1 btn-group">
+		<div class="flex justify-between my-1">
 			<button
 				onclick={gotoTarget}
 				disabled={!planet || !ownedBy(planet, $player.num)}

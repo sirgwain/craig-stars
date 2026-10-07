@@ -1,18 +1,19 @@
 <script lang="ts">
-	import PlanetHabBars from '$lib/components/game/PlanetHabBars.svelte';
-	import PlanetHabValue from '$lib/components/game/PlanetHabValue.svelte';
-	import type { HabTooltipProps } from '$lib/components/game/tooltips/HabTooltip.svelte';
-	import HabTooltip from '$lib/components/game/tooltips/HabTooltip.svelte';
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
+	import PlanetHabBars from '#lib/components/game/PlanetHabBars.svelte';
+	import PlanetHabValue from '#lib/components/game/PlanetHabValue.svelte';
+	import type { HabTooltipProps } from '#lib/components/game/tooltips/HabTooltip.svelte';
+	import HabTooltip from '#lib/components/game/tooltips/HabTooltip.svelte';
 	import PopulationTooltip, {
 		type PopulationTooltipProps
-	} from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip } from '$lib/services/Stores';
-	import { population } from '$lib/types/Cargo';
-	import { None, ReportAgeUnexplored } from '$lib/types/Consts';
-	import type { Planet } from '$lib/types/cs-proto';
-	import { Grav, Rad, Temp } from '$lib/types/Hab';
-	import { ownedBy } from '$lib/types/MapObject';
+	} from '#lib/components/game/tooltips/PopulationTooltip.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { showTooltip } from '#lib/services/Stores.js';
+	import { population } from '#lib/types/Cargo.js';
+	import { None, ReportAgeUnexplored } from '#lib/types/Consts.js';
+	import type { Planet } from '#lib/types/cs-proto.js';
+	import { Grav, Rad, Temp } from '#lib/types/Hab.js';
+	import { ownedBy } from '#lib/types/MapObject.js';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import MapObjectIcon from './MapObjectIcon.svelte';
@@ -78,7 +79,14 @@
 			</div>
 		</div>
 	{:else}
-		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onPopulationTooltip}
+		>
 			<div class="ml-[5.5rem]">
 				Value: <PlanetHabValue {planet} />
 			</div>

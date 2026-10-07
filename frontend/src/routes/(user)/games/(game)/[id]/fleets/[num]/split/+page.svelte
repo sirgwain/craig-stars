@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { getGameContext } from '$lib/services/GameContext';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import { onMount } from 'svelte';
 	import SplitFleet from '../../../dialogs/split/SplitFleet.svelte';
 

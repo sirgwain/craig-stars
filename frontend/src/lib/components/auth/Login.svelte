@@ -52,27 +52,21 @@
 					onSubmit();
 				}}
 			>
-				<label class="label block">
-					<span class="label-text">Username</span>
+				<label class="cs-form-label block">
+					<span class="cs-label-text">Username</span>
 					<input
 						bind:value={user}
 						required
 						type="text"
 						name="user"
-						class="input input-bordered"
+						class="input"
 						autocapitalize="off"
 					/>
 				</label>
 
-				<label class="label block">
-					<span class="label-text">Password</span>
-					<input
-						bind:value={passwd}
-						required
-						type="password"
-						name="passwd"
-						class="input input-bordered"
-					/>
+				<label class="cs-form-label block">
+					<span class="cs-label-text">Password</span>
+					<input bind:value={passwd} required type="password" name="passwd" class="input" />
 				</label>
 				<button class="btn btn-primary" type="submit">Submit</button>
 			</form>

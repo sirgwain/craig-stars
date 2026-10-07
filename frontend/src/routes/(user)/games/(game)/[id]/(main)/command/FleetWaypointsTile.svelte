@@ -1,15 +1,15 @@
 <script lang="ts">
-	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
+	import WarpSpeedGauge from '#lib/components/game/WarpSpeedGauge.svelte';
 	import type {
 		ChangeWaypointProps,
 		DeleteWaypointProps,
 		SelectWaypointProps
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { StargateWarpSpeed } from '$lib/types/Consts';
-	import { MapObjectType, WaypointSchema, type Waypoint } from '$lib/types/cs-proto';
-	import { CommandedFleet } from '$lib/types/Fleet';
-	import { distance, emptyVector } from '$lib/types/Vector';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { StargateWarpSpeed } from '#lib/types/Consts.js';
+	import { MapObjectType, WaypointSchema, type Waypoint } from '#lib/types/cs-proto.js';
+	import { CommandedFleet } from '#lib/types/Fleet.js';
+	import { distance, emptyVector } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
 	import CommandTile from './CommandTile.svelte';
 
@@ -31,15 +31,10 @@
 	}: Props = $props();
 
 	// local state for the ui components
-	// eslint-disable-next-line svelte/prefer-writable-derived
-	let fleet = $state(rest.fleet);
+	let fleet = $derived(rest.fleet);
 	let waypoint: Waypoint = $derived(
 		fleet.fleetOrders.waypoints[selectedWaypointIndex] ?? create(WaypointSchema)
 	);
-
-	$effect(() => {
-		fleet = rest.fleet;
-	});
 
 	let previousWaypoint: Waypoint | undefined = $derived.by(() => {
 		if (selectedWaypointIndex > 0) {

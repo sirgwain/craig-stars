@@ -1,4 +1,4 @@
-import type { Position } from '$lib/types/MapObject';
+import type { Position } from '#lib/types/MapObject.js';
 import ScannerContextPopup from './ScannerContextPopup.svelte';
 import { showPopup, type PopupPropsBase } from './Popup';
 

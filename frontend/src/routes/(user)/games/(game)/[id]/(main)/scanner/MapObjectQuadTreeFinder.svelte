@@ -1,5 +1,5 @@
 <script module lang="ts">
-	import type { MapObjectLike } from '$lib/types/MapObject';
+	import type { MapObjectLike } from '#lib/types/MapObject.js';
 
 	/**
 	 * FinderEvents are pointer/touch/mouse events that target a MapObject in the scanner

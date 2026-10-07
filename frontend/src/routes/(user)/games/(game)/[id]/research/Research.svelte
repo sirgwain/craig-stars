@@ -1,18 +1,18 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import { CommandedPlayer, TechFields } from '$lib/types/Player';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import SectionHeader from '#lib/components/SectionHeader.svelte';
+	import { CommandedPlayer, TechFields } from '#lib/types/Player.js';
 	import { Beaker } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import SpinnerNumberText from '$lib/components/SpinnerNumberText.svelte';
-	import Factory from '$lib/components/icons/Factory.svelte';
-	import Microscope from '$lib/components/icons/Microscope.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { enumToString } from '$lib/types/Enums';
-	import { get } from '$lib/types/TechLevel';
-	import { NextResearchField, PlayerResearchSpecSchema, TechField } from '$lib/types/cs-proto';
+	import EnumSelect from '#lib/components/EnumSelect.svelte';
+	import SpinnerNumberText from '#lib/components/SpinnerNumberText.svelte';
+	import Factory from '#lib/components/icons/Factory.svelte';
+	import Microscope from '#lib/components/icons/Microscope.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { get } from '#lib/types/TechLevel.js';
+	import { NextResearchField, PlayerResearchSpecSchema, TechField } from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import FutureTechs from './FutureTechs.svelte';
 
@@ -40,7 +40,9 @@
 </script>
 
 <ItemTitle>Research</ItemTitle>
-<div class="stats stats-vertical sm:stats-horizontal sm:flex shadow border border-base-200 w-full">
+<div
+	class="stats stats-vertical sm:stats-horizontal sm:flex shadow-sm border border-base-200 w-full"
+>
 	<div class="stat place-items-center sm:grow">
 		<div class="stat-title">Researching</div>
 		<div class="stat-figure"><Icon class="w-8 h-8" src={Beaker} /></div>
@@ -64,7 +66,9 @@
 		</div>
 	</div>
 </div>
-<div class="stats stats-vertical sm:stats-horizontal sm:flex shadow border border-base-200 w-full">
+<div
+	class="stats stats-vertical sm:stats-horizontal sm:flex shadow-sm border border-base-200 w-full"
+>
 	<div class="stat place-items-center sm:grow">
 		<div class="stat-title">Spent Last Year</div>
 		<div class="stat-figure"><Microscope class="w-8 h-8 fill-primary" /></div>
@@ -107,9 +111,9 @@
 				Current Level <div class="divider secondary w-[90%]"></div>
 			</div>
 			{#each TechFields as field (field)}
-				<div class="form-control">
-					<label class="label cursor-pointer">
-						<span class="label-text">{enumToString(TechField, field)}</span>
+				<div class="cs-form-control">
+					<label class="cs-form-label cursor-pointer">
+						<span class="cs-label-text">{enumToString(TechField, field)}</span>
 						<input
 							type="radio"
 							name="researching"

@@ -1,6 +1,6 @@
-import { roundTo100 } from '$lib/services/Math';
-import type { DesignFinder } from '$lib/services/Universe';
-import type { ProductionPlanItem, ShipDesign } from '$lib/types/cs-proto';
+import { roundTo100 } from '#lib/services/Math.js';
+import type { DesignFinder } from '#lib/services/Universe.js';
+import type { ProductionPlanItem, ShipDesign } from '#lib/types/cs-proto.js';
 import {
 	CargoSchema,
 	HabSchema,
@@ -17,8 +17,8 @@ import {
 	type Planet,
 	type PlanetSpec,
 	type ProductionQueueItem
-} from '$lib/types/cs-proto';
-import type { CS } from '$lib/wasm';
+} from '#lib/types/cs-proto.js';
+import type { CS } from '#lib/wasm.js';
 import { clone, create, merge, type UnknownField } from '@bufbuild/protobuf';
 import { sortBy } from 'lodash-es';
 import { population } from './Cargo';
@@ -174,13 +174,12 @@ export class CommandedPlanet implements Planet {
 				(d) => d.spec?.starbase && this.spec?.planetStarbaseSpec?.starbaseDesignNum !== d.num
 			),
 			(d) => d.name
-		).map<ProductionQueueItem>(
-			(d: ShipDesign): ProductionQueueItem =>
-				create(ProductionQueueItemSchema, {
-					quantity: 1,
-					type: QueueItemType.STARBASE,
-					designNum: d.num
-				})
+		).map<ProductionQueueItem>((d: ShipDesign): ProductionQueueItem =>
+			create(ProductionQueueItemSchema, {
+				quantity: 1,
+				type: QueueItemType.STARBASE,
+				designNum: d.num
+			})
 		);
 
 		return items;

@@ -1,15 +1,15 @@
 <script lang="ts">
-	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
-	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import TextInput from '$lib/components/TextInput.svelte';
+	import CheckboxInput from '#lib/components/CheckboxInput.svelte';
+	import EnumSelect from '#lib/components/EnumSelect.svelte';
+	import TextInput from '#lib/components/TextInput.svelte';
 	import {
 		Density,
 		GameStartMode,
 		PlayerPositions,
 		Size,
 		type GameSettings
-	} from '$lib/types/cs-proto';
-	import { GameStartModeFullNames } from '$lib/types/Enums';
+	} from '#lib/types/cs-proto.js';
+	import { GameStartModeFullNames } from '#lib/types/Enums.js';
 	import PrivateGameLink from './PrivateGameLink.svelte';
 
 	type Props = {

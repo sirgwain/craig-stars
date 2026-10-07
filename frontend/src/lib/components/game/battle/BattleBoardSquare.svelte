@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { designFinderKey, getGameContext } from '$lib/services/GameContext';
-	import type { DesignFinder } from '$lib/services/Universe';
-	import { getHullIcon } from '$lib/techicon';
-	import type { PhaseToken } from '$lib/types/Battle';
-	import { getDisplayColor } from '$lib/utils/colorUtils';
+	import { designFinderKey, getGameContext } from '#lib/services/GameContext.js';
+	import type { DesignFinder } from '#lib/services/Universe.js';
+	import { getHullIcon } from '#lib/techicon.js';
+	import type { PhaseToken } from '#lib/types/Battle.js';
+	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 	import { getContext } from 'svelte';
 
 	const { player, universe, settings } = getGameContext();

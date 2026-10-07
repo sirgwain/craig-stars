@@ -1,5 +1,5 @@
-import type { PlayerStatus } from '$lib/types/cs-proto';
-import { GameSchema, type Game, type GameWithPlayers } from '$lib/types/cs-proto';
+import type { PlayerStatus } from '#lib/types/cs-proto.js';
+import { GameSchema, type Game, type GameWithPlayers } from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 
 export type GameWithPlayersFlat = Game & { players: PlayerStatus[] };

@@ -1,12 +1,13 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import TextTooltip, {
 		type TextTooltipProps
-	} from '$lib/components/game/tooltips/TextTooltip.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip } from '$lib/services/Stores';
-	import { type Minefield, type MinefieldSpec, MinefieldType } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { ownedBy } from '$lib/types/MapObject';
+	} from '#lib/components/game/tooltips/TextTooltip.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { showTooltip } from '#lib/services/Stores.js';
+	import { type Minefield, type MinefieldSpec, MinefieldType } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { ownedBy } from '#lib/types/MapObject.js';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import type { ChangeEventHandler } from 'svelte/elements';
@@ -96,7 +97,15 @@
 			<div class="w-40">Dmg done to each ship:</div>
 			<div>
 				{stats.damagePerEngine} ({stats.damagePerEngineRs}) / engine
-				<span class="cursor-help" onpointerdown={(e) => onTooltip(e)}>
+				<span
+					role="button"
+					tabindex={0}
+					aria-label="Show minefield damage details"
+					onkeydown={onPointerKeyDown}
+					onkeyup={onPointerKeyUp}
+					class="cursor-help"
+					onpointerdown={(e) => onTooltip(e)}
+				>
 					<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 				</span>
 			</div>
@@ -105,7 +114,15 @@
 			<div class="w-40">Min damage done to fleet:</div>
 			<div>
 				{stats.minDamagePerFleet} ({stats.minDamagePerFleetRs})
-				<span class="cursor-help" onpointerdown={(e) => onTooltip(e)}>
+				<span
+					role="button"
+					tabindex={0}
+					aria-label="Show minefield damage details"
+					onkeydown={onPointerKeyDown}
+					onkeyup={onPointerKeyUp}
+					class="cursor-help"
+					onpointerdown={(e) => onTooltip(e)}
+				>
 					<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 				</span>
 			</div>

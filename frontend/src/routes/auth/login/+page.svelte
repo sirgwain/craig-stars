@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Login from '$lib/components/auth/Login.svelte';
+	import Login from '#lib/components/auth/Login.svelte';
 </script>
 
 <div class="flex items-center justify-center min-h-[100dvh] card">

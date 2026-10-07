@@ -8,6 +8,36 @@ test('create a new game', async ({ newGamePage }) => {
 	await expect(gameLink).toHaveText(`${name} - 2400`);
 });
 
+test('planet tooltips support keyboard activation and dismissal', async ({ newGamePage }) => {
+	const { page } = newGamePage;
+	const population = page.getByRole('button', { name: /^Population / }).first();
+	await population.focus();
+	await page.keyboard.down('Enter');
+	await expect(page.getByRole('tooltip')).toBeVisible();
+	await page.keyboard.up('Enter');
+	await expect(page.getByRole('tooltip')).toBeHidden();
+	await expect(population).toBeFocused();
+	await page.keyboard.down('Space');
+	await expect(page.getByRole('tooltip')).toBeVisible();
+	await page.keyboard.press('Escape');
+	await expect(page.getByRole('tooltip')).toBeHidden();
+	await expect(population).toBeFocused();
+	await page.keyboard.up('Space');
+});
+
+test('navigation hotkeys follow the current route', async ({ testGamePage }) => {
+	const { page, gameId } = await testGamePage('Kitchen Sink');
+	await expect(page.locator('[data-type="game-link"]').first()).toBeVisible();
+
+	for (const report of ['planets', 'fleets', 'designs', 'messages', 'battles']) {
+		await page.keyboard.press('F3');
+		await expect(page).toHaveURL(new RegExp(`/games/${gameId}/${report}$`));
+	}
+
+	await page.keyboard.press('Escape');
+	await expect(page).toHaveURL(new RegExp(`/games/${gameId}$`));
+});
+
 test('submit turn', async ({ newGamePage }) => {
 	const { page, name } = newGamePage;
 	apiErrorsFailTest(page);
@@ -199,32 +229,32 @@ test('planets report page', async ({ newGamePage }) => {
 	await page.waitForURL(`/games/${id}/planets`);
 
 	// sort
-	await page.getByRole('button', { name: 'Name' }).click();
-	await page.getByRole('button', { name: 'Starbase' }).click();
-	await page.getByRole('button', { name: 'Population' }).click();
-	await page.getByRole('button', { name: 'Cap' }).click();
-	await page.getByRole('button', { name: 'Growth' }).click();
-	await page.getByRole('button', { name: 'Value' }).click();
-	await page.getByRole('button', { name: 'Production' }).click();
-	await page.getByRole('button', { name: 'Mine', exact: true }).click();
-	await page.getByRole('button', { name: 'Factories' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Name' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Starbase' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Population' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Cap' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Growth' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Value' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Production' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Mine', exact: true }).click();
+	await page.locator('thead').getByRole('button', { name: 'Factories' }).click();
 	await page.getByRole('columnheader', { name: 'Defense' }).click();
 	await page.getByRole('columnheader', { name: 'Minerals' }).click();
-	await page.getByRole('button', { name: 'Mining Rate' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Mining Rate' }).click();
 
 	// show all
 	await page.getByRole('checkbox', { name: 'Show All' }).check();
 
 	// sort
-	await page.getByRole('button', { name: 'Name' }).click();
-	await page.getByRole('button', { name: 'Owner' }).click();
-	await page.getByRole('button', { name: 'Report Age' }).click();
-	await page.getByRole('button', { name: 'Starbase' }).click();
-	await page.getByRole('button', { name: 'Population' }).click();
-	await page.getByRole('button', { name: 'Value' }).click();
-	await page.getByRole('button', { name: 'Defense' }).click();
-	await page.getByRole('button', { name: 'Minerals' }).click();
-	await page.getByRole('button', { name: 'Mineral Concentration' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Name' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Owner' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Report Age' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Starbase' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Population' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Value' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Defense' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Minerals' }).click();
+	await page.locator('thead').getByRole('button', { name: 'Mineral Concentration' }).click();
 
 	// show just ours
 	await page.getByRole('checkbox', { name: 'Show All' }).check();

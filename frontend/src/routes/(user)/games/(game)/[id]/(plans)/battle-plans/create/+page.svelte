@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import FormError from '$lib/components/FormError.svelte';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { addError } from '$lib/services/Errors';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { notify } from '$lib/services/Notifications';
+	import FormError from '#lib/components/FormError.svelte';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import { addError } from '#lib/services/Errors.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { notify } from '#lib/services/Notifications.js';
 	import {
 		BattleAttackWho,
 		BattlePlanSchema,
 		BattleTactic,
 		BattleTarget,
 		type BattlePlan
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import type { ConnectError } from '@connectrpc/connect';
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Prt, type Race } from '$lib/types/cs-proto';
+	import { Prt, type Race } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		race: Race;

@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import MineralTooltip, {
 		type MineralTooltipProps
-	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
-	import { showTooltip } from '$lib/services/Stores';
-	import type { MineralJson, Planet } from '$lib/types/cs-proto';
+	} from '#lib/components/game/tooltips/MineralTooltip.svelte';
+	import { showTooltip } from '#lib/services/Stores.js';
+	import type { MineralJson, Planet } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		mineral: MineralJson | undefined;
@@ -47,16 +48,31 @@
 {#if mineral}
 	<div class="tracking-wider text-center">
 		<span
+			role="button"
+			aria-disabled={!planet}
+			tabindex={planet ? 0 : undefined}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
 			class:cursor-help={!!planet}
 			onpointerdown={(e) => planet && onIroniumTooltip(e, planet)}
 			class="text-ironium">{Math.floor(mineral.ironium ?? 0).toFixed()}</span
 		>{showUnits ? ' kT' : ''}
 		<span
+			role="button"
+			aria-disabled={!planet}
+			tabindex={planet ? 0 : undefined}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
 			class:cursor-help={!!planet}
 			onpointerdown={(e) => planet && onBoraniumTooltip(e, planet)}
 			class="text-boranium">{Math.floor(mineral.boranium ?? 0).toFixed()}</span
 		>{showUnits ? ' kT' : ''}
 		<span
+			role="button"
+			aria-disabled={!planet}
+			tabindex={planet ? 0 : undefined}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
 			class:cursor-help={!!planet}
 			onpointerdown={(e) => planet && onGermaniumTooltip(e, planet)}
 			class="text-germanium">{Math.floor(mineral.germanium ?? 0).toFixed()}</span

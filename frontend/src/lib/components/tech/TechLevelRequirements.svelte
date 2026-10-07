@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { TechLevelSchema, type Player } from '$lib/types/cs-proto';
-	import type { TechLike } from '$lib/types/Tech';
-	import { emptyTechLevel } from '$lib/types/TechLevel';
+	import { TechLevelSchema, type Player } from '#lib/types/cs-proto.js';
+	import type { TechLike } from '#lib/types/Tech.js';
+	import { emptyTechLevel } from '#lib/types/TechLevel.js';
 	import { equals } from '@bufbuild/protobuf';
 
 	type Props = {

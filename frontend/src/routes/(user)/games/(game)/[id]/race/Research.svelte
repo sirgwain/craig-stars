@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Prt, ResearchCostLevel, TechField, type Race } from '$lib/types/cs-proto';
+	import { Prt, ResearchCostLevel, TechField, type Race } from '#lib/types/cs-proto.js';
 	import ResearchCostCard from './ResearchCostCard.svelte';
 
 	type Props = {

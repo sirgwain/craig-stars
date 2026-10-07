@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Menu from '$lib/components/Menu.svelte';
-	import { me } from '$lib/services/Stores';
+	import Menu from '#lib/components/Menu.svelte';
+	import { me } from '#lib/services/Stores.js';
 	import type { Snippet } from 'svelte';
 	type Props = {
 		children?: Snippet;

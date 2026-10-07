@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { getHullIcon } from '$lib/techicon';
-	import type { Fleet, ShipDesign, ShipToken } from '$lib/types/cs-proto';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { getHullIcon } from '#lib/techicon.js';
+	import type { Fleet, ShipDesign, ShipToken } from '#lib/types/cs-proto.js';
 	import { NoSymbol } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onShipDesignTooltip } from './game/tooltips/ShipDesignTooltip';

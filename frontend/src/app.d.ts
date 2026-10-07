@@ -1,4 +1,5 @@
 /// <reference types="@sveltejs/kit" />
+/// <reference types="golang-wasm-exec" />
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces

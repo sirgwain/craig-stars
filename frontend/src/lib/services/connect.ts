@@ -1,19 +1,19 @@
-import { AdminService } from '$lib/types/cs-proto';
-import { BattleService } from '$lib/types/cs-proto';
-import { FleetService } from '$lib/types/cs-proto';
-import { GameService } from '$lib/types/cs-proto';
-import { MinefieldService } from '$lib/types/cs-proto';
-import { PlanetService } from '$lib/types/cs-proto';
+import { AdminService } from '#lib/types/cs-proto.js';
+import { BattleService } from '#lib/types/cs-proto.js';
+import { FleetService } from '#lib/types/cs-proto.js';
+import { GameService } from '#lib/types/cs-proto.js';
+import { MinefieldService } from '#lib/types/cs-proto.js';
+import { PlanetService } from '#lib/types/cs-proto.js';
 import {
 	BattlePlanService,
 	PlayerService,
 	ProductionPlanService,
 	TransportPlanService
-} from '$lib/types/cs-proto';
-import { RaceService } from '$lib/types/cs-proto';
-import { ShipDesignService } from '$lib/types/cs-proto';
-import { TechService } from '$lib/types/cs-proto';
-import { UserService } from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
+import { RaceService } from '#lib/types/cs-proto.js';
+import { ShipDesignService } from '#lib/types/cs-proto.js';
+import { TechService } from '#lib/types/cs-proto.js';
+import { UserService } from '#lib/types/cs-proto.js';
 import { createClient } from '@connectrpc/connect';
 import { createConnectTransport } from '@connectrpc/connect-web';
 

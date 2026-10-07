@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Race } from '$lib/types/cs-proto';
-	import type { WasmClient } from '$lib/wasm';
+	import type { Race } from '#lib/types/cs-proto.js';
+	import type { WasmClient } from '#lib/wasm.js';
 	import { User } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -22,7 +22,7 @@
 
 <div class="sticky top-[4rem] z-10">
 	<div class="flex justify-end">
-		<div class="stats stats-horizontal shadow border border-base-200">
+		<div class="stats stats-horizontal shadow-sm border border-base-200">
 			<div class="stat place-items-center">
 				<div class="stat-title">Points</div>
 				<div class="stat-figure"><Icon class="w-8 h-8" src={User} /></div>

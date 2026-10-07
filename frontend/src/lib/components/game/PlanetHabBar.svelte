@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
-	import type { HabType } from '$lib/types/Hab';
-	import { getHabValueString, HabTypeShortString, habTypeString } from '$lib/types/Hab';
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
+	import { clamp } from '#lib/services/Math.js';
+	import type { HabType } from '#lib/types/Hab.js';
+	import { getHabValueString, HabTypeShortString, habTypeString } from '#lib/types/Hab.js';
 	import PlanetBaseHabPoint from './PlanetBaseHabPoint.svelte';
 	import PlanetHabPoint from './PlanetHabPoint.svelte';
 	import PlanetHabTerraformLine from './PlanetHabTerraformLine.svelte';
@@ -30,7 +31,16 @@
 	let habWidthPercent = $derived(clamp((width / 100) * 100, 0, 100));
 </script>
 
-<div class="flex flex-row" class:cursor-help={!!onTooltip} onpointerdown={onTooltip}>
+<div
+	role="button"
+	aria-disabled={!onTooltip}
+	tabindex={onTooltip ? 0 : undefined}
+	onkeydown={onPointerKeyDown}
+	onkeyup={onPointerKeyUp}
+	class="flex flex-row"
+	class:cursor-help={!!onTooltip}
+	onpointerdown={onTooltip}
+>
 	<div class="text-right w-[5.5rem] text-tile-item-title">{habTypeString(habType)}</div>
 	<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 		<div class="h-full relative">

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import {
 		VictoryConditionAttainTechLevels,
 		VictoryConditionExceedsScore,
@@ -8,7 +8,7 @@
 		VictoryConditionOwnCapitalShips,
 		VictoryConditionOwnPlanets,
 		VictoryConditionProductionCapacity
-	} from '$lib/types/Consts';
+	} from '#lib/types/Consts.js';
 	import { CheckBadge } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

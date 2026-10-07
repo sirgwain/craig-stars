@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { getTechIcon } from '$lib/techicon';
-	import type { TechHull } from '$lib/types/cs-proto';
-	import { isHull, type TechLike } from '$lib/types/Tech';
+	import { getTechIcon } from '#lib/techicon.js';
+	import type { TechHull } from '#lib/types/cs-proto.js';
+	import { isHull, type TechLike } from '#lib/types/Tech.js';
 	import { onTechHullTooltip } from '../game/tooltips/TechHullTooltip';
 	import { onTechTooltip } from '../game/tooltips/TechTooltip';
 

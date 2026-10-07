@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import PlanetViewStateHab from './PlanetViewStateHab.svelte';
 	import PlanetViewStateMineralConc from './PlanetViewStateMineralConc.svelte';
 	import PlanetViewStatesNormal from './PlanetViewStateNormal.svelte';
@@ -79,7 +79,7 @@
 
 		<div class="px-1 my-auto">
 			<input
-				class="input input-sm input-bordered w-16 pr-0 pl-1"
+				class="input input-sm w-16 pr-0 pl-1"
 				type="number"
 				min={0}
 				max={100}

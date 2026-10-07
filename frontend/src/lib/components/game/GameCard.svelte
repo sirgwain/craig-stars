@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Density, GameState, Size, type Game } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { type GameWithPlayersFlat } from '$lib/types/Game';
+	import { Density, GameState, Size, type Game } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { type GameWithPlayersFlat } from '#lib/types/Game.js';
 	import { Check, Trash, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -22,7 +22,7 @@
 </script>
 
 <div
-	class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 m-1 w-full sm:w-[350px]"
+	class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 pt-2 m-1 w-full sm:w-[350px]"
 >
 	{#if game}
 		<div class="card-body">

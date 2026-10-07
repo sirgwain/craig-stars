@@ -17,9 +17,8 @@ func newLoggerWithLogger(l *slog.Logger) sqldblogger.Logger {
 	}
 }
 
-// Log implement sqldblogger.Logger and log it as is.
-// To use context.Context values, please copy this file and adjust to your needs.
-func (zl *slogAdapter) Log(_ context.Context, level sqldblogger.Level, msg string, data map[string]interface{}) {
+// Log implements sqldblogger.Logger.
+func (zl *slogAdapter) Log(ctx context.Context, level sqldblogger.Level, msg string, data map[string]interface{}) {
 	var lvl slog.Level
 
 	switch level {
@@ -34,6 +33,12 @@ func (zl *slogAdapter) Log(_ context.Context, level sqldblogger.Level, msg strin
 	default:
 		lvl = slog.LevelDebug
 	}
+	// sqldb-logger supplies error text rather than the original error value,
+	// and uses context.Background for row iteration. Recognize its exact
+	// cancellation error while leaving other DB failures at error level.
+	if level == sqldblogger.LevelError && data["error"] == context.Canceled.Error() {
+		lvl = slog.LevelDebug
+	}
 
 	attrs := make([]slog.Attr, len(data))
 	i := 0
@@ -42,5 +47,5 @@ func (zl *slogAdapter) Log(_ context.Context, level sqldblogger.Level, msg strin
 		i++
 	}
 
-	zl.logger.LogAttrs(context.Background(), lvl, msg, attrs...)
+	zl.logger.LogAttrs(ctx, lvl, msg, attrs...)
 }

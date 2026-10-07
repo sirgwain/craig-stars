@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import { startCase } from 'lodash-es';
 	import PlayerScores from './PlayerScores.svelte';
 	import PlayerScoresGraph, { type ValueType } from './PlayerScoresGraph.svelte';
@@ -39,9 +39,12 @@
 	</div>
 	<div class="flex flex-row flex-wrap gap-1 justify-center">
 		{#each graphTypes as graphType (graphType)}
-			<div class="form-control">
-				<label class="label cursor-pointer btn w-[11rem]" class:bg-primary={type == graphType}>
-					<span class="label-text text-center w-full">{startCase(graphType)}</span>
+			<div class="cs-form-control">
+				<label
+					class="cs-form-label cursor-pointer btn w-[11rem]"
+					class:bg-primary={type == graphType}
+				>
+					<span class="cs-label-text text-center w-full">{startCase(graphType)}</span>
 					<input
 						type="radio"
 						name="score-graph-value-type"

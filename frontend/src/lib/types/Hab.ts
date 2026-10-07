@@ -1,7 +1,7 @@
-import { HabSchema, TerraformHabType, type Hab, type HabJson } from '$lib/types/cs-proto';
+import { HabSchema, TerraformHabType, type Hab, type HabJson } from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 
-export type HabType = number /* int */;
+export type HabType = number; /* int */
 export const Grav: HabType = 0;
 export const Temp: HabType = 1;
 export const Rad: HabType = 2;

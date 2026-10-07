@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import DesignCard from '$lib/components/game/DesignCard.svelte';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import type { ShipDesign } from '$lib/types/cs-proto';
-	import { getGameContext } from '$lib/services/GameContext';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import DesignCard from '#lib/components/game/DesignCard.svelte';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import type { ShipDesign } from '#lib/types/cs-proto.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { game, player, universe, deleteDesign } = getGameContext();
 

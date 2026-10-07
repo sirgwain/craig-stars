@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { me } from '$lib/services/Stores';
-	import type { GameWithPlayers } from '$lib/types/cs-proto';
+	import { me } from '#lib/services/Stores.js';
+	import type { GameWithPlayers } from '#lib/types/cs-proto.js';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

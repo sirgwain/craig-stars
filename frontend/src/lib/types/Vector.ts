@@ -3,7 +3,7 @@ import {
 	VectorSchema,
 	type Vector,
 	type VectorFloat64
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 
 export const emptyVector = () => create(VectorSchema, { x: 0, y: 0 });

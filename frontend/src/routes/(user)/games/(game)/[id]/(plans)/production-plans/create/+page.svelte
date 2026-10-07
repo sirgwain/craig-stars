@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import FormError from '$lib/components/FormError.svelte';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { addError } from '$lib/services/Errors';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { notify } from '$lib/services/Notifications';
-	import { ProductionPlanSchema, type ProductionPlan } from '$lib/types/cs-proto';
+	import FormError from '#lib/components/FormError.svelte';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import { addError } from '#lib/services/Errors.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { notify } from '#lib/services/Notifications.js';
+	import { ProductionPlanSchema, type ProductionPlan } from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import type { ConnectError } from '@connectrpc/connect';
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';

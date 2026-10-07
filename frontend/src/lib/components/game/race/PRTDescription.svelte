@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Prt } from '$lib/types/cs-proto';
+	import { Prt } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		prt?: Prt;

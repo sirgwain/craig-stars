@@ -1,4 +1,4 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 
 export const fixedScannerColors = {
 	// These path and tick colors stay fixed because Stars! uses XOR to combine them.

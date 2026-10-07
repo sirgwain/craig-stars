@@ -1,4 +1,4 @@
-import type { DesignFinder } from '$lib/services/Universe';
+import type { DesignFinder } from '#lib/services/Universe.js';
 import {
 	AiDifficulty,
 	CostSchema,
@@ -34,8 +34,8 @@ import {
 	type Race,
 	type TechLevel,
 	type TransportPlan
-} from '$lib/types/cs-proto';
-import type { CS } from '$lib/wasm';
+} from '#lib/types/cs-proto.js';
+import type { CS } from '#lib/wasm.js';
 import { create, merge, type UnknownField } from '@bufbuild/protobuf';
 import { add, emptyCargo } from './Cargo';
 import { multiply } from './Cost';

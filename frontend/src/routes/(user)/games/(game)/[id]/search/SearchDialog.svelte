@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { clickOutside } from '$lib/clickOutside';
-	import type { OnCancel, OnOk } from '$lib/services/Events';
-	import type { MapObjectLike } from '$lib/types/MapObject';
+	import { clickOutside } from '#lib/clickOutside.js';
+	import type { OnCancel, OnOk } from '#lib/services/Events.js';
+	import type { MapObjectLike } from '#lib/types/MapObject.js';
 	import SearchResults from './SearchResults.svelte';
 
 	type Props = {

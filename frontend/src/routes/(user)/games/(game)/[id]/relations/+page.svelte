@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import Relations from './Relations.svelte';
 
 	const { player, updatePlayerRelationships } = getGameContext();

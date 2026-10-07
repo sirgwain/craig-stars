@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { getHullIcon } from '$lib/techicon';
-	import { MinefieldType, type Planet } from '$lib/types/cs-proto';
-	import { getUnderlyingMapObject, type MapObjectLike } from '$lib/types/MapObject';
+	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { getHullIcon } from '#lib/techicon.js';
+	import { MinefieldType, type Planet } from '#lib/types/cs-proto.js';
+	import { getUnderlyingMapObject, type MapObjectLike } from '#lib/types/MapObject.js';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

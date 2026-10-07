@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readScannerColors } from './colors';
 
-vi.mock('$app/environment', () => ({ dev: true }));
+vi.mock('$app/env', () => ({ dev: true }));
 
 afterEach(() => {
 	vi.restoreAllMocks();

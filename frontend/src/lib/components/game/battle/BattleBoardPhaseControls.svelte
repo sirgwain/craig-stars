@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
-	import { type Battle } from '$lib/types/Battle';
-	import { BattleRecordTokenActionType } from '$lib/types/cs-proto';
+	import { clamp } from '#lib/services/Math.js';
+	import { type Battle } from '#lib/types/Battle.js';
+	import { BattleRecordTokenActionType } from '#lib/types/cs-proto.js';
 	import {
 		ArrowLongLeft,
 		ArrowLongRight,
@@ -71,7 +71,7 @@
 	<div>
 		<input
 			type="number"
-			class="input input-sm input-bordered hide-spinner"
+			class="input input-sm hide-spinner"
 			onchange={(e) => (phase = clamp(parseInt(e.currentTarget.value), 0, battle.totalPhases))}
 			onclick={(e) => e.currentTarget.select()}
 			min={0}

@@ -3,11 +3,11 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/Consts';
-	import { MapObjectType } from '$lib/types/cs-proto';
-	import { getMapObjectName, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
-	import { getDisplayColor } from '$lib/utils/colorUtils';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { None } from '#lib/types/Consts.js';
+	import { MapObjectType } from '#lib/types/cs-proto.js';
+	import { getMapObjectName, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
+	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 	import { flatten } from 'lodash-es';
 
 	const { player, universe, settings, commandMapObject, selectMapObject } = getGameContext();

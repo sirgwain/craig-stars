@@ -1,8 +1,8 @@
-import { UserSession, emptyUser } from '$lib/types/User';
+import { UserSession, emptyUser } from '#lib/types/User.js';
 import type { Component } from 'svelte';
 import { writable } from 'svelte/store';
 import { TechService } from './TechService';
-import type { MapObjectLike } from '$lib/types/MapObject';
+import type { MapObjectLike } from '#lib/types/MapObject.js';
 
 export type MapObjectsByPosition = {
 	[k: string]: MapObjectLike[];

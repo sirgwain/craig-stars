@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { humanoid } from '$lib/types/Race';
-	import { loadWasm, type CS } from '$lib/wasm';
+	import { humanoid } from '#lib/types/Race.js';
+	import { loadWasm, type CS } from '#lib/wasm.js';
 
 	import { onMount } from 'svelte';
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import { me } from '$lib/services/Stores';
-	import { NewGamePlayerType, type NewGamePlayer } from '$lib/types/cs-proto';
+	import EnumSelect from '#lib/components/EnumSelect.svelte';
+	import { me } from '#lib/services/Stores.js';
+	import { NewGamePlayerType, type NewGamePlayer } from '#lib/types/cs-proto.js';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import AiPlayer from './AIPlayer.svelte';

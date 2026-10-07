@@ -6,16 +6,16 @@ import {
 	Size,
 	VectorSchema,
 	type Vector
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import {
 	GameWithPlayersSchema,
 	VictoryConditionsSchema,
 	type Game,
 	type GameWithPlayers,
 	type VictoryConditions
-} from '$lib/types/cs-proto';
-import type { PlayerStatus } from '$lib/types/cs-proto';
-import { defaultRules } from '$lib/types/Rules';
+} from '#lib/types/cs-proto.js';
+import type { PlayerStatus } from '#lib/types/cs-proto.js';
+import { defaultRules } from '#lib/types/Rules.js';
 import { create } from '@bufbuild/protobuf';
 import { TimestampSchema } from '@bufbuild/protobuf/wkt';
 

@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { population, totalCargo } from '$lib/types/Cargo';
-	import { MineralPacketDecayToNothing, ReportAgeUnexplored } from '$lib/types/Consts';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { population, totalCargo } from '#lib/types/Cargo.js';
+	import { MineralPacketDecayToNothing, ReportAgeUnexplored } from '#lib/types/Consts.js';
 	import {
 		PlayerMessageType,
 		type MineralPacket,
 		type PlayerIntel,
 		type PlayerMessage
-	} from '$lib/types/cs-proto';
-	import { distance, emptyVector } from '$lib/types/Vector';
+	} from '#lib/types/cs-proto.js';
+	import { distance, emptyVector } from '#lib/types/Vector.js';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { player, universe } = getGameContext();

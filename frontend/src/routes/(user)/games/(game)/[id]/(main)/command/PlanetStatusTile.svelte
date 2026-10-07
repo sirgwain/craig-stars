@@ -1,14 +1,15 @@
 <script lang="ts">
-	import InnateScannerTooltip from '$lib/components/game/tooltips/InnateScannerTooltip.svelte';
-	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
+	import InnateScannerTooltip from '#lib/components/game/tooltips/InnateScannerTooltip.svelte';
+	import type { PopulationTooltipProps } from '#lib/components/game/tooltips/PopulationTooltip.svelte';
+	import PopulationTooltip from '#lib/components/game/tooltips/PopulationTooltip.svelte';
 	import ResourcesTooltip, {
 		type ResourcesTooltipProps
-	} from '$lib/components/game/tooltips/ResourcesTooltip.svelte';
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip, techs } from '$lib/services/Stores';
-	import type { CommandedPlanet } from '$lib/types/Planet';
+	} from '#lib/components/game/tooltips/ResourcesTooltip.svelte';
+	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { showTooltip, techs } from '#lib/services/Stores.js';
+	import type { CommandedPlanet } from '#lib/types/Planet.js';
 	import CommandTile from './CommandTile.svelte';
 
 	const { player, universe } = getGameContext();
@@ -56,11 +57,25 @@
 
 {#if planet.cargo}
 	<CommandTile title="Status">
-		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onPopulationTooltip}
+		>
 			<div class="text-tile-item-title">Population</div>
 			<div>{(planet.cargo.colonists * 100).toLocaleString()}</div>
 		</div>
-		<div class="flex justify-between cursor-help" onpointerdown={onResourcesTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onResourcesTooltip}
+		>
 			<div class="text-tile-item-title">Resources/Year</div>
 			<div>
 				{planet.spec.resourcesPerYearAvailable} of {planet.spec.resourcesPerYear}
@@ -69,11 +84,25 @@
 
 		<div class="divider p-0 m-0"></div>
 
-		<div class="flex justify-between cursor-help" onpointerdown={onScannerTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onScannerTooltip}
+		>
 			<div class="text-tile-item-title">Scanner Type</div>
 			<div>{planet.spec.scanner || 'none'}</div>
 		</div>
-		<div class="flex justify-between cursor-help" onpointerdown={onScannerTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onScannerTooltip}
+		>
 			<div class="text-tile-item-title">Scanner Range</div>
 			<div>{planet.spec.scanRange || '--'} l.y.</div>
 		</div>
@@ -81,15 +110,36 @@
 		{#if $player.race.spec.canBuildDefenses}
 			<div class="divider p-0 m-0"></div>
 
-			<div class="flex justify-between cursor-help" onpointerdown={onDefenseTooltip}>
+			<div
+				role="button"
+				tabindex={0}
+				onkeydown={onPointerKeyDown}
+				onkeyup={onPointerKeyUp}
+				class="flex justify-between cursor-help"
+				onpointerdown={onDefenseTooltip}
+			>
 				<div class="text-tile-item-title">Defenses</div>
 				<div>{planet.defenses} of {planet.spec.maxDefenses}</div>
 			</div>
-			<div class="flex justify-between cursor-help" onpointerdown={onDefenseTooltip}>
+			<div
+				role="button"
+				tabindex={0}
+				onkeydown={onPointerKeyDown}
+				onkeyup={onPointerKeyUp}
+				class="flex justify-between cursor-help"
+				onpointerdown={onDefenseTooltip}
+			>
 				<div class="text-tile-item-title">Defense Type</div>
 				<div>{planet.spec.defense}</div>
 			</div>
-			<div class="flex justify-between cursor-help" onpointerdown={onDefenseTooltip}>
+			<div
+				role="button"
+				tabindex={0}
+				onkeydown={onPointerKeyDown}
+				onkeyup={onPointerKeyUp}
+				class="flex justify-between cursor-help"
+				onpointerdown={onDefenseTooltip}
+			>
 				<div class="text-tile-item-title">Defense Coverage</div>
 				<div>
 					{(planet.spec.defenseCoverage * 100).toFixed(1)}%

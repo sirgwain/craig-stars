@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { WormholeStability, type Wormhole } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { WormholeStability, type Wormhole } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
 
 	const { universe } = getGameContext();
 

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Fleet } from '$lib/types/cs-proto';
-	import type { MergeFleetsEvent, OnCancel, OnOk } from '$lib/services/Events';
-	import { type CommandedFleet } from '$lib/types/Fleet';
-	import { getMapObjectName, key } from '$lib/types/MapObject';
+	import type { Fleet } from '#lib/types/cs-proto.js';
+	import type { MergeFleetsEvent, OnCancel, OnOk } from '#lib/services/Events.js';
+	import { type CommandedFleet } from '#lib/types/Fleet.js';
+	import { getMapObjectName, key } from '#lib/types/MapObject.js';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 

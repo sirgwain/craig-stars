@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Grav, Rad, Temp, type HabType } from '$lib/types/Hab';
-	import { getHabValueString, habTypeString } from '$lib/types/Hab';
+	import { Grav, Rad, Temp, type HabType } from '#lib/types/Hab.js';
+	import { getHabValueString, habTypeString } from '#lib/types/Hab.js';
 
 	type Props = {
 		habType: HabType;

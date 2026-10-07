@@ -1,4 +1,4 @@
-import type { Position } from '$lib/types/MapObject';
+import type { Position } from '#lib/types/MapObject.js';
 
 export type ScreenPoint = { x: number; y: number };
 

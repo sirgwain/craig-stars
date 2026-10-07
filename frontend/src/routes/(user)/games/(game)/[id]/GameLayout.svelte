@@ -1,10 +1,10 @@
 <script lang="ts">
-	import ErrorToast from '$lib/components/ErrorToast.svelte';
-	import LoadingModal from '$lib/components/LoadingModal.svelte';
-	import NotificationToast from '$lib/components/NotificationToast.svelte';
-	import Popup from '$lib/components/game/tooltips/Popup.svelte';
-	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
-	import { loadingModalText } from '$lib/services/Stores';
+	import ErrorToast from '#lib/components/ErrorToast.svelte';
+	import LoadingModal from '#lib/components/LoadingModal.svelte';
+	import NotificationToast from '#lib/components/NotificationToast.svelte';
+	import Popup from '#lib/components/game/tooltips/Popup.svelte';
+	import Tooltip from '#lib/components/game/tooltips/Tooltip.svelte';
+	import { loadingModalText } from '#lib/services/Stores.js';
 	import { type Snippet } from 'svelte';
 	import GameMenu from './GameMenu.svelte';
 

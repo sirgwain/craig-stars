@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
+	import { clamp } from '#lib/services/Math.js';
 
 	type Props = {
 		value: number;
@@ -9,7 +9,7 @@
 		readonly?: boolean;
 		onValueChanged?: (value: number) => number | undefined;
 	};
-	import { getXFromPointerEvent } from '$lib/services/Events';
+	import { getXFromPointerEvent, sliderValueForKey } from '#lib/services/Events.js';
 
 	let {
 		value,
@@ -100,11 +100,28 @@
 			value = onValueChanged?.(newValue) ?? newValue;
 		}
 	}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (readonly) return;
+		const next = sliderValueForKey(e.key, value, min, capacity);
+		if (next === undefined) return;
+		e.preventDefault();
+		e.stopPropagation();
+		value = onValueChanged?.(next) ?? next;
+	}
 </script>
 
 <div
+	role="slider"
+	aria-readonly={readonly}
+	aria-label={`${color.replace('-bar', '')} amount`}
+	aria-valuemin={min}
+	aria-valuemax={capacity}
+	aria-valuenow={value}
+	tabindex={readonly ? undefined : 0}
+	onkeydown={onKeyDown}
 	bind:this={ref}
-	class="border border-secondary w-full h-[1rem] text-[0rem] relative bg-gauge select-none"
+	class="border border-secondary w-full h-4 text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={!readonly}
 	onpointerdown={onPointerDown}
 	ontouchstart={onTouchStart}

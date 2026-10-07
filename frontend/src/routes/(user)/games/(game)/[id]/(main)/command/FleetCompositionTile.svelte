@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
-	import type { Waypoint } from '$lib/types/cs-proto';
+	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
+	import type { Waypoint } from '#lib/types/cs-proto.js';
 	import type {
 		BattlePlanChangedProps,
 		ShowMergeFleetsDialogProps,
 		ShowSplitFleetDialogProps,
 		SplitAllProps
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { Infinite } from '$lib/types/Consts';
-	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { Infinite } from '#lib/types/Consts.js';
+	import { getDamagePercentForToken, type CommandedFleet } from '#lib/types/Fleet.js';
 	import CommandTile from './CommandTile.svelte';
-	import { emptyVector } from '$lib/types/Vector';
+	import { emptyVector } from '#lib/types/Vector.js';
 
 	const { commandedFleet, player, universe } = getGameContext();
 

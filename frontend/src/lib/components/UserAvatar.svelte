@@ -16,8 +16,8 @@
 		{/if}
 	</div>
 {:else}
-	<div class="avatar placeholder select-none">
-		<div class="bg-neutral-focus text-neutral-content rounded-full border">
+	<div class="avatar avatar-placeholder select-none w-full h-full">
+		<div class="bg-neutral-focus text-neutral-content rounded-full border w-full h-full">
 			<span class="text-2xl uppercase">{user.username ? user.username[0] : '?'}</span>
 		</div>
 	</div>

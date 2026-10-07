@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import type { MineralPacket } from '$lib/types/cs-proto';
-	import { distance, emptyVector } from '$lib/types/Vector';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import type { MineralPacket } from '#lib/types/cs-proto.js';
+	import { distance, emptyVector } from '#lib/types/Vector.js';
 
 	const { universe } = getGameContext();
 

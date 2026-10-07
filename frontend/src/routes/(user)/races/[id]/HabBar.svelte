@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { type HabType, Grav, Temp, Rad } from '$lib/types/Hab';
-	import { clamp } from '$lib/services/Math';
+	import { type HabType, Grav, Temp, Rad } from '#lib/types/Hab.js';
+	import { clamp } from '#lib/services/Math.js';
 
 	type Props = {
 		habType: HabType;
@@ -128,15 +128,13 @@
 	});
 </script>
 
-<svelte:document {onmouseup} {onmousemove} />
-
 <div bind:this={container} class="grow px-1 overflow-hidden h-full">
 	<svg {width} {height} viewBox={`0 0 ${width} ${height}`}>
 		<rect x="0" y="0" {width} {height} fill="black"></rect>
 		{#if actualWidth != null && low != null && !isImmune}
 			<rect
 				bind:this={ref}
-				class="cursor-pointer focus:outline-none"
+				class="cursor-pointer focus:outline-hidden"
 				x={low + 2}
 				y="2"
 				width={actualWidth}

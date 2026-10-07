@@ -1,6 +1,6 @@
 <script module lang="ts">
-	import { ReportAgeUnexplored } from '$lib/types/Consts';
-	import type { CommandedPlayer } from '$lib/types/Player';
+	import { ReportAgeUnexplored } from '#lib/types/Consts.js';
+	import type { CommandedPlayer } from '#lib/types/Player.js';
 	export type PopulationTooltipProps = {
 		playerFinder: PlayerFinder;
 		player: CommandedPlayer;
@@ -9,11 +9,11 @@
 </script>
 
 <script lang="ts">
-	import type { PlayerFinder } from '$lib/services/Universe';
-	import { population } from '$lib/types/Cargo';
-	import { owned, ownedBy } from '$lib/types/MapObject';
-	import { getGrowth } from '$lib/types/Planet';
-	import type { Planet } from '$lib/types/cs-proto';
+	import type { PlayerFinder } from '#lib/services/Universe.js';
+	import { population } from '#lib/types/Cargo.js';
+	import { owned, ownedBy } from '#lib/types/MapObject.js';
+	import { getGrowth } from '#lib/types/Planet.js';
+	import type { Planet } from '#lib/types/cs-proto.js';
 
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 

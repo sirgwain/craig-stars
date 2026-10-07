@@ -13,47 +13,41 @@ type ProtoConverter struct{}
 func (c *ProtoConverter) ConvertBattlePlan(source *v1.BattlePlan) cs.BattlePlan {
 	var csBattlePlan cs.BattlePlan
 	if source != nil {
-		var csBattlePlan2 cs.BattlePlan
-		csBattlePlan2.Num = Int32ToInt((*source).Num)
-		csBattlePlan2.Name = (*source).Name
-		csBattlePlan2.PrimaryTarget = BattleTargetToCSBattleTarget((*source).PrimaryTarget)
-		csBattlePlan2.SecondaryTarget = BattleTargetToCSBattleTarget((*source).SecondaryTarget)
-		csBattlePlan2.Tactic = BattleTacticToCSBattleTactic((*source).Tactic)
-		csBattlePlan2.AttackWho = BattleAttackWhoToCSBattleAttackWho((*source).AttackWho)
-		csBattlePlan2.DumpCargo = (*source).DumpCargo
-		csBattlePlan = csBattlePlan2
+		csBattlePlan.Num = Int32ToInt((*source).Num)
+		csBattlePlan.Name = (*source).Name
+		csBattlePlan.PrimaryTarget = BattleTargetToCSBattleTarget((*source).PrimaryTarget)
+		csBattlePlan.SecondaryTarget = BattleTargetToCSBattleTarget((*source).SecondaryTarget)
+		csBattlePlan.Tactic = BattleTacticToCSBattleTactic((*source).Tactic)
+		csBattlePlan.AttackWho = BattleAttackWhoToCSBattleAttackWho((*source).AttackWho)
+		csBattlePlan.DumpCargo = (*source).DumpCargo
 	}
 	return csBattlePlan
 }
 func (c *ProtoConverter) ConvertBattleRecordTokenAction(source *v1.BattleRecordTokenAction) cs.BattleRecordTokenAction {
 	var csBattleRecordTokenAction cs.BattleRecordTokenAction
 	if source != nil {
-		var csBattleRecordTokenAction2 cs.BattleRecordTokenAction
-		csBattleRecordTokenAction2.Type = BattleRecordTokenActionTypeToCSBattleRecordTokenActionType((*source).Type)
-		csBattleRecordTokenAction2.TokenNum = Int32ToInt((*source).TokenNum)
-		csBattleRecordTokenAction2.Round = Int32ToInt((*source).Round)
-		csBattleRecordTokenAction2.From = c.ConvertVector((*source).From)
-		csBattleRecordTokenAction2.To = c.ConvertVector((*source).To)
-		csBattleRecordTokenAction2.Slot = Int32ToInt((*source).Slot)
-		csBattleRecordTokenAction2.TargetNum = Int32ToInt((*source).TargetNum)
-		csBattleRecordTokenAction2.Target = c.pCraig_starsv1ShipTokenToPCsShipToken((*source).Target)
-		csBattleRecordTokenAction2.TokensDestroyed = Int32ToInt((*source).TokensDestroyed)
-		csBattleRecordTokenAction2.DamageDoneShields = Int32ToInt((*source).DamageDoneShields)
-		csBattleRecordTokenAction2.DamageDoneArmor = Int32ToInt((*source).DamageDoneArmor)
-		csBattleRecordTokenAction2.TorpedoHits = Int32ToInt((*source).TorpedoHits)
-		csBattleRecordTokenAction2.TorpedoMisses = Int32ToInt((*source).TorpedoMisses)
-		csBattleRecordTokenAction = csBattleRecordTokenAction2
+		csBattleRecordTokenAction.Type = BattleRecordTokenActionTypeToCSBattleRecordTokenActionType((*source).Type)
+		csBattleRecordTokenAction.TokenNum = Int32ToInt((*source).TokenNum)
+		csBattleRecordTokenAction.Round = Int32ToInt((*source).Round)
+		csBattleRecordTokenAction.From = c.ConvertVector((*source).From)
+		csBattleRecordTokenAction.To = c.ConvertVector((*source).To)
+		csBattleRecordTokenAction.Slot = Int32ToInt((*source).Slot)
+		csBattleRecordTokenAction.TargetNum = Int32ToInt((*source).TargetNum)
+		csBattleRecordTokenAction.Target = c.pCraig_starsv1ShipTokenToPCsShipToken((*source).Target)
+		csBattleRecordTokenAction.TokensDestroyed = Int32ToInt((*source).TokensDestroyed)
+		csBattleRecordTokenAction.DamageDoneShields = Int32ToInt((*source).DamageDoneShields)
+		csBattleRecordTokenAction.DamageDoneArmor = Int32ToInt((*source).DamageDoneArmor)
+		csBattleRecordTokenAction.TorpedoHits = Int32ToInt((*source).TorpedoHits)
+		csBattleRecordTokenAction.TorpedoMisses = Int32ToInt((*source).TorpedoMisses)
 	}
 	return csBattleRecordTokenAction
 }
 func (c *ProtoConverter) ConvertByHandCargoTransfer(source *v1.ByHandCargoTransfer) cs.ByHandCargoTransfer {
 	var csByHandCargoTransfer cs.ByHandCargoTransfer
 	if source != nil {
-		var csByHandCargoTransfer2 cs.ByHandCargoTransfer
-		csByHandCargoTransfer2.MapObjectTarget = c.pCraig_starsv1MapObjectTargetToCsTarget((*source).MapObjectTarget)
-		csByHandCargoTransfer2.SourceFleetNum = Int32ToInt((*source).SourceFleetNum)
-		csByHandCargoTransfer2.Cargo = c.ConvertCargo((*source).Cargo)
-		csByHandCargoTransfer = csByHandCargoTransfer2
+		csByHandCargoTransfer.MapObjectTarget = c.pCraig_starsv1MapObjectTargetToCsTarget((*source).MapObjectTarget)
+		csByHandCargoTransfer.SourceFleetNum = Int32ToInt((*source).SourceFleetNum)
+		csByHandCargoTransfer.Cargo = c.ConvertCargo((*source).Cargo)
 	}
 	return csByHandCargoTransfer
 }
@@ -1039,85 +1033,74 @@ func (c *ProtoConverter) ConvertCSTechHull(source *cs.TechHull) *v1.TechHull {
 	}
 	return pCraig_starsv1TechHull
 }
-func (c *ProtoConverter) ConvertCSTechHullComponent(source cs.TechHullComponent) v1.TechHullComponent {
-	var craig_starsv1TechHullComponent v1.TechHullComponent
-	craig_starsv1TechHullComponent.Tech = c.csTechToPCraig_starsv1Tech(source.Tech)
-	craig_starsv1TechHullComponent.HullSlotType = uint32(source.HullSlotType)
-	craig_starsv1TechHullComponent.Mass = IntToInt32(source.Mass)
-	craig_starsv1TechHullComponent.Scanner = source.Scanner
-	craig_starsv1TechHullComponent.ScanRange = IntToInt32(source.ScanRange)
-	craig_starsv1TechHullComponent.ScanRangePen = IntToInt32(source.ScanRangePen)
-	craig_starsv1TechHullComponent.SafeHullMass = IntToInt32(source.SafeHullMass)
-	craig_starsv1TechHullComponent.SafeRange = IntToInt32(source.SafeRange)
-	craig_starsv1TechHullComponent.MaxHullMass = IntToInt32(source.MaxHullMass)
-	craig_starsv1TechHullComponent.MaxRange = IntToInt32(source.MaxRange)
-	craig_starsv1TechHullComponent.Radiating = source.Radiating
-	craig_starsv1TechHullComponent.PacketSpeed = IntToInt32(source.PacketSpeed)
-	craig_starsv1TechHullComponent.CloakUnits = IntToInt32(source.CloakUnits)
-	craig_starsv1TechHullComponent.TerraformRate = IntToInt32(source.TerraformRate)
-	craig_starsv1TechHullComponent.MiningRate = IntToInt32(source.MiningRate)
-	craig_starsv1TechHullComponent.KillRate = source.KillRate
-	craig_starsv1TechHullComponent.MinKillRate = IntToInt32(source.MinKillRate)
-	craig_starsv1TechHullComponent.StructureDestroyRate = source.StructureDestroyRate
-	craig_starsv1TechHullComponent.UnterraformRate = IntToInt32(source.UnterraformRate)
-	craig_starsv1TechHullComponent.Smart = source.Smart
-	craig_starsv1TechHullComponent.CanStealFleetCargo = source.CanStealFleetCargo
-	craig_starsv1TechHullComponent.CanStealPlanetCargo = source.CanStealPlanetCargo
-	craig_starsv1TechHullComponent.Armor = IntToInt32(source.Armor)
-	craig_starsv1TechHullComponent.Shield = IntToInt32(source.Shield)
-	craig_starsv1TechHullComponent.TorpedoBonus = source.TorpedoBonus
-	craig_starsv1TechHullComponent.InitiativeBonus = IntToInt32(source.InitiativeBonus)
-	craig_starsv1TechHullComponent.BeamBonus = source.BeamBonus
-	craig_starsv1TechHullComponent.ReduceMovement = IntToInt32(source.ReduceMovement)
-	craig_starsv1TechHullComponent.TorpedoJamming = source.TorpedoJamming
-	craig_starsv1TechHullComponent.ReduceCloaking = source.ReduceCloaking
-	craig_starsv1TechHullComponent.CloakUnarmedOnly = source.CloakUnarmedOnly
-	craig_starsv1TechHullComponent.MinefieldType = CSMinefieldTypeToMinefieldType(source.MinefieldType)
-	craig_starsv1TechHullComponent.MineLayingRate = IntToInt32(source.MineLayingRate)
-	craig_starsv1TechHullComponent.BeamDefense = source.BeamDefense
-	craig_starsv1TechHullComponent.CargoBonus = IntToInt32(source.CargoBonus)
-	craig_starsv1TechHullComponent.ColonizationModule = source.ColonizationModule
-	craig_starsv1TechHullComponent.FuelBonus = IntToInt32(source.FuelBonus)
-	craig_starsv1TechHullComponent.FuelGeneration = IntToInt32(source.FuelGeneration)
-	craig_starsv1TechHullComponent.MovementBonus = source.MovementBonus
-	craig_starsv1TechHullComponent.OrbitalConstructionModule = source.OrbitalConstructionModule
-	craig_starsv1TechHullComponent.Power = IntToInt32(source.Power)
-	craig_starsv1TechHullComponent.Range = IntToInt32(source.Range)
-	craig_starsv1TechHullComponent.Initiative = IntToInt32(source.Initiative)
-	craig_starsv1TechHullComponent.Gatling = source.Gatling
-	craig_starsv1TechHullComponent.HitsAllTargets = source.HitsAllTargets
-	craig_starsv1TechHullComponent.DamageShieldsOnly = source.DamageShieldsOnly
-	craig_starsv1TechHullComponent.Accuracy = IntToInt32(source.Accuracy)
-	craig_starsv1TechHullComponent.CapitalShipMissile = source.CapitalShipMissile
-	craig_starsv1TechHullComponent.CanJump = source.CanJump
-	craig_starsv1TechHullComponent.IdealSpeed = IntToInt32(source.Engine.IdealSpeed)
-	craig_starsv1TechHullComponent.FreeSpeed = IntToInt32(source.Engine.FreeSpeed)
-	craig_starsv1TechHullComponent.MaxSafeSpeed = IntToInt32(source.Engine.MaxSafeSpeed)
-	if source.Engine.FuelUsage != nil {
-		craig_starsv1TechHullComponent.FuelUsage = make([]int32, len(source.Engine.FuelUsage))
-		for i := 0; i < len(source.Engine.FuelUsage); i++ {
-			craig_starsv1TechHullComponent.FuelUsage[i] = IntToInt32(source.Engine.FuelUsage[i])
-		}
-	}
-	return craig_starsv1TechHullComponent
-}
 func (c *ProtoConverter) ConvertCSTechHullComponentP(source *cs.TechHullComponent) *v1.TechHullComponent {
 	var pCraig_starsv1TechHullComponent *v1.TechHullComponent
 	if source != nil {
-		craig_starsv1TechHullComponent := c.ConvertCSTechHullComponent((*source))
+		var craig_starsv1TechHullComponent v1.TechHullComponent
+		craig_starsv1TechHullComponent.Tech = c.csTechToPCraig_starsv1Tech((*source).Tech)
+		craig_starsv1TechHullComponent.HullSlotType = uint32((*source).HullSlotType)
+		craig_starsv1TechHullComponent.Mass = IntToInt32((*source).Mass)
+		craig_starsv1TechHullComponent.Scanner = (*source).Scanner
+		craig_starsv1TechHullComponent.ScanRange = IntToInt32((*source).ScanRange)
+		craig_starsv1TechHullComponent.ScanRangePen = IntToInt32((*source).ScanRangePen)
+		craig_starsv1TechHullComponent.SafeHullMass = IntToInt32((*source).SafeHullMass)
+		craig_starsv1TechHullComponent.SafeRange = IntToInt32((*source).SafeRange)
+		craig_starsv1TechHullComponent.MaxHullMass = IntToInt32((*source).MaxHullMass)
+		craig_starsv1TechHullComponent.MaxRange = IntToInt32((*source).MaxRange)
+		craig_starsv1TechHullComponent.Radiating = (*source).Radiating
+		craig_starsv1TechHullComponent.PacketSpeed = IntToInt32((*source).PacketSpeed)
+		craig_starsv1TechHullComponent.CloakUnits = IntToInt32((*source).CloakUnits)
+		craig_starsv1TechHullComponent.TerraformRate = IntToInt32((*source).TerraformRate)
+		craig_starsv1TechHullComponent.MiningRate = IntToInt32((*source).MiningRate)
+		craig_starsv1TechHullComponent.KillRate = (*source).KillRate
+		craig_starsv1TechHullComponent.MinKillRate = IntToInt32((*source).MinKillRate)
+		craig_starsv1TechHullComponent.StructureDestroyRate = (*source).StructureDestroyRate
+		craig_starsv1TechHullComponent.UnterraformRate = IntToInt32((*source).UnterraformRate)
+		craig_starsv1TechHullComponent.Smart = (*source).Smart
+		craig_starsv1TechHullComponent.CanStealFleetCargo = (*source).CanStealFleetCargo
+		craig_starsv1TechHullComponent.CanStealPlanetCargo = (*source).CanStealPlanetCargo
+		craig_starsv1TechHullComponent.Armor = IntToInt32((*source).Armor)
+		craig_starsv1TechHullComponent.Shield = IntToInt32((*source).Shield)
+		craig_starsv1TechHullComponent.TorpedoBonus = (*source).TorpedoBonus
+		craig_starsv1TechHullComponent.InitiativeBonus = IntToInt32((*source).InitiativeBonus)
+		craig_starsv1TechHullComponent.BeamBonus = (*source).BeamBonus
+		craig_starsv1TechHullComponent.ReduceMovement = IntToInt32((*source).ReduceMovement)
+		craig_starsv1TechHullComponent.TorpedoJamming = (*source).TorpedoJamming
+		craig_starsv1TechHullComponent.ReduceCloaking = (*source).ReduceCloaking
+		craig_starsv1TechHullComponent.CloakUnarmedOnly = (*source).CloakUnarmedOnly
+		craig_starsv1TechHullComponent.MinefieldType = CSMinefieldTypeToMinefieldType((*source).MinefieldType)
+		craig_starsv1TechHullComponent.MineLayingRate = IntToInt32((*source).MineLayingRate)
+		craig_starsv1TechHullComponent.BeamDefense = (*source).BeamDefense
+		craig_starsv1TechHullComponent.CargoBonus = IntToInt32((*source).CargoBonus)
+		craig_starsv1TechHullComponent.ColonizationModule = (*source).ColonizationModule
+		craig_starsv1TechHullComponent.FuelBonus = IntToInt32((*source).FuelBonus)
+		craig_starsv1TechHullComponent.FuelGeneration = IntToInt32((*source).FuelGeneration)
+		craig_starsv1TechHullComponent.MovementBonus = (*source).MovementBonus
+		craig_starsv1TechHullComponent.OrbitalConstructionModule = (*source).OrbitalConstructionModule
+		craig_starsv1TechHullComponent.Power = IntToInt32((*source).Power)
+		craig_starsv1TechHullComponent.Range = IntToInt32((*source).Range)
+		craig_starsv1TechHullComponent.Initiative = IntToInt32((*source).Initiative)
+		craig_starsv1TechHullComponent.Gatling = (*source).Gatling
+		craig_starsv1TechHullComponent.HitsAllTargets = (*source).HitsAllTargets
+		craig_starsv1TechHullComponent.DamageShieldsOnly = (*source).DamageShieldsOnly
+		craig_starsv1TechHullComponent.Accuracy = IntToInt32((*source).Accuracy)
+		craig_starsv1TechHullComponent.CapitalShipMissile = (*source).CapitalShipMissile
+		craig_starsv1TechHullComponent.CanJump = (*source).CanJump
+		craig_starsv1TechHullComponent.IdealSpeed = IntToInt32((*source).Engine.IdealSpeed)
+		craig_starsv1TechHullComponent.FreeSpeed = IntToInt32((*source).Engine.FreeSpeed)
+		craig_starsv1TechHullComponent.MaxSafeSpeed = IntToInt32((*source).Engine.MaxSafeSpeed)
+		if (*source).Engine.FuelUsage != nil {
+			craig_starsv1TechHullComponent.FuelUsage = make([]int32, len((*source).Engine.FuelUsage))
+			for i := 0; i < len((*source).Engine.FuelUsage); i++ {
+				craig_starsv1TechHullComponent.FuelUsage[i] = IntToInt32((*source).Engine.FuelUsage[i])
+			}
+		}
 		pCraig_starsv1TechHullComponent = &craig_starsv1TechHullComponent
 	}
 	return pCraig_starsv1TechHullComponent
 }
 func (c *ProtoConverter) ConvertCSTechHullComponents(source []cs.TechHullComponent) []*v1.TechHullComponent {
-	var pCraig_starsv1TechHullComponentList []*v1.TechHullComponent
-	if source != nil {
-		pCraig_starsv1TechHullComponentList = make([]*v1.TechHullComponent, len(source))
-		for i := 0; i < len(source); i++ {
-			pCraig_starsv1TechHullComponentList[i] = c.csTechHullComponentToPCraig_starsv1TechHullComponent(source[i])
-		}
-	}
-	return pCraig_starsv1TechHullComponentList
+	return CSTechHullComponentSlice(c, source)
 }
 func (c *ProtoConverter) ConvertCSTechHulls(source []cs.TechHull) []*v1.TechHull {
 	var pCraig_starsv1TechHullList []*v1.TechHull
@@ -1259,45 +1242,54 @@ func (c *ProtoConverter) ConvertCSWormholes(source []*cs.Wormhole) []*v1.Wormhol
 func (c *ProtoConverter) ConvertCargo(source *v1.Cargo) cs.Cargo {
 	var csCargo cs.Cargo
 	if source != nil {
-		var csCargo2 cs.Cargo
-		csCargo2.Ironium = Int32ToInt((*source).Ironium)
-		csCargo2.Boranium = Int32ToInt((*source).Boranium)
-		csCargo2.Germanium = Int32ToInt((*source).Germanium)
-		csCargo2.Colonists = Int32ToInt((*source).Colonists)
-		csCargo = csCargo2
+		csCargo.Ironium = Int32ToInt((*source).Ironium)
+		csCargo.Boranium = Int32ToInt((*source).Boranium)
+		csCargo.Germanium = Int32ToInt((*source).Germanium)
+		csCargo.Colonists = Int32ToInt((*source).Colonists)
 	}
 	return csCargo
 }
 func (c *ProtoConverter) ConvertCometStats(source *v1.CometStats) cs.CometStats {
 	var csCometStats cs.CometStats
 	if source != nil {
-		var csCometStats2 cs.CometStats
-		csCometStats2.AllMinerals = Int32ToInt((*source).AllMinerals)
-		csCometStats2.AllRandomMinerals = Int32ToInt((*source).AllRandomMinerals)
-		csCometStats2.BonusMinerals = Int32ToInt((*source).BonusMinerals)
-		csCometStats2.BonusRandomMinerals = Int32ToInt((*source).BonusRandomMinerals)
-		csCometStats2.BonusMinConcentration = Int32ToInt((*source).BonusMinConcentration)
-		csCometStats2.BonusRandomConcentration = Int32ToInt((*source).BonusRandomConcentration)
-		csCometStats2.BonusAffectsMinerals = Int32ToInt((*source).BonusAffectsMinerals)
-		csCometStats2.MinTerraform = Int32ToInt((*source).MinTerraform)
-		csCometStats2.RandomTerraform = Int32ToInt((*source).RandomTerraform)
-		csCometStats2.AffectsHabs = Int32ToInt((*source).AffectsHabs)
-		csCometStats2.PopKilledPercent = (*source).PopKilledPercent
-		csCometStats = csCometStats2
+		csCometStats.AllMinerals = Int32ToInt((*source).AllMinerals)
+		csCometStats.AllRandomMinerals = Int32ToInt((*source).AllRandomMinerals)
+		csCometStats.BonusMinerals = Int32ToInt((*source).BonusMinerals)
+		csCometStats.BonusRandomMinerals = Int32ToInt((*source).BonusRandomMinerals)
+		csCometStats.BonusMinConcentration = Int32ToInt((*source).BonusMinConcentration)
+		csCometStats.BonusRandomConcentration = Int32ToInt((*source).BonusRandomConcentration)
+		csCometStats.BonusAffectsMinerals = Int32ToInt((*source).BonusAffectsMinerals)
+		csCometStats.MinTerraform = Int32ToInt((*source).MinTerraform)
+		csCometStats.RandomTerraform = Int32ToInt((*source).RandomTerraform)
+		csCometStats.AffectsHabs = Int32ToInt((*source).AffectsHabs)
+		csCometStats.PopKilledPercent = (*source).PopKilledPercent
 	}
 	return csCometStats
 }
 func (c *ProtoConverter) ConvertCost(source *v1.Cost) cs.CostGeneric[int] {
 	var csCostGeneric cs.CostGeneric[int]
 	if source != nil {
-		var csCostGeneric2 cs.CostGeneric[int]
-		csCostGeneric2.Ironium = Int32ToInt((*source).Ironium)
-		csCostGeneric2.Boranium = Int32ToInt((*source).Boranium)
-		csCostGeneric2.Germanium = Int32ToInt((*source).Germanium)
-		csCostGeneric2.Resources = Int32ToInt((*source).Resources)
-		csCostGeneric = csCostGeneric2
+		csCostGeneric.Ironium = Int32ToInt((*source).Ironium)
+		csCostGeneric.Boranium = Int32ToInt((*source).Boranium)
+		csCostGeneric.Germanium = Int32ToInt((*source).Germanium)
+		csCostGeneric.Resources = Int32ToInt((*source).Resources)
 	}
 	return csCostGeneric
+}
+func (c *ProtoConverter) ConvertEngine(source *v1.TechHullComponent) cs.Engine {
+	var csEngine cs.Engine
+	if source != nil {
+		csEngine.IdealSpeed = Int32ToInt((*source).IdealSpeed)
+		csEngine.FreeSpeed = Int32ToInt((*source).FreeSpeed)
+		csEngine.MaxSafeSpeed = Int32ToInt((*source).MaxSafeSpeed)
+		if (*source).FuelUsage != nil {
+			csEngine.FuelUsage = make([]int, len((*source).FuelUsage))
+			for i := 0; i < len((*source).FuelUsage); i++ {
+				csEngine.FuelUsage[i] = Int32ToInt((*source).FuelUsage[i])
+			}
+		}
+	}
+	return csEngine
 }
 func (c *ProtoConverter) ConvertFleet(source *v1.Fleet) *cs.Fleet {
 	var pCsFleet *cs.Fleet
@@ -1342,15 +1334,13 @@ func (c *ProtoConverter) ConvertFleetOrders(source *v1.FleetOrders) *cs.FleetOrd
 func (c *ProtoConverter) ConvertFleetSpec(source *v1.FleetSpec) cs.FleetSpec {
 	var csFleetSpec cs.FleetSpec
 	if source != nil {
-		var csFleetSpec2 cs.FleetSpec
-		csFleetSpec2.ShipDesignSpec = c.pCraig_starsv1ShipDesignSpecToCsShipDesignSpec((*source).ShipDesignSpec)
-		csFleetSpec2.BaseCloakedCargo = Int32ToInt((*source).BaseCloakedCargo)
-		csFleetSpec2.HasMassDriver = (*source).HasMassDriver
-		csFleetSpec2.HasStargate = (*source).HasStargate
-		csFleetSpec2.MassEmpty = Int32ToInt((*source).MassEmpty)
-		csFleetSpec2.Purposes = BoolMapToShipDesignPurposeMap(c, (*source).Purposes)
-		csFleetSpec2.TotalShips = Int32ToInt((*source).TotalShips)
-		csFleetSpec = csFleetSpec2
+		csFleetSpec.ShipDesignSpec = c.pCraig_starsv1ShipDesignSpecToCsShipDesignSpec((*source).ShipDesignSpec)
+		csFleetSpec.BaseCloakedCargo = Int32ToInt((*source).BaseCloakedCargo)
+		csFleetSpec.HasMassDriver = (*source).HasMassDriver
+		csFleetSpec.HasStargate = (*source).HasStargate
+		csFleetSpec.MassEmpty = Int32ToInt((*source).MassEmpty)
+		csFleetSpec.Purposes = BoolMapToShipDesignPurposeMap(c, (*source).Purposes)
+		csFleetSpec.TotalShips = Int32ToInt((*source).TotalShips)
 	}
 	return csFleetSpec
 }
@@ -1358,7 +1348,7 @@ func (c *ProtoConverter) ConvertGame(source *v1.Game) *cs.Game {
 	var pCsGame *cs.Game
 	if source != nil {
 		var csGame cs.Game
-		csGame.DBObject = c.craig_starsv1GameToCsDBObject((*source))
+		csGame.DBObject = MapProtoGameDBObject(c, source)
 		csGame.HostID = (*source).HostId
 		csGame.Name = (*source).Name
 		csGame.State = GameStateToCSGameState((*source).State)
@@ -1386,160 +1376,159 @@ func (c *ProtoConverter) ConvertGame(source *v1.Game) *cs.Game {
 	}
 	return pCsGame
 }
+func (c *ProtoConverter) ConvertGameDBObject(source *v1.Game) cs.DBObject {
+	var csDBObject cs.DBObject
+	if source != nil {
+		csDBObject.ID = (*source).Id
+		csDBObject.CreatedAt = TimestampToTime((*source).CreatedAt)
+		csDBObject.UpdatedAt = TimestampToTime((*source).UpdatedAt)
+	}
+	return csDBObject
+}
 func (c *ProtoConverter) ConvertGameSettings(source *v1.GameSettings) cs.GameSettings {
 	var csGameSettings cs.GameSettings
 	if source != nil {
-		var csGameSettings2 cs.GameSettings
-		csGameSettings2.Name = (*source).Name
-		csGameSettings2.Public = (*source).Public
-		csGameSettings2.QuickStartTurns = Int32ToInt((*source).QuickStartTurns)
-		csGameSettings2.Size = SizeToCSSize((*source).Size)
-		csGameSettings2.Density = DensityToCSDensity((*source).Density)
-		csGameSettings2.PlayerPositions = PlayerPositionsToCSPlayerPositions((*source).PlayerPositions)
-		csGameSettings2.RandomEvents = (*source).RandomEvents
-		csGameSettings2.ComputerPlayersFormAlliances = (*source).ComputerPlayersFormAlliances
-		csGameSettings2.PublicPlayerScores = (*source).PublicPlayerScores
-		csGameSettings2.MaxMinerals = (*source).MaxMinerals
-		csGameSettings2.GalaxyClumping = (*source).GalaxyClumping
-		csGameSettings2.StartMode = GameStartModeToCSGameStartMode((*source).StartMode)
-		csGameSettings2.VictoryConditions = c.ConvertVictoryConditions((*source).VictoryConditions)
+		csGameSettings.Name = (*source).Name
+		csGameSettings.Public = (*source).Public
+		csGameSettings.QuickStartTurns = Int32ToInt((*source).QuickStartTurns)
+		csGameSettings.Size = SizeToCSSize((*source).Size)
+		csGameSettings.Density = DensityToCSDensity((*source).Density)
+		csGameSettings.PlayerPositions = PlayerPositionsToCSPlayerPositions((*source).PlayerPositions)
+		csGameSettings.RandomEvents = (*source).RandomEvents
+		csGameSettings.ComputerPlayersFormAlliances = (*source).ComputerPlayersFormAlliances
+		csGameSettings.PublicPlayerScores = (*source).PublicPlayerScores
+		csGameSettings.MaxMinerals = (*source).MaxMinerals
+		csGameSettings.GalaxyClumping = (*source).GalaxyClumping
+		csGameSettings.StartMode = GameStartModeToCSGameStartMode((*source).StartMode)
+		csGameSettings.VictoryConditions = c.ConvertVictoryConditions((*source).VictoryConditions)
 		if (*source).Players != nil {
-			csGameSettings2.Players = make([]cs.NewGamePlayer, len((*source).Players))
+			csGameSettings.Players = make([]cs.NewGamePlayer, len((*source).Players))
 			for i := 0; i < len((*source).Players); i++ {
-				csGameSettings2.Players[i] = c.pCraig_starsv1NewGamePlayerToCsNewGamePlayer((*source).Players[i])
+				csGameSettings.Players[i] = c.pCraig_starsv1NewGamePlayerToCsNewGamePlayer((*source).Players[i])
 			}
 		}
-		csGameSettings = csGameSettings2
 	}
 	return csGameSettings
 }
 func (c *ProtoConverter) ConvertHab(source *v1.Hab) cs.Hab {
 	var csHab cs.Hab
 	if source != nil {
-		var csHab2 cs.Hab
-		csHab2.Grav = Int32ToInt((*source).Grav)
-		csHab2.Temp = Int32ToInt((*source).Temp)
-		csHab2.Rad = Int32ToInt((*source).Rad)
-		csHab = csHab2
+		csHab.Grav = Int32ToInt((*source).Grav)
+		csHab.Temp = Int32ToInt((*source).Temp)
+		csHab.Rad = Int32ToInt((*source).Rad)
 	}
 	return csHab
 }
 func (c *ProtoConverter) ConvertIntels(source *v1.Intels) cs.Intels {
 	var csIntels cs.Intels
 	if source != nil {
-		var csIntels2 cs.Intels
 		if (*source).BattleRecords != nil {
-			csIntels2.BattleRecords = make([]cs.BattleRecord, len((*source).BattleRecords))
+			csIntels.BattleRecords = make([]cs.BattleRecord, len((*source).BattleRecords))
 			for i := 0; i < len((*source).BattleRecords); i++ {
-				csIntels2.BattleRecords[i] = c.pCraig_starsv1BattleRecordToCsBattleRecord((*source).BattleRecords[i])
+				csIntels.BattleRecords[i] = c.pCraig_starsv1BattleRecordToCsBattleRecord((*source).BattleRecords[i])
 			}
 		}
 		if (*source).PlayerIntels != nil {
-			csIntels2.PlayerIntels = make([]cs.PlayerIntel, len((*source).PlayerIntels))
+			csIntels.PlayerIntels = make([]cs.PlayerIntel, len((*source).PlayerIntels))
 			for j := 0; j < len((*source).PlayerIntels); j++ {
-				csIntels2.PlayerIntels[j] = c.pCraig_starsv1PlayerIntelToCsPlayerIntel((*source).PlayerIntels[j])
+				csIntels.PlayerIntels[j] = c.pCraig_starsv1PlayerIntelToCsPlayerIntel((*source).PlayerIntels[j])
 			}
 		}
 		if (*source).ScoreIntels != nil {
-			csIntels2.ScoreIntels = make([]cs.ScoreIntel, len((*source).ScoreIntels))
+			csIntels.ScoreIntels = make([]cs.ScoreIntel, len((*source).ScoreIntels))
 			for k := 0; k < len((*source).ScoreIntels); k++ {
-				csIntels2.ScoreIntels[k] = c.pCraig_starsv1ScoreIntelToCsScoreIntel((*source).ScoreIntels[k])
+				csIntels.ScoreIntels[k] = c.pCraig_starsv1ScoreIntelToCsScoreIntel((*source).ScoreIntels[k])
 			}
 		}
-		csIntels2.PlanetIntels = c.ConvertPlanets((*source).PlanetIntels)
+		csIntels.PlanetIntels = c.ConvertPlanets((*source).PlanetIntels)
 		if (*source).FleetIntels != nil {
-			csIntels2.FleetIntels = make([]*cs.Fleet, len((*source).FleetIntels))
+			csIntels.FleetIntels = make([]*cs.Fleet, len((*source).FleetIntels))
 			for l := 0; l < len((*source).FleetIntels); l++ {
-				csIntels2.FleetIntels[l] = c.ConvertFleet((*source).FleetIntels[l])
+				csIntels.FleetIntels[l] = c.ConvertFleet((*source).FleetIntels[l])
 			}
 		}
-		csIntels2.ShipDesignIntels = c.ConvertShipDesigns((*source).ShipDesignIntels)
+		csIntels.ShipDesignIntels = c.ConvertShipDesigns((*source).ShipDesignIntels)
 		if (*source).MineralPacketIntels != nil {
-			csIntels2.MineralPacketIntels = make([]*cs.MineralPacket, len((*source).MineralPacketIntels))
+			csIntels.MineralPacketIntels = make([]*cs.MineralPacket, len((*source).MineralPacketIntels))
 			for m := 0; m < len((*source).MineralPacketIntels); m++ {
-				csIntels2.MineralPacketIntels[m] = c.ConvertMineralPacket((*source).MineralPacketIntels[m])
+				csIntels.MineralPacketIntels[m] = c.ConvertMineralPacket((*source).MineralPacketIntels[m])
 			}
 		}
 		if (*source).MinefieldIntels != nil {
-			csIntels2.MinefieldIntels = make([]*cs.Minefield, len((*source).MinefieldIntels))
+			csIntels.MinefieldIntels = make([]*cs.Minefield, len((*source).MinefieldIntels))
 			for n := 0; n < len((*source).MinefieldIntels); n++ {
-				csIntels2.MinefieldIntels[n] = c.ConvertMinefield((*source).MinefieldIntels[n])
+				csIntels.MinefieldIntels[n] = c.ConvertMinefield((*source).MinefieldIntels[n])
 			}
 		}
 		if (*source).WormholeIntels != nil {
-			csIntels2.WormholeIntels = make([]*cs.Wormhole, len((*source).WormholeIntels))
+			csIntels.WormholeIntels = make([]*cs.Wormhole, len((*source).WormholeIntels))
 			for o := 0; o < len((*source).WormholeIntels); o++ {
-				csIntels2.WormholeIntels[o] = c.ConvertWormhole((*source).WormholeIntels[o])
+				csIntels.WormholeIntels[o] = c.ConvertWormhole((*source).WormholeIntels[o])
 			}
 		}
 		if (*source).MysteryTraderIntels != nil {
-			csIntels2.MysteryTraderIntels = make([]*cs.MysteryTrader, len((*source).MysteryTraderIntels))
+			csIntels.MysteryTraderIntels = make([]*cs.MysteryTrader, len((*source).MysteryTraderIntels))
 			for p := 0; p < len((*source).MysteryTraderIntels); p++ {
-				csIntels2.MysteryTraderIntels[p] = c.pCraig_starsv1MysteryTraderToPCsMysteryTrader((*source).MysteryTraderIntels[p])
+				csIntels.MysteryTraderIntels[p] = c.pCraig_starsv1MysteryTraderToPCsMysteryTrader((*source).MysteryTraderIntels[p])
 			}
 		}
 		if (*source).SalvageIntels != nil {
-			csIntels2.SalvageIntels = make([]*cs.Salvage, len((*source).SalvageIntels))
+			csIntels.SalvageIntels = make([]*cs.Salvage, len((*source).SalvageIntels))
 			for q := 0; q < len((*source).SalvageIntels); q++ {
-				csIntels2.SalvageIntels[q] = c.ConvertSalvage((*source).SalvageIntels[q])
+				csIntels.SalvageIntels[q] = c.ConvertSalvage((*source).SalvageIntels[q])
 			}
 		}
-		csIntels = csIntels2
 	}
 	return csIntels
 }
 func (c *ProtoConverter) ConvertLRTSpec(source *v1.LRTSpec) cs.LRTSpec {
 	var csLRTSpec cs.LRTSpec
 	if source != nil {
-		var csLRTSpec2 cs.LRTSpec
-		csLRTSpec2.LRT = cs.LRT((*source).Lrt)
+		csLRTSpec.LRT = cs.LRT((*source).Lrt)
 		if (*source).StartingFleets != nil {
-			csLRTSpec2.StartingFleets = make([]cs.StartingFleet, len((*source).StartingFleets))
+			csLRTSpec.StartingFleets = make([]cs.StartingFleet, len((*source).StartingFleets))
 			for i := 0; i < len((*source).StartingFleets); i++ {
-				csLRTSpec2.StartingFleets[i] = c.pCraig_starsv1StartingFleetToCsStartingFleet((*source).StartingFleets[i])
+				csLRTSpec.StartingFleets[i] = c.pCraig_starsv1StartingFleetToCsStartingFleet((*source).StartingFleets[i])
 			}
 		}
-		csLRTSpec2.PointCost = Int32ToInt((*source).PointCost)
-		csLRTSpec2.StartingTechLevels = c.ConvertTechLevel((*source).StartingTechLevels)
-		csLRTSpec2.TechCostOffset = IntMapToTechCostOffset(c, (*source).TechCostOffset)
-		csLRTSpec2.NewTechCostFactorOffset = (*source).NewTechCostFactorOffset
-		csLRTSpec2.MiniaturizationMax = (*source).MiniaturizationMax
-		csLRTSpec2.MiniaturizationPerLevel = (*source).MiniaturizationPerLevel
-		csLRTSpec2.NoAdvancedScanners = (*source).NoAdvancedScanners
-		csLRTSpec2.ScanRangeFactorOffset = (*source).ScanRangeFactorOffset
-		csLRTSpec2.FuelEfficiencyOffset = (*source).FuelEfficiencyOffset
-		csLRTSpec2.MaxPopulationOffset = (*source).MaxPopulationOffset
-		csLRTSpec2.MineralAlchemyCostOffset = Int32ToInt((*source).MineralAlchemyCostOffset)
-		csLRTSpec2.ScrapMineralOffset = (*source).ScrapMineralOffset
-		csLRTSpec2.ScrapMineralOffsetStarbase = (*source).ScrapMineralOffsetStarbase
-		csLRTSpec2.ScrapResourcesOffset = (*source).ScrapResourcesOffset
-		csLRTSpec2.ScrapResourcesOffsetStarbase = (*source).ScrapResourcesOffsetStarbase
-		csLRTSpec2.StartingPopulationFactorDelta = (*source).StartingPopulationFactorDelta
-		csLRTSpec2.StarbaseBuiltInCloakUnits = Int32ToInt((*source).StarbaseBuiltInCloakUnits)
-		csLRTSpec2.StarbaseCostFactor = (*source).StarbaseCostFactor
-		csLRTSpec2.ResearchFactorOffset = (*source).ResearchFactorOffset
-		csLRTSpec2.ResearchSplashDamage = (*source).ResearchSplashDamage
-		csLRTSpec2.ShieldStrengthFactorOffset = (*source).ShieldStrengthFactorOffset
-		csLRTSpec2.ShieldRegenerationRateOffset = (*source).ShieldRegenerationRateOffset
-		csLRTSpec2.ArmorStrengthFactorOffset = (*source).ArmorStrengthFactorOffset
-		csLRTSpec2.EngineFailureRateOffset = (*source).EngineFailureRateOffset
-		csLRTSpec2.EngineReliableSpeed = Int32ToInt((*source).EngineReliableSpeed)
-		csLRTSpec = csLRTSpec2
+		csLRTSpec.PointCost = Int32ToInt((*source).PointCost)
+		csLRTSpec.StartingTechLevels = c.ConvertTechLevel((*source).StartingTechLevels)
+		csLRTSpec.TechCostOffset = IntMapToTechCostOffset(c, (*source).TechCostOffset)
+		csLRTSpec.NewTechCostFactorOffset = (*source).NewTechCostFactorOffset
+		csLRTSpec.MiniaturizationMax = (*source).MiniaturizationMax
+		csLRTSpec.MiniaturizationPerLevel = (*source).MiniaturizationPerLevel
+		csLRTSpec.NoAdvancedScanners = (*source).NoAdvancedScanners
+		csLRTSpec.ScanRangeFactorOffset = (*source).ScanRangeFactorOffset
+		csLRTSpec.FuelEfficiencyOffset = (*source).FuelEfficiencyOffset
+		csLRTSpec.MaxPopulationOffset = (*source).MaxPopulationOffset
+		csLRTSpec.MineralAlchemyCostOffset = Int32ToInt((*source).MineralAlchemyCostOffset)
+		csLRTSpec.ScrapMineralOffset = (*source).ScrapMineralOffset
+		csLRTSpec.ScrapMineralOffsetStarbase = (*source).ScrapMineralOffsetStarbase
+		csLRTSpec.ScrapResourcesOffset = (*source).ScrapResourcesOffset
+		csLRTSpec.ScrapResourcesOffsetStarbase = (*source).ScrapResourcesOffsetStarbase
+		csLRTSpec.StartingPopulationFactorDelta = (*source).StartingPopulationFactorDelta
+		csLRTSpec.StarbaseBuiltInCloakUnits = Int32ToInt((*source).StarbaseBuiltInCloakUnits)
+		csLRTSpec.StarbaseCostFactor = (*source).StarbaseCostFactor
+		csLRTSpec.ResearchFactorOffset = (*source).ResearchFactorOffset
+		csLRTSpec.ResearchSplashDamage = (*source).ResearchSplashDamage
+		csLRTSpec.ShieldStrengthFactorOffset = (*source).ShieldStrengthFactorOffset
+		csLRTSpec.ShieldRegenerationRateOffset = (*source).ShieldRegenerationRateOffset
+		csLRTSpec.ArmorStrengthFactorOffset = (*source).ArmorStrengthFactorOffset
+		csLRTSpec.EngineFailureRateOffset = (*source).EngineFailureRateOffset
+		csLRTSpec.EngineReliableSpeed = Int32ToInt((*source).EngineReliableSpeed)
 	}
 	return csLRTSpec
 }
 func (c *ProtoConverter) ConvertMapObject(source *v1.MapObject) cs.MapObject {
 	var csMapObject cs.MapObject
 	if source != nil {
-		var csMapObject2 cs.MapObject
-		csMapObject2.Type = MapObjectTypeToCSMapObjectType((*source).Type)
-		csMapObject2.Position = c.ConvertVector((*source).Position)
-		csMapObject2.Num = Int32ToInt((*source).Num)
-		csMapObject2.PlayerNum = Int32ToInt((*source).PlayerNum)
-		csMapObject2.Name = (*source).Name
-		csMapObject2.Tags = c.mapStringStringToCsTags((*source).Tags)
-		csMapObject2.ReportAge = Int32ToInt((*source).ReportAge)
-		csMapObject = csMapObject2
+		csMapObject.Type = MapObjectTypeToCSMapObjectType((*source).Type)
+		csMapObject.Position = c.ConvertVector((*source).Position)
+		csMapObject.Num = Int32ToInt((*source).Num)
+		csMapObject.PlayerNum = Int32ToInt((*source).PlayerNum)
+		csMapObject.Name = (*source).Name
+		csMapObject.Tags = c.mapStringStringToCsTags((*source).Tags)
+		csMapObject.ReportAge = Int32ToInt((*source).ReportAge)
 	}
 	return csMapObject
 }
@@ -1568,17 +1557,15 @@ func (c *ProtoConverter) ConvertMinefieldOrders(source *v1.MinefieldOrders) *cs.
 func (c *ProtoConverter) ConvertMinefieldStats(source *v1.MinefieldStats) cs.MinefieldStats {
 	var csMinefieldStats cs.MinefieldStats
 	if source != nil {
-		var csMinefieldStats2 cs.MinefieldStats
-		csMinefieldStats2.MinDamagePerFleetRS = Int32ToInt((*source).MinDamagePerFleetRs)
-		csMinefieldStats2.DamagePerEngineRS = Int32ToInt((*source).DamagePerEngineRs)
-		csMinefieldStats2.MaxSpeed = Int32ToInt((*source).MaxSpeed)
-		csMinefieldStats2.ChanceOfHit = (*source).ChanceOfHit
-		csMinefieldStats2.MinDamagePerFleet = Int32ToInt((*source).MinDamagePerFleet)
-		csMinefieldStats2.DamagePerEngine = Int32ToInt((*source).DamagePerEngine)
-		csMinefieldStats2.SweepFactor = (*source).SweepFactor
-		csMinefieldStats2.MinDecay = Int32ToInt((*source).MinDecay)
-		csMinefieldStats2.CanDetonate = (*source).CanDetonate
-		csMinefieldStats = csMinefieldStats2
+		csMinefieldStats.MinDamagePerFleetRS = Int32ToInt((*source).MinDamagePerFleetRs)
+		csMinefieldStats.DamagePerEngineRS = Int32ToInt((*source).DamagePerEngineRs)
+		csMinefieldStats.MaxSpeed = Int32ToInt((*source).MaxSpeed)
+		csMinefieldStats.ChanceOfHit = (*source).ChanceOfHit
+		csMinefieldStats.MinDamagePerFleet = Int32ToInt((*source).MinDamagePerFleet)
+		csMinefieldStats.DamagePerEngine = Int32ToInt((*source).DamagePerEngine)
+		csMinefieldStats.SweepFactor = (*source).SweepFactor
+		csMinefieldStats.MinDecay = Int32ToInt((*source).MinDecay)
+		csMinefieldStats.CanDetonate = (*source).CanDetonate
 	}
 	return csMinefieldStats
 }
@@ -1599,95 +1586,84 @@ func (c *ProtoConverter) ConvertMineralPacket(source *v1.MineralPacket) *cs.Mine
 	}
 	return pCsMineralPacket
 }
+func (c *ProtoConverter) ConvertMysteryTraderReward(source *v1.PlayerMessageSpecMysteryTrader) cs.MysteryTraderReward {
+	var csMysteryTraderReward cs.MysteryTraderReward
+	if source != nil {
+		csMysteryTraderReward.Type = MysteryTraderRewardTypeToCSMysteryTraderRewardType((*source).Type)
+		csMysteryTraderReward.TechLevels = c.ConvertTechLevel((*source).TechLevels)
+		csMysteryTraderReward.Tech = (*source).Tech
+		csMysteryTraderReward.Ship = c.ConvertShipDesignP((*source).Ship)
+		csMysteryTraderReward.ShipCount = Int32ToInt((*source).ShipCount)
+	}
+	return csMysteryTraderReward
+}
 func (c *ProtoConverter) ConvertPRTSpec(source *v1.PRTSpec) cs.PRTSpec {
 	var csPRTSpec cs.PRTSpec
 	if source != nil {
-		var csPRTSpec2 cs.PRTSpec
-		csPRTSpec2.PRT = PRTToCSPRT((*source).Prt)
-		csPRTSpec2.PointCost = Int32ToInt((*source).PointCost)
-		csPRTSpec2.StartingTechLevels = c.ConvertTechLevel((*source).StartingTechLevels)
+		csPRTSpec.PRT = PRTToCSPRT((*source).Prt)
+		csPRTSpec.PointCost = Int32ToInt((*source).PointCost)
+		csPRTSpec.StartingTechLevels = c.ConvertTechLevel((*source).StartingTechLevels)
 		if (*source).StartingPlanets != nil {
-			csPRTSpec2.StartingPlanets = make([]cs.StartingPlanet, len((*source).StartingPlanets))
+			csPRTSpec.StartingPlanets = make([]cs.StartingPlanet, len((*source).StartingPlanets))
 			for i := 0; i < len((*source).StartingPlanets); i++ {
-				csPRTSpec2.StartingPlanets[i] = c.pCraig_starsv1StartingPlanetToCsStartingPlanet((*source).StartingPlanets[i])
+				csPRTSpec.StartingPlanets[i] = c.pCraig_starsv1StartingPlanetToCsStartingPlanet((*source).StartingPlanets[i])
 			}
 		}
-		csPRTSpec2.TechCostOffset = IntMapToTechCostOffset(c, (*source).TechCostOffset)
-		csPRTSpec2.MineralsPerSingleMineralPacket = Int32ToInt((*source).MineralsPerSingleMineralPacket)
-		csPRTSpec2.MineralsPerMixedMineralPacket = Int32ToInt((*source).MineralsPerMixedMineralPacket)
-		csPRTSpec2.PacketResourceCost = Int32ToInt((*source).PacketResourceCost)
-		csPRTSpec2.PacketMineralCostFactor = (*source).PacketMineralCostFactor
-		csPRTSpec2.PacketReceiverFactor = (*source).PacketReceiverFactor
-		csPRTSpec2.PacketDecayFactor = (*source).PacketDecayFactor
-		csPRTSpec2.PacketOverSafeWarpPenalty = Int32ToInt((*source).PacketOverSafeWarpPenalty)
-		csPRTSpec2.PacketBuiltInScanner = (*source).PacketBuiltInScanner
-		csPRTSpec2.DetectPacketDestinationStarbases = (*source).DetectPacketDestinationStarbases
-		csPRTSpec2.DetectAllPackets = (*source).DetectAllPackets
-		csPRTSpec2.PacketTerraformChance = (*source).PacketTerraformChance
-		csPRTSpec2.PacketPermaformChance = (*source).PacketPermaformChance
-		csPRTSpec2.PacketPermaTerraformSizeUnit = Int32ToInt((*source).PacketPermaTerraformSizeUnit)
-		csPRTSpec2.CanGateCargo = (*source).CanGateCargo
-		csPRTSpec2.CanDetectStargatePlanets = (*source).CanDetectStargatePlanets
-		csPRTSpec2.ShipsVanishInVoid = (*source).ShipsVanishInVoid
-		csPRTSpec2.BuiltInScanner = c.pCraig_starsv1BuiltInScannerToCsBuiltInScanner((*source).BuiltInScanner)
-		csPRTSpec2.TechsCostExtraLevel = Int32ToInt((*source).TechsCostExtraLevel)
-		csPRTSpec2.FreighterGrowth = c.pCraig_starsv1FreighterGrowthToCsFreighterGrowth((*source).FreighterGrowth)
-		csPRTSpec2.GrowthFactor = (*source).GrowthFactor
-		csPRTSpec2.MaxPopulationOffset = (*source).MaxPopulationOffset
-		csPRTSpec2.BuiltInCloakUnits = Int32ToInt((*source).BuiltInCloakUnits)
-		csPRTSpec2.StealsResearch = c.pCraig_starsv1StealsResearchToCsStealsResearch((*source).StealsResearch)
-		csPRTSpec2.FreeCargoCloaking = (*source).FreeCargoCloaking
-		csPRTSpec2.MinefieldsAreScanners = (*source).MinefieldsAreScanners
-		csPRTSpec2.MinefieldRateMoveFactor = (*source).MinefieldRateMoveFactor
-		csPRTSpec2.MinefieldSafeWarpBonus = Int32ToInt((*source).MinefieldSafeWarpBonus)
-		csPRTSpec2.MinefieldMinDecayFactor = (*source).MinefieldMinDecayFactor
-		csPRTSpec2.MinefieldBaseDecayRate = (*source).MinefieldBaseDecayRate
-		csPRTSpec2.MinefieldPlanetDecayRate = (*source).MinefieldPlanetDecayRate
-		csPRTSpec2.MinefieldMaxDecayRate = (*source).MinefieldMaxDecayRate
-		csPRTSpec2.CanDetonateMinefields = (*source).CanDetonateMinefields
-		csPRTSpec2.MinefieldDetonateDecayRate = (*source).MinefieldDetonateDecayRate
-		csPRTSpec2.DiscoverDesignOnScan = (*source).DiscoverDesignOnScan
-		csPRTSpec2.CanRemoteMineOwnPlanets = (*source).CanRemoteMineOwnPlanets
-		csPRTSpec2.InvasionAttackBonus = (*source).InvasionAttackBonus
-		csPRTSpec2.InvasionDefendBonus = (*source).InvasionDefendBonus
-		csPRTSpec2.MovementBonus = (*source).MovementBonus
-		csPRTSpec2.Instaforming = (*source).Instaforming
-		csPRTSpec2.PermaformChance = (*source).PermaformChance
-		csPRTSpec2.PermaformPopulation = Int32ToInt((*source).PermaformPopulation)
-		csPRTSpec2.RepairFactor = (*source).RepairFactor
-		csPRTSpec2.StarbaseRepairFactor = (*source).StarbaseRepairFactor
-		csPRTSpec2.StarbaseCostFactor = (*source).StarbaseCostFactor
-		csPRTSpec2.InnateMining = (*source).InnateMining
-		csPRTSpec2.InnateMinesFactor = (*source).InnateMinesFactor
-		csPRTSpec2.InnateResources = (*source).InnateResources
-		csPRTSpec2.InnateScanner = (*source).InnateScanner
-		csPRTSpec2.InnateScannerFactor = (*source).InnateScannerFactor
-		csPRTSpec2.CanBuildDefenses = (*source).CanBuildDefenses
-		csPRTSpec2.LivesOnStarbases = (*source).LivesOnStarbases
-		csPRTSpec2.MinHabFloor = Int32ToInt((*source).MinHabFloor)
-		csPRTSpec = csPRTSpec2
+		csPRTSpec.TechCostOffset = IntMapToTechCostOffset(c, (*source).TechCostOffset)
+		csPRTSpec.MineralsPerSingleMineralPacket = Int32ToInt((*source).MineralsPerSingleMineralPacket)
+		csPRTSpec.MineralsPerMixedMineralPacket = Int32ToInt((*source).MineralsPerMixedMineralPacket)
+		csPRTSpec.PacketResourceCost = Int32ToInt((*source).PacketResourceCost)
+		csPRTSpec.PacketMineralCostFactor = (*source).PacketMineralCostFactor
+		csPRTSpec.PacketReceiverFactor = (*source).PacketReceiverFactor
+		csPRTSpec.PacketDecayFactor = (*source).PacketDecayFactor
+		csPRTSpec.PacketOverSafeWarpPenalty = Int32ToInt((*source).PacketOverSafeWarpPenalty)
+		csPRTSpec.PacketBuiltInScanner = (*source).PacketBuiltInScanner
+		csPRTSpec.DetectPacketDestinationStarbases = (*source).DetectPacketDestinationStarbases
+		csPRTSpec.DetectAllPackets = (*source).DetectAllPackets
+		csPRTSpec.PacketTerraformChance = (*source).PacketTerraformChance
+		csPRTSpec.PacketPermaformChance = (*source).PacketPermaformChance
+		csPRTSpec.PacketPermaTerraformSizeUnit = Int32ToInt((*source).PacketPermaTerraformSizeUnit)
+		csPRTSpec.CanGateCargo = (*source).CanGateCargo
+		csPRTSpec.CanDetectStargatePlanets = (*source).CanDetectStargatePlanets
+		csPRTSpec.ShipsVanishInVoid = (*source).ShipsVanishInVoid
+		csPRTSpec.BuiltInScanner = c.pCraig_starsv1BuiltInScannerToCsBuiltInScanner((*source).BuiltInScanner)
+		csPRTSpec.TechsCostExtraLevel = Int32ToInt((*source).TechsCostExtraLevel)
+		csPRTSpec.FreighterGrowth = c.pCraig_starsv1FreighterGrowthToCsFreighterGrowth((*source).FreighterGrowth)
+		csPRTSpec.GrowthFactor = (*source).GrowthFactor
+		csPRTSpec.MaxPopulationOffset = (*source).MaxPopulationOffset
+		csPRTSpec.BuiltInCloakUnits = Int32ToInt((*source).BuiltInCloakUnits)
+		csPRTSpec.StealsResearch = c.pCraig_starsv1StealsResearchToCsStealsResearch((*source).StealsResearch)
+		csPRTSpec.FreeCargoCloaking = (*source).FreeCargoCloaking
+		csPRTSpec.MinefieldsAreScanners = (*source).MinefieldsAreScanners
+		csPRTSpec.MinefieldRateMoveFactor = (*source).MinefieldRateMoveFactor
+		csPRTSpec.MinefieldSafeWarpBonus = Int32ToInt((*source).MinefieldSafeWarpBonus)
+		csPRTSpec.MinefieldMinDecayFactor = (*source).MinefieldMinDecayFactor
+		csPRTSpec.MinefieldBaseDecayRate = (*source).MinefieldBaseDecayRate
+		csPRTSpec.MinefieldPlanetDecayRate = (*source).MinefieldPlanetDecayRate
+		csPRTSpec.MinefieldMaxDecayRate = (*source).MinefieldMaxDecayRate
+		csPRTSpec.CanDetonateMinefields = (*source).CanDetonateMinefields
+		csPRTSpec.MinefieldDetonateDecayRate = (*source).MinefieldDetonateDecayRate
+		csPRTSpec.DiscoverDesignOnScan = (*source).DiscoverDesignOnScan
+		csPRTSpec.CanRemoteMineOwnPlanets = (*source).CanRemoteMineOwnPlanets
+		csPRTSpec.InvasionAttackBonus = (*source).InvasionAttackBonus
+		csPRTSpec.InvasionDefendBonus = (*source).InvasionDefendBonus
+		csPRTSpec.MovementBonus = (*source).MovementBonus
+		csPRTSpec.Instaforming = (*source).Instaforming
+		csPRTSpec.PermaformChance = (*source).PermaformChance
+		csPRTSpec.PermaformPopulation = Int32ToInt((*source).PermaformPopulation)
+		csPRTSpec.RepairFactor = (*source).RepairFactor
+		csPRTSpec.StarbaseRepairFactor = (*source).StarbaseRepairFactor
+		csPRTSpec.StarbaseCostFactor = (*source).StarbaseCostFactor
+		csPRTSpec.InnateMining = (*source).InnateMining
+		csPRTSpec.InnateMinesFactor = (*source).InnateMinesFactor
+		csPRTSpec.InnateResources = (*source).InnateResources
+		csPRTSpec.InnateScanner = (*source).InnateScanner
+		csPRTSpec.InnateScannerFactor = (*source).InnateScannerFactor
+		csPRTSpec.CanBuildDefenses = (*source).CanBuildDefenses
+		csPRTSpec.LivesOnStarbases = (*source).LivesOnStarbases
+		csPRTSpec.MinHabFloor = Int32ToInt((*source).MinHabFloor)
 	}
 	return csPRTSpec
-}
-func (c *ProtoConverter) ConvertPlanet(source v1.Planet) cs.Planet {
-	var csPlanet cs.Planet
-	csPlanet.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject(source.GameDbObject)
-	csPlanet.MapObject = c.ConvertMapObject(source.MapObject)
-	csPlanet.PlanetOrders = c.pCraig_starsv1PlanetOrdersToCsPlanetOrders(source.PlanetOrders)
-	csPlanet.Hab = c.ConvertHab(source.Hab)
-	csPlanet.BaseHab = c.ConvertHab(source.BaseHab)
-	csPlanet.TerraformedAmount = c.ConvertHab(source.TerraformedAmount)
-	csPlanet.MineralConcentration = c.pCraig_starsv1MineralToCsMineral(source.MineralConcentration)
-	csPlanet.MineYears = c.pCraig_starsv1MineralToCsMineral(source.MineYears)
-	csPlanet.Cargo = c.ConvertCargo(source.Cargo)
-	csPlanet.PartialPopulation = Int32ToInt(source.PartialPopulation)
-	csPlanet.Mines = Int32ToInt(source.Mines)
-	csPlanet.Factories = Int32ToInt(source.Factories)
-	csPlanet.Defenses = Int32ToInt(source.Defenses)
-	csPlanet.Homeworld = source.Homeworld
-	csPlanet.Scanner = source.Scanner
-	csPlanet.Spec = c.ConvertPlanetSpec(source.Spec)
-	return csPlanet
 }
 func (c *ProtoConverter) ConvertPlanetOrders(source *v1.PlanetOrders) *cs.PlanetOrders {
 	var pCsPlanetOrders *cs.PlanetOrders
@@ -1712,7 +1688,23 @@ func (c *ProtoConverter) ConvertPlanetOrders(source *v1.PlanetOrders) *cs.Planet
 func (c *ProtoConverter) ConvertPlanetP(source *v1.Planet) *cs.Planet {
 	var pCsPlanet *cs.Planet
 	if source != nil {
-		csPlanet := c.ConvertPlanet((*source))
+		var csPlanet cs.Planet
+		csPlanet.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
+		csPlanet.MapObject = c.ConvertMapObject((*source).MapObject)
+		csPlanet.PlanetOrders = c.pCraig_starsv1PlanetOrdersToCsPlanetOrders((*source).PlanetOrders)
+		csPlanet.Hab = c.ConvertHab((*source).Hab)
+		csPlanet.BaseHab = c.ConvertHab((*source).BaseHab)
+		csPlanet.TerraformedAmount = c.ConvertHab((*source).TerraformedAmount)
+		csPlanet.MineralConcentration = c.pCraig_starsv1MineralToCsMineral((*source).MineralConcentration)
+		csPlanet.MineYears = c.pCraig_starsv1MineralToCsMineral((*source).MineYears)
+		csPlanet.Cargo = c.ConvertCargo((*source).Cargo)
+		csPlanet.PartialPopulation = Int32ToInt((*source).PartialPopulation)
+		csPlanet.Mines = Int32ToInt((*source).Mines)
+		csPlanet.Factories = Int32ToInt((*source).Factories)
+		csPlanet.Defenses = Int32ToInt((*source).Defenses)
+		csPlanet.Homeworld = (*source).Homeworld
+		csPlanet.Scanner = (*source).Scanner
+		csPlanet.Spec = c.ConvertPlanetSpec((*source).Spec)
 		pCsPlanet = &csPlanet
 	}
 	return pCsPlanet
@@ -1720,33 +1712,31 @@ func (c *ProtoConverter) ConvertPlanetP(source *v1.Planet) *cs.Planet {
 func (c *ProtoConverter) ConvertPlanetSpec(source *v1.PlanetSpec) cs.PlanetSpec {
 	var csPlanetSpec cs.PlanetSpec
 	if source != nil {
-		var csPlanetSpec2 cs.PlanetSpec
-		csPlanetSpec2.PlanetStarbaseSpec = c.pCraig_starsv1PlanetStarbaseSpecToCsPlanetStarbaseSpec((*source).PlanetStarbaseSpec)
-		csPlanetSpec2.CanTerraform = (*source).CanTerraform
-		csPlanetSpec2.Defense = (*source).Defense
-		csPlanetSpec2.DefenseCoverage = (*source).DefenseCoverage
-		csPlanetSpec2.DefenseCoverageSmart = (*source).DefenseCoverageSmart
-		csPlanetSpec2.GrowthAmount = Int32ToInt((*source).GrowthAmount)
-		csPlanetSpec2.Habitability = Int32ToInt((*source).Habitability)
-		csPlanetSpec2.MaxDefenses = Int32ToInt((*source).MaxDefenses)
-		csPlanetSpec2.MaxFactories = Int32ToInt((*source).MaxFactories)
-		csPlanetSpec2.MaxMines = Int32ToInt((*source).MaxMines)
-		csPlanetSpec2.MaxPopulation = Int32ToInt((*source).MaxPopulation)
-		csPlanetSpec2.MaxPossibleFactories = Int32ToInt((*source).MaxPossibleFactories)
-		csPlanetSpec2.MaxPossibleMines = Int32ToInt((*source).MaxPossibleMines)
-		csPlanetSpec2.MiningOutput = c.pCraig_starsv1MineralToCsMineral((*source).MiningOutput)
-		csPlanetSpec2.PopulationDensity = (*source).PopulationDensity
-		csPlanetSpec2.ResourcesPerYear = Int32ToInt((*source).ResourcesPerYear)
-		csPlanetSpec2.ResourcesPerYearAvailable = Int32ToInt((*source).ResourcesPerYearAvailable)
-		csPlanetSpec2.ResourcesPerYearResearch = Int32ToInt((*source).ResourcesPerYearResearch)
-		csPlanetSpec2.ResourcesPerYearResearchEstimatedLeftover = Int32ToInt((*source).ResourcesPerYearResearchEstimatedLeftover)
-		csPlanetSpec2.Scanner = (*source).Scanner
-		csPlanetSpec2.ScanRange = Int32ToInt((*source).ScanRange)
-		csPlanetSpec2.ScanRangePen = Int32ToInt((*source).ScanRangePen)
-		csPlanetSpec2.TerraformAmount = c.ConvertHab((*source).TerraformAmount)
-		csPlanetSpec2.MinTerraformAmount = c.ConvertHab((*source).MinTerraformAmount)
-		csPlanetSpec2.TerraformedHabitability = Int32ToInt((*source).TerraformedHabitability)
-		csPlanetSpec = csPlanetSpec2
+		csPlanetSpec.PlanetStarbaseSpec = c.pCraig_starsv1PlanetStarbaseSpecToCsPlanetStarbaseSpec((*source).PlanetStarbaseSpec)
+		csPlanetSpec.CanTerraform = (*source).CanTerraform
+		csPlanetSpec.Defense = (*source).Defense
+		csPlanetSpec.DefenseCoverage = (*source).DefenseCoverage
+		csPlanetSpec.DefenseCoverageSmart = (*source).DefenseCoverageSmart
+		csPlanetSpec.GrowthAmount = Int32ToInt((*source).GrowthAmount)
+		csPlanetSpec.Habitability = Int32ToInt((*source).Habitability)
+		csPlanetSpec.MaxDefenses = Int32ToInt((*source).MaxDefenses)
+		csPlanetSpec.MaxFactories = Int32ToInt((*source).MaxFactories)
+		csPlanetSpec.MaxMines = Int32ToInt((*source).MaxMines)
+		csPlanetSpec.MaxPopulation = Int32ToInt((*source).MaxPopulation)
+		csPlanetSpec.MaxPossibleFactories = Int32ToInt((*source).MaxPossibleFactories)
+		csPlanetSpec.MaxPossibleMines = Int32ToInt((*source).MaxPossibleMines)
+		csPlanetSpec.MiningOutput = c.pCraig_starsv1MineralToCsMineral((*source).MiningOutput)
+		csPlanetSpec.PopulationDensity = (*source).PopulationDensity
+		csPlanetSpec.ResourcesPerYear = Int32ToInt((*source).ResourcesPerYear)
+		csPlanetSpec.ResourcesPerYearAvailable = Int32ToInt((*source).ResourcesPerYearAvailable)
+		csPlanetSpec.ResourcesPerYearResearch = Int32ToInt((*source).ResourcesPerYearResearch)
+		csPlanetSpec.ResourcesPerYearResearchEstimatedLeftover = Int32ToInt((*source).ResourcesPerYearResearchEstimatedLeftover)
+		csPlanetSpec.Scanner = (*source).Scanner
+		csPlanetSpec.ScanRange = Int32ToInt((*source).ScanRange)
+		csPlanetSpec.ScanRangePen = Int32ToInt((*source).ScanRangePen)
+		csPlanetSpec.TerraformAmount = c.ConvertHab((*source).TerraformAmount)
+		csPlanetSpec.MinTerraformAmount = c.ConvertHab((*source).MinTerraformAmount)
+		csPlanetSpec.TerraformedHabitability = Int32ToInt((*source).TerraformedHabitability)
 	}
 	return csPlanetSpec
 }
@@ -1801,7 +1791,7 @@ func (c *ProtoConverter) ConvertPlayerMessageSpecMysteryTrader(source *v1.Player
 	var pCsPlayerMessageSpecMysteryTrader *cs.PlayerMessageSpecMysteryTrader
 	if source != nil {
 		var csPlayerMessageSpecMysteryTrader cs.PlayerMessageSpecMysteryTrader
-		csPlayerMessageSpecMysteryTrader.MysteryTraderReward = c.craig_starsv1PlayerMessageSpecMysteryTraderToCsMysteryTraderReward((*source))
+		csPlayerMessageSpecMysteryTrader.MysteryTraderReward = MapProtoMysteryTraderReward(c, source)
 		csPlayerMessageSpecMysteryTrader.FleetNum = Int32ToInt((*source).FleetNum)
 		pCsPlayerMessageSpecMysteryTrader = &csPlayerMessageSpecMysteryTrader
 	}
@@ -1810,12 +1800,10 @@ func (c *ProtoConverter) ConvertPlayerMessageSpecMysteryTrader(source *v1.Player
 func (c *ProtoConverter) ConvertPlayerOrders(source *v1.PlayerOrders) cs.PlayerOrders {
 	var csPlayerOrders cs.PlayerOrders
 	if source != nil {
-		var csPlayerOrders2 cs.PlayerOrders
-		csPlayerOrders2.Researching = TechFieldToCSTechField((*source).Researching)
-		csPlayerOrders2.NextResearchField = NextResearchFieldToCSNextResearchField((*source).NextResearchField)
-		csPlayerOrders2.ResearchAmount = Int32ToInt((*source).ResearchAmount)
-		csPlayerOrders2.CargoTransfers = c.mapStringPCraig_starsv1CargoTransfersToCsCargoTransfers((*source).CargoTransfers)
-		csPlayerOrders = csPlayerOrders2
+		csPlayerOrders.Researching = TechFieldToCSTechField((*source).Researching)
+		csPlayerOrders.NextResearchField = NextResearchFieldToCSNextResearchField((*source).NextResearchField)
+		csPlayerOrders.ResearchAmount = Int32ToInt((*source).ResearchAmount)
+		csPlayerOrders.CargoTransfers = c.mapStringPCraig_starsv1CargoTransfersToCsCargoTransfers((*source).CargoTransfers)
 	}
 	return csPlayerOrders
 }
@@ -1832,98 +1820,95 @@ func (c *ProtoConverter) ConvertPlayerRelations(source []*v1.PlayerRelationship)
 func (c *ProtoConverter) ConvertPlayerResearchSpec(source *v1.PlayerResearchSpec) cs.PlayerResearchSpec {
 	var csPlayerResearchSpec cs.PlayerResearchSpec
 	if source != nil {
-		var csPlayerResearchSpec2 cs.PlayerResearchSpec
-		csPlayerResearchSpec2.ResourcesPerYear = Int32ToInt((*source).ResourcesPerYear)
-		csPlayerResearchSpec2.ResourcesPerYearResearch = Int32ToInt((*source).ResourcesPerYearResearch)
-		csPlayerResearchSpec2.ResourcesPerYearResearchEstimated = Int32ToInt((*source).ResourcesPerYearResearchEstimated)
-		csPlayerResearchSpec2.CurrentResearchCost = Int32ToInt((*source).CurrentResearchCost)
-		csPlayerResearchSpec = csPlayerResearchSpec2
+		csPlayerResearchSpec.ResourcesPerYear = Int32ToInt((*source).ResourcesPerYear)
+		csPlayerResearchSpec.ResourcesPerYearResearch = Int32ToInt((*source).ResourcesPerYearResearch)
+		csPlayerResearchSpec.ResourcesPerYearResearchEstimated = Int32ToInt((*source).ResourcesPerYearResearchEstimated)
+		csPlayerResearchSpec.CurrentResearchCost = Int32ToInt((*source).CurrentResearchCost)
 	}
 	return csPlayerResearchSpec
 }
 func (c *ProtoConverter) ConvertPlayerStatus(source *v1.PlayerStatus) cs.GamePlayer {
 	var csGamePlayer cs.GamePlayer
 	if source != nil {
-		var csGamePlayer2 cs.GamePlayer
-		csGamePlayer2.ID = (*source).Id
-		csGamePlayer2.UpdatedAt = TimestampToTimep((*source).UpdatedAt)
-		csGamePlayer2.UserID = (*source).UserId
-		csGamePlayer2.Name = (*source).Name
-		csGamePlayer2.Num = Int32ToInt((*source).Num)
-		csGamePlayer2.Ready = (*source).Ready
-		csGamePlayer2.AIControlled = (*source).AiControlled
-		csGamePlayer2.AIDifficulty = AIDifficultyToCSAIDifficulty((*source).AiDifficulty)
-		csGamePlayer2.Guest = (*source).Guest
-		csGamePlayer2.SubmittedTurn = (*source).SubmittedTurn
-		csGamePlayer2.Color = (*source).Color
-		csGamePlayer2.Victor = (*source).Victor
-		csGamePlayer2.Archived = (*source).Archived
-		csGamePlayer = csGamePlayer2
+		csGamePlayer.ID = (*source).Id
+		csGamePlayer.UpdatedAt = TimestampToTimep((*source).UpdatedAt)
+		csGamePlayer.UserID = (*source).UserId
+		csGamePlayer.Name = (*source).Name
+		csGamePlayer.Num = Int32ToInt((*source).Num)
+		csGamePlayer.Ready = (*source).Ready
+		csGamePlayer.AIControlled = (*source).AiControlled
+		csGamePlayer.AIDifficulty = AIDifficultyToCSAIDifficulty((*source).AiDifficulty)
+		csGamePlayer.Guest = (*source).Guest
+		csGamePlayer.SubmittedTurn = (*source).SubmittedTurn
+		csGamePlayer.Color = (*source).Color
+		csGamePlayer.Victor = (*source).Victor
+		csGamePlayer.Archived = (*source).Archived
 	}
 	return csGamePlayer
 }
 func (c *ProtoConverter) ConvertProductionPlan(source *v1.ProductionPlan) cs.ProductionPlan {
 	var csProductionPlan cs.ProductionPlan
 	if source != nil {
-		var csProductionPlan2 cs.ProductionPlan
-		csProductionPlan2.Num = Int32ToInt((*source).Num)
-		csProductionPlan2.Name = (*source).Name
+		csProductionPlan.Num = Int32ToInt((*source).Num)
+		csProductionPlan.Name = (*source).Name
 		if (*source).Items != nil {
-			csProductionPlan2.Items = make([]cs.ProductionPlanItem, len((*source).Items))
+			csProductionPlan.Items = make([]cs.ProductionPlanItem, len((*source).Items))
 			for i := 0; i < len((*source).Items); i++ {
-				csProductionPlan2.Items[i] = c.pCraig_starsv1ProductionPlanItemToCsProductionPlanItem((*source).Items[i])
+				csProductionPlan.Items[i] = c.pCraig_starsv1ProductionPlanItemToCsProductionPlanItem((*source).Items[i])
 			}
 		}
-		csProductionPlan2.ContributesOnlyLeftoverToResearch = (*source).ContributesOnlyLeftoverToResearch
-		csProductionPlan = csProductionPlan2
+		csProductionPlan.ContributesOnlyLeftoverToResearch = (*source).ContributesOnlyLeftoverToResearch
 	}
 	return csProductionPlan
 }
 func (c *ProtoConverter) ConvertProductionQueueItem(source *v1.ProductionQueueItem) cs.ProductionQueueItem {
 	var csProductionQueueItem cs.ProductionQueueItem
 	if source != nil {
-		var csProductionQueueItem2 cs.ProductionQueueItem
-		csProductionQueueItem2.QueueItemCompletionEstimate = c.pCraig_starsv1QueueItemCompletionEstimateToCsQueueItemCompletionEstimate((*source).QueueItemCompletionEstimate)
-		csProductionQueueItem2.Type = QueueItemTypeToCSQueueItemType((*source).Type)
-		csProductionQueueItem2.DesignNum = Int32ToInt((*source).DesignNum)
-		csProductionQueueItem2.Quantity = Int32ToInt((*source).Quantity)
-		csProductionQueueItem2.Allocated = c.ConvertCost((*source).Allocated)
-		csProductionQueueItem2.Tags = c.mapStringStringToCsTags((*source).Tags)
-		csProductionQueueItem = csProductionQueueItem2
+		csProductionQueueItem.QueueItemCompletionEstimate = c.pCraig_starsv1QueueItemCompletionEstimateToCsQueueItemCompletionEstimate((*source).QueueItemCompletionEstimate)
+		csProductionQueueItem.Type = QueueItemTypeToCSQueueItemType((*source).Type)
+		csProductionQueueItem.DesignNum = Int32ToInt((*source).DesignNum)
+		csProductionQueueItem.Quantity = Int32ToInt((*source).Quantity)
+		csProductionQueueItem.Allocated = c.ConvertCost((*source).Allocated)
+		csProductionQueueItem.Tags = c.mapStringStringToCsTags((*source).Tags)
 	}
 	return csProductionQueueItem
 }
-func (c *ProtoConverter) ConvertRace(source v1.Race) cs.Race {
-	var csRace cs.Race
-	csRace.DBObject = c.craig_starsv1RaceToCsDBObject(source)
-	csRace.UserID = source.UserId
-	csRace.Name = source.Name
-	csRace.PluralName = source.PluralName
-	csRace.SpendLeftoverPointsOn = SpendLeftoverPointsOnToCSSpendLeftoverPointsOn(source.SpendLeftoverPointsOn)
-	csRace.PRT = PRTToCSPRT(source.Prt)
-	csRace.LRTs = Int32ToBitmask(source.Lrts)
-	csRace.HabLow = c.ConvertHab(source.HabLow)
-	csRace.HabHigh = c.ConvertHab(source.HabHigh)
-	csRace.GrowthRate = Int32ToInt(source.GrowthRate)
-	csRace.PopEfficiency = Int32ToInt(source.PopEfficiency)
-	csRace.FactoryOutput = Int32ToInt(source.FactoryOutput)
-	csRace.FactoryCost = Int32ToInt(source.FactoryCost)
-	csRace.NumFactories = Int32ToInt(source.NumFactories)
-	csRace.FactoriesCostLess = source.FactoriesCostLess
-	csRace.ImmuneGrav = source.ImmuneGrav
-	csRace.ImmuneTemp = source.ImmuneTemp
-	csRace.ImmuneRad = source.ImmuneRad
-	csRace.MineOutput = Int32ToInt(source.MineOutput)
-	csRace.MineCost = Int32ToInt(source.MineCost)
-	csRace.NumMines = Int32ToInt(source.NumMines)
-	csRace.ResearchCost = c.pCraig_starsv1ResearchCostToCsResearchCost(source.ResearchCost)
-	csRace.TechsStartHigh = source.TechsStartHigh
-	return csRace
+func (c *ProtoConverter) ConvertRaceDBObject(source *v1.Race) cs.DBObject {
+	var csDBObject cs.DBObject
+	if source != nil {
+		csDBObject.ID = (*source).Id
+		csDBObject.CreatedAt = TimestampToTime((*source).CreatedAt)
+		csDBObject.UpdatedAt = TimestampToTime((*source).UpdatedAt)
+	}
+	return csDBObject
 }
 func (c *ProtoConverter) ConvertRaceP(source *v1.Race) *cs.Race {
 	var pCsRace *cs.Race
 	if source != nil {
-		csRace := c.ConvertRace((*source))
+		var csRace cs.Race
+		csRace.DBObject = MapProtoRaceDBObject(c, source)
+		csRace.UserID = (*source).UserId
+		csRace.Name = (*source).Name
+		csRace.PluralName = (*source).PluralName
+		csRace.SpendLeftoverPointsOn = SpendLeftoverPointsOnToCSSpendLeftoverPointsOn((*source).SpendLeftoverPointsOn)
+		csRace.PRT = PRTToCSPRT((*source).Prt)
+		csRace.LRTs = Int32ToBitmask((*source).Lrts)
+		csRace.HabLow = c.ConvertHab((*source).HabLow)
+		csRace.HabHigh = c.ConvertHab((*source).HabHigh)
+		csRace.GrowthRate = Int32ToInt((*source).GrowthRate)
+		csRace.PopEfficiency = Int32ToInt((*source).PopEfficiency)
+		csRace.FactoryOutput = Int32ToInt((*source).FactoryOutput)
+		csRace.FactoryCost = Int32ToInt((*source).FactoryCost)
+		csRace.NumFactories = Int32ToInt((*source).NumFactories)
+		csRace.FactoriesCostLess = (*source).FactoriesCostLess
+		csRace.ImmuneGrav = (*source).ImmuneGrav
+		csRace.ImmuneTemp = (*source).ImmuneTemp
+		csRace.ImmuneRad = (*source).ImmuneRad
+		csRace.MineOutput = Int32ToInt((*source).MineOutput)
+		csRace.MineCost = Int32ToInt((*source).MineCost)
+		csRace.NumMines = Int32ToInt((*source).NumMines)
+		csRace.ResearchCost = c.pCraig_starsv1ResearchCostToCsResearchCost((*source).ResearchCost)
+		csRace.TechsStartHigh = (*source).TechsStartHigh
 		pCsRace = &csRace
 	}
 	return pCsRace
@@ -2022,32 +2007,28 @@ func (c *ProtoConverter) ConvertSalvage(source *v1.Salvage) *cs.Salvage {
 	}
 	return pCsSalvage
 }
-func (c *ProtoConverter) ConvertShipDesign(source v1.ShipDesign) cs.ShipDesign {
-	var csShipDesign cs.ShipDesign
-	csShipDesign.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject(source.GameDbObject)
-	csShipDesign.Num = Int32ToInt(source.Num)
-	csShipDesign.PlayerNum = Int32ToInt(source.PlayerNum)
-	csShipDesign.OriginalPlayerNum = Int32ToInt(source.OriginalPlayerNum)
-	csShipDesign.Name = source.Name
-	csShipDesign.Version = Int32ToInt(source.Version)
-	csShipDesign.Hull = source.Hull
-	csShipDesign.HullSetNumber = Int32ToInt(source.HullSetNumber)
-	csShipDesign.CannotDelete = source.CannotDelete
-	csShipDesign.MysteryTrader = source.MysteryTrader
-	if source.Slots != nil {
-		csShipDesign.Slots = make([]cs.ShipDesignSlot, len(source.Slots))
-		for i := 0; i < len(source.Slots); i++ {
-			csShipDesign.Slots[i] = c.pCraig_starsv1ShipDesignSlotToCsShipDesignSlot(source.Slots[i])
-		}
-	}
-	csShipDesign.Purpose = ShipDesignPurposeToCSShipDesignPurpose(source.Purpose)
-	csShipDesign.Spec = c.pCraig_starsv1ShipDesignSpecToCsShipDesignSpec(source.Spec)
-	return csShipDesign
-}
 func (c *ProtoConverter) ConvertShipDesignP(source *v1.ShipDesign) *cs.ShipDesign {
 	var pCsShipDesign *cs.ShipDesign
 	if source != nil {
-		csShipDesign := c.ConvertShipDesign((*source))
+		var csShipDesign cs.ShipDesign
+		csShipDesign.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
+		csShipDesign.Num = Int32ToInt((*source).Num)
+		csShipDesign.PlayerNum = Int32ToInt((*source).PlayerNum)
+		csShipDesign.OriginalPlayerNum = Int32ToInt((*source).OriginalPlayerNum)
+		csShipDesign.Name = (*source).Name
+		csShipDesign.Version = Int32ToInt((*source).Version)
+		csShipDesign.Hull = (*source).Hull
+		csShipDesign.HullSetNumber = Int32ToInt((*source).HullSetNumber)
+		csShipDesign.CannotDelete = (*source).CannotDelete
+		csShipDesign.MysteryTrader = (*source).MysteryTrader
+		if (*source).Slots != nil {
+			csShipDesign.Slots = make([]cs.ShipDesignSlot, len((*source).Slots))
+			for i := 0; i < len((*source).Slots); i++ {
+				csShipDesign.Slots[i] = c.pCraig_starsv1ShipDesignSlotToCsShipDesignSlot((*source).Slots[i])
+			}
+		}
+		csShipDesign.Purpose = ShipDesignPurposeToCSShipDesignPurpose((*source).Purpose)
+		csShipDesign.Spec = c.pCraig_starsv1ShipDesignSpecToCsShipDesignSpec((*source).Spec)
 		pCsShipDesign = &csShipDesign
 	}
 	return pCsShipDesign
@@ -2157,12 +2138,10 @@ func (c *ProtoConverter) ConvertShipDesigns(source []*v1.ShipDesign) []*cs.ShipD
 func (c *ProtoConverter) ConvertShipToken(source *v1.ShipToken) cs.ShipToken {
 	var csShipToken cs.ShipToken
 	if source != nil {
-		var csShipToken2 cs.ShipToken
-		csShipToken2.DesignNum = Int32ToInt((*source).DesignNum)
-		csShipToken2.Quantity = Int32ToInt((*source).Quantity)
-		csShipToken2.Damage = Int32ToFloat64((*source).Damage)
-		csShipToken2.QuantityDamaged = Int32ToInt((*source).QuantityDamaged)
-		csShipToken = csShipToken2
+		csShipToken.DesignNum = Int32ToInt((*source).DesignNum)
+		csShipToken.Quantity = Int32ToInt((*source).Quantity)
+		csShipToken.Damage = Int32ToFloat64((*source).Damage)
+		csShipToken.QuantityDamaged = Int32ToInt((*source).QuantityDamaged)
 	}
 	return csShipToken
 }
@@ -2179,15 +2158,13 @@ func (c *ProtoConverter) ConvertShipTokens(source []*v1.ShipToken) []cs.ShipToke
 func (c *ProtoConverter) ConvertTech(source *v1.Tech) cs.Tech {
 	var csTech cs.Tech
 	if source != nil {
-		var csTech2 cs.Tech
-		csTech2.Name = (*source).Name
-		csTech2.Cost = c.ConvertCost((*source).Cost)
-		csTech2.Requirements = c.pCraig_starsv1TechRequirementsToCsTechRequirements((*source).Requirements)
-		csTech2.Ranking = Int32ToInt((*source).Ranking)
-		csTech2.Category = TechCategoryToCSTechCategory((*source).Category)
-		csTech2.Origin = TechOriginToCSTechOrigin((*source).Origin)
-		csTech2.Tags = c.mapStringBoolToCsTechTags((*source).Tags)
-		csTech = csTech2
+		csTech.Name = (*source).Name
+		csTech.Cost = c.ConvertCost((*source).Cost)
+		csTech.Requirements = c.pCraig_starsv1TechRequirementsToCsTechRequirements((*source).Requirements)
+		csTech.Ranking = Int32ToInt((*source).Ranking)
+		csTech.Category = TechCategoryToCSTechCategory((*source).Category)
+		csTech.Origin = TechOriginToCSTechOrigin((*source).Origin)
+		csTech.Tags = c.mapStringBoolToCsTechTags((*source).Tags)
 	}
 	return csTech
 }
@@ -2241,64 +2218,60 @@ func (c *ProtoConverter) ConvertTechHull(source *v1.TechHull) *cs.TechHull {
 	}
 	return pCsTechHull
 }
-func (c *ProtoConverter) ConvertTechHullComponent(source v1.TechHullComponent) cs.TechHullComponent {
-	var csTechHullComponent cs.TechHullComponent
-	csTechHullComponent.Tech = c.ConvertTech(source.Tech)
-	csTechHullComponent.Engine = c.craig_starsv1TechHullComponentToCsEngine(source)
-	csTechHullComponent.HullSlotType = cs.HullSlotType(source.HullSlotType)
-	csTechHullComponent.Mass = Int32ToInt(source.Mass)
-	csTechHullComponent.Scanner = source.Scanner
-	csTechHullComponent.ScanRange = Int32ToInt(source.ScanRange)
-	csTechHullComponent.ScanRangePen = Int32ToInt(source.ScanRangePen)
-	csTechHullComponent.SafeHullMass = Int32ToInt(source.SafeHullMass)
-	csTechHullComponent.SafeRange = Int32ToInt(source.SafeRange)
-	csTechHullComponent.MaxHullMass = Int32ToInt(source.MaxHullMass)
-	csTechHullComponent.MaxRange = Int32ToInt(source.MaxRange)
-	csTechHullComponent.Radiating = source.Radiating
-	csTechHullComponent.PacketSpeed = Int32ToInt(source.PacketSpeed)
-	csTechHullComponent.CloakUnits = Int32ToInt(source.CloakUnits)
-	csTechHullComponent.TerraformRate = Int32ToInt(source.TerraformRate)
-	csTechHullComponent.MiningRate = Int32ToInt(source.MiningRate)
-	csTechHullComponent.KillRate = source.KillRate
-	csTechHullComponent.MinKillRate = Int32ToInt(source.MinKillRate)
-	csTechHullComponent.StructureDestroyRate = source.StructureDestroyRate
-	csTechHullComponent.UnterraformRate = Int32ToInt(source.UnterraformRate)
-	csTechHullComponent.Smart = source.Smart
-	csTechHullComponent.CanStealFleetCargo = source.CanStealFleetCargo
-	csTechHullComponent.CanStealPlanetCargo = source.CanStealPlanetCargo
-	csTechHullComponent.Armor = Int32ToInt(source.Armor)
-	csTechHullComponent.Shield = Int32ToInt(source.Shield)
-	csTechHullComponent.TorpedoBonus = source.TorpedoBonus
-	csTechHullComponent.InitiativeBonus = Int32ToInt(source.InitiativeBonus)
-	csTechHullComponent.BeamBonus = source.BeamBonus
-	csTechHullComponent.ReduceMovement = Int32ToInt(source.ReduceMovement)
-	csTechHullComponent.TorpedoJamming = source.TorpedoJamming
-	csTechHullComponent.ReduceCloaking = source.ReduceCloaking
-	csTechHullComponent.CloakUnarmedOnly = source.CloakUnarmedOnly
-	csTechHullComponent.MinefieldType = MinefieldTypeToCSMinefieldType(source.MinefieldType)
-	csTechHullComponent.MineLayingRate = Int32ToInt(source.MineLayingRate)
-	csTechHullComponent.BeamDefense = source.BeamDefense
-	csTechHullComponent.CargoBonus = Int32ToInt(source.CargoBonus)
-	csTechHullComponent.ColonizationModule = source.ColonizationModule
-	csTechHullComponent.FuelBonus = Int32ToInt(source.FuelBonus)
-	csTechHullComponent.FuelGeneration = Int32ToInt(source.FuelGeneration)
-	csTechHullComponent.MovementBonus = source.MovementBonus
-	csTechHullComponent.OrbitalConstructionModule = source.OrbitalConstructionModule
-	csTechHullComponent.Power = Int32ToInt(source.Power)
-	csTechHullComponent.Range = Int32ToInt(source.Range)
-	csTechHullComponent.Initiative = Int32ToInt(source.Initiative)
-	csTechHullComponent.Gatling = source.Gatling
-	csTechHullComponent.HitsAllTargets = source.HitsAllTargets
-	csTechHullComponent.DamageShieldsOnly = source.DamageShieldsOnly
-	csTechHullComponent.Accuracy = Int32ToInt(source.Accuracy)
-	csTechHullComponent.CapitalShipMissile = source.CapitalShipMissile
-	csTechHullComponent.CanJump = source.CanJump
-	return csTechHullComponent
-}
 func (c *ProtoConverter) ConvertTechHullComponentP(source *v1.TechHullComponent) *cs.TechHullComponent {
 	var pCsTechHullComponent *cs.TechHullComponent
 	if source != nil {
-		csTechHullComponent := c.ConvertTechHullComponent((*source))
+		var csTechHullComponent cs.TechHullComponent
+		csTechHullComponent.Tech = c.ConvertTech((*source).Tech)
+		csTechHullComponent.Engine = MapProtoEngine(c, source)
+		csTechHullComponent.HullSlotType = cs.HullSlotType((*source).HullSlotType)
+		csTechHullComponent.Mass = Int32ToInt((*source).Mass)
+		csTechHullComponent.Scanner = (*source).Scanner
+		csTechHullComponent.ScanRange = Int32ToInt((*source).ScanRange)
+		csTechHullComponent.ScanRangePen = Int32ToInt((*source).ScanRangePen)
+		csTechHullComponent.SafeHullMass = Int32ToInt((*source).SafeHullMass)
+		csTechHullComponent.SafeRange = Int32ToInt((*source).SafeRange)
+		csTechHullComponent.MaxHullMass = Int32ToInt((*source).MaxHullMass)
+		csTechHullComponent.MaxRange = Int32ToInt((*source).MaxRange)
+		csTechHullComponent.Radiating = (*source).Radiating
+		csTechHullComponent.PacketSpeed = Int32ToInt((*source).PacketSpeed)
+		csTechHullComponent.CloakUnits = Int32ToInt((*source).CloakUnits)
+		csTechHullComponent.TerraformRate = Int32ToInt((*source).TerraformRate)
+		csTechHullComponent.MiningRate = Int32ToInt((*source).MiningRate)
+		csTechHullComponent.KillRate = (*source).KillRate
+		csTechHullComponent.MinKillRate = Int32ToInt((*source).MinKillRate)
+		csTechHullComponent.StructureDestroyRate = (*source).StructureDestroyRate
+		csTechHullComponent.UnterraformRate = Int32ToInt((*source).UnterraformRate)
+		csTechHullComponent.Smart = (*source).Smart
+		csTechHullComponent.CanStealFleetCargo = (*source).CanStealFleetCargo
+		csTechHullComponent.CanStealPlanetCargo = (*source).CanStealPlanetCargo
+		csTechHullComponent.Armor = Int32ToInt((*source).Armor)
+		csTechHullComponent.Shield = Int32ToInt((*source).Shield)
+		csTechHullComponent.TorpedoBonus = (*source).TorpedoBonus
+		csTechHullComponent.InitiativeBonus = Int32ToInt((*source).InitiativeBonus)
+		csTechHullComponent.BeamBonus = (*source).BeamBonus
+		csTechHullComponent.ReduceMovement = Int32ToInt((*source).ReduceMovement)
+		csTechHullComponent.TorpedoJamming = (*source).TorpedoJamming
+		csTechHullComponent.ReduceCloaking = (*source).ReduceCloaking
+		csTechHullComponent.CloakUnarmedOnly = (*source).CloakUnarmedOnly
+		csTechHullComponent.MinefieldType = MinefieldTypeToCSMinefieldType((*source).MinefieldType)
+		csTechHullComponent.MineLayingRate = Int32ToInt((*source).MineLayingRate)
+		csTechHullComponent.BeamDefense = (*source).BeamDefense
+		csTechHullComponent.CargoBonus = Int32ToInt((*source).CargoBonus)
+		csTechHullComponent.ColonizationModule = (*source).ColonizationModule
+		csTechHullComponent.FuelBonus = Int32ToInt((*source).FuelBonus)
+		csTechHullComponent.FuelGeneration = Int32ToInt((*source).FuelGeneration)
+		csTechHullComponent.MovementBonus = (*source).MovementBonus
+		csTechHullComponent.OrbitalConstructionModule = (*source).OrbitalConstructionModule
+		csTechHullComponent.Power = Int32ToInt((*source).Power)
+		csTechHullComponent.Range = Int32ToInt((*source).Range)
+		csTechHullComponent.Initiative = Int32ToInt((*source).Initiative)
+		csTechHullComponent.Gatling = (*source).Gatling
+		csTechHullComponent.HitsAllTargets = (*source).HitsAllTargets
+		csTechHullComponent.DamageShieldsOnly = (*source).DamageShieldsOnly
+		csTechHullComponent.Accuracy = Int32ToInt((*source).Accuracy)
+		csTechHullComponent.CapitalShipMissile = (*source).CapitalShipMissile
+		csTechHullComponent.CanJump = (*source).CanJump
 		pCsTechHullComponent = &csTechHullComponent
 	}
 	return pCsTechHullComponent
@@ -2306,14 +2279,12 @@ func (c *ProtoConverter) ConvertTechHullComponentP(source *v1.TechHullComponent)
 func (c *ProtoConverter) ConvertTechLevel(source *v1.TechLevel) cs.TechLevel {
 	var csTechLevel cs.TechLevel
 	if source != nil {
-		var csTechLevel2 cs.TechLevel
-		csTechLevel2.Energy = Int32ToInt((*source).Energy)
-		csTechLevel2.Weapons = Int32ToInt((*source).Weapons)
-		csTechLevel2.Propulsion = Int32ToInt((*source).Propulsion)
-		csTechLevel2.Construction = Int32ToInt((*source).Construction)
-		csTechLevel2.Electronics = Int32ToInt((*source).Electronics)
-		csTechLevel2.Biotechnology = Int32ToInt((*source).Biotechnology)
-		csTechLevel = csTechLevel2
+		csTechLevel.Energy = Int32ToInt((*source).Energy)
+		csTechLevel.Weapons = Int32ToInt((*source).Weapons)
+		csTechLevel.Propulsion = Int32ToInt((*source).Propulsion)
+		csTechLevel.Construction = Int32ToInt((*source).Construction)
+		csTechLevel.Electronics = Int32ToInt((*source).Electronics)
+		csTechLevel.Biotechnology = Int32ToInt((*source).Biotechnology)
 	}
 	return csTechLevel
 }
@@ -2352,88 +2323,90 @@ func (c *ProtoConverter) ConvertTechTerraform(source *v1.TechTerraform) *cs.Tech
 func (c *ProtoConverter) ConvertTransportPlan(source *v1.TransportPlan) cs.TransportPlan {
 	var csTransportPlan cs.TransportPlan
 	if source != nil {
-		var csTransportPlan2 cs.TransportPlan
-		csTransportPlan2.Num = Int32ToInt((*source).Num)
-		csTransportPlan2.Name = (*source).Name
-		csTransportPlan2.Tasks = c.pCraig_starsv1WaypointTransportTasksToCsWaypointTransportTasks((*source).Tasks)
-		csTransportPlan = csTransportPlan2
+		csTransportPlan.Num = Int32ToInt((*source).Num)
+		csTransportPlan.Name = (*source).Name
+		csTransportPlan.Tasks = c.pCraig_starsv1WaypointTransportTasksToCsWaypointTransportTasks((*source).Tasks)
 	}
 	return csTransportPlan
 }
 func (c *ProtoConverter) ConvertUser(source *v1.User) cs.User {
 	var csUser cs.User
 	if source != nil {
-		var csUser2 cs.User
-		csUser2.DBObject = c.craig_starsv1UserToCsDBObject((*source))
-		csUser2.UserSettings = c.craig_starsv1UserToCsUserSettings((*source))
-		csUser2.Username = (*source).Username
-		csUser2.Role = UserRoleToCSUserRole((*source).Role)
-		csUser2.Banned = (*source).Banned
-		csUser2.Verified = (*source).Verified
-		csUser2.GameID = (*source).GameId
-		csUser2.PlayerNum = Int32ToInt((*source).PlayerNum)
-		csUser2.LastLogin = TimestampToTimep((*source).LastLogin)
-		csUser2.DiscordID = (*source).DiscordId
-		csUser2.DiscordAvatar = (*source).DiscordAvatar
-		csUser = csUser2
+		csUser.DBObject = MapProtoUserDBObject(c, source)
+		csUser.UserSettings = MapProtoUserToUserSettings(c, source)
+		csUser.Username = (*source).Username
+		csUser.Role = UserRoleToCSUserRole((*source).Role)
+		csUser.Banned = (*source).Banned
+		csUser.Verified = (*source).Verified
+		csUser.GameID = (*source).GameId
+		csUser.PlayerNum = Int32ToInt((*source).PlayerNum)
+		csUser.LastLogin = TimestampToTimep((*source).LastLogin)
+		csUser.DiscordID = (*source).DiscordId
+		csUser.DiscordAvatar = (*source).DiscordAvatar
 	}
 	return csUser
+}
+func (c *ProtoConverter) ConvertUserDBObject(source *v1.User) cs.DBObject {
+	var csDBObject cs.DBObject
+	if source != nil {
+		csDBObject.ID = (*source).Id
+		csDBObject.CreatedAt = TimestampToTime((*source).CreatedAt)
+		csDBObject.UpdatedAt = TimestampToTime((*source).UpdatedAt)
+	}
+	return csDBObject
 }
 func (c *ProtoConverter) ConvertUserSettings(source *v1.UserSettings) cs.UserSettings {
 	var csUserSettings cs.UserSettings
 	if source != nil {
-		var csUserSettings2 cs.UserSettings
-		csUserSettings2.DiscordWebhookURL = (*source).DiscordWebhookUrl
-		csUserSettings = csUserSettings2
+		csUserSettings.DiscordWebhookURL = (*source).DiscordWebhookUrl
+	}
+	return csUserSettings
+}
+func (c *ProtoConverter) ConvertUserToUserSettings(source *v1.User) cs.UserSettings {
+	var csUserSettings cs.UserSettings
+	if source != nil {
+		csUserSettings.DiscordWebhookURL = (*source).DiscordWebhookUrl
 	}
 	return csUserSettings
 }
 func (c *ProtoConverter) ConvertVector(source *v1.Vector) cs.VectorGeneric[int] {
 	var csVectorGeneric cs.VectorGeneric[int]
 	if source != nil {
-		var csVectorGeneric2 cs.VectorGeneric[int]
-		csVectorGeneric2.X = Int32ToInt((*source).X)
-		csVectorGeneric2.Y = Int32ToInt((*source).Y)
-		csVectorGeneric = csVectorGeneric2
+		csVectorGeneric.X = Int32ToInt((*source).X)
+		csVectorGeneric.Y = Int32ToInt((*source).Y)
 	}
 	return csVectorGeneric
 }
 func (c *ProtoConverter) ConvertVectorFloat64(source *v1.VectorFloat64) cs.VectorGeneric[float64] {
 	var csVectorGeneric cs.VectorGeneric[float64]
 	if source != nil {
-		var csVectorGeneric2 cs.VectorGeneric[float64]
-		csVectorGeneric2.X = (*source).X
-		csVectorGeneric2.Y = (*source).Y
-		csVectorGeneric = csVectorGeneric2
+		csVectorGeneric.X = (*source).X
+		csVectorGeneric.Y = (*source).Y
 	}
 	return csVectorGeneric
 }
 func (c *ProtoConverter) ConvertVictoryConditions(source *v1.VictoryConditions) cs.VictoryConditions {
 	var csVictoryConditions cs.VictoryConditions
 	if source != nil {
-		var csVictoryConditions2 cs.VictoryConditions
-		csVictoryConditions2.Conditions = cs.Bitmask((*source).Conditions)
-		csVictoryConditions2.NumCriteriaRequired = Int32ToInt((*source).NumCriteriaRequired)
-		csVictoryConditions2.YearsPassed = Int32ToInt((*source).YearsPassed)
-		csVictoryConditions2.OwnPlanets = Int32ToInt((*source).OwnPlanets)
-		csVictoryConditions2.AttainTechLevel = Int32ToInt((*source).AttainTechLevel)
-		csVictoryConditions2.AttainTechLevelNumFields = Int32ToInt((*source).AttainTechLevelNumFields)
-		csVictoryConditions2.ExceedsScore = Int32ToInt((*source).ExceedsScore)
-		csVictoryConditions2.ExceedsSecondPlaceScore = Int32ToInt((*source).ExceedsSecondPlaceScore)
-		csVictoryConditions2.ProductionCapacity = Int32ToInt((*source).ProductionCapacity)
-		csVictoryConditions2.OwnCapitalShips = Int32ToInt((*source).OwnCapitalShips)
-		csVictoryConditions2.HighestScoreAfterYears = Int32ToInt((*source).HighestScoreAfterYears)
-		csVictoryConditions = csVictoryConditions2
+		csVictoryConditions.Conditions = cs.Bitmask((*source).Conditions)
+		csVictoryConditions.NumCriteriaRequired = Int32ToInt((*source).NumCriteriaRequired)
+		csVictoryConditions.YearsPassed = Int32ToInt((*source).YearsPassed)
+		csVictoryConditions.OwnPlanets = Int32ToInt((*source).OwnPlanets)
+		csVictoryConditions.AttainTechLevel = Int32ToInt((*source).AttainTechLevel)
+		csVictoryConditions.AttainTechLevelNumFields = Int32ToInt((*source).AttainTechLevelNumFields)
+		csVictoryConditions.ExceedsScore = Int32ToInt((*source).ExceedsScore)
+		csVictoryConditions.ExceedsSecondPlaceScore = Int32ToInt((*source).ExceedsSecondPlaceScore)
+		csVictoryConditions.ProductionCapacity = Int32ToInt((*source).ProductionCapacity)
+		csVictoryConditions.OwnCapitalShips = Int32ToInt((*source).OwnCapitalShips)
+		csVictoryConditions.HighestScoreAfterYears = Int32ToInt((*source).HighestScoreAfterYears)
 	}
 	return csVictoryConditions
 }
 func (c *ProtoConverter) ConvertWaypointDest(source *v1.WaypointDest) cs.WaypointDest {
 	var csWaypointDest cs.WaypointDest
 	if source != nil {
-		var csWaypointDest2 cs.WaypointDest
-		csWaypointDest2.MO = c.ConvertMapObject((*source).Mo)
-		csWaypointDest2.Position = c.ConvertVector((*source).Position)
-		csWaypointDest = csWaypointDest2
+		csWaypointDest.MO = c.ConvertMapObject((*source).Mo)
+		csWaypointDest.Position = c.ConvertVector((*source).Position)
 	}
 	return csWaypointDest
 }
@@ -2454,61 +2427,11 @@ func (c *ProtoConverter) ConvertWormhole(source *v1.Wormhole) *cs.Wormhole {
 func (c *ProtoConverter) ConvertWormholeStats(source *v1.WormholeStats) cs.WormholeStats {
 	var csWormholeStats cs.WormholeStats
 	if source != nil {
-		var csWormholeStats2 cs.WormholeStats
-		csWormholeStats2.YearsToDegrade = Int32ToInt((*source).YearsToDegrade)
-		csWormholeStats2.ChanceToJump = (*source).ChanceToJump
-		csWormholeStats2.JiggleDistance = Int32ToInt((*source).JiggleDistance)
-		csWormholeStats = csWormholeStats2
+		csWormholeStats.YearsToDegrade = Int32ToInt((*source).YearsToDegrade)
+		csWormholeStats.ChanceToJump = (*source).ChanceToJump
+		csWormholeStats.JiggleDistance = Int32ToInt((*source).JiggleDistance)
 	}
 	return csWormholeStats
-}
-func (c *ProtoConverter) craig_starsv1GameToCsDBObject(source v1.Game) cs.DBObject {
-	var csDBObject cs.DBObject
-	csDBObject.ID = source.Id
-	csDBObject.CreatedAt = TimestampToTime(source.CreatedAt)
-	csDBObject.UpdatedAt = TimestampToTime(source.UpdatedAt)
-	return csDBObject
-}
-func (c *ProtoConverter) craig_starsv1PlayerMessageSpecMysteryTraderToCsMysteryTraderReward(source v1.PlayerMessageSpecMysteryTrader) cs.MysteryTraderReward {
-	var csMysteryTraderReward cs.MysteryTraderReward
-	csMysteryTraderReward.Type = MysteryTraderRewardTypeToCSMysteryTraderRewardType(source.Type)
-	csMysteryTraderReward.TechLevels = c.ConvertTechLevel(source.TechLevels)
-	csMysteryTraderReward.Tech = source.Tech
-	csMysteryTraderReward.Ship = c.ConvertShipDesignP(source.Ship)
-	csMysteryTraderReward.ShipCount = Int32ToInt(source.ShipCount)
-	return csMysteryTraderReward
-}
-func (c *ProtoConverter) craig_starsv1RaceToCsDBObject(source v1.Race) cs.DBObject {
-	var csDBObject cs.DBObject
-	csDBObject.ID = source.Id
-	csDBObject.CreatedAt = TimestampToTime(source.CreatedAt)
-	csDBObject.UpdatedAt = TimestampToTime(source.UpdatedAt)
-	return csDBObject
-}
-func (c *ProtoConverter) craig_starsv1TechHullComponentToCsEngine(source v1.TechHullComponent) cs.Engine {
-	var csEngine cs.Engine
-	csEngine.IdealSpeed = Int32ToInt(source.IdealSpeed)
-	csEngine.FreeSpeed = Int32ToInt(source.FreeSpeed)
-	csEngine.MaxSafeSpeed = Int32ToInt(source.MaxSafeSpeed)
-	if source.FuelUsage != nil {
-		csEngine.FuelUsage = make([]int, len(source.FuelUsage))
-		for i := 0; i < len(source.FuelUsage); i++ {
-			csEngine.FuelUsage[i] = Int32ToInt(source.FuelUsage[i])
-		}
-	}
-	return csEngine
-}
-func (c *ProtoConverter) craig_starsv1UserToCsDBObject(source v1.User) cs.DBObject {
-	var csDBObject cs.DBObject
-	csDBObject.ID = source.Id
-	csDBObject.CreatedAt = TimestampToTime(source.CreatedAt)
-	csDBObject.UpdatedAt = TimestampToTime(source.UpdatedAt)
-	return csDBObject
-}
-func (c *ProtoConverter) craig_starsv1UserToCsUserSettings(source v1.User) cs.UserSettings {
-	var csUserSettings cs.UserSettings
-	csUserSettings.DiscordWebhookURL = source.DiscordWebhookUrl
-	return csUserSettings
 }
 func (c *ProtoConverter) csBattleRecordDestroyedTokenToPCraig_starsv1BattleRecordDestroyedToken(source cs.BattleRecordDestroyedToken) *v1.BattleRecordDestroyedToken {
 	var craig_starsv1BattleRecordDestroyedToken v1.BattleRecordDestroyedToken
@@ -3013,10 +2936,6 @@ func (c *ProtoConverter) csTechDefenseToPCraig_starsv1TechDefense(source cs.Tech
 func (c *ProtoConverter) csTechFieldToString(source cs.TechField) string {
 	return string(source)
 }
-func (c *ProtoConverter) csTechHullComponentToPCraig_starsv1TechHullComponent(source cs.TechHullComponent) *v1.TechHullComponent {
-	craig_starsv1TechHullComponent := c.ConvertCSTechHullComponent(source)
-	return &craig_starsv1TechHullComponent
-}
 func (c *ProtoConverter) csTechHullSlotToPCraig_starsv1TechHullSlot(source cs.TechHullSlot) *v1.TechHullSlot {
 	var craig_starsv1TechHullSlot v1.TechHullSlot
 	craig_starsv1TechHullSlot.Type = uint32(source.Type)
@@ -3231,45 +3150,41 @@ func (c *ProtoConverter) mapStringStringToCsTags(source map[string]string) cs.Ta
 func (c *ProtoConverter) pCraig_starsv1BattleRecordDestroyedTokenToCsBattleRecordDestroyedToken(source *v1.BattleRecordDestroyedToken) cs.BattleRecordDestroyedToken {
 	var csBattleRecordDestroyedToken cs.BattleRecordDestroyedToken
 	if source != nil {
-		var csBattleRecordDestroyedToken2 cs.BattleRecordDestroyedToken
-		csBattleRecordDestroyedToken2.Num = Int32ToInt((*source).Num)
-		csBattleRecordDestroyedToken2.PlayerNum = Int32ToInt((*source).PlayerNum)
-		csBattleRecordDestroyedToken2.DesignNum = Int32ToInt((*source).DesignNum)
-		csBattleRecordDestroyedToken2.Quantity = Int32ToInt((*source).Quantity)
-		csBattleRecordDestroyedToken = csBattleRecordDestroyedToken2
+		csBattleRecordDestroyedToken.Num = Int32ToInt((*source).Num)
+		csBattleRecordDestroyedToken.PlayerNum = Int32ToInt((*source).PlayerNum)
+		csBattleRecordDestroyedToken.DesignNum = Int32ToInt((*source).DesignNum)
+		csBattleRecordDestroyedToken.Quantity = Int32ToInt((*source).Quantity)
 	}
 	return csBattleRecordDestroyedToken
 }
 func (c *ProtoConverter) pCraig_starsv1BattleRecordStatsToCsBattleRecordStats(source *v1.BattleRecordStats) cs.BattleRecordStats {
 	var csBattleRecordStats cs.BattleRecordStats
 	if source != nil {
-		var csBattleRecordStats2 cs.BattleRecordStats
-		csBattleRecordStats2.NumPlayers = Int32ToInt((*source).NumPlayers)
+		csBattleRecordStats.NumPlayers = Int32ToInt((*source).NumPlayers)
 		if (*source).NumShipsByPlayer != nil {
-			csBattleRecordStats2.NumShipsByPlayer = make(map[int]int, len((*source).NumShipsByPlayer))
+			csBattleRecordStats.NumShipsByPlayer = make(map[int]int, len((*source).NumShipsByPlayer))
 			for key, value := range (*source).NumShipsByPlayer {
-				csBattleRecordStats2.NumShipsByPlayer[Int32ToInt(key)] = Int32ToInt(value)
+				csBattleRecordStats.NumShipsByPlayer[Int32ToInt(key)] = Int32ToInt(value)
 			}
 		}
 		if (*source).ShipsDestroyedByPlayer != nil {
-			csBattleRecordStats2.ShipsDestroyedByPlayer = make(map[int]int, len((*source).ShipsDestroyedByPlayer))
+			csBattleRecordStats.ShipsDestroyedByPlayer = make(map[int]int, len((*source).ShipsDestroyedByPlayer))
 			for key2, value2 := range (*source).ShipsDestroyedByPlayer {
-				csBattleRecordStats2.ShipsDestroyedByPlayer[Int32ToInt(key2)] = Int32ToInt(value2)
+				csBattleRecordStats.ShipsDestroyedByPlayer[Int32ToInt(key2)] = Int32ToInt(value2)
 			}
 		}
 		if (*source).DamageTakenByPlayer != nil {
-			csBattleRecordStats2.DamageTakenByPlayer = make(map[int]int, len((*source).DamageTakenByPlayer))
+			csBattleRecordStats.DamageTakenByPlayer = make(map[int]int, len((*source).DamageTakenByPlayer))
 			for key3, value3 := range (*source).DamageTakenByPlayer {
-				csBattleRecordStats2.DamageTakenByPlayer[Int32ToInt(key3)] = Int32ToInt(value3)
+				csBattleRecordStats.DamageTakenByPlayer[Int32ToInt(key3)] = Int32ToInt(value3)
 			}
 		}
 		if (*source).CargoLostByPlayer != nil {
-			csBattleRecordStats2.CargoLostByPlayer = make(map[int]cs.Cargo, len((*source).CargoLostByPlayer))
+			csBattleRecordStats.CargoLostByPlayer = make(map[int]cs.Cargo, len((*source).CargoLostByPlayer))
 			for key4, value4 := range (*source).CargoLostByPlayer {
-				csBattleRecordStats2.CargoLostByPlayer[Int32ToInt(key4)] = c.ConvertCargo(value4)
+				csBattleRecordStats.CargoLostByPlayer[Int32ToInt(key4)] = c.ConvertCargo(value4)
 			}
 		}
-		csBattleRecordStats = csBattleRecordStats2
 	}
 	return csBattleRecordStats
 }
@@ -3309,84 +3224,76 @@ func (c *ProtoConverter) pCraig_starsv1BattleRecordStatsToPCsBattleRecordStats(s
 func (c *ProtoConverter) pCraig_starsv1BattleRecordToCsBattleRecord(source *v1.BattleRecord) cs.BattleRecord {
 	var csBattleRecord cs.BattleRecord
 	if source != nil {
-		var csBattleRecord2 cs.BattleRecord
-		csBattleRecord2.Num = Int32ToInt((*source).Num)
-		csBattleRecord2.PlanetNum = Int32ToInt((*source).PlanetNum)
-		csBattleRecord2.Position = c.ConvertVector((*source).Position)
+		csBattleRecord.Num = Int32ToInt((*source).Num)
+		csBattleRecord.PlanetNum = Int32ToInt((*source).PlanetNum)
+		csBattleRecord.Position = c.ConvertVector((*source).Position)
 		if (*source).Tokens != nil {
-			csBattleRecord2.Tokens = make([]cs.BattleRecordToken, len((*source).Tokens))
+			csBattleRecord.Tokens = make([]cs.BattleRecordToken, len((*source).Tokens))
 			for i := 0; i < len((*source).Tokens); i++ {
-				csBattleRecord2.Tokens[i] = c.pCraig_starsv1BattleRecordTokenToCsBattleRecordToken((*source).Tokens[i])
+				csBattleRecord.Tokens[i] = c.pCraig_starsv1BattleRecordTokenToCsBattleRecordToken((*source).Tokens[i])
 			}
 		}
 		if (*source).ActionsPerRound != nil {
-			csBattleRecord2.ActionsPerRound = make([][]cs.BattleRecordTokenAction, len((*source).ActionsPerRound))
+			csBattleRecord.ActionsPerRound = make([][]cs.BattleRecordTokenAction, len((*source).ActionsPerRound))
 			for j := 0; j < len((*source).ActionsPerRound); j++ {
-				csBattleRecord2.ActionsPerRound[j] = ActionsPerRoundToCSActionsPerRound(c, (*source).ActionsPerRound[j])
+				csBattleRecord.ActionsPerRound[j] = ActionsPerRoundToCSActionsPerRound(c, (*source).ActionsPerRound[j])
 			}
 		}
 		if (*source).DestroyedTokens != nil {
-			csBattleRecord2.DestroyedTokens = make([]cs.BattleRecordDestroyedToken, len((*source).DestroyedTokens))
+			csBattleRecord.DestroyedTokens = make([]cs.BattleRecordDestroyedToken, len((*source).DestroyedTokens))
 			for k := 0; k < len((*source).DestroyedTokens); k++ {
-				csBattleRecord2.DestroyedTokens[k] = c.pCraig_starsv1BattleRecordDestroyedTokenToCsBattleRecordDestroyedToken((*source).DestroyedTokens[k])
+				csBattleRecord.DestroyedTokens[k] = c.pCraig_starsv1BattleRecordDestroyedTokenToCsBattleRecordDestroyedToken((*source).DestroyedTokens[k])
 			}
 		}
-		csBattleRecord2.Stats = c.pCraig_starsv1BattleRecordStatsToCsBattleRecordStats((*source).Stats)
-		csBattleRecord = csBattleRecord2
+		csBattleRecord.Stats = c.pCraig_starsv1BattleRecordStatsToCsBattleRecordStats((*source).Stats)
 	}
 	return csBattleRecord
 }
 func (c *ProtoConverter) pCraig_starsv1BattleRecordTokenToCsBattleRecordToken(source *v1.BattleRecordToken) cs.BattleRecordToken {
 	var csBattleRecordToken cs.BattleRecordToken
 	if source != nil {
-		var csBattleRecordToken2 cs.BattleRecordToken
-		csBattleRecordToken2.Num = Int32ToInt((*source).Num)
-		csBattleRecordToken2.PlayerNum = Int32ToInt((*source).PlayerNum)
-		csBattleRecordToken2.DesignNum = Int32ToInt((*source).DesignNum)
-		csBattleRecordToken2.Position = c.ConvertVector((*source).Position)
-		csBattleRecordToken2.Initiative = Int32ToInt((*source).Initiative)
-		csBattleRecordToken2.Mass = Int32ToInt((*source).Mass)
-		csBattleRecordToken2.Armor = Int32ToInt((*source).Armor)
-		csBattleRecordToken2.StackShields = Int32ToInt((*source).StackShields)
-		csBattleRecordToken2.Movement = Int32ToInt((*source).Movement)
-		csBattleRecordToken2.StartingQuantity = Int32ToInt((*source).StartingQuantity)
-		csBattleRecordToken2.StartingQuantityDamaged = Int32ToInt((*source).StartingQuantityDamaged)
-		csBattleRecordToken2.StartingDamage = Int32ToInt((*source).StartingDamage)
-		csBattleRecordToken2.Tactic = BattleTacticToCSBattleTactic((*source).Tactic)
-		csBattleRecordToken2.PrimaryTarget = BattleTargetToCSBattleTarget((*source).PrimaryTarget)
-		csBattleRecordToken2.SecondaryTarget = BattleTargetToCSBattleTarget((*source).SecondaryTarget)
-		csBattleRecordToken2.AttackWho = BattleAttackWhoToCSBattleAttackWho((*source).AttackWho)
-		csBattleRecordToken = csBattleRecordToken2
+		csBattleRecordToken.Num = Int32ToInt((*source).Num)
+		csBattleRecordToken.PlayerNum = Int32ToInt((*source).PlayerNum)
+		csBattleRecordToken.DesignNum = Int32ToInt((*source).DesignNum)
+		csBattleRecordToken.Position = c.ConvertVector((*source).Position)
+		csBattleRecordToken.Initiative = Int32ToInt((*source).Initiative)
+		csBattleRecordToken.Mass = Int32ToInt((*source).Mass)
+		csBattleRecordToken.Armor = Int32ToInt((*source).Armor)
+		csBattleRecordToken.StackShields = Int32ToInt((*source).StackShields)
+		csBattleRecordToken.Movement = Int32ToInt((*source).Movement)
+		csBattleRecordToken.StartingQuantity = Int32ToInt((*source).StartingQuantity)
+		csBattleRecordToken.StartingQuantityDamaged = Int32ToInt((*source).StartingQuantityDamaged)
+		csBattleRecordToken.StartingDamage = Int32ToInt((*source).StartingDamage)
+		csBattleRecordToken.Tactic = BattleTacticToCSBattleTactic((*source).Tactic)
+		csBattleRecordToken.PrimaryTarget = BattleTargetToCSBattleTarget((*source).PrimaryTarget)
+		csBattleRecordToken.SecondaryTarget = BattleTargetToCSBattleTarget((*source).SecondaryTarget)
+		csBattleRecordToken.AttackWho = BattleAttackWhoToCSBattleAttackWho((*source).AttackWho)
 	}
 	return csBattleRecordToken
 }
 func (c *ProtoConverter) pCraig_starsv1BattleRulesToCsBattleRules(source *v1.BattleRules) cs.BattleRules {
 	var csBattleRules cs.BattleRules
 	if source != nil {
-		var csBattleRules2 cs.BattleRules
-		csBattleRules2.BeamRangeDropoff = (*source).BeamRangeDropoff
-		csBattleRules2.BeamBonusCap = (*source).BeamBonusCap
-		csBattleRules2.JammerCap = c.pCraig_starsv1JammerCapToCsJammerCap((*source).JammerCap)
-		csBattleRules2.JammerMulti = c.pCraig_starsv1JammerCapToCsJammerCap((*source).JammerMulti)
-		csBattleRules2.MovementMin = Int32ToInt((*source).MovementMin)
-		csBattleRules2.MovementMax = Int32ToInt((*source).MovementMax)
-		csBattleRules2.MovesToRunAway = Int32ToInt((*source).MovesToRunAway)
-		csBattleRules2.NumBattleRounds = Int32ToInt((*source).NumBattleRounds)
-		csBattleRules2.TorpedoSplashDamage = (*source).TorpedoSplashDamage
-		csBattleRules = csBattleRules2
+		csBattleRules.BeamRangeDropoff = (*source).BeamRangeDropoff
+		csBattleRules.BeamBonusCap = (*source).BeamBonusCap
+		csBattleRules.JammerCap = c.pCraig_starsv1JammerCapToCsJammerCap((*source).JammerCap)
+		csBattleRules.JammerMulti = c.pCraig_starsv1JammerCapToCsJammerCap((*source).JammerMulti)
+		csBattleRules.MovementMin = Int32ToInt((*source).MovementMin)
+		csBattleRules.MovementMax = Int32ToInt((*source).MovementMax)
+		csBattleRules.MovesToRunAway = Int32ToInt((*source).MovesToRunAway)
+		csBattleRules.NumBattleRounds = Int32ToInt((*source).NumBattleRounds)
+		csBattleRules.TorpedoSplashDamage = (*source).TorpedoSplashDamage
 	}
 	return csBattleRules
 }
 func (c *ProtoConverter) pCraig_starsv1BombToCsBomb(source *v1.Bomb) cs.Bomb {
 	var csBomb cs.Bomb
 	if source != nil {
-		var csBomb2 cs.Bomb
-		csBomb2.Quantity = Int32ToInt((*source).Quantity)
-		csBomb2.KillRate = (*source).KillRate
-		csBomb2.MinKillRate = Int32ToInt((*source).MinKillRate)
-		csBomb2.StructureDestroyRate = (*source).StructureDestroyRate
-		csBomb2.UnterraformRate = Int32ToInt((*source).UnterraformRate)
-		csBomb = csBomb2
+		csBomb.Quantity = Int32ToInt((*source).Quantity)
+		csBomb.KillRate = (*source).KillRate
+		csBomb.MinKillRate = Int32ToInt((*source).MinKillRate)
+		csBomb.StructureDestroyRate = (*source).StructureDestroyRate
+		csBomb.UnterraformRate = Int32ToInt((*source).UnterraformRate)
 	}
 	return csBomb
 }
@@ -3409,10 +3316,8 @@ func (c *ProtoConverter) pCraig_starsv1BombingResultToPCsBombingResult(source *v
 func (c *ProtoConverter) pCraig_starsv1BuiltInScannerToCsBuiltInScanner(source *v1.BuiltInScanner) cs.BuiltInScanner {
 	var csBuiltInScanner cs.BuiltInScanner
 	if source != nil {
-		var csBuiltInScanner2 cs.BuiltInScanner
-		csBuiltInScanner2.NormalMulti = c.ConvertTechLevel((*source).NormalMulti)
-		csBuiltInScanner2.PenMulti = c.ConvertTechLevel((*source).PenMulti)
-		csBuiltInScanner = csBuiltInScanner2
+		csBuiltInScanner.NormalMulti = c.ConvertTechLevel((*source).NormalMulti)
+		csBuiltInScanner.PenMulti = c.ConvertTechLevel((*source).PenMulti)
 	}
 	return csBuiltInScanner
 }
@@ -3431,21 +3336,19 @@ func (c *ProtoConverter) pCraig_starsv1CargoToPCsCargo(source *v1.Cargo) *cs.Car
 func (c *ProtoConverter) pCraig_starsv1CostRulesToCsCostRules(source *v1.CostRules) cs.CostRules {
 	var csCostRules cs.CostRules
 	if source != nil {
-		var csCostRules2 cs.CostRules
-		csCostRules2.DefenseCost = c.ConvertCost((*source).DefenseCost)
-		csCostRules2.FactoryCostGermanium = Int32ToInt((*source).FactoryCostGermanium)
-		csCostRules2.MineralAlchemyCost = Int32ToInt((*source).MineralAlchemyCost)
-		csCostRules2.PlanetaryScannerCost = c.ConvertCost((*source).PlanetaryScannerCost)
-		csCostRules2.StarbaseComponentCostReduction = (*source).StarbaseComponentCostReduction
-		csCostRules2.StarbaseHullRefundFactor = (*source).StarbaseHullRefundFactor
-		csCostRules2.TerraformCost = c.ConvertCost((*source).TerraformCost)
+		csCostRules.DefenseCost = c.ConvertCost((*source).DefenseCost)
+		csCostRules.FactoryCostGermanium = Int32ToInt((*source).FactoryCostGermanium)
+		csCostRules.MineralAlchemyCost = Int32ToInt((*source).MineralAlchemyCost)
+		csCostRules.PlanetaryScannerCost = c.ConvertCost((*source).PlanetaryScannerCost)
+		csCostRules.StarbaseComponentCostReduction = (*source).StarbaseComponentCostReduction
+		csCostRules.StarbaseHullRefundFactor = (*source).StarbaseHullRefundFactor
+		csCostRules.TerraformCost = c.ConvertCost((*source).TerraformCost)
 		if (*source).TechBaseCost != nil {
-			csCostRules2.TechBaseCost = make([]int, len((*source).TechBaseCost))
+			csCostRules.TechBaseCost = make([]int, len((*source).TechBaseCost))
 			for i := 0; i < len((*source).TechBaseCost); i++ {
-				csCostRules2.TechBaseCost[i] = Int32ToInt((*source).TechBaseCost[i])
+				csCostRules.TechBaseCost[i] = Int32ToInt((*source).TechBaseCost[i])
 			}
 		}
-		csCostRules = csCostRules2
 	}
 	return csCostRules
 }
@@ -3464,79 +3367,67 @@ func (c *ProtoConverter) pCraig_starsv1CostToPCsCostGeneric(source *v1.Cost) *cs
 func (c *ProtoConverter) pCraig_starsv1EngineToCsEngine(source *v1.Engine) cs.Engine {
 	var csEngine cs.Engine
 	if source != nil {
-		var csEngine2 cs.Engine
-		csEngine2.IdealSpeed = Int32ToInt((*source).IdealSpeed)
-		csEngine2.FreeSpeed = Int32ToInt((*source).FreeSpeed)
-		csEngine2.MaxSafeSpeed = Int32ToInt((*source).MaxSafeSpeed)
+		csEngine.IdealSpeed = Int32ToInt((*source).IdealSpeed)
+		csEngine.FreeSpeed = Int32ToInt((*source).FreeSpeed)
+		csEngine.MaxSafeSpeed = Int32ToInt((*source).MaxSafeSpeed)
 		if (*source).FuelUsage != nil {
-			csEngine2.FuelUsage = make([]int, len((*source).FuelUsage))
+			csEngine.FuelUsage = make([]int, len((*source).FuelUsage))
 			for i := 0; i < len((*source).FuelUsage); i++ {
-				csEngine2.FuelUsage[i] = Int32ToInt((*source).FuelUsage[i])
+				csEngine.FuelUsage[i] = Int32ToInt((*source).FuelUsage[i])
 			}
 		}
-		csEngine = csEngine2
 	}
 	return csEngine
 }
 func (c *ProtoConverter) pCraig_starsv1FleetOrdersToCsFleetOrders(source *v1.FleetOrders) cs.FleetOrders {
 	var csFleetOrders cs.FleetOrders
 	if source != nil {
-		var csFleetOrders2 cs.FleetOrders
 		if (*source).Waypoints != nil {
-			csFleetOrders2.Waypoints = make([]cs.Waypoint, len((*source).Waypoints))
+			csFleetOrders.Waypoints = make([]cs.Waypoint, len((*source).Waypoints))
 			for i := 0; i < len((*source).Waypoints); i++ {
-				csFleetOrders2.Waypoints[i] = c.pCraig_starsv1WaypointToCsWaypoint((*source).Waypoints[i])
+				csFleetOrders.Waypoints[i] = c.pCraig_starsv1WaypointToCsWaypoint((*source).Waypoints[i])
 			}
 		}
-		csFleetOrders2.RepeatOrders = (*source).RepeatOrders
-		csFleetOrders2.BattlePlanNum = Int32ToInt((*source).BattlePlanNum)
-		csFleetOrders2.Purpose = FleetPurposeToCSFleetPurpose((*source).Purpose)
-		csFleetOrders = csFleetOrders2
+		csFleetOrders.RepeatOrders = (*source).RepeatOrders
+		csFleetOrders.BattlePlanNum = Int32ToInt((*source).BattlePlanNum)
+		csFleetOrders.Purpose = FleetPurposeToCSFleetPurpose((*source).Purpose)
 	}
 	return csFleetOrders
 }
 func (c *ProtoConverter) pCraig_starsv1FreighterGrowthToCsFreighterGrowth(source *v1.FreighterGrowth) cs.FreighterGrowth {
 	var csFreighterGrowth cs.FreighterGrowth
 	if source != nil {
-		var csFreighterGrowth2 cs.FreighterGrowth
-		csFreighterGrowth2.Absolute = (*source).Absolute
-		csFreighterGrowth2.GrowthFactor = (*source).GrowthFactor
-		csFreighterGrowth = csFreighterGrowth2
+		csFreighterGrowth.Absolute = (*source).Absolute
+		csFreighterGrowth.GrowthFactor = (*source).GrowthFactor
 	}
 	return csFreighterGrowth
 }
 func (c *ProtoConverter) pCraig_starsv1GameDBObjectToCsGameDBObject(source *v1.GameDBObject) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	if source != nil {
-		var csGameDBObject2 cs.GameDBObject
-		csGameDBObject2.ID = (*source).Id
-		csGameDBObject2.GameID = (*source).GameId
-		csGameDBObject2.CreatedAt = TimestampToTime((*source).CreatedAt)
-		csGameDBObject2.UpdatedAt = TimestampToTime((*source).UpdatedAt)
-		csGameDBObject = csGameDBObject2
+		csGameDBObject.ID = (*source).Id
+		csGameDBObject.GameID = (*source).GameId
+		csGameDBObject.CreatedAt = TimestampToTime((*source).CreatedAt)
+		csGameDBObject.UpdatedAt = TimestampToTime((*source).UpdatedAt)
 	}
 	return csGameDBObject
 }
 func (c *ProtoConverter) pCraig_starsv1JammerCapToCsJammerCap(source *v1.JammerCap) cs.JammerCap {
 	var csJammerCap cs.JammerCap
 	if source != nil {
-		var csJammerCap2 cs.JammerCap
-		csJammerCap2.Ship = (*source).Ship
-		csJammerCap2.Starbase = (*source).Starbase
-		csJammerCap = csJammerCap2
+		csJammerCap.Ship = (*source).Ship
+		csJammerCap.Starbase = (*source).Starbase
 	}
 	return csJammerCap
 }
 func (c *ProtoConverter) pCraig_starsv1MapObjectTargetToCsTarget(source *v1.MapObjectTarget) cs.Target[cs.MapObjectType] {
 	var csTarget cs.Target[cs.MapObjectType]
 	if source != nil {
-		var csTarget2 cs.Target[cs.MapObjectType]
-		csTarget2.TargetPosition = c.ConvertVector((*source).TargetPosition)
-		csTarget2.TargetType = MapObjectTypeToCSMapObjectType((*source).TargetType)
-		csTarget2.TargetName = (*source).TargetName
-		csTarget2.TargetNum = Int32ToInt((*source).TargetNum)
-		csTarget2.TargetPlayerNum = Int32ToInt((*source).TargetPlayerNum)
-		csTarget = csTarget2
+		csTarget.TargetPosition = c.ConvertVector((*source).TargetPosition)
+		csTarget.TargetType = MapObjectTypeToCSMapObjectType((*source).TargetType)
+		csTarget.TargetName = (*source).TargetName
+		csTarget.TargetNum = Int32ToInt((*source).TargetNum)
+		csTarget.TargetPlayerNum = Int32ToInt((*source).TargetPlayerNum)
 	}
 	return csTarget
 }
@@ -3567,9 +3458,7 @@ func (c *ProtoConverter) pCraig_starsv1MinefieldDamageToPCsMinefieldDamage(sourc
 func (c *ProtoConverter) pCraig_starsv1MinefieldOrdersToCsMinefieldOrders(source *v1.MinefieldOrders) cs.MinefieldOrders {
 	var csMinefieldOrders cs.MinefieldOrders
 	if source != nil {
-		var csMinefieldOrders2 cs.MinefieldOrders
-		csMinefieldOrders2.Detonate = (*source).Detonate
-		csMinefieldOrders = csMinefieldOrders2
+		csMinefieldOrders.Detonate = (*source).Detonate
 	}
 	return csMinefieldOrders
 }
@@ -3587,11 +3476,9 @@ func (c *ProtoConverter) pCraig_starsv1MineralPacketDamageToPCsMineralPacketDama
 func (c *ProtoConverter) pCraig_starsv1MineralToCsMineral(source *v1.Mineral) cs.Mineral {
 	var csMineral cs.Mineral
 	if source != nil {
-		var csMineral2 cs.Mineral
-		csMineral2.Ironium = Int32ToInt((*source).Ironium)
-		csMineral2.Boranium = Int32ToInt((*source).Boranium)
-		csMineral2.Germanium = Int32ToInt((*source).Germanium)
-		csMineral = csMineral2
+		csMineral.Ironium = Int32ToInt((*source).Ironium)
+		csMineral.Boranium = Int32ToInt((*source).Boranium)
+		csMineral.Germanium = Int32ToInt((*source).Germanium)
 	}
 	return csMineral
 }
@@ -3609,65 +3496,57 @@ func (c *ProtoConverter) pCraig_starsv1MineralToPCsMineral(source *v1.Mineral) *
 func (c *ProtoConverter) pCraig_starsv1MysteryTraderRulesToCsMysteryTraderRules(source *v1.MysteryTraderRules) cs.MysteryTraderRules {
 	var csMysteryTraderRules cs.MysteryTraderRules
 	if source != nil {
-		var csMysteryTraderRules2 cs.MysteryTraderRules
 		if (*source).ChanceSpawn != nil {
-			csMysteryTraderRules2.ChanceSpawn = make([]int, len((*source).ChanceSpawn))
+			csMysteryTraderRules.ChanceSpawn = make([]int, len((*source).ChanceSpawn))
 			for i := 0; i < len((*source).ChanceSpawn); i++ {
-				csMysteryTraderRules2.ChanceSpawn[i] = Int32ToInt((*source).ChanceSpawn[i])
+				csMysteryTraderRules.ChanceSpawn[i] = Int32ToInt((*source).ChanceSpawn[i])
 			}
 		}
-		csMysteryTraderRules2.ChanceMaxTechGetsPart = Int32ToInt((*source).ChanceMaxTechGetsPart)
-		csMysteryTraderRules2.ChanceCourseChange = Int32ToInt((*source).ChanceCourseChange)
-		csMysteryTraderRules2.ChanceSpeedUpOnly = Int32ToInt((*source).ChanceSpeedUpOnly)
-		csMysteryTraderRules2.ChanceAgain = Int32ToInt((*source).ChanceAgain)
-		csMysteryTraderRules2.EvenYearOnly = (*source).EvenYearOnly
-		csMysteryTraderRules2.GenesisDeviceCost = c.ConvertCost((*source).GenesisDeviceCost)
-		csMysteryTraderRules2.MaxMysteryTraders = Int32ToInt((*source).MaxMysteryTraders)
-		csMysteryTraderRules2.MaxWarp = Int32ToInt((*source).MaxWarp)
-		csMysteryTraderRules2.MinWarp = Int32ToInt((*source).MinWarp)
-		csMysteryTraderRules2.MinYear = Int32ToInt((*source).MinYear)
-		csMysteryTraderRules2.RequestedBoon = Int32ToInt((*source).RequestedBoon)
+		csMysteryTraderRules.ChanceMaxTechGetsPart = Int32ToInt((*source).ChanceMaxTechGetsPart)
+		csMysteryTraderRules.ChanceCourseChange = Int32ToInt((*source).ChanceCourseChange)
+		csMysteryTraderRules.ChanceSpeedUpOnly = Int32ToInt((*source).ChanceSpeedUpOnly)
+		csMysteryTraderRules.ChanceAgain = Int32ToInt((*source).ChanceAgain)
+		csMysteryTraderRules.EvenYearOnly = (*source).EvenYearOnly
+		csMysteryTraderRules.GenesisDeviceCost = c.ConvertCost((*source).GenesisDeviceCost)
+		csMysteryTraderRules.MaxMysteryTraders = Int32ToInt((*source).MaxMysteryTraders)
+		csMysteryTraderRules.MaxWarp = Int32ToInt((*source).MaxWarp)
+		csMysteryTraderRules.MinWarp = Int32ToInt((*source).MinWarp)
+		csMysteryTraderRules.MinYear = Int32ToInt((*source).MinYear)
+		csMysteryTraderRules.RequestedBoon = Int32ToInt((*source).RequestedBoon)
 		if (*source).TechBoon != nil {
-			csMysteryTraderRules2.TechBoon = make([]cs.MysteryTraderTechBoonRules, len((*source).TechBoon))
+			csMysteryTraderRules.TechBoon = make([]cs.MysteryTraderTechBoonRules, len((*source).TechBoon))
 			for j := 0; j < len((*source).TechBoon); j++ {
-				csMysteryTraderRules2.TechBoon[j] = c.pCraig_starsv1MysteryTraderTechBoonRulesToCsMysteryTraderTechBoonRules((*source).TechBoon[j])
+				csMysteryTraderRules.TechBoon[j] = c.pCraig_starsv1MysteryTraderTechBoonRulesToCsMysteryTraderTechBoonRules((*source).TechBoon[j])
 			}
 		}
-		csMysteryTraderRules = csMysteryTraderRules2
 	}
 	return csMysteryTraderRules
 }
 func (c *ProtoConverter) pCraig_starsv1MysteryTraderSpecToCsMysteryTraderSpec(source *v1.MysteryTraderSpec) cs.MysteryTraderSpec {
 	var csMysteryTraderSpec cs.MysteryTraderSpec
 	if source != nil {
-		var csMysteryTraderSpec2 cs.MysteryTraderSpec
-		csMysteryTraderSpec2.Rewarded = (*source).Rewarded
-		csMysteryTraderSpec = csMysteryTraderSpec2
+		csMysteryTraderSpec.Rewarded = (*source).Rewarded
 	}
 	return csMysteryTraderSpec
 }
 func (c *ProtoConverter) pCraig_starsv1MysteryTraderTechBoonMineralsRewardToCsMysteryTraderTechBoonMineralsReward(source *v1.MysteryTraderTechBoonMineralsReward) cs.MysteryTraderTechBoonMineralsReward {
 	var csMysteryTraderTechBoonMineralsReward cs.MysteryTraderTechBoonMineralsReward
 	if source != nil {
-		var csMysteryTraderTechBoonMineralsReward2 cs.MysteryTraderTechBoonMineralsReward
-		csMysteryTraderTechBoonMineralsReward2.MineralsGiven = Int32ToInt((*source).MineralsGiven)
-		csMysteryTraderTechBoonMineralsReward2.Reward = Int32ToInt((*source).Reward)
-		csMysteryTraderTechBoonMineralsReward = csMysteryTraderTechBoonMineralsReward2
+		csMysteryTraderTechBoonMineralsReward.MineralsGiven = Int32ToInt((*source).MineralsGiven)
+		csMysteryTraderTechBoonMineralsReward.Reward = Int32ToInt((*source).Reward)
 	}
 	return csMysteryTraderTechBoonMineralsReward
 }
 func (c *ProtoConverter) pCraig_starsv1MysteryTraderTechBoonRulesToCsMysteryTraderTechBoonRules(source *v1.MysteryTraderTechBoonRules) cs.MysteryTraderTechBoonRules {
 	var csMysteryTraderTechBoonRules cs.MysteryTraderTechBoonRules
 	if source != nil {
-		var csMysteryTraderTechBoonRules2 cs.MysteryTraderTechBoonRules
-		csMysteryTraderTechBoonRules2.TechLevels = Int32ToInt((*source).TechLevels)
+		csMysteryTraderTechBoonRules.TechLevels = Int32ToInt((*source).TechLevels)
 		if (*source).Rewards != nil {
-			csMysteryTraderTechBoonRules2.Rewards = make([]cs.MysteryTraderTechBoonMineralsReward, len((*source).Rewards))
+			csMysteryTraderTechBoonRules.Rewards = make([]cs.MysteryTraderTechBoonMineralsReward, len((*source).Rewards))
 			for i := 0; i < len((*source).Rewards); i++ {
-				csMysteryTraderTechBoonRules2.Rewards[i] = c.pCraig_starsv1MysteryTraderTechBoonMineralsRewardToCsMysteryTraderTechBoonMineralsReward((*source).Rewards[i])
+				csMysteryTraderTechBoonRules.Rewards[i] = c.pCraig_starsv1MysteryTraderTechBoonMineralsRewardToCsMysteryTraderTechBoonMineralsReward((*source).Rewards[i])
 			}
 		}
-		csMysteryTraderTechBoonRules = csMysteryTraderTechBoonRules2
 	}
 	return csMysteryTraderTechBoonRules
 }
@@ -3696,69 +3575,61 @@ func (c *ProtoConverter) pCraig_starsv1MysteryTraderToPCsMysteryTrader(source *v
 func (c *ProtoConverter) pCraig_starsv1NewGamePlayerToCsNewGamePlayer(source *v1.NewGamePlayer) cs.NewGamePlayer {
 	var csNewGamePlayer cs.NewGamePlayer
 	if source != nil {
-		var csNewGamePlayer2 cs.NewGamePlayer
-		csNewGamePlayer2.Type = NewGamePlayerTypeToCSNewGamePlayerType((*source).Type)
-		csNewGamePlayer2.AIDifficulty = AIDifficultyToCSAIDifficulty((*source).AiDifficulty)
-		csNewGamePlayer2.Color = (*source).Color
-		csNewGamePlayer2.DefaultHullSet = Int32ToInt((*source).DefaultHullSet)
-		csNewGamePlayer2.Race = c.pCraig_starsv1RaceToCsRace((*source).Race)
-		csNewGamePlayer = csNewGamePlayer2
+		csNewGamePlayer.Type = NewGamePlayerTypeToCSNewGamePlayerType((*source).Type)
+		csNewGamePlayer.AIDifficulty = AIDifficultyToCSAIDifficulty((*source).AiDifficulty)
+		csNewGamePlayer.Color = (*source).Color
+		csNewGamePlayer.DefaultHullSet = Int32ToInt((*source).DefaultHullSet)
+		csNewGamePlayer.Race = ExtendProtoRace(c, (*source).Race)
 	}
 	return csNewGamePlayer
 }
 func (c *ProtoConverter) pCraig_starsv1PlanetOrdersToCsPlanetOrders(source *v1.PlanetOrders) cs.PlanetOrders {
 	var csPlanetOrders cs.PlanetOrders
 	if source != nil {
-		var csPlanetOrders2 cs.PlanetOrders
-		csPlanetOrders2.ContributesOnlyLeftoverToResearch = (*source).ContributesOnlyLeftoverToResearch
+		csPlanetOrders.ContributesOnlyLeftoverToResearch = (*source).ContributesOnlyLeftoverToResearch
 		if (*source).ProductionQueue != nil {
-			csPlanetOrders2.ProductionQueue = make([]cs.ProductionQueueItem, len((*source).ProductionQueue))
+			csPlanetOrders.ProductionQueue = make([]cs.ProductionQueueItem, len((*source).ProductionQueue))
 			for i := 0; i < len((*source).ProductionQueue); i++ {
-				csPlanetOrders2.ProductionQueue[i] = c.ConvertProductionQueueItem((*source).ProductionQueue[i])
+				csPlanetOrders.ProductionQueue[i] = c.ConvertProductionQueueItem((*source).ProductionQueue[i])
 			}
 		}
-		csPlanetOrders2.RouteTargetType = MapObjectTypeToCSMapObjectType((*source).RouteTargetType)
-		csPlanetOrders2.RouteTargetNum = Int32ToInt((*source).RouteTargetNum)
-		csPlanetOrders2.RouteTargetPlayerNum = Int32ToInt((*source).RouteTargetPlayerNum)
-		csPlanetOrders2.PacketTargetNum = Int32ToInt((*source).PacketTargetNum)
-		csPlanetOrders2.PacketSpeed = Int32ToInt((*source).PacketSpeed)
-		csPlanetOrders = csPlanetOrders2
+		csPlanetOrders.RouteTargetType = MapObjectTypeToCSMapObjectType((*source).RouteTargetType)
+		csPlanetOrders.RouteTargetNum = Int32ToInt((*source).RouteTargetNum)
+		csPlanetOrders.RouteTargetPlayerNum = Int32ToInt((*source).RouteTargetPlayerNum)
+		csPlanetOrders.PacketTargetNum = Int32ToInt((*source).PacketTargetNum)
+		csPlanetOrders.PacketSpeed = Int32ToInt((*source).PacketSpeed)
 	}
 	return csPlanetOrders
 }
 func (c *ProtoConverter) pCraig_starsv1PlanetStarbaseSpecToCsPlanetStarbaseSpec(source *v1.PlanetStarbaseSpec) cs.PlanetStarbaseSpec {
 	var csPlanetStarbaseSpec cs.PlanetStarbaseSpec
 	if source != nil {
-		var csPlanetStarbaseSpec2 cs.PlanetStarbaseSpec
-		csPlanetStarbaseSpec2.HasMassDriver = (*source).HasMassDriver
-		csPlanetStarbaseSpec2.HasStarbase = (*source).HasStarbase
-		csPlanetStarbaseSpec2.HasStargate = (*source).HasStargate
-		csPlanetStarbaseSpec2.StarbaseDesignName = (*source).StarbaseDesignName
-		csPlanetStarbaseSpec2.StarbaseDesignNum = Int32ToInt((*source).StarbaseDesignNum)
-		csPlanetStarbaseSpec2.DockCapacity = Int32ToInt((*source).DockCapacity)
-		csPlanetStarbaseSpec2.BasePacketSpeed = Int32ToInt((*source).BasePacketSpeed)
-		csPlanetStarbaseSpec2.SafePacketSpeed = Int32ToInt((*source).SafePacketSpeed)
-		csPlanetStarbaseSpec2.SafeHullMass = Int32ToInt((*source).SafeHullMass)
-		csPlanetStarbaseSpec2.SafeRange = Int32ToInt((*source).SafeRange)
-		csPlanetStarbaseSpec2.MaxRange = Int32ToInt((*source).MaxRange)
-		csPlanetStarbaseSpec2.MaxHullMass = Int32ToInt((*source).MaxHullMass)
-		csPlanetStarbaseSpec2.Stargate = (*source).Stargate
-		csPlanetStarbaseSpec2.MassDriver = (*source).MassDriver
-		csPlanetStarbaseSpec = csPlanetStarbaseSpec2
+		csPlanetStarbaseSpec.HasMassDriver = (*source).HasMassDriver
+		csPlanetStarbaseSpec.HasStarbase = (*source).HasStarbase
+		csPlanetStarbaseSpec.HasStargate = (*source).HasStargate
+		csPlanetStarbaseSpec.StarbaseDesignName = (*source).StarbaseDesignName
+		csPlanetStarbaseSpec.StarbaseDesignNum = Int32ToInt((*source).StarbaseDesignNum)
+		csPlanetStarbaseSpec.DockCapacity = Int32ToInt((*source).DockCapacity)
+		csPlanetStarbaseSpec.BasePacketSpeed = Int32ToInt((*source).BasePacketSpeed)
+		csPlanetStarbaseSpec.SafePacketSpeed = Int32ToInt((*source).SafePacketSpeed)
+		csPlanetStarbaseSpec.SafeHullMass = Int32ToInt((*source).SafeHullMass)
+		csPlanetStarbaseSpec.SafeRange = Int32ToInt((*source).SafeRange)
+		csPlanetStarbaseSpec.MaxRange = Int32ToInt((*source).MaxRange)
+		csPlanetStarbaseSpec.MaxHullMass = Int32ToInt((*source).MaxHullMass)
+		csPlanetStarbaseSpec.Stargate = (*source).Stargate
+		csPlanetStarbaseSpec.MassDriver = (*source).MassDriver
 	}
 	return csPlanetStarbaseSpec
 }
 func (c *ProtoConverter) pCraig_starsv1PlayerIntelToCsPlayerIntel(source *v1.PlayerIntel) cs.PlayerIntel {
 	var csPlayerIntel cs.PlayerIntel
 	if source != nil {
-		var csPlayerIntel2 cs.PlayerIntel
-		csPlayerIntel2.Name = (*source).Name
-		csPlayerIntel2.Num = Int32ToInt((*source).Num)
-		csPlayerIntel2.Color = (*source).Color
-		csPlayerIntel2.Seen = (*source).Seen
-		csPlayerIntel2.RaceName = (*source).RaceName
-		csPlayerIntel2.RacePluralName = (*source).RacePluralName
-		csPlayerIntel = csPlayerIntel2
+		csPlayerIntel.Name = (*source).Name
+		csPlayerIntel.Num = Int32ToInt((*source).Num)
+		csPlayerIntel.Color = (*source).Color
+		csPlayerIntel.Seen = (*source).Seen
+		csPlayerIntel.RaceName = (*source).RaceName
+		csPlayerIntel.RacePluralName = (*source).RacePluralName
 	}
 	return csPlayerIntel
 }
@@ -3804,118 +3675,106 @@ func (c *ProtoConverter) pCraig_starsv1PlayerMessageSpecInvasionToPCsPlayerMessa
 func (c *ProtoConverter) pCraig_starsv1PlayerMessageSpecToCsPlayerMessageSpec(source *v1.PlayerMessageSpec) cs.PlayerMessageSpec {
 	var csPlayerMessageSpec cs.PlayerMessageSpec
 	if source != nil {
-		var csPlayerMessageSpec2 cs.PlayerMessageSpec
-		csPlayerMessageSpec2.MapObjectTarget = c.pCraig_starsv1MapObjectTargetToCsTarget((*source).MapObjectTarget)
-		csPlayerMessageSpec2.Amount = Int32ToInt((*source).Amount)
-		csPlayerMessageSpec2.Amount2 = Int32ToInt((*source).Amount2)
-		csPlayerMessageSpec2.Battle = c.pCraig_starsv1BattleRecordStatsToPCsBattleRecordStats((*source).Battle)
-		csPlayerMessageSpec2.Bombing = c.pCraig_starsv1BombingResultToPCsBombingResult((*source).Bombing)
-		csPlayerMessageSpec2.Cargo = c.pCraig_starsv1CargoToPCsCargo((*source).Cargo)
-		csPlayerMessageSpec2.CargoTransfer = c.pCraig_starsv1PlayerMessageSpecCargoTransferToPCsPlayerMessageSpecCargoTransfer((*source).CargoTransfer)
-		csPlayerMessageSpec2.Comet = c.pCraig_starsv1PlayerMessageSpecCometToPCsPlayerMessageSpecComet((*source).Comet)
-		csPlayerMessageSpec2.Cost = c.pCraig_starsv1CostToPCsCostGeneric((*source).Cost)
-		csPlayerMessageSpec2.DestPlayerNum = Int32ToInt((*source).DestPlayerNum)
-		csPlayerMessageSpec2.Distance = (*source).Distance
-		csPlayerMessageSpec2.Error = (*source).Error
-		csPlayerMessageSpec2.Field = cs.TechField((*source).Field)
-		csPlayerMessageSpec2.HabType = TerraformHabTypeToCSTerraformHabType((*source).HabType)
-		csPlayerMessageSpec2.HasMassDriver = (*source).HasMassDriver
-		csPlayerMessageSpec2.Invasion = c.pCraig_starsv1PlayerMessageSpecInvasionToPCsPlayerMessageSpecInvasion((*source).Invasion)
-		csPlayerMessageSpec2.LostTargetType = MapObjectTypeToCSMapObjectType((*source).LostTargetType)
-		csPlayerMessageSpec2.MinefieldDamage = c.pCraig_starsv1MinefieldDamageToPCsMinefieldDamage((*source).MinefieldDamage)
-		csPlayerMessageSpec2.Mineral = c.pCraig_starsv1MineralToPCsMineral((*source).Mineral)
-		csPlayerMessageSpec2.MineralPacketDamage = c.pCraig_starsv1MineralPacketDamageToPCsMineralPacketDamage((*source).MineralPacketDamage)
-		csPlayerMessageSpec2.MysteryTrader = c.ConvertPlayerMessageSpecMysteryTrader((*source).MysteryTrader)
-		csPlayerMessageSpec2.Name = (*source).Name
-		csPlayerMessageSpec2.NextField = cs.TechField((*source).NextField)
-		csPlayerMessageSpec2.PlanetEmptied = (*source).PlanetEmptied
-		csPlayerMessageSpec2.PrevAmount = Int32ToInt((*source).PrevAmount)
-		csPlayerMessageSpec2.QueueItemType = QueueItemTypeToCSQueueItemType((*source).QueueItemType)
-		csPlayerMessageSpec2.RouteTarget = c.pCraig_starsv1MapObjectTargetToPCsTarget((*source).RouteTarget)
-		csPlayerMessageSpec2.SourcePlayerNum = Int32ToInt((*source).SourcePlayerNum)
-		csPlayerMessageSpec2.TechGained = (*source).TechGained
-		csPlayerMessageSpec2.TerraformAmount = c.ConvertHab((*source).TerraformAmount)
-		csPlayerMessageSpec = csPlayerMessageSpec2
+		csPlayerMessageSpec.MapObjectTarget = c.pCraig_starsv1MapObjectTargetToCsTarget((*source).MapObjectTarget)
+		csPlayerMessageSpec.Amount = Int32ToInt((*source).Amount)
+		csPlayerMessageSpec.Amount2 = Int32ToInt((*source).Amount2)
+		csPlayerMessageSpec.Battle = c.pCraig_starsv1BattleRecordStatsToPCsBattleRecordStats((*source).Battle)
+		csPlayerMessageSpec.Bombing = c.pCraig_starsv1BombingResultToPCsBombingResult((*source).Bombing)
+		csPlayerMessageSpec.Cargo = c.pCraig_starsv1CargoToPCsCargo((*source).Cargo)
+		csPlayerMessageSpec.CargoTransfer = c.pCraig_starsv1PlayerMessageSpecCargoTransferToPCsPlayerMessageSpecCargoTransfer((*source).CargoTransfer)
+		csPlayerMessageSpec.Comet = c.pCraig_starsv1PlayerMessageSpecCometToPCsPlayerMessageSpecComet((*source).Comet)
+		csPlayerMessageSpec.Cost = c.pCraig_starsv1CostToPCsCostGeneric((*source).Cost)
+		csPlayerMessageSpec.DestPlayerNum = Int32ToInt((*source).DestPlayerNum)
+		csPlayerMessageSpec.Distance = (*source).Distance
+		csPlayerMessageSpec.Error = (*source).Error
+		csPlayerMessageSpec.Field = cs.TechField((*source).Field)
+		csPlayerMessageSpec.HabType = TerraformHabTypeToCSTerraformHabType((*source).HabType)
+		csPlayerMessageSpec.HasMassDriver = (*source).HasMassDriver
+		csPlayerMessageSpec.Invasion = c.pCraig_starsv1PlayerMessageSpecInvasionToPCsPlayerMessageSpecInvasion((*source).Invasion)
+		csPlayerMessageSpec.LostTargetType = MapObjectTypeToCSMapObjectType((*source).LostTargetType)
+		csPlayerMessageSpec.MinefieldDamage = c.pCraig_starsv1MinefieldDamageToPCsMinefieldDamage((*source).MinefieldDamage)
+		csPlayerMessageSpec.Mineral = c.pCraig_starsv1MineralToPCsMineral((*source).Mineral)
+		csPlayerMessageSpec.MineralPacketDamage = c.pCraig_starsv1MineralPacketDamageToPCsMineralPacketDamage((*source).MineralPacketDamage)
+		csPlayerMessageSpec.MysteryTrader = c.ConvertPlayerMessageSpecMysteryTrader((*source).MysteryTrader)
+		csPlayerMessageSpec.Name = (*source).Name
+		csPlayerMessageSpec.NextField = cs.TechField((*source).NextField)
+		csPlayerMessageSpec.PlanetEmptied = (*source).PlanetEmptied
+		csPlayerMessageSpec.PrevAmount = Int32ToInt((*source).PrevAmount)
+		csPlayerMessageSpec.QueueItemType = QueueItemTypeToCSQueueItemType((*source).QueueItemType)
+		csPlayerMessageSpec.RouteTarget = c.pCraig_starsv1MapObjectTargetToPCsTarget((*source).RouteTarget)
+		csPlayerMessageSpec.SourcePlayerNum = Int32ToInt((*source).SourcePlayerNum)
+		csPlayerMessageSpec.TechGained = (*source).TechGained
+		csPlayerMessageSpec.TerraformAmount = c.ConvertHab((*source).TerraformAmount)
 	}
 	return csPlayerMessageSpec
 }
 func (c *ProtoConverter) pCraig_starsv1PlayerMessageTargetToCsTarget(source *v1.PlayerMessageTarget) cs.Target[cs.PlayerMessageTargetType] {
 	var csTarget cs.Target[cs.PlayerMessageTargetType]
 	if source != nil {
-		var csTarget2 cs.Target[cs.PlayerMessageTargetType]
-		csTarget2.TargetPosition = c.ConvertVector((*source).TargetPosition)
-		csTarget2.TargetType = PlayerMessageTargetTypeToCSPlayerMessageTargetType((*source).TargetType)
-		csTarget2.TargetName = (*source).TargetName
-		csTarget2.TargetNum = Int32ToInt((*source).TargetNum)
-		csTarget2.TargetPlayerNum = Int32ToInt((*source).TargetPlayerNum)
-		csTarget = csTarget2
+		csTarget.TargetPosition = c.ConvertVector((*source).TargetPosition)
+		csTarget.TargetType = PlayerMessageTargetTypeToCSPlayerMessageTargetType((*source).TargetType)
+		csTarget.TargetName = (*source).TargetName
+		csTarget.TargetNum = Int32ToInt((*source).TargetNum)
+		csTarget.TargetPlayerNum = Int32ToInt((*source).TargetPlayerNum)
 	}
 	return csTarget
 }
 func (c *ProtoConverter) pCraig_starsv1PlayerMessageToCsPlayerMessage(source *v1.PlayerMessage) cs.PlayerMessage {
 	var csPlayerMessage cs.PlayerMessage
 	if source != nil {
-		var csPlayerMessage2 cs.PlayerMessage
-		csPlayerMessage2.Target = c.pCraig_starsv1PlayerMessageTargetToCsTarget((*source).Target)
-		csPlayerMessage2.Type = PlayerMessageTypeToCSPlayerMessageType((*source).Type)
-		csPlayerMessage2.Text = (*source).Text
-		csPlayerMessage2.BattleNum = Int32ToInt((*source).BattleNum)
-		csPlayerMessage2.Spec = c.pCraig_starsv1PlayerMessageSpecToCsPlayerMessageSpec((*source).Spec)
-		csPlayerMessage = csPlayerMessage2
+		csPlayerMessage.Target = c.pCraig_starsv1PlayerMessageTargetToCsTarget((*source).Target)
+		csPlayerMessage.Type = PlayerMessageTypeToCSPlayerMessageType((*source).Type)
+		csPlayerMessage.Text = (*source).Text
+		csPlayerMessage.BattleNum = Int32ToInt((*source).BattleNum)
+		csPlayerMessage.Spec = c.pCraig_starsv1PlayerMessageSpecToCsPlayerMessageSpec((*source).Spec)
 	}
 	return csPlayerMessage
 }
 func (c *ProtoConverter) pCraig_starsv1PlayerPlansToCsPlayerPlans(source *v1.PlayerPlans) cs.PlayerPlans {
 	var csPlayerPlans cs.PlayerPlans
 	if source != nil {
-		var csPlayerPlans2 cs.PlayerPlans
 		if (*source).ProductionPlans != nil {
-			csPlayerPlans2.ProductionPlans = make([]cs.ProductionPlan, len((*source).ProductionPlans))
+			csPlayerPlans.ProductionPlans = make([]cs.ProductionPlan, len((*source).ProductionPlans))
 			for i := 0; i < len((*source).ProductionPlans); i++ {
-				csPlayerPlans2.ProductionPlans[i] = c.ConvertProductionPlan((*source).ProductionPlans[i])
+				csPlayerPlans.ProductionPlans[i] = c.ConvertProductionPlan((*source).ProductionPlans[i])
 			}
 		}
 		if (*source).BattlePlans != nil {
-			csPlayerPlans2.BattlePlans = make([]cs.BattlePlan, len((*source).BattlePlans))
+			csPlayerPlans.BattlePlans = make([]cs.BattlePlan, len((*source).BattlePlans))
 			for j := 0; j < len((*source).BattlePlans); j++ {
-				csPlayerPlans2.BattlePlans[j] = c.ConvertBattlePlan((*source).BattlePlans[j])
+				csPlayerPlans.BattlePlans[j] = c.ConvertBattlePlan((*source).BattlePlans[j])
 			}
 		}
 		if (*source).TransportPlans != nil {
-			csPlayerPlans2.TransportPlans = make([]cs.TransportPlan, len((*source).TransportPlans))
+			csPlayerPlans.TransportPlans = make([]cs.TransportPlan, len((*source).TransportPlans))
 			for k := 0; k < len((*source).TransportPlans); k++ {
-				csPlayerPlans2.TransportPlans[k] = c.ConvertTransportPlan((*source).TransportPlans[k])
+				csPlayerPlans.TransportPlans[k] = c.ConvertTransportPlan((*source).TransportPlans[k])
 			}
 		}
-		csPlayerPlans = csPlayerPlans2
 	}
 	return csPlayerPlans
 }
 func (c *ProtoConverter) pCraig_starsv1PlayerRelationshipToCsPlayerRelationship(source *v1.PlayerRelationship) cs.PlayerRelationship {
 	var csPlayerRelationship cs.PlayerRelationship
 	if source != nil {
-		var csPlayerRelationship2 cs.PlayerRelationship
-		csPlayerRelationship2.Relation = PlayerRelationToCSPlayerRelation((*source).Relation)
-		csPlayerRelationship2.ShareMap = (*source).ShareMap
-		csPlayerRelationship = csPlayerRelationship2
+		csPlayerRelationship.Relation = PlayerRelationToCSPlayerRelation((*source).Relation)
+		csPlayerRelationship.ShareMap = (*source).ShareMap
 	}
 	return csPlayerRelationship
 }
 func (c *ProtoConverter) pCraig_starsv1PlayerScoreToCsPlayerScore(source *v1.PlayerScore) cs.PlayerScore {
 	var csPlayerScore cs.PlayerScore
 	if source != nil {
-		var csPlayerScore2 cs.PlayerScore
-		csPlayerScore2.Planets = Int32ToInt((*source).Planets)
-		csPlayerScore2.Starbases = Int32ToInt((*source).Starbases)
-		csPlayerScore2.UnarmedShips = Int32ToInt((*source).UnarmedShips)
-		csPlayerScore2.EscortShips = Int32ToInt((*source).EscortShips)
-		csPlayerScore2.CapitalShips = Int32ToInt((*source).CapitalShips)
-		csPlayerScore2.TechLevels = Int32ToInt((*source).TechLevels)
-		csPlayerScore2.Resources = Int32ToInt((*source).Resources)
-		csPlayerScore2.Score = Int32ToInt((*source).Score)
-		csPlayerScore2.Rank = Int32ToInt((*source).Rank)
-		csPlayerScore2.AchievedVictoryConditions = cs.Bitmask((*source).AchievedVictoryConditions)
-		csPlayerScore = csPlayerScore2
+		csPlayerScore.Planets = Int32ToInt((*source).Planets)
+		csPlayerScore.Starbases = Int32ToInt((*source).Starbases)
+		csPlayerScore.UnarmedShips = Int32ToInt((*source).UnarmedShips)
+		csPlayerScore.EscortShips = Int32ToInt((*source).EscortShips)
+		csPlayerScore.CapitalShips = Int32ToInt((*source).CapitalShips)
+		csPlayerScore.TechLevels = Int32ToInt((*source).TechLevels)
+		csPlayerScore.Resources = Int32ToInt((*source).Resources)
+		csPlayerScore.Score = Int32ToInt((*source).Score)
+		csPlayerScore.Rank = Int32ToInt((*source).Rank)
+		csPlayerScore.AchievedVictoryConditions = cs.Bitmask((*source).AchievedVictoryConditions)
 	}
 	return csPlayerScore
 }
@@ -3934,161 +3793,142 @@ func (c *ProtoConverter) pCraig_starsv1PlayerStatsToPCsPlayerStats(source *v1.Pl
 func (c *ProtoConverter) pCraig_starsv1ProductionPlanItemToCsProductionPlanItem(source *v1.ProductionPlanItem) cs.ProductionPlanItem {
 	var csProductionPlanItem cs.ProductionPlanItem
 	if source != nil {
-		var csProductionPlanItem2 cs.ProductionPlanItem
-		csProductionPlanItem2.Type = QueueItemTypeToCSQueueItemType((*source).Type)
-		csProductionPlanItem2.DesignNum = Int32ToInt((*source).DesignNum)
-		csProductionPlanItem2.Quantity = Int32ToInt((*source).Quantity)
-		csProductionPlanItem = csProductionPlanItem2
+		csProductionPlanItem.Type = QueueItemTypeToCSQueueItemType((*source).Type)
+		csProductionPlanItem.DesignNum = Int32ToInt((*source).DesignNum)
+		csProductionPlanItem.Quantity = Int32ToInt((*source).Quantity)
 	}
 	return csProductionPlanItem
 }
 func (c *ProtoConverter) pCraig_starsv1QueueItemCompletionEstimateToCsQueueItemCompletionEstimate(source *v1.QueueItemCompletionEstimate) cs.QueueItemCompletionEstimate {
 	var csQueueItemCompletionEstimate cs.QueueItemCompletionEstimate
 	if source != nil {
-		var csQueueItemCompletionEstimate2 cs.QueueItemCompletionEstimate
-		csQueueItemCompletionEstimate2.Skipped = (*source).Skipped
-		csQueueItemCompletionEstimate2.YearsToBuildOne = Int32ToInt((*source).YearsToBuildOne)
-		csQueueItemCompletionEstimate2.YearsToBuildAll = Int32ToInt((*source).YearsToBuildAll)
-		csQueueItemCompletionEstimate2.YearsToSkipAuto = Int32ToInt((*source).YearsToSkipAuto)
-		csQueueItemCompletionEstimate = csQueueItemCompletionEstimate2
+		csQueueItemCompletionEstimate.Skipped = (*source).Skipped
+		csQueueItemCompletionEstimate.YearsToBuildOne = Int32ToInt((*source).YearsToBuildOne)
+		csQueueItemCompletionEstimate.YearsToBuildAll = Int32ToInt((*source).YearsToBuildAll)
+		csQueueItemCompletionEstimate.YearsToSkipAuto = Int32ToInt((*source).YearsToSkipAuto)
 	}
 	return csQueueItemCompletionEstimate
-}
-func (c *ProtoConverter) pCraig_starsv1RaceToCsRace(source *v1.Race) cs.Race {
-	var csRace cs.Race
-	if source != nil {
-		csRace = c.ConvertRace((*source))
-	}
-	return csRace
 }
 func (c *ProtoConverter) pCraig_starsv1ResearchCostToCsResearchCost(source *v1.ResearchCost) cs.ResearchCost {
 	var csResearchCost cs.ResearchCost
 	if source != nil {
-		var csResearchCost2 cs.ResearchCost
-		csResearchCost2.Energy = ResearchCostLevelToCSResearchCostLevel((*source).Energy)
-		csResearchCost2.Weapons = ResearchCostLevelToCSResearchCostLevel((*source).Weapons)
-		csResearchCost2.Propulsion = ResearchCostLevelToCSResearchCostLevel((*source).Propulsion)
-		csResearchCost2.Construction = ResearchCostLevelToCSResearchCostLevel((*source).Construction)
-		csResearchCost2.Electronics = ResearchCostLevelToCSResearchCostLevel((*source).Electronics)
-		csResearchCost2.Biotechnology = ResearchCostLevelToCSResearchCostLevel((*source).Biotechnology)
-		csResearchCost = csResearchCost2
+		csResearchCost.Energy = ResearchCostLevelToCSResearchCostLevel((*source).Energy)
+		csResearchCost.Weapons = ResearchCostLevelToCSResearchCostLevel((*source).Weapons)
+		csResearchCost.Propulsion = ResearchCostLevelToCSResearchCostLevel((*source).Propulsion)
+		csResearchCost.Construction = ResearchCostLevelToCSResearchCostLevel((*source).Construction)
+		csResearchCost.Electronics = ResearchCostLevelToCSResearchCostLevel((*source).Electronics)
+		csResearchCost.Biotechnology = ResearchCostLevelToCSResearchCostLevel((*source).Biotechnology)
 	}
 	return csResearchCost
 }
 func (c *ProtoConverter) pCraig_starsv1ScoreIntelToCsScoreIntel(source *v1.ScoreIntel) cs.ScoreIntel {
 	var csScoreIntel cs.ScoreIntel
 	if source != nil {
-		var csScoreIntel2 cs.ScoreIntel
 		if (*source).ScoreHistory != nil {
-			csScoreIntel2.ScoreHistory = make([]cs.PlayerScore, len((*source).ScoreHistory))
+			csScoreIntel.ScoreHistory = make([]cs.PlayerScore, len((*source).ScoreHistory))
 			for i := 0; i < len((*source).ScoreHistory); i++ {
-				csScoreIntel2.ScoreHistory[i] = c.pCraig_starsv1PlayerScoreToCsPlayerScore((*source).ScoreHistory[i])
+				csScoreIntel.ScoreHistory[i] = c.pCraig_starsv1PlayerScoreToCsPlayerScore((*source).ScoreHistory[i])
 			}
 		}
-		csScoreIntel = csScoreIntel2
 	}
 	return csScoreIntel
 }
 func (c *ProtoConverter) pCraig_starsv1ShipDesignSlotToCsShipDesignSlot(source *v1.ShipDesignSlot) cs.ShipDesignSlot {
 	var csShipDesignSlot cs.ShipDesignSlot
 	if source != nil {
-		var csShipDesignSlot2 cs.ShipDesignSlot
-		csShipDesignSlot2.HullComponent = (*source).HullComponent
-		csShipDesignSlot2.HullSlotIndex = Int32ToInt((*source).HullSlotIndex)
-		csShipDesignSlot2.Quantity = Int32ToInt((*source).Quantity)
-		csShipDesignSlot = csShipDesignSlot2
+		csShipDesignSlot.HullComponent = (*source).HullComponent
+		csShipDesignSlot.HullSlotIndex = Int32ToInt((*source).HullSlotIndex)
+		csShipDesignSlot.Quantity = Int32ToInt((*source).Quantity)
 	}
 	return csShipDesignSlot
 }
 func (c *ProtoConverter) pCraig_starsv1ShipDesignSpecToCsShipDesignSpec(source *v1.ShipDesignSpec) cs.ShipDesignSpec {
 	var csShipDesignSpec cs.ShipDesignSpec
 	if source != nil {
-		var csShipDesignSpec2 cs.ShipDesignSpec
-		csShipDesignSpec2.AdditionalMassDrivers = Int32ToInt((*source).AdditionalMassDrivers)
-		csShipDesignSpec2.Armor = Int32ToInt((*source).Armor)
-		csShipDesignSpec2.BasePacketSpeed = Int32ToInt((*source).BasePacketSpeed)
-		csShipDesignSpec2.BeamBonus = (*source).BeamBonus
-		csShipDesignSpec2.BeamDefense = (*source).BeamDefense
-		csShipDesignSpec2.Bomber = (*source).Bomber
+		csShipDesignSpec.AdditionalMassDrivers = Int32ToInt((*source).AdditionalMassDrivers)
+		csShipDesignSpec.Armor = Int32ToInt((*source).Armor)
+		csShipDesignSpec.BasePacketSpeed = Int32ToInt((*source).BasePacketSpeed)
+		csShipDesignSpec.BeamBonus = (*source).BeamBonus
+		csShipDesignSpec.BeamDefense = (*source).BeamDefense
+		csShipDesignSpec.Bomber = (*source).Bomber
 		if (*source).Bombs != nil {
-			csShipDesignSpec2.Bombs = make([]cs.Bomb, len((*source).Bombs))
+			csShipDesignSpec.Bombs = make([]cs.Bomb, len((*source).Bombs))
 			for i := 0; i < len((*source).Bombs); i++ {
-				csShipDesignSpec2.Bombs[i] = c.pCraig_starsv1BombToCsBomb((*source).Bombs[i])
+				csShipDesignSpec.Bombs[i] = c.pCraig_starsv1BombToCsBomb((*source).Bombs[i])
 			}
 		}
-		csShipDesignSpec2.CanJump = (*source).CanJump
-		csShipDesignSpec2.CanLayMines = (*source).CanLayMines
-		csShipDesignSpec2.CanStealFleetCargo = (*source).CanStealFleetCargo
-		csShipDesignSpec2.CanStealPlanetCargo = (*source).CanStealPlanetCargo
-		csShipDesignSpec2.CargoCapacity = Int32ToInt((*source).CargoCapacity)
-		csShipDesignSpec2.CloakPercent = Int32ToInt((*source).CloakPercent)
-		csShipDesignSpec2.CloakPercentFullCargo = Int32ToInt((*source).CloakPercentFullCargo)
-		csShipDesignSpec2.CloakUnits = Int32ToInt((*source).CloakUnits)
-		csShipDesignSpec2.Colonizer = (*source).Colonizer
-		csShipDesignSpec2.Cost = c.ConvertCost((*source).Cost)
-		csShipDesignSpec2.Engine = c.pCraig_starsv1EngineToCsEngine((*source).Engine)
-		csShipDesignSpec2.EstimatedRange = Int32ToInt((*source).EstimatedRange)
-		csShipDesignSpec2.EstimatedRangeFull = Int32ToInt((*source).EstimatedRangeFull)
-		csShipDesignSpec2.FuelCapacity = Int32ToInt((*source).FuelCapacity)
-		csShipDesignSpec2.FuelGeneration = Int32ToInt((*source).FuelGeneration)
-		csShipDesignSpec2.HasWeapons = (*source).HasWeapons
-		csShipDesignSpec2.HullType = TechHullTypeToCSTechHullType((*source).HullType)
-		csShipDesignSpec2.ImmuneToOwnDetonation = (*source).ImmuneToOwnDetonation
-		csShipDesignSpec2.Initiative = Int32ToInt((*source).Initiative)
-		csShipDesignSpec2.InnateScanRangePenFactor = (*source).InnateScanRangePenFactor
-		csShipDesignSpec2.Mass = Int32ToInt((*source).Mass)
-		csShipDesignSpec2.MassDriver = (*source).MassDriver
-		csShipDesignSpec2.MaxHullMass = Int32ToInt((*source).MaxHullMass)
-		csShipDesignSpec2.MaxPopulation = Int32ToInt((*source).MaxPopulation)
-		csShipDesignSpec2.MaxRange = Int32ToInt((*source).MaxRange)
-		csShipDesignSpec2.MineLayingRateByMineType = IntMapToMinefieldTypeMap((*source).MineLayingRateByMineType)
-		csShipDesignSpec2.MineSweep = Int32ToInt((*source).MineSweep)
-		csShipDesignSpec2.MiningRate = Int32ToInt((*source).MiningRate)
-		csShipDesignSpec2.Movement = Int32ToInt((*source).Movement)
-		csShipDesignSpec2.MovementBonus = (*source).MovementBonus
-		csShipDesignSpec2.MovementFull = Int32ToInt((*source).MovementFull)
-		csShipDesignSpec2.NumBuilt = Int32ToInt((*source).NumBuilt)
-		csShipDesignSpec2.NumEngines = Int32ToInt((*source).NumEngines)
-		csShipDesignSpec2.NumInstances = Int32ToInt((*source).NumInstances)
-		csShipDesignSpec2.OrbitalConstructionModule = (*source).OrbitalConstructionModule
-		csShipDesignSpec2.PowerRating = Int32ToInt((*source).PowerRating)
-		csShipDesignSpec2.Radiating = (*source).Radiating
-		csShipDesignSpec2.ReduceCloaking = (*source).ReduceCloaking
-		csShipDesignSpec2.ReduceMovement = Int32ToInt((*source).ReduceMovement)
-		csShipDesignSpec2.RepairBonus = (*source).RepairBonus
+		csShipDesignSpec.CanJump = (*source).CanJump
+		csShipDesignSpec.CanLayMines = (*source).CanLayMines
+		csShipDesignSpec.CanStealFleetCargo = (*source).CanStealFleetCargo
+		csShipDesignSpec.CanStealPlanetCargo = (*source).CanStealPlanetCargo
+		csShipDesignSpec.CargoCapacity = Int32ToInt((*source).CargoCapacity)
+		csShipDesignSpec.CloakPercent = Int32ToInt((*source).CloakPercent)
+		csShipDesignSpec.CloakPercentFullCargo = Int32ToInt((*source).CloakPercentFullCargo)
+		csShipDesignSpec.CloakUnits = Int32ToInt((*source).CloakUnits)
+		csShipDesignSpec.Colonizer = (*source).Colonizer
+		csShipDesignSpec.Cost = c.ConvertCost((*source).Cost)
+		csShipDesignSpec.Engine = c.pCraig_starsv1EngineToCsEngine((*source).Engine)
+		csShipDesignSpec.EstimatedRange = Int32ToInt((*source).EstimatedRange)
+		csShipDesignSpec.EstimatedRangeFull = Int32ToInt((*source).EstimatedRangeFull)
+		csShipDesignSpec.FuelCapacity = Int32ToInt((*source).FuelCapacity)
+		csShipDesignSpec.FuelGeneration = Int32ToInt((*source).FuelGeneration)
+		csShipDesignSpec.HasWeapons = (*source).HasWeapons
+		csShipDesignSpec.HullType = TechHullTypeToCSTechHullType((*source).HullType)
+		csShipDesignSpec.ImmuneToOwnDetonation = (*source).ImmuneToOwnDetonation
+		csShipDesignSpec.Initiative = Int32ToInt((*source).Initiative)
+		csShipDesignSpec.InnateScanRangePenFactor = (*source).InnateScanRangePenFactor
+		csShipDesignSpec.Mass = Int32ToInt((*source).Mass)
+		csShipDesignSpec.MassDriver = (*source).MassDriver
+		csShipDesignSpec.MaxHullMass = Int32ToInt((*source).MaxHullMass)
+		csShipDesignSpec.MaxPopulation = Int32ToInt((*source).MaxPopulation)
+		csShipDesignSpec.MaxRange = Int32ToInt((*source).MaxRange)
+		csShipDesignSpec.MineLayingRateByMineType = IntMapToMinefieldTypeMap((*source).MineLayingRateByMineType)
+		csShipDesignSpec.MineSweep = Int32ToInt((*source).MineSweep)
+		csShipDesignSpec.MiningRate = Int32ToInt((*source).MiningRate)
+		csShipDesignSpec.Movement = Int32ToInt((*source).Movement)
+		csShipDesignSpec.MovementBonus = (*source).MovementBonus
+		csShipDesignSpec.MovementFull = Int32ToInt((*source).MovementFull)
+		csShipDesignSpec.NumBuilt = Int32ToInt((*source).NumBuilt)
+		csShipDesignSpec.NumEngines = Int32ToInt((*source).NumEngines)
+		csShipDesignSpec.NumInstances = Int32ToInt((*source).NumInstances)
+		csShipDesignSpec.OrbitalConstructionModule = (*source).OrbitalConstructionModule
+		csShipDesignSpec.PowerRating = Int32ToInt((*source).PowerRating)
+		csShipDesignSpec.Radiating = (*source).Radiating
+		csShipDesignSpec.ReduceCloaking = (*source).ReduceCloaking
+		csShipDesignSpec.ReduceMovement = Int32ToInt((*source).ReduceMovement)
+		csShipDesignSpec.RepairBonus = (*source).RepairBonus
 		if (*source).RetroBombs != nil {
-			csShipDesignSpec2.RetroBombs = make([]cs.Bomb, len((*source).RetroBombs))
+			csShipDesignSpec.RetroBombs = make([]cs.Bomb, len((*source).RetroBombs))
 			for j := 0; j < len((*source).RetroBombs); j++ {
-				csShipDesignSpec2.RetroBombs[j] = c.pCraig_starsv1BombToCsBomb((*source).RetroBombs[j])
+				csShipDesignSpec.RetroBombs[j] = c.pCraig_starsv1BombToCsBomb((*source).RetroBombs[j])
 			}
 		}
-		csShipDesignSpec2.SafeHullMass = Int32ToInt((*source).SafeHullMass)
-		csShipDesignSpec2.SafePacketSpeed = Int32ToInt((*source).SafePacketSpeed)
-		csShipDesignSpec2.SafeRange = Int32ToInt((*source).SafeRange)
-		csShipDesignSpec2.Scanner = (*source).Scanner
-		csShipDesignSpec2.ScanRange = Int32ToInt((*source).ScanRange)
-		csShipDesignSpec2.ScanRangePen = Int32ToInt((*source).ScanRangePen)
-		csShipDesignSpec2.Shields = Int32ToInt((*source).Shields)
+		csShipDesignSpec.SafeHullMass = Int32ToInt((*source).SafeHullMass)
+		csShipDesignSpec.SafePacketSpeed = Int32ToInt((*source).SafePacketSpeed)
+		csShipDesignSpec.SafeRange = Int32ToInt((*source).SafeRange)
+		csShipDesignSpec.Scanner = (*source).Scanner
+		csShipDesignSpec.ScanRange = Int32ToInt((*source).ScanRange)
+		csShipDesignSpec.ScanRangePen = Int32ToInt((*source).ScanRangePen)
+		csShipDesignSpec.Shields = Int32ToInt((*source).Shields)
 		if (*source).SmartBombs != nil {
-			csShipDesignSpec2.SmartBombs = make([]cs.Bomb, len((*source).SmartBombs))
+			csShipDesignSpec.SmartBombs = make([]cs.Bomb, len((*source).SmartBombs))
 			for k := 0; k < len((*source).SmartBombs); k++ {
-				csShipDesignSpec2.SmartBombs[k] = c.pCraig_starsv1BombToCsBomb((*source).SmartBombs[k])
+				csShipDesignSpec.SmartBombs[k] = c.pCraig_starsv1BombToCsBomb((*source).SmartBombs[k])
 			}
 		}
-		csShipDesignSpec2.SpaceDock = Int32ToInt((*source).SpaceDock)
-		csShipDesignSpec2.Starbase = (*source).Starbase
-		csShipDesignSpec2.Stargate = (*source).Stargate
-		csShipDesignSpec2.TechLevel = c.ConvertTechLevel((*source).TechLevel)
-		csShipDesignSpec2.TerraformRate = Int32ToInt((*source).TerraformRate)
-		csShipDesignSpec2.TorpedoBonus = (*source).TorpedoBonus
-		csShipDesignSpec2.TorpedoJamming = (*source).TorpedoJamming
+		csShipDesignSpec.SpaceDock = Int32ToInt((*source).SpaceDock)
+		csShipDesignSpec.Starbase = (*source).Starbase
+		csShipDesignSpec.Stargate = (*source).Stargate
+		csShipDesignSpec.TechLevel = c.ConvertTechLevel((*source).TechLevel)
+		csShipDesignSpec.TerraformRate = Int32ToInt((*source).TerraformRate)
+		csShipDesignSpec.TorpedoBonus = (*source).TorpedoBonus
+		csShipDesignSpec.TorpedoJamming = (*source).TorpedoJamming
 		if (*source).WeaponSlots != nil {
-			csShipDesignSpec2.WeaponSlots = make([]cs.ShipDesignSlot, len((*source).WeaponSlots))
+			csShipDesignSpec.WeaponSlots = make([]cs.ShipDesignSlot, len((*source).WeaponSlots))
 			for l := 0; l < len((*source).WeaponSlots); l++ {
-				csShipDesignSpec2.WeaponSlots[l] = c.pCraig_starsv1ShipDesignSlotToCsShipDesignSlot((*source).WeaponSlots[l])
+				csShipDesignSpec.WeaponSlots[l] = c.pCraig_starsv1ShipDesignSlotToCsShipDesignSlot((*source).WeaponSlots[l])
 			}
 		}
-		csShipDesignSpec = csShipDesignSpec2
 	}
 	return csShipDesignSpec
 }
@@ -4107,115 +3947,103 @@ func (c *ProtoConverter) pCraig_starsv1ShipTokenToPCsShipToken(source *v1.ShipTo
 func (c *ProtoConverter) pCraig_starsv1StartingFleetToCsStartingFleet(source *v1.StartingFleet) cs.StartingFleet {
 	var csStartingFleet cs.StartingFleet
 	if source != nil {
-		var csStartingFleet2 cs.StartingFleet
-		csStartingFleet2.Name = (*source).Name
-		csStartingFleet2.HullName = cs.StartingFleetHull((*source).HullName)
-		csStartingFleet2.HullSetNumber = Uint32ToUint((*source).HullSetNumber)
-		csStartingFleet2.Purpose = cs.ShipDesignPurpose((*source).Purpose)
-		csStartingFleet = csStartingFleet2
+		csStartingFleet.Name = (*source).Name
+		csStartingFleet.HullName = cs.StartingFleetHull((*source).HullName)
+		csStartingFleet.HullSetNumber = Uint32ToUint((*source).HullSetNumber)
+		csStartingFleet.Purpose = cs.ShipDesignPurpose((*source).Purpose)
 	}
 	return csStartingFleet
 }
 func (c *ProtoConverter) pCraig_starsv1StartingPlanetToCsStartingPlanet(source *v1.StartingPlanet) cs.StartingPlanet {
 	var csStartingPlanet cs.StartingPlanet
 	if source != nil {
-		var csStartingPlanet2 cs.StartingPlanet
-		csStartingPlanet2.Population = Int32ToInt((*source).Population)
-		csStartingPlanet2.Mines = Int32ToInt((*source).Mines)
-		csStartingPlanet2.Factories = Int32ToInt((*source).Factories)
-		csStartingPlanet2.Defenses = Int32ToInt((*source).Defenses)
-		csStartingPlanet2.HabPenaltyFactor = (*source).HabPenaltyFactor
-		csStartingPlanet2.HasStargate = (*source).HasStargate
-		csStartingPlanet2.HasMassDriver = (*source).HasMassDriver
-		csStartingPlanet2.StarbaseDesignName = (*source).StarbaseDesignName
-		csStartingPlanet2.StarbaseHull = (*source).StarbaseHull
+		csStartingPlanet.Population = Int32ToInt((*source).Population)
+		csStartingPlanet.Mines = Int32ToInt((*source).Mines)
+		csStartingPlanet.Factories = Int32ToInt((*source).Factories)
+		csStartingPlanet.Defenses = Int32ToInt((*source).Defenses)
+		csStartingPlanet.HabPenaltyFactor = (*source).HabPenaltyFactor
+		csStartingPlanet.HasStargate = (*source).HasStargate
+		csStartingPlanet.HasMassDriver = (*source).HasMassDriver
+		csStartingPlanet.StarbaseDesignName = (*source).StarbaseDesignName
+		csStartingPlanet.StarbaseHull = (*source).StarbaseHull
 		if (*source).StartingFleets != nil {
-			csStartingPlanet2.StartingFleets = make([]cs.StartingFleet, len((*source).StartingFleets))
+			csStartingPlanet.StartingFleets = make([]cs.StartingFleet, len((*source).StartingFleets))
 			for i := 0; i < len((*source).StartingFleets); i++ {
-				csStartingPlanet2.StartingFleets[i] = c.pCraig_starsv1StartingFleetToCsStartingFleet((*source).StartingFleets[i])
+				csStartingPlanet.StartingFleets[i] = c.pCraig_starsv1StartingFleetToCsStartingFleet((*source).StartingFleets[i])
 			}
 		}
-		csStartingPlanet2.Homeworld = (*source).Homeworld
-		csStartingPlanet = csStartingPlanet2
+		csStartingPlanet.Homeworld = (*source).Homeworld
 	}
 	return csStartingPlanet
 }
 func (c *ProtoConverter) pCraig_starsv1StealsResearchToCsStealsResearch(source *v1.StealsResearch) cs.StealsResearch {
 	var csStealsResearch cs.StealsResearch
 	if source != nil {
-		var csStealsResearch2 cs.StealsResearch
-		csStealsResearch2.Energy = (*source).Energy
-		csStealsResearch2.Weapons = (*source).Weapons
-		csStealsResearch2.Propulsion = (*source).Propulsion
-		csStealsResearch2.Construction = (*source).Construction
-		csStealsResearch2.Electronics = (*source).Electronics
-		csStealsResearch2.Biotechnology = (*source).Biotechnology
-		csStealsResearch = csStealsResearch2
+		csStealsResearch.Energy = (*source).Energy
+		csStealsResearch.Weapons = (*source).Weapons
+		csStealsResearch.Propulsion = (*source).Propulsion
+		csStealsResearch.Construction = (*source).Construction
+		csStealsResearch.Electronics = (*source).Electronics
+		csStealsResearch.Biotechnology = (*source).Biotechnology
 	}
 	return csStealsResearch
 }
 func (c *ProtoConverter) pCraig_starsv1TechHullSlotToCsTechHullSlot(source *v1.TechHullSlot) cs.TechHullSlot {
 	var csTechHullSlot cs.TechHullSlot
 	if source != nil {
-		var csTechHullSlot2 cs.TechHullSlot
-		csTechHullSlot2.Type = cs.HullSlotType((*source).Type)
-		csTechHullSlot2.Capacity = Int32ToInt((*source).Capacity)
-		csTechHullSlot2.Required = (*source).Required
-		csTechHullSlot2.Position = c.ConvertVectorFloat64((*source).Position)
-		csTechHullSlot = csTechHullSlot2
+		csTechHullSlot.Type = cs.HullSlotType((*source).Type)
+		csTechHullSlot.Capacity = Int32ToInt((*source).Capacity)
+		csTechHullSlot.Required = (*source).Required
+		csTechHullSlot.Position = c.ConvertVectorFloat64((*source).Position)
 	}
 	return csTechHullSlot
 }
 func (c *ProtoConverter) pCraig_starsv1TechRequirementsToCsTechRequirements(source *v1.TechRequirements) cs.TechRequirements {
 	var csTechRequirements cs.TechRequirements
 	if source != nil {
-		var csTechRequirements2 cs.TechRequirements
-		csTechRequirements2.TechLevel = c.ConvertTechLevel((*source).TechLevel)
+		csTechRequirements.TechLevel = c.ConvertTechLevel((*source).TechLevel)
 		if (*source).PrtsDenied != nil {
-			csTechRequirements2.PRTsDenied = make([]cs.PRT, len((*source).PrtsDenied))
+			csTechRequirements.PRTsDenied = make([]cs.PRT, len((*source).PrtsDenied))
 			for i := 0; i < len((*source).PrtsDenied); i++ {
-				csTechRequirements2.PRTsDenied[i] = PRTToCSPRT((*source).PrtsDenied[i])
+				csTechRequirements.PRTsDenied[i] = PRTToCSPRT((*source).PrtsDenied[i])
 			}
 		}
-		csTechRequirements2.LRTsRequired = cs.LRT((*source).LrtsRequired)
-		csTechRequirements2.LRTsDenied = cs.LRT((*source).LrtsDenied)
+		csTechRequirements.LRTsRequired = cs.LRT((*source).LrtsRequired)
+		csTechRequirements.LRTsDenied = cs.LRT((*source).LrtsDenied)
 		if (*source).PrtsRequired != nil {
-			csTechRequirements2.PRTsRequired = make([]cs.PRT, len((*source).PrtsRequired))
+			csTechRequirements.PRTsRequired = make([]cs.PRT, len((*source).PrtsRequired))
 			for j := 0; j < len((*source).PrtsRequired); j++ {
-				csTechRequirements2.PRTsRequired[j] = PRTToCSPRT((*source).PrtsRequired[j])
+				csTechRequirements.PRTsRequired[j] = PRTToCSPRT((*source).PrtsRequired[j])
 			}
 		}
-		csTechRequirements2.HullsAllowed = (*source).HullsAllowed
-		csTechRequirements2.HullsDenied = (*source).HullsDenied
-		csTechRequirements2.Acquirable = (*source).Acquirable
-		csTechRequirements = csTechRequirements2
+		csTechRequirements.HullsAllowed = (*source).HullsAllowed
+		csTechRequirements.HullsDenied = (*source).HullsDenied
+		csTechRequirements.Acquirable = (*source).Acquirable
 	}
 	return csTechRequirements
 }
 func (c *ProtoConverter) pCraig_starsv1UniverseGenerationRulesToCsUniverseGenerationRules(source *v1.UniverseGenerationRules) cs.UniverseGenerationRules {
 	var csUniverseGenerationRules cs.UniverseGenerationRules
 	if source != nil {
-		var csUniverseGenerationRules2 cs.UniverseGenerationRules
-		csUniverseGenerationRules2.BorderInset = Int32ToInt((*source).BorderInset)
-		csUniverseGenerationRules2.HabDropoffRange = c.ConvertHab((*source).HabDropoffRange)
-		csUniverseGenerationRules2.HighRadMineralConcentrationBonusThreshold = Int32ToInt((*source).HighRadMineralConcentrationBonusThreshold)
-		csUniverseGenerationRules2.LimitMineralConcentration = Int32ToInt((*source).LimitMineralConcentration)
-		csUniverseGenerationRules2.MaxHab = Int32ToInt((*source).MaxHab)
-		csUniverseGenerationRules2.MaxMineralConcentration = Int32ToInt((*source).MaxMineralConcentration)
-		csUniverseGenerationRules2.MaxStartingMineralConcentration = Int32ToInt((*source).MaxStartingMineralConcentration)
-		csUniverseGenerationRules2.MaxStartingMineralSurface = Int32ToInt((*source).MaxStartingMineralSurface)
-		csUniverseGenerationRules2.MinExtraPlanetMineralConcentration = Int32ToInt((*source).MinExtraPlanetMineralConcentration)
-		csUniverseGenerationRules2.MinHab = Int32ToInt((*source).MinHab)
-		csUniverseGenerationRules2.MinHomeworldMineralConcentration = Int32ToInt((*source).MinHomeworldMineralConcentration)
-		csUniverseGenerationRules2.MinMineralConcentration = Int32ToInt((*source).MinMineralConcentration)
-		csUniverseGenerationRules2.MinPlanetSpacing = Int32ToInt((*source).MinPlanetSpacing)
-		csUniverseGenerationRules2.MinStartingMineralConcentration = Int32ToInt((*source).MinStartingMineralConcentration)
-		csUniverseGenerationRules2.MinStartingMineralSurface = Int32ToInt((*source).MinStartingMineralSurface)
-		csUniverseGenerationRules2.SqLyPerPlanet = Int32ToInt((*source).SqLyPerPlanet)
-		csUniverseGenerationRules2.RaceLeftoverPointsPerItem = IntMapToSpendLeftoverPointsOnMap((*source).RaceLeftoverPointsPerItem)
-		csUniverseGenerationRules2.StartingYear = Int32ToInt((*source).StartingYear)
-		csUniverseGenerationRules2.WormholeMinPlanetDistance = Int32ToInt((*source).WormholeMinPlanetDistance)
-		csUniverseGenerationRules = csUniverseGenerationRules2
+		csUniverseGenerationRules.BorderInset = Int32ToInt((*source).BorderInset)
+		csUniverseGenerationRules.HabDropoffRange = c.ConvertHab((*source).HabDropoffRange)
+		csUniverseGenerationRules.HighRadMineralConcentrationBonusThreshold = Int32ToInt((*source).HighRadMineralConcentrationBonusThreshold)
+		csUniverseGenerationRules.LimitMineralConcentration = Int32ToInt((*source).LimitMineralConcentration)
+		csUniverseGenerationRules.MaxHab = Int32ToInt((*source).MaxHab)
+		csUniverseGenerationRules.MaxMineralConcentration = Int32ToInt((*source).MaxMineralConcentration)
+		csUniverseGenerationRules.MaxStartingMineralConcentration = Int32ToInt((*source).MaxStartingMineralConcentration)
+		csUniverseGenerationRules.MaxStartingMineralSurface = Int32ToInt((*source).MaxStartingMineralSurface)
+		csUniverseGenerationRules.MinExtraPlanetMineralConcentration = Int32ToInt((*source).MinExtraPlanetMineralConcentration)
+		csUniverseGenerationRules.MinHab = Int32ToInt((*source).MinHab)
+		csUniverseGenerationRules.MinHomeworldMineralConcentration = Int32ToInt((*source).MinHomeworldMineralConcentration)
+		csUniverseGenerationRules.MinMineralConcentration = Int32ToInt((*source).MinMineralConcentration)
+		csUniverseGenerationRules.MinPlanetSpacing = Int32ToInt((*source).MinPlanetSpacing)
+		csUniverseGenerationRules.MinStartingMineralConcentration = Int32ToInt((*source).MinStartingMineralConcentration)
+		csUniverseGenerationRules.MinStartingMineralSurface = Int32ToInt((*source).MinStartingMineralSurface)
+		csUniverseGenerationRules.SqLyPerPlanet = Int32ToInt((*source).SqLyPerPlanet)
+		csUniverseGenerationRules.RaceLeftoverPointsPerItem = IntMapToSpendLeftoverPointsOnMap((*source).RaceLeftoverPointsPerItem)
+		csUniverseGenerationRules.StartingYear = Int32ToInt((*source).StartingYear)
+		csUniverseGenerationRules.WormholeMinPlanetDistance = Int32ToInt((*source).WormholeMinPlanetDistance)
 	}
 	return csUniverseGenerationRules
 }
@@ -4232,52 +4060,44 @@ func (c *ProtoConverter) pCraig_starsv1VectorToPCsVectorGeneric(source *v1.Vecto
 func (c *ProtoConverter) pCraig_starsv1WaypointToCsWaypoint(source *v1.Waypoint) cs.Waypoint {
 	var csWaypoint cs.Waypoint
 	if source != nil {
-		var csWaypoint2 cs.Waypoint
-		csWaypoint2.MapObjectTarget = c.pCraig_starsv1MapObjectTargetToCsTarget((*source).MapObjectTarget)
-		csWaypoint2.Position = c.ConvertVector((*source).Position)
-		csWaypoint2.WarpSpeed = Int32ToInt((*source).WarpSpeed)
-		csWaypoint2.EstFuelUsage = Int32ToInt((*source).EstFuelUsage)
-		csWaypoint2.Task = WaypointTaskToCSWaypointTask((*source).Task)
-		csWaypoint2.TransportTasks = c.pCraig_starsv1WaypointTransportTasksToCsWaypointTransportTasks((*source).TransportTasks)
-		csWaypoint2.WaitAtWaypoint = (*source).WaitAtWaypoint
-		csWaypoint2.LayMinefieldDuration = Int32ToInt((*source).LayMinefieldDuration)
-		csWaypoint2.PatrolRange = Int32ToInt((*source).PatrolRange)
-		csWaypoint2.PatrolWarpSpeed = Int32ToInt((*source).PatrolWarpSpeed)
-		csWaypoint2.TransferToPlayer = Int32ToInt((*source).TransferToPlayer)
-		csWaypoint2.PartiallyComplete = (*source).PartiallyComplete
-		csWaypoint = csWaypoint2
+		csWaypoint.MapObjectTarget = c.pCraig_starsv1MapObjectTargetToCsTarget((*source).MapObjectTarget)
+		csWaypoint.Position = c.ConvertVector((*source).Position)
+		csWaypoint.WarpSpeed = Int32ToInt((*source).WarpSpeed)
+		csWaypoint.EstFuelUsage = Int32ToInt((*source).EstFuelUsage)
+		csWaypoint.Task = WaypointTaskToCSWaypointTask((*source).Task)
+		csWaypoint.TransportTasks = c.pCraig_starsv1WaypointTransportTasksToCsWaypointTransportTasks((*source).TransportTasks)
+		csWaypoint.WaitAtWaypoint = (*source).WaitAtWaypoint
+		csWaypoint.LayMinefieldDuration = Int32ToInt((*source).LayMinefieldDuration)
+		csWaypoint.PatrolRange = Int32ToInt((*source).PatrolRange)
+		csWaypoint.PatrolWarpSpeed = Int32ToInt((*source).PatrolWarpSpeed)
+		csWaypoint.TransferToPlayer = Int32ToInt((*source).TransferToPlayer)
+		csWaypoint.PartiallyComplete = (*source).PartiallyComplete
 	}
 	return csWaypoint
 }
 func (c *ProtoConverter) pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask(source *v1.WaypointTransportTask) cs.WaypointTransportTask {
 	var csWaypointTransportTask cs.WaypointTransportTask
 	if source != nil {
-		var csWaypointTransportTask2 cs.WaypointTransportTask
-		csWaypointTransportTask2.Amount = Int32ToInt((*source).Amount)
-		csWaypointTransportTask2.Action = WaypointTaskTransportActionToCSWaypointTaskTransportAction((*source).Action)
-		csWaypointTransportTask = csWaypointTransportTask2
+		csWaypointTransportTask.Amount = Int32ToInt((*source).Amount)
+		csWaypointTransportTask.Action = WaypointTaskTransportActionToCSWaypointTaskTransportAction((*source).Action)
 	}
 	return csWaypointTransportTask
 }
 func (c *ProtoConverter) pCraig_starsv1WaypointTransportTasksToCsWaypointTransportTasks(source *v1.WaypointTransportTasks) cs.WaypointTransportTasks {
 	var csWaypointTransportTasks cs.WaypointTransportTasks
 	if source != nil {
-		var csWaypointTransportTasks2 cs.WaypointTransportTasks
-		csWaypointTransportTasks2.Fuel = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Fuel)
-		csWaypointTransportTasks2.Ironium = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Ironium)
-		csWaypointTransportTasks2.Boranium = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Boranium)
-		csWaypointTransportTasks2.Germanium = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Germanium)
-		csWaypointTransportTasks2.Colonists = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Colonists)
-		csWaypointTransportTasks = csWaypointTransportTasks2
+		csWaypointTransportTasks.Fuel = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Fuel)
+		csWaypointTransportTasks.Ironium = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Ironium)
+		csWaypointTransportTasks.Boranium = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Boranium)
+		csWaypointTransportTasks.Germanium = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Germanium)
+		csWaypointTransportTasks.Colonists = c.pCraig_starsv1WaypointTransportTaskToCsWaypointTransportTask((*source).Colonists)
 	}
 	return csWaypointTransportTasks
 }
 func (c *ProtoConverter) pCraig_starsv1WormholeSpecToCsWormholeSpec(source *v1.WormholeSpec) cs.WormholeSpec {
 	var csWormholeSpec cs.WormholeSpec
 	if source != nil {
-		var csWormholeSpec2 cs.WormholeSpec
-		csWormholeSpec2.Stats = c.ConvertWormholeStats((*source).Stats)
-		csWormholeSpec = csWormholeSpec2
+		csWormholeSpec.Stats = c.ConvertWormholeStats((*source).Stats)
 	}
 	return csWormholeSpec
 }

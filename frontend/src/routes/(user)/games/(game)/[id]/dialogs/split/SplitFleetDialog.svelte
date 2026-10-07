@@ -4,7 +4,7 @@
 		OnOk,
 		SplitFleetDialogEvent,
 		SplitFleetEvent
-	} from '$lib/services/Events';
+	} from '#lib/services/Events.js';
 	import SplitFleet from './SplitFleet.svelte';
 
 	type Props = {

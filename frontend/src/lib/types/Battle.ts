@@ -1,4 +1,4 @@
-import type { DesignFinder, Universe } from '$lib/services/Universe';
+import type { DesignFinder, Universe } from '#lib/services/Universe.js';
 import {
 	BattleRecordSchema,
 	BattleRecordStatsSchema,
@@ -14,7 +14,7 @@ import {
 	type BattleRecordTokenActionJson,
 	type BattleRecordTokenJson,
 	type Vector
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import { create, merge, toJson, type UnknownField } from '@bufbuild/protobuf';
 import { flatten, groupBy, get as pluck, sortBy, sumBy } from 'lodash-es';
 

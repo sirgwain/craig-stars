@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Salvage } from '$lib/types/cs-proto';
-	import { getGameContext } from '$lib/services/GameContext';
+	import type { Salvage } from '#lib/types/cs-proto.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { universe } = getGameContext();
 

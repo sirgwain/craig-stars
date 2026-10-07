@@ -1,15 +1,16 @@
 <script lang="ts">
-	import FormError from '$lib/components/FormError.svelte';
-	import TextInput from '$lib/components/TextInput.svelte';
-	import Hull from '$lib/components/game/design/Hull.svelte';
-	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
-	import { HullSlotTypeNone } from '$lib/types/Consts';
-	import { canLearnTech } from '$lib/types/Player';
-	import { canFillSlot, hullAllowed } from '$lib/types/Tech';
-	import { hasRequiredLevels } from '$lib/types/TechLevel';
-	import type { TechHull, TechHullComponent, TechHullSlot } from '$lib/types/cs-proto';
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
+	import FormError from '#lib/components/FormError.svelte';
+	import TextInput from '#lib/components/TextInput.svelte';
+	import Hull from '#lib/components/game/design/Hull.svelte';
+	import TechAvatar from '#lib/components/tech/TechAvatar.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
+	import { HullSlotTypeNone } from '#lib/types/Consts.js';
+	import { canLearnTech } from '#lib/types/Player.js';
+	import { canFillSlot, hullAllowed } from '#lib/types/Tech.js';
+	import { hasRequiredLevels } from '#lib/types/TechLevel.js';
+	import type { TechHull, TechHullComponent, TechHullSlot } from '#lib/types/cs-proto.js';
 	import {
 		CostSchema,
 		ShipDesignSlotSchema,
@@ -17,7 +18,7 @@
 		type ShipDesign,
 		type ShipDesignSlot,
 		type ShipDesignSpec
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import { ChevronLeft, ChevronRight, QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -66,7 +67,9 @@
 	let highlightedSlots: number[] = $state([]);
 
 	// only show hull components that actually fit on this hull
-	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotTypeNone);
+	let validHullSlotTypes = $derived(
+		hull.slots.reduce((type, slot) => type | +slot.type, HullSlotTypeNone)
+	);
 
 	let selectedComponent = $derived(
 		$shipDesignerContext.selectedHullComponent ??
@@ -229,7 +232,7 @@
 						name="name"
 						bind:value={name}
 						required
-						titleClass="label-text w-16 text-right"
+						titleClass="cs-label-text w-16 text-right"
 					/>
 				</div>
 			</div>
@@ -294,11 +297,18 @@
 				{#if selectedComponent}
 					<div>
 						Cost of one {selectedComponent.tech?.name}
-						<span class="inline-block" onpointerdown={(e) => onTechTooltip(e, selectedComponent)}
+						<span
+							role="button"
+							tabindex={0}
+							aria-label="Show component details"
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
+							class="inline-block"
+							onpointerdown={(e) => onTechTooltip(e, selectedComponent)}
 							><Icon
 								src={QuestionMarkCircle}
 								size="16"
-								class=" cursor-help hover:stroke-accent"
+								class="cursor-help hover:stroke-accent"
 							/></span
 						>
 					</div>

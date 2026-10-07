@@ -3,11 +3,119 @@
 package cs
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func Test_universeGenerator_placeExtraPlayerPlanet(t *testing.T) {
+	tests := []struct {
+		name     string
+		planets  []*Planet
+		reserved []int
+		want     int
+		wantErr  bool
+	}{
+		{
+			name: "another player's uninitialized homeworld is reserved",
+			planets: []*Planet{
+				NewPlanet().WithNum(1).WithPlayerNum(1).withPosition(Vector{50, 50}),
+				NewPlanet().WithNum(2).withPosition(Vector{75, 50}),
+				NewPlanet().WithNum(3).withPosition(Vector{50, 95}),
+			},
+			reserved: []int{0, 1},
+			want:     2,
+		},
+		{
+			name: "last planet returns its zero-based index",
+			planets: []*Planet{
+				NewPlanet().WithNum(1).WithPlayerNum(1).withPosition(Vector{50, 50}),
+				NewPlanet().WithNum(2).withPosition(Vector{75, 50}),
+			},
+			want: 1,
+		},
+		{
+			name: "distance includes the Y coordinate",
+			planets: []*Planet{
+				NewPlanet().WithNum(1).WithPlayerNum(1).withPosition(Vector{50, 50}),
+				NewPlanet().WithNum(2).withPosition(Vector{50, 50}),
+				NewPlanet().WithNum(3).withPosition(Vector{50, 75}),
+			},
+			want: 2,
+		},
+		{
+			name: "nearest available planet outside the ring",
+			planets: []*Planet{
+				NewPlanet().WithNum(1).WithPlayerNum(1).withPosition(Vector{50, 50}),
+				NewPlanet().WithNum(2).withPosition(Vector{50, 95}),
+				NewPlanet().WithNum(3).withPosition(Vector{50, 90}),
+			},
+			want: 2,
+		},
+		{
+			name: "no available planets returns an error",
+			planets: []*Planet{
+				NewPlanet().WithNum(1).WithPlayerNum(1).withPosition(Vector{50, 50}),
+				NewPlanet().WithNum(2).WithPlayerNum(2).withPosition(Vector{75, 50}),
+			},
+			want:    -1,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			game := newSeededGame(*NewGameSettings())
+			ug := NewUniverseGenerator(game, nil).(*universeGenerator)
+			ug.area = Vector{100, 100}
+			ug.Universe = &Universe{Planets: tt.planets}
+			got, err := ug.placeExtraPlayerPlanet(0, 12, 35, tt.reserved)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestGenerateUniverseStartingPlanetsAcrossSeeds(t *testing.T) {
+	for seed := int64(0); seed < 50; seed++ {
+		t.Run(fmt.Sprintf("seed_%d", seed), func(t *testing.T) {
+			client := NewGamer()
+			game := newSeededGame(*NewGameSettings().WithSize(SizeTiny).WithDensity(DensitySparse))
+			game.Seed = seed
+			game.Rules.ResetSeed(seed)
+			players := []*Player{
+				client.NewPlayer(1, *NewRace().WithPRT(IT), &game.Rules).WithNum(1),
+				client.NewPlayer(2, *NewRace().WithPRT(PP), &game.Rules).WithNum(2),
+			}
+			universe, err := client.GenerateUniverse(game, players)
+			require.NoError(t, err)
+			for _, player := range players {
+				planets := universe.getPlanets(player.Num)
+				require.Len(t, planets, 2, "player %d should own both starting planets", player.Num)
+				homeworlds := 0
+				for _, planet := range planets {
+					if planet.Homeworld {
+						homeworlds++
+					}
+					require.NotNil(t, planet.Starbase)
+					assert.Equal(t, player.Num, planet.Starbase.PlayerNum)
+				}
+				assert.Equal(t, 1, homeworlds)
+			}
+			starbasePlanets := make(map[int]bool)
+			for _, starbase := range universe.Starbases {
+				assert.False(t, starbasePlanets[starbase.PlanetNum], "duplicate starbases on planet %d", starbase.PlanetNum)
+				starbasePlanets[starbase.PlanetNum] = true
+			}
+		})
+	}
+}
 
 func TestGenerateUniverse(t *testing.T) {
 	t.Run("Medium Packed", func(t *testing.T) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Race } from '$lib/types/cs-proto';
+	import type { Race } from '#lib/types/cs-proto.js';
 	import {
 		ARM,
 		BET,
@@ -18,7 +18,7 @@
 		TT,
 		UR,
 		type LRT
-	} from '$lib/types/Race';
+	} from '#lib/types/Race.js';
 
 	type Props = {
 		race: Race;
@@ -65,7 +65,7 @@
 <div class="flex flex-row flex-wrap justify-between gap-1">
 	{#each lrts as lrt (lrt)}
 		{#if race.lrts & lrt}
-			<div class="card bg-base-200 shadow w-full">
+			<div class="card bg-base-200 shadow-sm w-full">
 				<div class="card-body">
 					<div class="card-title text-lg">
 						{getLabelForLRT(lrt)}

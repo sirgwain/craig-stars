@@ -1,16 +1,16 @@
 <script lang="ts">
-	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { canTransferCargo, CommandedFleet } from '$lib/types/Fleet';
-	import { getMapObjectName, key } from '$lib/types/MapObject';
-	import type { CommandedPlanet } from '$lib/types/Planet';
+	import CargoBar from '#lib/components/game/CargoBar.svelte';
+	import FuelBar from '#lib/components/game/FuelBar.svelte';
+	import type { ShowCargoTransferDialogProps } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { canTransferCargo, CommandedFleet } from '#lib/types/Fleet.js';
+	import { getMapObjectName, key } from '#lib/types/MapObject.js';
+	import type { CommandedPlanet } from '#lib/types/Planet.js';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	import type { Fleet } from '$lib/types/cs-proto';
+	import type { Fleet } from '#lib/types/cs-proto.js';
 
 	const { commandedMapObjectKey, commandMapObject } = getGameContext();
 

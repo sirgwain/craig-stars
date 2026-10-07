@@ -14,9 +14,9 @@
 		ShowSplitFleetDialogProps,
 		ShowTransportTasksDialogEventProps,
 		SplitAllProps
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { emptyVector } from '$lib/types/Vector';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { emptyVector } from '#lib/types/Vector.js';
 	import FleetCompositionTile from './FleetCompositionTile.svelte';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOrbitingTile from './FleetOrbitingTile.svelte';

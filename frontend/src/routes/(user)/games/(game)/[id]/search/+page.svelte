@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { ownedBy, type MapObjectLike } from '$lib/types/MapObject';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
 	import SearchResults from './SearchResults.svelte';
 
 	const { game, player, commandMapObject, zoomToMapObject, selectMapObject } = getGameContext();

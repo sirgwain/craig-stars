@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import { clickOutside } from '$lib/clickOutside';
+	import { clickOutside } from '#lib/clickOutside.js';
 	import { computePosition, flip, offset, shift, type VirtualElement } from '@floating-ui/dom';
 
 	let component: HTMLElement | undefined = $state();

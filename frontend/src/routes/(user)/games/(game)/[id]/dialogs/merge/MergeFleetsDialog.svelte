@@ -4,7 +4,7 @@
 		MergeFleetsEvent,
 		OnCancel,
 		OnOk
-	} from '$lib/services/Events';
+	} from '#lib/services/Events.js';
 	import MergeFleets from './MergeFleets.svelte';
 
 	type Props = {

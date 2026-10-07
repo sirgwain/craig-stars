@@ -4,8 +4,8 @@
   settings change, and the canvas is redrawn at most once per animation frame.
  -->
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import type { MapObjectLike } from '$lib/types/MapObject';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import type { MapObjectLike } from '#lib/types/MapObject.js';
 	import type { ZoomTransform } from 'd3-zoom';
 	import { onDestroy } from 'svelte';
 	import { readScannerColors, type ScannerColors } from './canvas/colors';

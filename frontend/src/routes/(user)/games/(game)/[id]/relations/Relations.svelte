@@ -1,9 +1,9 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { PlayerRelation, type PlayerRelationship } from '$lib/types/cs-proto';
-	import { CommandedPlayer } from '$lib/types/Player';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import SectionHeader from '#lib/components/SectionHeader.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { PlayerRelation, type PlayerRelationship } from '#lib/types/cs-proto.js';
+	import { CommandedPlayer } from '#lib/types/Player.js';
 
 	const { universe } = getGameContext();
 
@@ -26,9 +26,9 @@
 	{#each relations as relation, index (index)}
 		{#if player.num != index + 1}
 			<SectionHeader>{$universe.getPlayerPluralName(index + 1)}</SectionHeader>
-			<div class="form-control">
-				<label class="label cursor-pointer">
-					<span class="label-text">Friend</span>
+			<div class="cs-form-control">
+				<label class="cs-form-label cursor-pointer">
+					<span class="cs-label-text">Friend</span>
 					<input
 						type="radio"
 						name={`player-relation-${index + 1}`}
@@ -39,9 +39,9 @@
 					/>
 				</label>
 			</div>
-			<div class="form-control">
-				<label class="label cursor-pointer">
-					<span class="label-text">Neutral</span>
+			<div class="cs-form-control">
+				<label class="cs-form-label cursor-pointer">
+					<span class="cs-label-text">Neutral</span>
 					<input
 						type="radio"
 						name={`player-relation-${index + 1}`}
@@ -52,9 +52,9 @@
 					/>
 				</label>
 			</div>
-			<div class="form-control">
-				<label class="label cursor-pointer">
-					<span class="label-text">Enemy</span>
+			<div class="cs-form-control">
+				<label class="cs-form-label cursor-pointer">
+					<span class="cs-label-text">Enemy</span>
 					<input
 						type="radio"
 						name={`player-relation-${index + 1}`}
@@ -65,9 +65,9 @@
 					/>
 				</label>
 			</div>
-			<div class="form-control">
-				<label class="label cursor-pointer">
-					<span class="label-text">Share Map</span>
+			<div class="cs-form-control">
+				<label class="cs-form-label cursor-pointer">
+					<span class="cs-label-text">Share Map</span>
 					<input
 						type="checkbox"
 						name={`player-relation-${index + 1}-share-map`}

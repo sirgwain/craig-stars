@@ -1,6 +1,6 @@
 <script lang="ts">
-	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import { CargoSchema, type Cargo } from '$lib/types/cs-proto';
+	import CargoBar from '#lib/components/game/CargoBar.svelte';
+	import { CargoSchema, type Cargo } from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 
 	const cargo1: Cargo = create(CargoSchema, {

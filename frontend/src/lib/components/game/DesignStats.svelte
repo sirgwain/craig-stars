@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { MinefieldType, type ShipDesignSpec } from '$lib/types/cs-proto';
-	import { Infinite, NoScanner } from '$lib/types/Consts';
+	import { MinefieldType, type ShipDesignSpec } from '#lib/types/cs-proto.js';
+	import { Infinite, NoScanner } from '#lib/types/Consts.js';
 	import BattleSpeed from './BattleSpeed.svelte';
 
 	type Props = {

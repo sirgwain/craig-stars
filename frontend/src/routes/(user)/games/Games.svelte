@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Galaxy from '$lib/components/icons/Galaxy.svelte';
-	import Processor from '$lib/components/icons/Processor.svelte';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { gameClient } from '$lib/services/connect';
-	import { me } from '$lib/services/Stores';
-	import { GameState, type GameWithPlayers } from '$lib/types/cs-proto';
+	import Galaxy from '#lib/components/icons/Galaxy.svelte';
+	import Processor from '#lib/components/icons/Processor.svelte';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import { gameClient } from '#lib/services/connect.js';
+	import { me } from '#lib/services/Stores.js';
+	import { GameState, type GameWithPlayers } from '#lib/types/cs-proto.js';
 	import { onMount } from 'svelte';
 	import ActiveGameRow from './ActiveGameRow.svelte';
 	import SetupGameRow from './SetupGameRow.svelte';

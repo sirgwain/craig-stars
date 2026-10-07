@@ -1,7 +1,7 @@
 <script lang="ts">
-	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { PlanetViewState } from '$lib/types/PlayerSettings';
+	import PlanetWithStarbase from '#lib/components/icons/PlanetWithStarbase.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { PlanetViewState } from '#lib/types/PlayerSettings.js';
 
 	const { settings } = getGameContext();
 </script>

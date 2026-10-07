@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { ProductionPlan } from '$lib/types/cs-proto';
-	import type { DesignFinder } from '$lib/services/Universe';
-	import { getQueueItemShortName } from '$lib/types/Planet';
-	import { getAutoAlchemyDescription, hasQuantity, isAuto } from '$lib/types/QueueItemType';
+	import type { ProductionPlan } from '#lib/types/cs-proto.js';
+	import type { DesignFinder } from '#lib/services/Universe.js';
+	import { getQueueItemShortName } from '#lib/types/Planet.js';
+	import { getAutoAlchemyDescription, hasQuantity, isAuto } from '#lib/types/QueueItemType.js';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -24,7 +24,7 @@
 </script>
 
 <div
-	class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 m-1 w-full sm:w-[350px]"
+	class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 pt-2 m-1 w-full sm:w-[350px]"
 >
 	<div class="card-body">
 		<h2 class="card-title">

@@ -17,7 +17,7 @@ RUN npm install && npm run build
 # -----------------------------------------------------------------------------
 #  Build Stage
 # -----------------------------------------------------------------------------
-FROM golang:alpine AS build
+FROM golang:1.27.1-alpine AS build
 
 # Important:
 #   Because this is a CGO enabled package, you are required to set it as 1.

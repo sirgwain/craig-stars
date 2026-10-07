@@ -1,6 +1,6 @@
 <script lang="ts">
-	import PlayerColors from '$lib/components/icons/PlayerColors.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import PlayerColors from '#lib/components/icons/PlayerColors.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { settings } = getGameContext();
 </script>

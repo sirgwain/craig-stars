@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { CSError, errors } from '$lib/services/Errors';
-	import { FullGame } from '$lib/services/FullGame';
-	import { gameKey, getGameContext } from '$lib/services/GameContext';
-	import { Universe } from '$lib/services/Universe';
-	import { CommandedPlayer } from '$lib/types/Player';
+	import { CSError, errors } from '#lib/services/Errors.js';
+	import { FullGame } from '#lib/services/FullGame.js';
+	import { gameKey, getGameContext } from '#lib/services/GameContext.js';
+	import { Universe } from '#lib/services/Universe.js';
+	import { CommandedPlayer } from '#lib/types/Player.js';
 	import { hasContext } from 'svelte';
 	import { fade } from 'svelte/transition';
 

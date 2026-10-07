@@ -1,5 +1,5 @@
-import { showTooltip } from '$lib/services/Stores';
-import type { TechHull } from '$lib/types/cs-proto';
+import { showTooltip } from '#lib/services/Stores.js';
+import type { TechHull } from '#lib/types/cs-proto.js';
 import TechHullTooltip from './TechHullTooltip.svelte';
 
 export function onTechHullTooltip(e: PointerEvent | MouseEvent, hull: TechHull | undefined) {

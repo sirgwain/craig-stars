@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { CommandedPlayer } from '$lib/types/Player';
-	import { isHullComponent, type TechLike } from '$lib/types/Tech';
+	import type { CommandedPlayer } from '#lib/types/Player.js';
+	import { isHullComponent, type TechLike } from '#lib/types/Tech.js';
 	import Cost from '../game/Cost.svelte';
 	import TechDescription from './TechDescription.svelte';
 	import TechEngineGraph from './TechEngineGraph.svelte';
@@ -12,9 +12,9 @@
 		type TechDefense,
 		type TechHull,
 		type TechHullComponent
-	} from '$lib/types/cs-proto';
-	import { levelsAbove } from '$lib/types/TechLevel';
-	import type { CS } from '$lib/wasm';
+	} from '#lib/types/cs-proto.js';
+	import { levelsAbove } from '#lib/types/TechLevel.js';
+	import type { CS } from '#lib/wasm.js';
 	import { kebabCase } from 'lodash-es';
 	import TechAvatar from './TechAvatar.svelte';
 	import TechDefenseGraph from './TechDefenseGraph.svelte';
@@ -59,7 +59,7 @@
 			: 0
 	);
 
-	let cost = $state(techLike.tech?.cost);
+	let cost = $derived(techLike.tech?.cost);
 	$effect(() => {
 		if (!(cs && techLike.tech && player)) {
 			return;
@@ -83,7 +83,7 @@
 {#if techLike.tech}
 	{@const tech = techLike.tech}
 	<div
-		class="card bg-base-200 shadow rounded-sm border-2 border-base-300 max-h-fit min-h-fit w-full h-full"
+		class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 max-h-fit min-h-fit w-full h-full"
 	>
 		<div class="card-body p-3 gap-0">
 			<div class="text-lg font-semibold text-center mb-1 text-secondary">

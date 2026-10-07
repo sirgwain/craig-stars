@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import Design from '$lib/components/game/design/Design.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import Design from '#lib/components/game/design/Design.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { game, universe } = getGameContext();
 	let num = parseInt(page.params.num || '0');

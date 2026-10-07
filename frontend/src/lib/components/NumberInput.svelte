@@ -15,7 +15,7 @@
 		name,
 		value = $bindable(),
 		unit = undefined,
-		titleClass = 'label-text w-32 text-right',
+		titleClass = 'cs-label-text w-32 text-right',
 		unitLabelClass = 'w-16',
 		...rest
 	}: Props = $props();
@@ -23,12 +23,12 @@
 	let title = $derived(rest.title ?? startCase(name));
 </script>
 
-<div class="w-full flex-grow">
-	<label class="label"
+<div class="w-full grow">
+	<label class="cs-form-label"
 		><span class={titleClass}>{title}</span>
-		<div class="flex-grow pl-2">
-			<div class="input-group">
-				<input type="number" class="input input-bordered w-full" {name} bind:value {...rest} />
+		<div class="grow pl-2">
+			<div class="flex items-center">
+				<input type="number" class="input w-full" {name} bind:value {...rest} />
 				{#if unit}
 					<span class={unitLabelClass}>{unit}</span>
 				{/if}

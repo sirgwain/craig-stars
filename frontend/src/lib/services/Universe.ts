@@ -1,5 +1,9 @@
-import { battlesSortBy, getBattleRecordDetails, type BattleRecordDetails } from '$lib/types/Battle';
-import type { CargoDest } from '$lib/types/CargoTransferRequest';
+import {
+	battlesSortBy,
+	getBattleRecordDetails,
+	type BattleRecordDetails
+} from '#lib/types/Battle.js';
+import type { CargoDest } from '#lib/types/CargoTransferRequest.js';
 import type {
 	BattleRecord,
 	Fleet,
@@ -9,7 +13,7 @@ import type {
 	PlayerUniverse,
 	ShipDesign,
 	Waypoint
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import {
 	MapObjectType,
 	VectorSchema,
@@ -19,18 +23,18 @@ import {
 	type Salvage,
 	type ScoreIntel,
 	type Wormhole
-} from '$lib/types/cs-proto';
-import { enumToString } from '$lib/types/Enums';
-import { fleetsSortBy } from '$lib/types/Fleet';
+} from '#lib/types/cs-proto.js';
+import { enumToString } from '#lib/types/Enums.js';
+import { fleetsSortBy } from '#lib/types/Fleet.js';
 import {
 	commandable,
 	positionKey,
 	type MapObjectLike,
 	type MapObjectTargetLike,
 	type Position
-} from '$lib/types/MapObject';
-import { planetsSortBy } from '$lib/types/Planet';
-import type { CommandedPlayer } from '$lib/types/Player';
+} from '#lib/types/MapObject.js';
+import { planetsSortBy } from '#lib/types/Planet.js';
+import type { CommandedPlayer } from '#lib/types/Player.js';
 import { create, type UnknownField } from '@bufbuild/protobuf';
 import { groupBy } from 'lodash-es';
 

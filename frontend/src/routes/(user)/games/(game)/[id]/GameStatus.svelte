@@ -1,10 +1,10 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import GameCard from '$lib/components/game/GameCard.svelte';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import GameCard from '#lib/components/game/GameCard.svelte';
 	import type { Snippet } from 'svelte';
 	import PlayersStatus from './players/PlayersStatus.svelte';
-	import type { GameWithPlayers } from '$lib/types/cs-proto';
-	import { getGameWithPlayersFlat } from '$lib/types/Game';
+	import type { GameWithPlayers } from '#lib/types/cs-proto.js';
+	import { getGameWithPlayersFlat } from '#lib/types/Game.js';
 
 	type Props = {
 		game: GameWithPlayers;
@@ -25,7 +25,7 @@
 				<GameCard game={flatGame} href={`/games/${game.game?.id}`} />
 			{/if}
 		</div>
-		<div class="w-full bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 m-1">
+		<div class="w-full bg-base-200 shadow-sm rounded-xs border-2 border-base-300 pt-2 m-1">
 			<PlayersStatus />
 		</div>
 	</div>

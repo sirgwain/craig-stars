@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import DarkModeToggler from '$lib/components/DarkModeToggler.svelte';
-	import UserAvatar from '$lib/components/UserAvatar.svelte';
-	import { GameState } from '$lib/types/cs-proto';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { me } from '$lib/services/Stores';
+	import { page } from '$app/state';
+	import DarkModeToggler from '#lib/components/DarkModeToggler.svelte';
+	import UserAvatar from '#lib/components/UserAvatar.svelte';
+	import { GameState } from '#lib/types/cs-proto.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { me } from '#lib/services/Stores.js';
 	import { ArrowUpTray, Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
@@ -38,13 +38,11 @@
 		</div>
 	</div>
 	<div class="flex-initial">
-		{#if $page.url.pathname === `/games/${$game.id}` && !$player.submittedTurn && $game.state === GameState.WAITING_FOR_PLAYERS}
-			<button type="button" onclick={onSubmitTurn} class="btn btn-primary" title="submit turn"
-				><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
-					src={ArrowUpTray}
-					size="16"
-				/></button
-			>
+		{#if page.url.pathname === `/games/${$game.id}` && !$player.submittedTurn && $game.state === GameState.WAITING_FOR_PLAYERS}
+			<button type="button" onclick={onSubmitTurn} class="btn btn-primary" title="submit turn">
+				<span class="hidden md:inline-block mr-1">Submit Turn</span>
+				<Icon src={ArrowUpTray} size="16" />
+			</button>
 		{/if}
 
 		{#if !$player.submittedTurn}
@@ -56,7 +54,7 @@
 					<ul
 						id="commands"
 						tabindex="0"
-						class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
+						class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-300"
 					>
 						<li><a href={`/games/${$game.id}/research`}>Research</a></li>
 						<li><a href={`/games/${$game.id}/designer`}>Ship Designer</a></li>
@@ -74,7 +72,7 @@
 					<ul
 						id="reports"
 						tabindex="0"
-						class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
+						class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-300"
 					>
 						<li><a href={`/games/${$game.id}/players`}>Players</a></li>
 						<li><a href={`/games/${$game.id}/planets`}>Planets</a></li>
@@ -103,7 +101,7 @@
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<div
 				tabindex="0"
-				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-[22rem] md:w-auto"
+				class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-300 w-[22rem] md:w-auto"
 			>
 				<div class="flex flex-row justify-between">
 					<ul class="mt-11">
@@ -136,21 +134,19 @@
 						{/if}
 					</ul>
 					<ul>
-						<li>
-							<DarkModeToggler />
-						</li>
-						<li class="md:hidden menu-title">
-							<span>Game</span>
-						</li>
+						<li><DarkModeToggler /></li>
+						<li class="md:hidden menu-title"><span>Game</span></li>
+
 						<li>
 							<a href={`/games/${$game.id}/race`} class="justify-between">Race</a>
 						</li>
+
 						<li>
 							<a href={`/games/${$game.id}/techs`} class="justify-between">Techs</a>
 						</li>
-						<li>
-							<a href="/settings" class="justify-between">Settings</a>
-						</li>
+
+						<li><a href="/settings" class="justify-between">Settings</a></li>
+
 						{#if $me.isAdmin()}
 							<li><div class="divider"></div></li>
 							<li>

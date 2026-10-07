@@ -10,11 +10,11 @@ import {
 	ResourceType,
 	TechCategory,
 	TerraformHabType
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import MessageDetail from './MessageDetail.svelte';
 
 const state = vi.hoisted(() => ({ category: 0 }));
-vi.mock('$lib/services/GameContext', async () => {
+vi.mock('#lib/services/GameContext.js', async () => {
 	const { writable } = await import('svelte/store');
 	const context = {
 		game: writable({ id: 1n }),
@@ -31,7 +31,7 @@ vi.mock('$lib/services/GameContext', async () => {
 	};
 	return { getGameContext: () => context };
 });
-vi.mock('$lib/services/Stores', async () => {
+vi.mock('#lib/services/Stores.js', async () => {
 	const { writable } = await import('svelte/store');
 	return { techs: writable({ getTech: () => ({ tech: { category: state.category } }) }) };
 });
