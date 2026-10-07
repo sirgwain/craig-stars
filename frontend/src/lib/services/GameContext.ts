@@ -37,7 +37,7 @@ import {
 import { UpdateWaypointResult } from '#lib/protogen/craig_stars/v1/fleetservice_pb.js';
 import { CommandedFleet } from '#lib/types/Fleet.js';
 import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '#lib/types/Game.js';
-import { equal, key, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
+import { equal, key, type MapObjectLike } from '#lib/types/MapObject.js';
 import { getMapObjectTarget, getMapObjectTypeForMessageType } from '#lib/types/Message.js';
 import { CommandedPlanet } from '#lib/types/Planet.js';
 import { CommandedPlayer } from '#lib/types/Player.js';
@@ -363,12 +363,9 @@ export async function createGameContext(
 				message.spec?.mapObjectTarget?.targetNum
 			);
 			if (fleet) {
-				if (ownedBy(fleet, playerNum)) {
-					commandMapObject(fleet);
-				} else {
-					selectMapObject(fleet);
-					zoomToMapObject(fleet);
-				}
+				// command our own fleets (like minesweepers), select others
+				gotoTargetFleet(fleet, playerNum, universe);
+				zoomToMapObject(fleet);
 				goto(`/games/${gameId}`);
 				return;
 			}
