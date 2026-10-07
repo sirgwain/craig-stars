@@ -237,6 +237,7 @@ const (
 	PlayerMessagePlanetInvadeInvalidEmpty
 	PlayerMessagePlanetInvadeInvalidStarbase
 	PlayerMessageFleetStargateDestroyed
+	PlayerMessageFleetEngineStrainDestroyed
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -438,6 +439,10 @@ func (m *messageClient) fleetExceededSafeSpeed(player *Player, fleet *Fleet, exp
 	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetExceededSafeSpeed, fleet).withSpec(
 		PlayerMessageSpec{Amount: explodedShips},
 	))
+}
+
+func (m *messageClient) fleetEngineStrainDestroyed(player *Player, fleet *Fleet) {
+	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetEngineStrainDestroyed, fleet))
 }
 
 func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGenerated int) {

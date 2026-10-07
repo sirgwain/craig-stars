@@ -44,6 +44,7 @@ type Fleet struct {
 	battlePlan        *BattlePlan
 	struckMinefield   bool
 	remoteMined       bool
+	warped            bool // made a warp move this turn, colonists can die from warp acceleration or engine radiation
 }
 
 type FleetOrders struct {
@@ -236,6 +237,7 @@ type fleetMoveInterruptedReason int
 const (
 	fleetMoveInterruptedEngineFailure = iota
 	fleetMoveInterruptedHitMinefield
+	fleetMoveInterruptedDestroyed
 )
 
 type fleetMoveInterrupted struct {
@@ -774,6 +776,24 @@ func (f *Fleet) availableFuelSpace() int {
 	return Clamp(f.Spec.FuelCapacity-f.Fuel, 0, f.Spec.FuelCapacity)
 }
 
+// removeLostShips removes tokens with no ships left after ships were destroyed. The lost ships take their
+// share of the fleet's cargo and fuel with them, by capacity, like FleetTransferCargoBalance.
+func (fleet *Fleet) removeLostShips(rules *Rules, player *Player) {
+	cargoCapacity, fuelCapacity := fleet.Spec.CargoCapacity, fleet.Spec.FuelCapacity
+	fleet.removeEmptyTokens()
+	if len(fleet.Tokens) == 0 {
+		return
+	}
+
+	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	if cargoCapacity > 0 {
+		fleet.Cargo = fleet.Cargo.Multiply(float64(fleet.Spec.CargoCapacity) / float64(cargoCapacity))
+	}
+	if fuelCapacity > 0 {
+		fleet.Fuel = int(float64(fleet.Fuel) * float64(fleet.Spec.FuelCapacity) / float64(fuelCapacity))
+	}
+}
+
 // remove any empty tokens that were destroyed (by minefields, overgating, battle... it's a dangerous universe)
 func (fleet *Fleet) removeEmptyTokens() {
 	updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
@@ -812,6 +832,17 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		player.Race.Spec.EngineFailureRate >= rules.random.Float64() {
 		messager.fleetEngineFailure(player, fleet)
 		return &fleetMoveInterrupted{reason: fleetMoveInterruptedEngineFailure}
+	}
+	fleet.warped = true
+
+	// ships going faster than their engines can safely handle may explode before we move
+	if explodedShips := fleet.applyOverwarpPenalty(rules); explodedShips > 0 {
+		fleet.removeLostShips(rules, player)
+		if len(fleet.Tokens) == 0 {
+			messager.fleetEngineStrainDestroyed(player, fleet)
+			return &fleetMoveInterrupted{reason: fleetMoveInterruptedDestroyed}
+		}
+		messager.fleetExceededSafeSpeed(player, fleet, explodedShips)
 	}
 
 	// a fleet with enough fuel to reach wp1 never runs short on the way because of rounding
@@ -995,6 +1026,10 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	// dump cargo if we aren't IT or using a jump gate
 	if !fleet.Spec.CanJump && fleet.Cargo.Total() > 0 && !player.Race.Spec.CanGateCargo {
 		messager.fleetStargateDumpedCargo(player, fleet, wp0, wp1, fleet.Cargo)
+		if !sourcePlanet.OwnedBy(player.Num) {
+			// let our ally know we dumped cargo on their planet
+			messager.fleetStargateDumpedCargo(playerGetter.getPlayer(sourcePlanet.PlayerNum), fleet, wp0, wp1, fleet.Cargo)
+		}
 		sourcePlanet.Cargo = sourcePlanet.Cargo.Add(fleet.Cargo)
 		fleet.Cargo = Cargo{}
 	}

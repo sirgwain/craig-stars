@@ -742,6 +742,124 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 	}
 }
 
+func TestFleet_moveFleetEngineStrain(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+
+	// a Trans-Star 10 freighter is safe at warp 10
+	transStarFreighter := NewShipDesign(player.Num, 2).
+		WithName("Trans-Star Freighter").
+		WithHull(SmallFreighter.Name).
+		WithSlots(slices.Clone(DesignSmallFreighter.Slots))
+	transStarFreighter.Slots[0].HullComponent = TransStar10.Name
+	transStarFreighter.WithSpec(&rules, player)
+	player.Designs = append(player.Designs, transStarFreighter)
+
+	type want struct {
+		ships          int
+		cargo          Cargo
+		destroyed      bool
+		messageType    PlayerMessageType
+		explodedAmount int
+	}
+	tests := []struct {
+		name       string
+		transStars int // Trans-Star 10 freighters added to the Quick Jump 5 freighter
+		cargo      Cargo
+		random     rng
+		want       want
+	}{
+		{
+			name:   "safe roll",
+			random: newFloat64Random(0.5),
+			want:   want{ships: 1},
+		},
+		{
+			name:   "fleet destroyed",
+			random: newFloat64Random(0),
+			want:   want{destroyed: true, messageType: PlayerMessageFleetEngineStrainDestroyed},
+		},
+		{
+			// the Quick Jump 5 freighter has half the fleet's capacity and takes half the cargo with it
+			name:       "lost ship takes its share of cargo",
+			transStars: 1,
+			cargo:      Cargo{Ironium: 100, Colonists: 20},
+			random:     newFloat64Random(0),
+			want:       want{ships: 1, cargo: Cargo{Ironium: 50, Colonists: 10}, messageType: PlayerMessageFleetExceededSafeSpeed, explodedAmount: 1},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player.Messages = nil
+			fleet := testSmallFreighter(player)
+			if tt.transStars > 0 {
+				fleet.Tokens = append(fleet.Tokens, ShipToken{Quantity: tt.transStars, DesignNum: 2, design: transStarFreighter})
+			}
+			fleet.withCargo(tt.cargo).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{999, 0}, 10))
+			fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+			fleet.Fuel = 10000 // plenty of fuel for warp 10
+			universe := Universe{log: testLogger, Fleets: []*Fleet{fleet}}
+			universe.buildMaps([]*Player{player})
+
+			rules := NewRulesWithSeed(0)
+			rules.random = tt.random
+
+			interrupted := fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
+
+			if tt.want.destroyed {
+				assert.Equal(t, fleetMoveInterruptedDestroyed, int(interrupted.reason))
+				assert.Empty(t, fleet.Tokens)
+				assert.Equal(t, Vector{0, 0}, fleet.Position)
+			} else {
+				assert.Equal(t, tt.want.ships, fleet.Spec.TotalShips)
+				assert.Equal(t, tt.want.cargo, fleet.Cargo)
+				assert.Equal(t, Vector{100, 0}, fleet.Position)
+			}
+
+			if tt.want.messageType == PlayerMessageNone {
+				assert.Empty(t, player.Messages)
+			} else {
+				assert.Len(t, player.Messages, 1)
+				assert.Equal(t, tt.want.messageType, player.Messages[0].Type)
+				assert.Equal(t, tt.want.explodedAmount, player.Messages[0].Spec.Amount)
+			}
+		})
+	}
+}
+
+func TestFleet_gateFleetDumpCargoOnAlly(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+	ally := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2)
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
+	ally.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
+
+	stargate := PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{HasStargate: true, SafeRange: 150, SafeHullMass: 150, MaxRange: 500, MaxHullMass: 500}}
+	sourcePlanet := NewPlanet().WithNum(1).WithPlayerNum(ally.Num)
+	sourcePlanet.Spec = stargate
+	destPlanet := NewPlanet().WithNum(2).WithPlayerNum(player.Num)
+	destPlanet.Spec = stargate
+
+	fleet := testSmallFreighter(player).
+		withCargo(Cargo{Ironium: 10}).
+		withOrbitingPlanetNum(sourcePlanet.Num).
+		withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed))
+	universe := Universe{
+		log:          testLogger,
+		Fleets:       []*Fleet{fleet},
+		Planets:      []*Planet{sourcePlanet, destPlanet},
+		designsByNum: map[playerObject]*ShipDesign{},
+	}
+	universe.buildMaps([]*Player{player, ally})
+
+	fleet.gateFleet(&rules, &universe, newTestPlayerGetter(player, ally))
+
+	assert.Equal(t, Vector{50, 0}, fleet.Position)
+	assert.Equal(t, Cargo{Ironium: 10}, sourcePlanet.Cargo)
+	assert.Len(t, player.Messages, 1)
+	assert.Equal(t, PlayerMessageFleetDumpedCargo, player.Messages[0].Type)
+	assert.Len(t, ally.Messages, 1)
+	assert.Equal(t, PlayerMessageFleetDumpedCargo, ally.Messages[0].Type)
+}
+
 func TestFleet_gateFleet(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}}
