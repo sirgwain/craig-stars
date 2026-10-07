@@ -51,7 +51,7 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			wantDamage:          50,
 		},
 		{
-			name: "10 ships, do 850 damage, destroy 8 ships, leave 2 damaged",
+			name: "10 ships, do 850 damage, spread over all of them",
 			fields: fields{
 				design:   design,
 				quantity: 10,
@@ -59,14 +59,26 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			damage: 850,
 			want: tokenDamage{
 				damage:         850,
-				shipsDestroyed: 8,
+				shipsDestroyed: 0,
 			},
-			wantQuantity:        2,
-			wantQuantityDamaged: 2,
-			wantDamage:          25,
+			wantQuantity:        10,
+			wantQuantityDamaged: 10,
+			wantDamage:          85,
 		},
 		{
-			name: "2 ships, with 50 damage already, do 75 more damage, destroy ship",
+			name: "10 ships, do more damage than their armor, destroy all of them",
+			fields: fields{
+				design:   design,
+				quantity: 10,
+			},
+			damage: 1010,
+			want: tokenDamage{
+				damage:         1010,
+				shipsDestroyed: 10,
+			},
+		},
+		{
+			name: "2 ships, with 50 damage already, do 75 more damage, spread over both",
 			fields: fields{
 				design:          design,
 				quantity:        2,
@@ -76,11 +88,25 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			damage: 75,
 			want: tokenDamage{
 				damage:         75,
-				shipsDestroyed: 1,
+				shipsDestroyed: 0,
 			},
-			wantQuantity:        1,
-			wantQuantityDamaged: 1,
-			wantDamage:          25,
+			wantQuantity:        2,
+			wantQuantityDamaged: 2,
+			wantDamage:          62,
+		},
+		{
+			name: "2 ships, with 50 damage already, do 160 more damage, destroy both",
+			fields: fields{
+				design:          design,
+				quantity:        2,
+				quantityDamaged: 1,
+				damage:          50,
+			},
+			damage: 160,
+			want: tokenDamage{
+				damage:         160,
+				shipsDestroyed: 2,
+			},
 		},
 		{
 			name: "1 shielded ship, do 50 damage, don't destroy ship",

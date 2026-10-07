@@ -91,50 +91,6 @@ func (v VectorGeneric[T]) Round() VectorGeneric[T] {
 	return VectorGeneric[T]{T(math.Round(float64(v.X))), T(math.Round(float64(v.Y)))}
 }
 
-// SegmentIntersectsCircle checks whether a segment intersects a circle or not.
-// This returns what percent of the segment is NOT in the circle, or -1 if it doesn't
-// intersect.
-// Who would have thought the godot developers would write a perfect function for determining
-// if we collide with a minefield
-// while moving through space?
-// https://github.com/godotengine/godot/blob/4.1.2-stable/core/math/geometry_2d.h#L217
-func segmentIntersectsCircle[T number](segmentFrom, segmentTo, circlePosition VectorGeneric[T], circleRadius float64) (percentOutside float64) {
-	lineVec := segmentTo.Subtract(segmentFrom)
-	vecToLine := segmentFrom.Subtract(circlePosition)
-
-	// Create a quadratic formula of the form ax^2 + bx + c = 0
-	// Hope you remembered your high school algebra!
-	var a, b, c float64
-
-	a = float64(lineVec.Dot(lineVec))
-	b = 2 * float64(vecToLine.Dot(lineVec))
-	c = float64(vecToLine.Dot(vecToLine)) - circleRadius*circleRadius
-
-	// Calculate the discriminant - b^2 - 4ac
-	var discriminant = b*b - 4*a*c
-
-	// A discriminant below 0 implies a non-real value,
-	// so it definitely won't be in the range of 0 to 1.
-	if discriminant < 0 {
-		return -1
-	}
-
-	// If we can assume that the line segment starts outside the circle
-	// (e.g. for continuous time collision detection), the following can be
-	// skipped and we can just return the equivalent of res1.
-	discriminant = math.Sqrt(discriminant)
-	root1 := (-b - discriminant) / (2 * a)
-	root2 := (-b + discriminant) / (2 * a)
-
-	if root1 >= 0 && root1 <= 1 {
-		return root1
-	}
-	if root2 >= 0 && root2 <= 1 {
-		return root2
-	}
-	return -1
-}
-
 // Returns true if this point is in a circle
 func isPointInCircle[T number](point, circlePosition VectorGeneric[T], circleRadius float64) bool {
 	return float64(point.DistanceSquaredTo(circlePosition)) <= circleRadius*circleRadius

@@ -952,6 +952,52 @@ func Test_turn_fleetPursuit(t *testing.T) {
 		assert.Equal(t, Vector{19, 39}, a.Position)
 	})
 
+	t.Run("fleets pursuing each other close in", func(t *testing.T) {
+		u := newUniverse(t, []ScenarioFleet{scout("A", Vector{0, 0}), scout("B", Vector{100, 0})}, nil)
+		a, b := u.Fleet("A"), u.Fleet("B")
+		pursue(a, b, 5)
+		pursue(b, a, 5)
+
+		u.Run((*turnGenerator).fleetMove)
+
+		// each moves 5ly a pass toward the other until their 25ly are used up
+		assert.Equal(t, Vector{25, 0}, a.Position)
+		assert.Equal(t, Vector{75, 0}, b.Position)
+		assert.Len(t, a.Waypoints, 2)
+		assert.Len(t, b.Waypoints, 2)
+	})
+
+	t.Run("fleets pursuing each other meet", func(t *testing.T) {
+		u := newUniverse(t, []ScenarioFleet{scout("A", Vector{0, 0}), scout("B", Vector{20, 0})}, nil)
+		a, b := u.Fleet("A"), u.Fleet("B")
+		pursue(a, b, 9)
+		pursue(b, a, 9)
+
+		u.Run((*turnGenerator).fleetMove)
+
+		// A moves 17ly toward B, B moves the last 3ly to A, and they stop there
+		assert.Equal(t, Vector{17, 0}, a.Position)
+		assert.Equal(t, Vector{17, 0}, b.Position)
+		assert.Len(t, a.Waypoints, 1)
+		assert.Len(t, b.Waypoints, 1)
+	})
+
+	t.Run("three fleets pursuing in a loop", func(t *testing.T) {
+		u := newUniverse(t, []ScenarioFleet{scout("A", Vector{0, 0}), scout("B", Vector{100, 0}), scout("C", Vector{50, 87})}, nil)
+		a, b, c := u.Fleet("A"), u.Fleet("B"), u.Fleet("C")
+		pursue(a, b, 5)
+		pursue(b, c, 5)
+		pursue(c, a, 5)
+
+		u.Run((*turnGenerator).fleetMove)
+
+		// everyone uses their whole 25ly move, curving a little as their targets move
+		for _, fleet := range []*Fleet{a, b, c} {
+			assert.InDelta(t, 25, fleet.Position.DistanceTo(*fleet.PreviousPosition), 1, fleet.Name)
+			assert.Len(t, fleet.Waypoints, 2, fleet.Name)
+		}
+	})
+
 	t.Run("other players lose track through a wormhole", func(t *testing.T) {
 		u := newUniverse(t,
 			[]ScenarioFleet{scout("Target", Vector{0, 0}), scout("Own Pursuer", Vector{0, -50})},

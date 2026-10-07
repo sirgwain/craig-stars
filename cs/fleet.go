@@ -785,15 +785,19 @@ func (f *Fleet) availableFuelSpace() int {
 }
 
 // removeLostShips removes tokens with no ships left after ships were destroyed. The lost ships take their
-// share of the fleet's cargo and fuel with them, by capacity, like FleetTransferCargoBalance.
+// share of the fleet's cargo and fuel with them, by capacity.
 func (fleet *Fleet) removeLostShips(rules *Rules, player *Player) {
-	cargoCapacity, fuelCapacity := fleet.Spec.CargoCapacity, fleet.Spec.FuelCapacity
+	totalShips, cargoCapacity, fuelCapacity := fleet.Spec.TotalShips, fleet.Spec.CargoCapacity, fleet.Spec.FuelCapacity
 	fleet.removeEmptyTokens()
 	if len(fleet.Tokens) == 0 {
 		return
 	}
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	if fleet.Spec.TotalShips >= totalShips {
+		// no ships lost
+		return
+	}
 	if cargoCapacity > 0 {
 		fleet.Cargo = fleet.Cargo.Multiply(float64(fleet.Spec.CargoCapacity) / float64(cargoCapacity))
 	}
@@ -1164,8 +1168,7 @@ func (fleet *Fleet) applyOvergatePenalty(rules *Rules, player *Player, distance 
 
 // Engine fuel usage calculation courtesy of m.a@stars
 // fuelUsage returns the unrounded fuel, in mg, that mass kT uses travelling dist ly at warpSpeed.
-// 1 mg of fuel moves 200kT 1 ly at a fuel usage of 100. Distances are rounded up to the next whole ly,
-// like EstFuelUse.
+// 1 mg of fuel moves 200kT 1 ly at a fuel usage of 100. Distances are rounded up to the next whole ly.
 func (engine Engine) fuelUsage(warpSpeed int, mass int, dist float64, ifeFactor float64) float64 {
 	if warpSpeed <= 0 || warpSpeed >= len(engine.FuelUsage) {
 		return 0
@@ -1196,7 +1199,7 @@ func (fleet *Fleet) GetFuelCost(player *Player, warpSpeed int, distance float64)
 	return roundUpFuel(fleet.fuelUsage(player, warpSpeed, distance))
 }
 
-// fuelUsage returns the unrounded fuel this fleet uses travelling distance at warpSpeed, like EstFuelUse.
+// fuelUsage returns the unrounded fuel this fleet uses travelling distance at warpSpeed.
 // Cargo is loaded onto the most fuel efficient ships first, up to their capacity, so it costs as little
 // fuel as possible to carry.
 func (fleet *Fleet) fuelUsage(player *Player, warpSpeed int, distance float64) float64 {

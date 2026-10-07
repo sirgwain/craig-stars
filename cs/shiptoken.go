@@ -18,32 +18,29 @@ type tokenDamage struct {
 
 // Apply mine damage to a token, updating quantity damaged and damage amount
 func (st *ShipToken) applyMineDamage(damage int) tokenDamage {
-	// mines do half damage to shields
-	shields := st.design.Spec.Shields
-	armor := st.design.Spec.Armor
-	possibleDamageToShields := float64(damage) * 0.5
-	actualDamageToShields := min(float64(shields), possibleDamageToShields)
-	armorDamage := damage - int(actualDamageToShields)
-	existingStackDamage := st.Damage * float64(st.QuantityDamaged) // get the total stack damage
-
-	// get the new stackDamage spread across all ships int he stack
-	stackDamage := math.Floor(float64(existingStackDamage) + float64(armorDamage))
-
-	// from the new total stack damage, figure out how many ships were destroyed
-	shipsDestroyed := int(min(float64(st.Quantity), math.Floor(float64(stackDamage)/float64(armor))))
-	st.Quantity -= shipsDestroyed
-
-	if st.Quantity > 0 {
-		// Figure out how much damage we have leftover after destroying
-		// ships. This will be applied to the rest of the ships
-		// if we took 100 damage, and we have 40 armor, we lose 2 ships
-		// and have 20 leftover damage to spread across ships
-		leftoverStackDamage := stackDamage - float64(shipsDestroyed*armor)
-		st.Damage = math.Floor(leftoverStackDamage / float64(st.Quantity))
-		st.QuantityDamaged = st.Quantity
+	if st.Quantity == 0 {
+		return tokenDamage{}
 	}
 
-	return tokenDamage{damage: armorDamage, shipsDestroyed: shipsDestroyed}
+	// shields absorb up to half the damage
+	shields := st.design.Spec.Shields * st.Quantity
+	armorDamage := damage - min(shields, damage/2)
+
+	// mines spread their damage evenly over the stack, on top of any damage it already has.
+	// If that's more than a ship's armor, the whole stack is destroyed
+	stackDamage := float64(armorDamage) + st.Damage*float64(st.QuantityDamaged)
+	damagePerShip := stackDamage / float64(st.Quantity)
+	if damagePerShip > float64(st.design.Spec.Armor) {
+		shipsDestroyed := st.Quantity
+		st.Quantity = 0
+		st.Damage = 0
+		st.QuantityDamaged = 0
+		return tokenDamage{damage: armorDamage, shipsDestroyed: shipsDestroyed}
+	}
+
+	st.Damage = math.Floor(damagePerShip)
+	st.QuantityDamaged = st.Quantity
+	return tokenDamage{damage: armorDamage}
 }
 
 // Apply overgate damage (if any) to each token that overgated

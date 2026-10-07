@@ -908,7 +908,7 @@ func (t *turnGenerator) mysteryTraderMove() {
 	}
 }
 
-// fleetMove moves fleets through space, like MoveFleets.
+// fleetMove moves fleets through space.
 //
 // Fleets pursuing another fleet move in passes after everyone else. Each pass, a pursuer moves up to
 // 1/5 of its move toward its target's current position, or the rest of its move once its target is done
@@ -1154,8 +1154,8 @@ func (t *turnGenerator) finishFleetMove(move *fleetMove) {
 	// update the game dictionaries with this fleet's new position
 	t.game.moveFleet(fleet, move.start)
 
-	// make sure we have tokens left after move
-	fleet.removeEmptyTokens()
+	// ships lost to minefields or overgating take their share of cargo and fuel with them
+	fleet.removeLostShips(&t.game.Rules, player)
 	if len(fleet.Tokens) == 0 {
 		t.log.Debug("deleted fleet after move",
 			slog.Int("Player", fleet.PlayerNum),
