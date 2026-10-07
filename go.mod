@@ -143,8 +143,8 @@ require (
 	github.com/moby/moby/api v1.56.1 // indirect
 	github.com/moby/moby/client v0.6.1 // indirect
 	github.com/montanaflynn/stats v0.13.0 // indirect
-	github.com/ncruces/go-sqlite3 v0.35.6 // indirect
-	github.com/ncruces/go-sqlite3-wasm/v6 v6.3.35304 // indirect
+	// SQLC v1.31.1 still requires the embed package provided by v0.32.0.
+	github.com/ncruces/go-sqlite3 v0.32.0 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/nsf/jsondiff v0.0.0-20260207060731-8e8d90c4c0ac // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
