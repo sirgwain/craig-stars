@@ -13,6 +13,7 @@ type ByHandCargoTransfer struct {
 	MapObjectTarget
 	SourceFleetNum int   `json:"sourceFleetNum,omitempty"`
 	Cargo          Cargo `json:"cargo"`
+	Fuel           int   `json:"fuel,omitempty"`
 }
 
 // CargoTransfers are a player's ByHandCargoTransfers, keyed by the location they were made. Each location
@@ -56,6 +57,8 @@ func (r CargoTransferStatus) String() string {
 		return "Insufficient Destination Cargo Capacity"
 	case CargoTransferStatusDestStarbase:
 		return "Destination Has Starbase"
+	case CargoTransferStatusDestUnowned:
+		return "Destination Unowned"
 	default:
 		return fmt.Sprintf("Unknown %d", r)
 	}
@@ -63,13 +66,12 @@ func (r CargoTransferStatus) String() string {
 
 // cargoTransferResult is the result of a single CargoType cargo transfer to a dest
 type cargoTransferResult struct {
-	status         CargoTransferStatus // if transfer fails, this is the reason
-	fleet          *Fleet
-	dest           CargoHolder
-	cargoType      CargoType
-	transferred    int
-	wanted         int
-	waitAtWaypoint bool
+	status      CargoTransferStatus // if transfer fails, this is the reason
+	fleet       *Fleet
+	dest        CargoHolder
+	cargoType   CargoType
+	transferred int
+	wanted      int
 }
 
 func newCargoTransferer(log *slog.Logger, game *FullGame) cargoTransferer {
@@ -97,8 +99,8 @@ func (cargoTransfers CargoTransfers) getByHandTransfer(target MapObjectTarget) C
 	return cargo
 }
 
-// transferByHand adds a byHand transfer to a target
-func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Cargo) {
+// transferByHand adds a byHand transfer to a target. Cargo and fuel given to the target are positive
+func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Cargo, fuel int) {
 	// add the new cargo transfer to the player
 	key := fleet.Position.String()
 	transfers := cargoTransfers[key]
@@ -110,12 +112,14 @@ func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObje
 	}
 	if lastTransfer != nil && lastTransfer.SourceFleetNum == fleet.Num && lastTransfer.MapObjectTarget == target {
 		lastTransfer.Cargo = lastTransfer.Cargo.Add(cargo)
+		lastTransfer.Fuel += fuel
 		return
 	}
 
 	transfer := ByHandCargoTransfer{
 		SourceFleetNum:  fleet.Num,
 		Cargo:           cargo,
+		Fuel:            fuel,
 		MapObjectTarget: target,
 	}
 
@@ -170,8 +174,9 @@ type byHandSettlement struct {
 	player   *Player
 	position Vector
 	target   MapObjectTarget
-	// cargo given to the target. Negative amounts were taken from it
+	// cargo and fuel given to the target. Negative amounts were taken from it
 	cargo Cargo
+	fuel  int
 	// the player's fleets that transferred with the target, in order
 	fleetNums []int
 }
@@ -242,6 +247,7 @@ func (t *cargoTransferer) byHandSettlements(player *Player) []*byHandSettlement 
 				settlements = append(settlements, settlement)
 			}
 			settlement.cargo = settlement.cargo.Add(transfer.Cargo)
+			settlement.fuel += transfer.Fuel
 			if !slices.Contains(settlement.fleetNums, transfer.SourceFleetNum) {
 				settlement.fleetNums = append(settlement.fleetNums, transfer.SourceFleetNum)
 			}
@@ -337,6 +343,25 @@ func (b byHandBucket) removeFromOthers(cargoType CargoType, amount int) int {
 	return amount
 }
 
+// addFuel puts fuel back in the bucket's fleets, returning any amount they have no room for
+func (b byHandBucket) addFuel(amount int) int {
+	for _, fleet := range b.fleets {
+		added := min(amount, fleet.availableFuelSpace())
+		fleet.Fuel += added
+		amount -= added
+	}
+	return amount
+}
+
+// removeFuel takes fuel out of the bucket's fleets
+func (b byHandBucket) removeFuel(amount int) {
+	for _, fleet := range b.fleets {
+		removed := min(amount, fleet.Fuel)
+		fleet.Fuel -= removed
+		amount -= removed
+	}
+}
+
 func removeFromFleets(fleets []*Fleet, cargoType CargoType, amount int) int {
 	for _, fleet := range fleets {
 		removed := min(amount, fleet.Cargo.GetAmount(cargoType))
@@ -386,7 +411,7 @@ func (t *cargoTransferer) findByHandTarget(s *byHandSettlement) (CargoHolder, bo
 // then the player's other fleets and planet. unloads is the cargo the player is giving away here.
 func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, deficit *Cargo) (results []byHandResult) {
 	toLoad := s.cargo.NegativeOnly().Negative()
-	if toLoad == (Cargo{}) {
+	if toLoad == (Cargo{}) && s.fuel >= 0 {
 		return nil
 	}
 
@@ -398,6 +423,12 @@ func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, 
 			slog.Int("Player", s.player.Num),
 			slog.String("Target", s.target.PrettyString()))
 		return nil
+	}
+
+	if s.fuel < 0 {
+		// fuel can't be taken from other players' fleets. Orders reject it, this guards against bad data
+		bucket.removeFuel(-s.fuel)
+		results = append(results, byHandResult{fleet: fleet, target: s.target, cargoType: Fuel, wanted: -s.fuel, status: CargoTransferStatusOwned})
 	}
 
 	dest, found := t.findByHandTarget(s)
@@ -462,7 +493,7 @@ func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, 
 // Colonists unloaded on another player's planet invade it.
 func (t *cargoTransferer) settleByHandUnloads(s *byHandSettlement, deficit *Cargo) (results []byHandResult) {
 	toUnload := s.cargo.PositiveOnly()
-	if toUnload == (Cargo{}) {
+	if toUnload == (Cargo{}) && s.fuel <= 0 {
 		return nil
 	}
 
@@ -501,7 +532,10 @@ func (t *cargoTransferer) settleByHandUnloads(s *byHandSettlement, deficit *Carg
 			if !found {
 				status = CargoTransferStatusDestCargoCapacity
 			} else if planet, ok := dest.(*Planet); ok && cargoType == Colonists && !planet.OwnedBy(s.player.Num) {
-				unloaded, status = t.byHandInvade(s, fleet, planet, amount)
+				unloaded, status = 0, CargoTransferStatusOwned
+				if fleet != nil {
+					unloaded, status = t.invade(s.player, fleet, planet, amount)
+				}
 			} else {
 				unloaded = amount
 				if capacity := dest.GetCargoCapacity(); capacity != Infinite {
@@ -532,6 +566,24 @@ func (t *cargoTransferer) settleByHandUnloads(s *byHandSettlement, deficit *Carg
 		results = append(results, byHandResult{fleet: fleet, target: target, cargoType: cargoType, transferred: unloaded, wanted: wanted, status: status})
 	}
 
+	if s.fuel > 0 {
+		// fuel only moves between fleets
+		given := 0
+		if destFleet, ok := dest.(*Fleet); found && ok {
+			given = min(s.fuel, destFleet.availableFuelSpace())
+			destFleet.Fuel += given
+		}
+		if returned := s.fuel - given; returned > 0 {
+			if lost := bucket.addFuel(returned); lost > 0 {
+				t.log.Debug("by hand fuel returned with nowhere to go",
+					slog.Int("Player", s.player.Num),
+					slog.String("Target", s.target.PrettyString()),
+					slog.Int("Fuel", lost))
+			}
+			results = append(results, byHandResult{fleet: fleet, target: target, cargoType: Fuel, transferred: given, wanted: s.fuel, status: CargoTransferStatusDestCargoCapacity})
+		}
+	}
+
 	if found && dest.GetMapObject().Type == MapObjectTypeSalvage && dest.GetCargo() == (Cargo{}) {
 		// nothing was jettisoned after all
 		t.game.deleteSalvage(dest.(*Salvage))
@@ -540,189 +592,112 @@ func (t *cargoTransferer) settleByHandUnloads(s *byHandSettlement, deficit *Carg
 	return results
 }
 
-// byHandInvade queues an invasion of another player's planet with colonists unloaded by hand
-func (t *cargoTransferer) byHandInvade(s *byHandSettlement, fleet *Fleet, planet *Planet, colonists int) (int, CargoTransferStatus) {
-	if !planet.Owned() {
-		// don't beam colonists to their death
-		return 0, CargoTransferStatusDestUnowned
-	}
-	if planet.Spec.HasStarbase {
-		return 0, CargoTransferStatusDestStarbase
-	}
-	if s.player.Race.Spec.LivesOnStarbases || fleet == nil {
-		return 0, CargoTransferStatusOwned
-	}
+// load does a fleet's load tasks at a waypoint. Like the original game, cargo loads in a fixed order
+// (ironium, boranium, germanium, colonists, fuel) and dunnage loads last, once no other load is waiting.
+// It returns whether the fleet should wait at the waypoint for more cargo
+func (t *cargoTransferer) load(fleet *Fleet, dest CargoHolder, transportTasks WaypointTransportTasks) (results []cargoTransferResult, wait bool) {
+	// a set amount task couldn't get enough from the dest
+	waitForCargo := false
+	// a wait for percent task isn't filled yet. The fleet waits only while it has room left
+	waitForPercent := false
 
-	t.invader.addInvasion(invasion{
-		planet:    planet,
-		attacker:  s.player,
-		defender:  t.game.getPlayer(planet.PlayerNum),
-		attackers: colonists * 100,
-		fleets:    []*Fleet{fleet},
-	})
-	return colonists, CargoTransferStatusNone
-}
-
-// load executes cargo load operations for a single fleet, returning a result for each cargoType transfered
-func (t *cargoTransferer) load(fleet *Fleet, dest CargoHolder, transportTasks WaypointTransportTasks) []cargoTransferResult {
-	results := []cargoTransferResult{}
-
-	// dunnage tasks are done after regular tasks
-	type dunnageTask struct {
-		cargoType CargoType
-		task      WaypointTransportTask
-	}
-	dunnageTasks := []dunnageTask{}
-
-	// process regular load tasks
-	for cargoType, task := range transportTasks.getTransportTasks() {
+	dunnage := []transportTask{}
+	for _, task := range transportTasks.ordered() {
 		if task.Action == TransportActionLoadDunnage {
-			dunnageTasks = append(dunnageTasks, dunnageTask{cargoType, task})
+			dunnage = append(dunnage, task)
 			continue
 		}
 
-		// get the load amount
-		transferAmount, wanted, wait := t.getCargoLoadAmount(fleet, dest, cargoType, task)
-
-		// do the transfer and record the result
-		transferred, status := t.transferCargo(fleet, -transferAmount, cargoType, dest)
-		results = append(results, cargoTransferResult{
-			fleet:          fleet,
-			dest:           dest,
-			cargoType:      cargoType,
-			wanted:         -wanted,
-			waitAtWaypoint: wait,
-			transferred:    transferred,
-			status:         status,
-		})
+		result, taskWait := t.loadTask(fleet, dest, task)
+		results = append(results, result)
+		if task.Action == TransportActionWaitForPercent && task.cargoType != Fuel {
+			waitForPercent = waitForPercent || taskWait
+		} else {
+			waitForCargo = waitForCargo || taskWait
+		}
 	}
 
-	// process dunnage tasks after all other loads
-	for _, dunnageTask := range dunnageTasks {
-		cargoType, task := dunnageTask.cargoType, dunnageTask.task
-
-		// get any dunnage load amount
-		transferAmount, wanted, wait := t.getCargoLoadAmount(fleet, dest, cargoType, task)
-
-		// do the transfer and record the result
-		transferred, status := t.transferCargo(fleet, -transferAmount, cargoType, dest)
-		results = append(results, cargoTransferResult{
-			fleet:          fleet,
-			dest:           dest,
-			cargoType:      cargoType,
-			wanted:         wanted,
-			waitAtWaypoint: wait,
-			transferred:    transferred,
-			status:         status,
-		})
+	wait = waitForCargo || (waitForPercent && fleet.availableCargoSpace() > 0)
+	if !wait {
+		for _, task := range dunnage {
+			result, _ := t.loadTask(fleet, dest, task)
+			results = append(results, result)
+		}
 	}
 
-	// delete this salvage if we emptied it
+	// delete this salvage or packet if we emptied it
 	if salvage, ok := dest.(*Salvage); ok && salvage.Cargo == (Cargo{}) {
 		t.game.deleteSalvage(salvage)
-
-		t.log.Debug("deleted salvage",
-			slog.Int("Player", salvage.PlayerNum),
-			slog.String("Salvage", salvage.Name))
-
 	}
-	// delete this packet if we emptied it
 	if packet, ok := dest.(*MineralPacket); ok && packet.Cargo == (Cargo{}) {
 		t.game.deletePacket(packet)
-
-		t.log.Debug("deleted packet",
-			slog.Int("Player", packet.PlayerNum),
-			slog.String("Packet", packet.Name))
-
 	}
 
-	return results
+	return results, wait
 }
 
-// unload perfroms all unload transport tasks for a fleet and a dest
-func (t *cargoTransferer) unload(fleet *Fleet, dest CargoHolder, transportTasks WaypointTransportTasks) []cargoTransferResult {
-	results := []cargoTransferResult{}
+// loadTask does a single load task
+func (t *cargoTransferer) loadTask(fleet *Fleet, dest CargoHolder, task transportTask) (cargoTransferResult, bool) {
+	transferAmount, wanted, wait := t.getCargoLoadAmount(fleet, dest, task.cargoType, task.WaypointTransportTask)
+	transferred, status := t.transferCargo(fleet, -transferAmount, task.cargoType, dest)
+	return cargoTransferResult{
+		fleet:       fleet,
+		dest:        dest,
+		cargoType:   task.cargoType,
+		wanted:      -wanted,
+		transferred: transferred,
+		status:      status,
+	}, wait
+}
 
-	for cargoType, task := range transportTasks.getTransportTasks() {
-		// get how much this order wants to unload
-		transferAmount, wanted, wait := t.getCargoUnloadAmount(fleet, dest, cargoType, task)
-
-		// perform the transfer and record the result
-		transferred, status := t.transferCargo(fleet, transferAmount, cargoType, dest)
+// unload does a fleet's unload tasks at a waypoint, in the same order as loads
+func (t *cargoTransferer) unload(fleet *Fleet, dest CargoHolder, transportTasks WaypointTransportTasks) (results []cargoTransferResult) {
+	for _, task := range transportTasks.ordered() {
+		transferAmount, wanted := t.getCargoUnloadAmount(fleet, dest, task.cargoType, task.WaypointTransportTask)
+		transferred, status := t.transferCargo(fleet, transferAmount, task.cargoType, dest)
 		results = append(results, cargoTransferResult{
-			fleet:          fleet,
-			dest:           dest,
-			cargoType:      cargoType,
-			wanted:         wanted,
-			waitAtWaypoint: wait,
-			transferred:    transferred,
-			status:         status,
+			fleet:       fleet,
+			dest:        dest,
+			cargoType:   task.cargoType,
+			wanted:      wanted,
+			transferred: transferred,
+			status:      status,
 		})
 	}
 
 	return results
 }
 
-// transferCargo transfers a single cargo type to/from the fleet to/from the dest
+// transferCargo transfers a single cargo type to/from the fleet to/from the dest. A positive
+// transferAmount unloads from the fleet, a negative one loads
 func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest CargoHolder) (transferred int, invalid CargoTransferStatus) {
 	if transferAmount == 0 {
 		return 0, CargoTransferStatusNone
 	}
 
-	// check for invasion
-	player := t.game.Players[fleet.PlayerNum-1]
-	planet, ok := dest.(*Planet)
-	if transferAmount > 0 && cargoType == Colonists && ok && !planet.OwnedBy(fleet.PlayerNum) {
-		if !planet.Owned() {
-			// planet is unowned, don't beam colonists to their death
-			// can't invade a planet with a starbase
-			t.log.Debug("fleet cannot unload colonists, planet is unoccupied",
-				slog.Int("Player", fleet.PlayerNum),
-				slog.String("Fleet", fleet.Name),
-				slog.String("Dest", dest.GetMapObject().Name),
-				slog.String("cargoType", cargoType.String()),
-				slog.Int("TransferAmount", transferAmount))
-			return 0, CargoTransferStatusDestUnowned
+	player := t.game.getPlayer(fleet.PlayerNum)
+	if transferAmount > 0 {
+		switch dest := dest.(type) {
+		case *Planet:
+			if cargoType == Colonists && !dest.OwnedBy(fleet.PlayerNum) {
+				invaders, status := t.invade(player, fleet, dest, transferAmount)
+				fleet.Cargo.Colonists -= invaders
+				return invaders, status
+			}
+		case *Fleet:
+			if !dest.OwnedBy(fleet.PlayerNum) {
+				// like the original game, colonists can't be given to another player's fleet, and a
+				// player won't accept anything from an enemy
+				if cargoType == Colonists || t.game.getPlayer(dest.PlayerNum).IsEnemy(fleet.PlayerNum) {
+					t.log.Debug("fleet cannot unload to another player's fleet",
+						slog.Int("Player", fleet.PlayerNum),
+						slog.String("Fleet", fleet.Name),
+						slog.String("Dest", dest.Name),
+						slog.String("cargoType", cargoType.String()))
+					return 0, CargoTransferStatusOwned
+				}
+			}
 		}
-
-		if planet.Spec.HasStarbase {
-			// can't invade a planet with a starbase
-			t.log.Debug("fleet cannot unload colonists, starbase is in orbit",
-				slog.Int("Player", fleet.PlayerNum),
-				slog.String("Fleet", fleet.Name),
-				slog.String("Dest", dest.GetMapObject().Name),
-				slog.String("cargoType", cargoType.String()),
-				slog.Int("TransferAmount", transferAmount))
-
-			return 0, CargoTransferStatusDestStarbase
-		}
-
-		if player.Race.Spec.LivesOnStarbases {
-			// can't invade a planet with a starbase
-			t.log.Debug("AR fleet cannot unload colonists, it's owned",
-				slog.Int("Player", fleet.PlayerNum),
-				slog.String("Fleet", fleet.Name),
-				slog.String("Dest", dest.GetMapObject().Name),
-				slog.String("cargoType", cargoType.String()),
-				slog.Int("TransferAmount", transferAmount))
-
-			return 0, CargoTransferStatusOwned
-		}
-
-		// invasion!
-		attacker := player
-		defender := t.game.getPlayer(planet.PlayerNum)
-
-		t.invader.addInvasion(invasion{
-			planet:    planet,
-			attacker:  attacker,
-			defender:  defender,
-			attackers: transferAmount * 100,
-			fleets:    []*Fleet{fleet},
-		})
-
-		fleet.Cargo.Colonists -= transferAmount
-		return transferAmount, CargoTransferStatusNone
 	}
 
 	if status := t.transferToDest(fleet, dest, cargoType, transferAmount); status != CargoTransferStatusNone {
@@ -732,7 +707,42 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 	return transferAmount, CargoTransferStatusNone
 }
 
-// getTransferAmount gets the amount of cargo to transfer for loading a cargo type from a cargoholder
+// invade queues an invasion of another player's planet with colonists from a fleet. It returns how many
+// colonists (in kT) invade
+func (t *cargoTransferer) invade(player *Player, fleet *Fleet, planet *Planet, colonists int) (int, CargoTransferStatus) {
+	status := CargoTransferStatusNone
+	switch {
+	case !planet.Owned():
+		// don't beam colonists to their death
+		status = CargoTransferStatusDestUnowned
+	case planet.Spec.HasStarbase:
+		status = CargoTransferStatusDestStarbase
+	case player.Race.Spec.LivesOnStarbases:
+		status = CargoTransferStatusOwned
+	}
+	if status != CargoTransferStatusNone {
+		t.log.Debug("fleet cannot unload colonists on planet",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+			slog.String("Planet", planet.Name),
+			slog.String("Status", status.String()))
+		return 0, status
+	}
+
+	t.invader.addInvasion(invasion{
+		planet:    planet,
+		attacker:  player,
+		defender:  t.game.getPlayer(planet.PlayerNum),
+		attackers: colonists * 100,
+		fleets:    []*Fleet{fleet},
+	})
+
+	return colonists, CargoTransferStatusNone
+}
+
+// getCargoLoadAmount gets the amount of cargo to transfer for loading a cargo type from a cargoholder.
+// waitAtWaypoint is true when a set amount task can't get enough from the dest, or a wait for percent
+// task didn't fill the hold to its percent
 func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
 	availableCapacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
 	availableToLoad := dest.GetCargo().GetAmount(cargoType)
@@ -742,7 +752,8 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 	// fuel transfers use different tanks
 	if cargoType == Fuel {
 		availableCapacity = fleet.Spec.FuelCapacity - fleet.Fuel
-		availableToLoad = dest.GetFuel()
+		// planets with starbases have Infinite fuel, but fuel only moves between fleets
+		availableToLoad = max(0, dest.GetFuel())
 		currentAmount = fleet.Fuel
 		totalCapacity = fleet.Spec.FuelCapacity
 	}
@@ -786,10 +797,10 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 		} else {
 
 			// transfer up to our percent specified
-			// wait here if we haven't loaded the amount we want
-			// but move on if we are out of cargo space (in case the user suffers from innumeracy and said they wanted 50% 50% 50%)
+			// wait here if we haven't loaded the amount we want. The caller moves on anyway if the hold is
+			// full (in case the user suffers from innumeracy and said they wanted 50% 50% 50%)
 			transferAmount = min(min(availableToLoad, taskAmountkT-currentAmount), availableCapacity)
-			if (transferAmount+currentAmount) < taskAmountkT && task.Action == TransportActionWaitForPercent && (availableCapacity-transferAmount) > 0 {
+			if (transferAmount+currentAmount) < taskAmountkT && task.Action == TransportActionWaitForPercent {
 				waitAtWaypoint = true
 			}
 		}
@@ -797,7 +808,8 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 		// only transfer the min of what we have, vs what we need, vs the capacity
 		wantToTransfer = max(0, task.Amount-currentAmount)
 		transferAmount = max(0, min(min(availableToLoad, task.Amount-currentAmount), availableCapacity))
-		if transferAmount < (task.Amount - currentAmount) {
+		// like the original game, wait for the dest to have enough, not for room in our hold
+		if availableToLoad < task.Amount-currentAmount {
 			waitAtWaypoint = true
 		}
 	case TransportActionSetWaypointTo:
@@ -827,7 +839,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 }
 
 // getCargoUnloadAmount gets the amount of cargo to transfer for unloading a cargo type from a cargoholder
-func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
+func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int) {
 
 	capacity := dest.GetCargoCapacity()
 	if capacity != Infinite {
@@ -862,8 +874,12 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 		}
 	case TransportActionSetAmountTo:
 		// set the amount in our hold to amount, or do nothing if we have under that amount
+		// unload what the dest has room for
 		wantToTransfer = max(0, currentAmount-task.Amount)
 		transferAmount = max(0, min(availableToUnload, currentAmount-task.Amount))
+		if capacity != Infinite {
+			transferAmount = min(transferAmount, capacity)
+		}
 	case TransportActionSetWaypointTo:
 		// Make sure the waypoint has at least whatever we specified
 		var currentAmount = dest.GetCargo().GetAmount(cargoType)
@@ -881,70 +897,79 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 			}
 		}
 	}
-	return transferAmount, wantToTransfer, waitAtWaypoint
+	return transferAmount, wantToTransfer
 }
 
-// transferToDest performs a transfer of a single cargo type to/from a destination
+// transferToDest performs a transfer of a single cargo type to/from a destination. A positive
+// transferAmount unloads from the fleet, a negative one loads.
 // returns a status other than None if the transfer fails for some reason
 func (t *cargoTransferer) transferToDest(fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) CargoTransferStatus {
+	status := t.checkTransferToDest(fleet, dest, cargoType, transferAmount)
+	if status != CargoTransferStatusNone {
+		t.log.Debug("fleet cannot transfer cargo",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+			slog.String("Dest", dest.GetMapObject().Name),
+			slog.String("cargoType", cargoType.String()),
+			slog.Int("TransferAmount", transferAmount),
+			slog.String("Status", status.String()))
+		return status
+	}
+
+	if cargoType == Fuel {
+		fleet.Fuel -= transferAmount
+		dest.(*Fleet).Fuel += transferAmount
+		return CargoTransferStatusNone
+	}
+
+	fleet.Cargo = fleet.Cargo.SubtractAmount(cargoType, transferAmount)
+	dest.SetCargo(dest.GetCargo().AddAmount(cargoType, transferAmount))
+	return CargoTransferStatusNone
+}
+
+// checkTransferToDest checks whether a fleet can transfer a single cargo type to/from a destination
+func (t *cargoTransferer) checkTransferToDest(fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) CargoTransferStatus {
+	if transferAmount < 0 {
+		if !dest.CanLoad(fleet) {
+			return CargoTransferStatusOwned
+		}
+		// like the original game (with its bug fixed), a thief can't take colonists or fuel
+		if (cargoType == Colonists || cargoType == Fuel) && !dest.GetMapObject().OwnedBy(fleet.PlayerNum) {
+			return CargoTransferStatusOwned
+		}
+	}
+
+	if cargoType == Fuel {
+		_, destIsFleet := dest.(*Fleet)
+		switch {
+		case transferAmount > 0 && fleet.Fuel < transferAmount:
+			return CargoTransferStatusCargo
+		case !destIsFleet:
+			// like the original game, fuel only moves between fleets
+			if transferAmount > 0 {
+				return CargoTransferStatusDestCargoCapacity
+			}
+			return CargoTransferStatusDestCargo
+		case transferAmount > 0 && dest.GetFuelCapacity()-dest.GetFuel() < transferAmount:
+			return CargoTransferStatusDestCargoCapacity
+		case transferAmount < 0 && fleet.availableFuelSpace() < -transferAmount:
+			return CargoTransferStatusCargoCapacity
+		case transferAmount < 0 && dest.GetFuel() < -transferAmount:
+			return CargoTransferStatusDestCargo
+		}
+		return CargoTransferStatusNone
+	}
+
 	destCargo := dest.GetCargo()
-
-	// check for load from owned dest
-	if transferAmount < 0 && !dest.CanLoad(fleet) {
-		t.log.Debug("fleet cannot load cargo, does not own dest",
-			slog.Int("Player", fleet.PlayerNum),
-			slog.String("Fleet", fleet.Name),
-			slog.String("Dest", dest.GetMapObject().Name),
-			slog.String("cargoType", cargoType.String()),
-			slog.Int("TransferAmount", transferAmount))
-
-		return CargoTransferStatusOwned
-	}
-
-	if transferAmount > 0 && !fleet.Cargo.CanTransferAmount(cargoType, transferAmount) {
-		t.log.Debug("fleet cannot transfer cargo, not enough in fleet",
-			slog.Int("Player", fleet.PlayerNum),
-			slog.String("Fleet", fleet.Name),
-			slog.String("Dest", dest.GetMapObject().Name),
-			slog.String("cargoType", cargoType.String()),
-			slog.Int("TransferAmount", transferAmount))
+	switch {
+	case transferAmount > 0 && !fleet.Cargo.CanTransferAmount(cargoType, transferAmount):
 		return CargoTransferStatusCargo
-	}
-
-	if transferAmount < 0 && fleet.availableCargoSpace() < -transferAmount {
-		t.log.Debug("fleet has insufficient cargo space",
-			slog.Int("Player", fleet.PlayerNum),
-			slog.String("Fleet", fleet.Name),
-			slog.String("Dest", dest.GetMapObject().Name),
-			slog.String("cargoType", cargoType.String()),
-			slog.Int("AvailableSpace", fleet.availableCargoSpace()),
-			slog.Int("TransferAmount", transferAmount))
+	case transferAmount > 0 && dest.GetCargoCapacity() != Infinite && (dest.GetCargoCapacity()-destCargo.Total()) < transferAmount:
+		return CargoTransferStatusDestCargoCapacity
+	case transferAmount < 0 && fleet.availableCargoSpace() < -transferAmount:
 		return CargoTransferStatusCargoCapacity
-	}
-
-	if transferAmount < 0 && !destCargo.CanTransferAmount(cargoType, -transferAmount) {
-		t.log.Debug("fleet cannot transfer cargo, not enough to transfer",
-			slog.Int("Player", fleet.PlayerNum),
-			slog.String("Fleet", fleet.Name),
-			slog.String("Dest", dest.GetMapObject().Name),
-			slog.String("cargoType", cargoType.String()),
-			slog.Int("TransferAmount", transferAmount))
+	case transferAmount < 0 && !destCargo.CanTransferAmount(cargoType, -transferAmount):
 		return CargoTransferStatusDestCargo
 	}
-
-	if transferAmount > 0 && dest.GetCargoCapacity() != Infinite && (dest.GetCargoCapacity()-destCargo.Total()) < transferAmount {
-		t.log.Debug("fleet cannot transfer cargo, not enough space to hold cargo",
-			slog.Int("Player", fleet.PlayerNum),
-			slog.String("Fleet", fleet.Name),
-			slog.String("Dest", dest.GetMapObject().Name),
-			slog.String("cargoType", cargoType.String()),
-			slog.Int("TransferAmount", transferAmount))
-		return CargoTransferStatusDestCargoCapacity
-	}
-
-	// transfer the cargo
-	fleet.Cargo = fleet.Cargo.SubtractAmount(cargoType, transferAmount)
-	dest.SetCargo(destCargo.AddAmount(cargoType, transferAmount))
-
 	return CargoTransferStatusNone
 }

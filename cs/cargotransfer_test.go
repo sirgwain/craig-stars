@@ -8,6 +8,7 @@ import (
 	"log/slog"
 
 	"github.com/sirgwain/craig-stars/test"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCargoTransfers_mergeFleetCargoTransfers(t *testing.T) {
@@ -230,7 +231,6 @@ func TestCargoTransferer_getCargoUnloadAmount(t *testing.T) {
 		args               args
 		wantTransferAmount int
 		wantWantToTransfer int
-		wantWaitAtWaypoint bool
 	}{
 		{
 			name:               "unload 1kt ironium",
@@ -335,15 +335,12 @@ func TestCargoTransferer_getCargoUnloadAmount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			cargoTransferer := newCargoTransferer(slog.Default(), &FullGame{})
-			gotTransferAmount, gotWantToTransfer, gotWaitAtWaypoint := cargoTransferer.getCargoUnloadAmount(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.task)
+			gotTransferAmount, gotWantToTransfer := cargoTransferer.getCargoUnloadAmount(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.task)
 			if gotTransferAmount != tt.wantTransferAmount {
 				t.Errorf("cargoTransfer.getCargoUnloadAmount() gotTransferAmount = %v, want %v", gotTransferAmount, tt.wantTransferAmount)
 			}
 			if gotWantToTransfer != tt.wantWantToTransfer {
 				t.Errorf("cargoTransfer.getCargoUnloadAmount() gotWantToTransfer = %v, want %v", gotWantToTransfer, tt.wantWantToTransfer)
-			}
-			if gotWaitAtWaypoint != tt.wantWaitAtWaypoint {
-				t.Errorf("cargoTransfer.getCargoUnloadAmount() gotWaitAtWaypoint = %v, want %v", gotWaitAtWaypoint, tt.wantWaitAtWaypoint)
 			}
 		})
 	}
@@ -429,4 +426,148 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 			}
 		})
 	}
+}
+
+func newTestCargoTransferer(players ...*Player) cargoTransferer {
+	return newCargoTransferer(testLogger, &FullGame{Game: NewGame(), Universe: &Universe{}, Players: players})
+}
+
+func TestCargoTransferer_waypointTransfers(t *testing.T) {
+	player1 := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+	player2 := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2)
+	planet := func(cargo Cargo) *Planet {
+		p := NewPlanet().WithCargo(cargo)
+		p.PlayerNum = player1.Num
+		return p
+	}
+
+	t.Run("fuel moves between fleets", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withFuel(100)
+		dest := testSmallFreighter(player1).withFuel(0)
+
+		results := tr.unload(fleet, dest, WaypointTransportTasks{Fuel: WaypointTransportTask{Action: TransportActionUnloadAmount, Amount: 30}})
+		assert.Equal(t, CargoTransferStatusNone, results[0].status)
+		assert.Equal(t, 70, fleet.Fuel)
+		assert.Equal(t, 30, dest.Fuel)
+
+		results, _ = tr.load(fleet, dest, WaypointTransportTasks{Fuel: WaypointTransportTask{Action: TransportActionLoadAmount, Amount: 10}})
+		assert.Equal(t, CargoTransferStatusNone, results[0].status)
+		assert.Equal(t, 80, fleet.Fuel)
+		assert.Equal(t, 20, dest.Fuel)
+	})
+
+	t.Run("fuel doesn't go to planets", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withFuel(100)
+		results := tr.unload(fleet, planet(Cargo{}), WaypointTransportTasks{Fuel: WaypointTransportTask{Action: TransportActionUnloadAll}})
+		assert.Equal(t, 0, results[0].transferred)
+		assert.Equal(t, 100, fleet.Fuel)
+	})
+
+	t.Run("cargo loads in a fixed order", func(t *testing.T) {
+		for i := 0; i < 20; i++ {
+			tr := newTestCargoTransferer(player1, player2)
+			fleet := testSmallFreighter(player1)
+			tr.load(fleet, planet(Cargo{Ironium: 1000, Germanium: 1000}), WaypointTransportTasks{
+				Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
+				Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
+			})
+			assert.Equal(t, Cargo{Ironium: fleet.Spec.CargoCapacity}, fleet.Cargo)
+		}
+	})
+
+	t.Run("set amount to unloads what the dest has room for", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Ironium: 100})
+		dest := testSmallFreighter(player1)
+		dest.Cargo = Cargo{Germanium: dest.Spec.CargoCapacity - 10}
+		results := tr.unload(fleet, dest, WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 0}})
+		assert.Equal(t, CargoTransferStatusNone, results[0].status)
+		assert.Equal(t, Cargo{Ironium: 90}, fleet.Cargo)
+	})
+
+	t.Run("set amount to waits for the dest, not for room", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Germanium: 100})
+		_, wait := tr.load(fleet, planet(Cargo{Ironium: 1000}), WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 50}})
+		assert.False(t, wait)
+		assert.Equal(t, fleet.Spec.CargoCapacity, fleet.Cargo.Total())
+
+		fleet = testSmallFreighter(player1)
+		_, wait = tr.load(fleet, planet(Cargo{Ironium: 10}), WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 50}})
+		assert.True(t, wait)
+	})
+
+	t.Run("wait for percent leaves when the hold is full", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1)
+		// ironium can't reach 80%, but germanium fills the rest of the hold
+		_, wait := tr.load(fleet, planet(Cargo{Ironium: 10, Germanium: 1000}), WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 80},
+			Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
+		})
+		assert.False(t, wait)
+
+		fleet = testSmallFreighter(player1)
+		_, wait = tr.load(fleet, planet(Cargo{Ironium: 10}), WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 80}})
+		assert.True(t, wait)
+	})
+
+	t.Run("dunnage waits for other loads", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1)
+		_, wait := tr.load(fleet, planet(Cargo{Ironium: 10, Germanium: 1000}), WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 50},
+			Germanium: WaypointTransportTask{Action: TransportActionLoadDunnage},
+		})
+		assert.True(t, wait)
+		assert.Equal(t, Cargo{Ironium: 10}, fleet.Cargo)
+
+		fleet = testSmallFreighter(player1)
+		_, wait = tr.load(fleet, planet(Cargo{Ironium: 1000, Germanium: 1000}), WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 50},
+			Germanium: WaypointTransportTask{Action: TransportActionLoadDunnage},
+		})
+		assert.False(t, wait)
+		assert.Equal(t, fleet.Spec.CargoCapacity, fleet.Cargo.Total())
+		assert.Equal(t, fleet.Spec.CargoCapacity/2, fleet.Cargo.Ironium)
+	})
+
+	t.Run("no colonists to another player's fleet", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Colonists: 10})
+		dest := testSmallFreighter(player2)
+		results := tr.unload(fleet, dest, WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionUnloadAll}})
+		assert.Equal(t, CargoTransferStatusOwned, results[0].status)
+		assert.Equal(t, Cargo{Colonists: 10}, fleet.Cargo)
+		assert.Equal(t, Cargo{}, dest.Cargo)
+	})
+
+	t.Run("enemies don't accept cargo", func(t *testing.T) {
+		enemy := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).
+			WithRelations([]PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}})
+		tr := newTestCargoTransferer(player1, enemy)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Ironium: 10})
+		dest := testSmallFreighter(enemy)
+		results := tr.unload(fleet, dest, WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionUnloadAll}})
+		assert.Equal(t, CargoTransferStatusOwned, results[0].status)
+		assert.Equal(t, Cargo{Ironium: 10}, fleet.Cargo)
+	})
+
+	t.Run("thieves can't take colonists or fuel", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		thief := testSmallFreighter(player1).withFuel(0)
+		thief.Spec.CanStealFleetCargo = true
+		victim := testSmallFreighter(player2).withCargo(Cargo{Ironium: 10, Colonists: 10})
+		results, _ := tr.load(thief, victim, WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
+			Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
+			Fuel:      WaypointTransportTask{Action: TransportActionLoadAll},
+		})
+		assert.Equal(t, Cargo{Ironium: 10}, thief.Cargo)
+		assert.Equal(t, 0, thief.Fuel)
+		assert.Equal(t, CargoTransferStatusOwned, results[1].status)
+		assert.Equal(t, CargoTransferStatusOwned, results[2].status)
+	})
 }

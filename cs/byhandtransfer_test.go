@@ -162,6 +162,60 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 		assert.Len(t, byHandIncompleteMessages(u.Player(1)), 1)
 	})
 
+	t.Run("fuel given to another player's fleet is delivered", func(t *testing.T) {
+		u := newByHandTestUniverse(t)
+		player := u.Player(1)
+		fleet, hauler := u.FleetFor(1, "Teamster #1"), u.FleetFor(2, "Hauler #1")
+		hauler.Fuel = 0
+		player.GetFleetIntel(hauler.PlayerNum, hauler.Num).Fuel = 0
+		startFuel := fleet.Fuel
+		if err := NewOrderer().TransferByHand(&u.Game.Rules, player, fleet, player.GetFleetIntel(hauler.PlayerNum, hauler.Num), CargoTransferRequest{Fuel: -50}); err != nil {
+			t.Fatal(err)
+		}
+
+		u.turn.fleetByHandTransfers()
+
+		assert.Equal(t, startFuel-50, fleet.Fuel)
+		assert.Equal(t, 50, hauler.Fuel)
+		assert.Empty(t, byHandIncompleteMessages(player))
+	})
+
+	t.Run("fuel a full tank can't hold comes back", func(t *testing.T) {
+		u := newByHandTestUniverse(t)
+		player := u.Player(1)
+		fleet, hauler := u.FleetFor(1, "Teamster #1"), u.FleetFor(2, "Hauler #1")
+		hauler.Fuel = 0
+		player.GetFleetIntel(hauler.PlayerNum, hauler.Num).Fuel = 0
+		startFuel := fleet.Fuel
+		if err := NewOrderer().TransferByHand(&u.Game.Rules, player, fleet, player.GetFleetIntel(hauler.PlayerNum, hauler.Num), CargoTransferRequest{Fuel: -50}); err != nil {
+			t.Fatal(err)
+		}
+		// player 2 filled their tank before player 1's fuel is delivered
+		hauler.Fuel = hauler.Spec.FuelCapacity - 20
+
+		u.turn.fleetByHandTransfers()
+
+		assert.Equal(t, startFuel-20, fleet.Fuel)
+		assert.Equal(t, hauler.Spec.FuelCapacity, hauler.Fuel)
+		messages := byHandIncompleteMessages(player)
+		if assert.Len(t, messages, 1) {
+			assert.Equal(t, PlayerMessageSpecCargoTransfer{CargoType: Fuel, Transfered: 20, Wanted: 50, Status: CargoTransferStatusDestCargoCapacity}, *messages[0].Spec.CargoTransfer)
+		}
+	})
+
+	t.Run("fuel only moves between our fleets and other fleets", func(t *testing.T) {
+		u := newByHandTestUniverse(t)
+		player := u.Player(1)
+		fleet, hauler := u.FleetFor(1, "Teamster #1"), u.FleetFor(2, "Hauler #1")
+		orderer := NewOrderer()
+		// can't take fuel from another player
+		assert.Error(t, orderer.TransferByHand(&u.Game.Rules, player, u.FleetFor(1, "Teamster #2").withFuel(0), player.GetFleetIntel(hauler.PlayerNum, hauler.Num), CargoTransferRequest{Fuel: 10}))
+		// can't jettison fuel or give it to a planet
+		assert.Error(t, orderer.TransferByHand(&u.Game.Rules, player, fleet, nil, CargoTransferRequest{Fuel: -10}))
+		assert.Error(t, orderer.TransferByHand(&u.Game.Rules, player, fleet, u.Planet("Planet 1"), CargoTransferRequest{Fuel: -10}))
+		assert.Empty(t, player.CargoTransfers)
+	})
+
 	t.Run("transfers follow merged fleets", func(t *testing.T) {
 		u := newByHandTestUniverse(t)
 		player := u.Player(1)
@@ -183,6 +237,16 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 }
 
 // cargo totals everything that holds minerals at the by hand scenario's location
+func byHandFuel(u *testUniverse) int {
+	total := 0
+	for _, fleet := range u.Game.Fleets {
+		if !fleet.Delete {
+			total += fleet.Fuel
+		}
+	}
+	return total
+}
+
 func byHandMinerals(u *testUniverse) Cargo {
 	total := Cargo{}
 	for _, fleet := range u.Game.Fleets {
@@ -215,7 +279,12 @@ func Test_turn_fleetByHandTransfersRandom(t *testing.T) {
 			salvage := u.Game.Salvages[0]
 			hauler := u.FleetFor(2, "Hauler #1")
 			orderer := NewOrderer()
+			// player 2's freighter has room for fuel
+			hauler.Fuel = 0
+			haulerIntel := player.GetFleetIntel(hauler.PlayerNum, hauler.Num)
+			fuelGiven := 0
 			start := byHandMinerals(u)
+			startFuel := byHandFuel(u)
 
 			playerFleets := func() []*Fleet {
 				fleets := []*Fleet{}
@@ -249,9 +318,18 @@ func Test_turn_fleetByHandTransfersRandom(t *testing.T) {
 					if dest == fleet {
 						continue
 					}
-					cargo := Cargo{}.WithCargo(CargoTypes[rng.Intn(3)], rng.Intn(161)-80)
+					request := CargoTransferRequest{Cargo: Cargo{}.WithCargo(CargoTypes[rng.Intn(3)], rng.Intn(161)-80)}
+					if _, ok := dest.(*Fleet); ok && rng.Intn(3) == 0 {
+						request = CargoTransferRequest{Fuel: rng.Intn(161) - 80}
+						if dest == haulerIntel && fuelGiven-request.Fuel > hauler.Spec.FuelCapacity {
+							// we don't know their tank size, but keep it from overflowing so nothing comes back
+							continue
+						}
+					}
 					// invalid transfers are rejected, just like in the UI
-					_ = orderer.TransferByHand(rules, player, fleet, dest, CargoTransferRequest{Cargo: cargo})
+					if err := orderer.TransferByHand(rules, player, fleet, dest, request); err == nil && dest == haulerIntel {
+						fuelGiven -= request.Fuel
+					}
 				case op < 8:
 					if len(fleets) < 2 {
 						continue
@@ -285,6 +363,11 @@ func Test_turn_fleetByHandTransfersRandom(t *testing.T) {
 			}
 			wantPlanetCargo := planet.Cargo
 			wantHaulerCargo := player.GetFleetIntel(hauler.PlayerNum, hauler.Num).Cargo
+			wantHaulerFuel := fuelGiven
+			wantFleetFuel := make([]int, len(fleets))
+			for i, fleet := range fleets {
+				wantFleetFuel[i] = fleet.Fuel
+			}
 			wantSalvageCargo := player.GetSalvageIntel(salvage.Num).Cargo.Add(player.getByHandTransfer(MapObjectTarget{TargetPosition: salvage.Position}))
 
 			// another player takes from the salvage and loads their freighter
@@ -299,15 +382,18 @@ func Test_turn_fleetByHandTransfersRandom(t *testing.T) {
 				loaded := Cargo{Boranium: rng.Intn(hauler.availableCargoSpace() + 1)}
 				hauler.Cargo = hauler.Cargo.Add(loaded)
 				outside = loaded.Subtract(taken)
+				hauler.Fuel += rng.Intn(hauler.availableFuelSpace() + 1)
 			}
 
 			u.turn.fleetByHandTransfers()
 
 			got := byHandMinerals(u)
 			assert.Equal(t, start.Add(outside), got, "no cargo is created or destroyed")
-			for _, fleet := range playerFleets() {
+			for _, fleet := range append(playerFleets(), hauler) {
 				assert.False(t, fleet.Cargo.HasNegative())
 				assert.LessOrEqual(t, fleet.Cargo.Total(), fleet.Spec.CargoCapacity)
+				assert.GreaterOrEqual(t, fleet.Fuel, 0)
+				assert.LessOrEqual(t, fleet.Fuel, fleet.Spec.FuelCapacity)
 			}
 			assert.Empty(t, player.CargoTransfers)
 
@@ -316,8 +402,11 @@ func Test_turn_fleetByHandTransfersRandom(t *testing.T) {
 			}
 
 			assert.Empty(t, byHandIncompleteMessages(player))
+			assert.Equal(t, startFuel, byHandFuel(u), "no fuel is created or destroyed")
+			assert.Equal(t, wantHaulerFuel, hauler.Fuel)
 			for i, fleet := range fleets {
 				assert.Equal(t, wantFleetCargo[i], fleet.Cargo, fleet.Name)
+				assert.Equal(t, wantFleetFuel[i], fleet.Fuel, fleet.Name)
 			}
 			assert.Equal(t, wantPlanetCargo, planet.Cargo)
 			assert.Equal(t, wantHaulerCargo, hauler.Cargo)

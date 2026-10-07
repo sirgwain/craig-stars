@@ -667,15 +667,15 @@ func Test_turn_fleetMove(t *testing.T) {
 		// load and grow and wait
 		u.GenerateTurn()
 
-		// should have loaded all cargo, but waited for more to be generated
+		// should have loaded all cargo, waited, then loaded what was mined after production
 		assert.Equal(t, Vector{0, 0}, fleet.Position)
 		assert.Equal(t, Vector{0, 0}, fleet.Waypoints[0].Position)
 		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
 		assert.Equal(t, planet1.Num, fleet.Waypoints[0].TargetNum)
-		assert.Equal(t, Cargo{100, 100, 100, 0}, fleet.Cargo)
+		assert.Equal(t, Cargo{330, 330, 340, 0}, fleet.Cargo)
 		assert.Equal(t, 2, len(fleet.Waypoints))
 
-		// we should load the rest and move
+		// our hold is full, so we move
 		u.GenerateTurn()
 
 		// should have loaded all cargo, and moved to planet2 to dump

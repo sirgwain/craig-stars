@@ -60,7 +60,8 @@ func (ch *jettison) CanLoad(fleet *Fleet) bool {
 
 // planets can't transfer fuel
 func (ch *jettison) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
-	if transferAmount.Fuel > 0 {
+	// fuel only moves between fleets
+	if transferAmount.Fuel != 0 {
 		return false
 	}
 	return ch.Cargo.CanTransfer(transferAmount.Cargo)
@@ -104,7 +105,8 @@ func (ch *Planet) CanLoad(fleet *Fleet) bool {
 
 // planets can't transfer fuel
 func (ch *Planet) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
-	if transferAmount.Fuel > 0 {
+	// fuel only moves between fleets
+	if transferAmount.Fuel != 0 {
 		return false
 	}
 	if transferAmount.Colonists > 0 && !ch.OwnedBy(fleet.PlayerNum) {
@@ -150,6 +152,9 @@ func (ch *Fleet) CanLoad(fleet *Fleet) bool {
 func (ch *Fleet) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
 	if transferAmount.Colonists != 0 && !ch.OwnedBy(fleet.PlayerNum) {
 		return false // no loading/unloading colonists from enemy fleets
+	}
+	if transferAmount.Fuel > 0 && !ch.OwnedBy(fleet.PlayerNum) {
+		return false // no taking fuel from other players' fleets
 	}
 
 	return ch.Fuel >= transferAmount.Fuel && ch.Cargo.CanTransfer(transferAmount.Cargo)

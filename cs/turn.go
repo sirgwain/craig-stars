@@ -505,33 +505,7 @@ func (t *turnGenerator) fleetUnload() {
 			}
 
 			results := cargoTransferer.unload(fleet, dest, wp.TransportTasks)
-
-			for _, result := range results {
-				if result.status != CargoTransferStatusNone {
-					t.log.Debug("unload cargo failed",
-						slog.Int("Player", fleet.PlayerNum),
-						slog.String("Fleet", fleet.Name),
-						slog.String("Dest", dest.GetMapObject().Name),
-						slog.Int("Transfered", result.transferred),
-						slog.String("cargoType", result.cargoType.String()),
-						slog.Any("status", result.status),
-					)
-					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred, result.wanted, result.status)
-
-					continue
-				}
-				wp.WaitAtWaypoint = wp.WaitAtWaypoint || result.waitAtWaypoint
-				t.log.Debug("unloaded cargo",
-					slog.Int("Player", fleet.PlayerNum),
-					slog.String("Fleet", fleet.Name),
-					slog.String("Dest", dest.GetMapObject().Name),
-					slog.Int("Transfered", result.transferred),
-					slog.String("cargoType", result.cargoType.String()),
-				)
-				if result.transferred != 0 {
-					messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
-				}
-			}
+			t.sendTransportResults(player, fleet, dest, results)
 			if planet, ok := dest.(*Planet); ok {
 				planet.MarkDirty()
 			}
@@ -559,33 +533,9 @@ func (t *turnGenerator) fleetLoad() {
 				continue
 			}
 
-			results := cargoTransferer.load(fleet, dest, wp.TransportTasks)
-			for _, result := range results {
-				if result.status != CargoTransferStatusNone {
-					t.log.Debug("load cargo failed",
-						slog.Int("Player", fleet.PlayerNum),
-						slog.String("Fleet", fleet.Name),
-						slog.String("Dest", dest.GetMapObject().Name),
-						slog.Int("Transfered", result.transferred),
-						slog.String("cargoType", result.cargoType.String()),
-						slog.Any("status", result.status),
-					)
-					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred, result.wanted, result.status)
-
-					continue
-				}
-				wp.WaitAtWaypoint = wp.WaitAtWaypoint || result.waitAtWaypoint
-				t.log.Debug("loaded cargo",
-					slog.Int("Player", fleet.PlayerNum),
-					slog.String("Fleet", fleet.Name),
-					slog.String("Dest", dest.GetMapObject().Name),
-					slog.Int("Transfered", result.transferred),
-					slog.String("cargoType", result.cargoType.String()),
-				)
-				if result.transferred != 0 {
-					messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
-				}
-			}
+			results, wait := cargoTransferer.load(fleet, dest, wp.TransportTasks)
+			wp.WaitAtWaypoint = wait
+			t.sendTransportResults(player, fleet, dest, results)
 			if planet, ok := dest.(*Planet); ok {
 				planet.MarkDirty()
 			}
@@ -621,6 +571,27 @@ func (t *turnGenerator) fleetLoad() {
 				slog.Int("Player", packet.PlayerNum),
 				slog.String("Packet", packet.Name),
 			)
+		}
+	}
+}
+
+// sendTransportResults tells the player about cargo a fleet transported at a waypoint, or couldn't
+func (t *turnGenerator) sendTransportResults(player *Player, fleet *Fleet, dest CargoHolder, results []cargoTransferResult) {
+	for _, result := range results {
+		if result.status != CargoTransferStatusNone {
+			t.log.Debug("transport cargo failed",
+				slog.Int("Player", fleet.PlayerNum),
+				slog.String("Fleet", fleet.Name),
+				slog.String("Dest", dest.GetMapObject().Name),
+				slog.Int("Transfered", result.transferred),
+				slog.String("cargoType", result.cargoType.String()),
+				slog.Any("status", result.status),
+			)
+			messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred, result.wanted, result.status)
+			continue
+		}
+		if result.transferred != 0 {
+			messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
 		}
 	}
 }
@@ -770,7 +741,8 @@ func (t *turnGenerator) fleetNotifyIdle() {
 func (t *turnGenerator) fleetMarkWaypointsProcessed() {
 	for _, fleet := range t.game.Fleets {
 		wp := &fleet.Waypoints[0]
-		wp.processed = true
+		// like the original game, fleets waiting to load try again after production
+		wp.processed = wp.Task != WaypointTaskTransport || !wp.WaitAtWaypoint
 	}
 }
 

@@ -48,6 +48,7 @@ func (c *ProtoConverter) ConvertByHandCargoTransfer(source *v1.ByHandCargoTransf
 		csByHandCargoTransfer.MapObjectTarget = c.pCraig_starsv1MapObjectTargetToCsTarget((*source).MapObjectTarget)
 		csByHandCargoTransfer.SourceFleetNum = Int32ToInt((*source).SourceFleetNum)
 		csByHandCargoTransfer.Cargo = c.ConvertCargo((*source).Cargo)
+		csByHandCargoTransfer.Fuel = Int32ToInt((*source).Fuel)
 	}
 	return csByHandCargoTransfer
 }
@@ -120,6 +121,7 @@ func (c *ProtoConverter) ConvertCSByHandCargoTransfer(source cs.ByHandCargoTrans
 	craig_starsv1ByHandCargoTransfer.MapObjectTarget = CSMapObjectTargetToMapObjectTarget(c, source.MapObjectTarget)
 	craig_starsv1ByHandCargoTransfer.SourceFleetNum = IntToInt32(source.SourceFleetNum)
 	craig_starsv1ByHandCargoTransfer.Cargo = CSCargoToCargo(source.Cargo)
+	craig_starsv1ByHandCargoTransfer.Fuel = IntToInt32(source.Fuel)
 	return &craig_starsv1ByHandCargoTransfer
 }
 func (c *ProtoConverter) ConvertCSCargo(source cs.Cargo) *v1.Cargo {

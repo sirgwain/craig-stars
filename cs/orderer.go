@@ -228,7 +228,9 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		return fmt.Errorf("fleet %s has %d fuel space available, cannot transfer %dmg from %s", fleet.Name, fleet.availableFuelSpace(), transferAmount.Fuel, destName)
 	}
 
-	if dest.GetFuelCapacity() != Infinite && Clamp(dest.GetFuelCapacity()-dest.GetFuel(), 0, dest.GetFuelCapacity()) < -transferAmount.Fuel {
+	// we don't know how much room another player's fleet has in its tanks. Fuel it can't hold comes back
+	// when the turn is generated
+	if mo := dest.GetMapObject(); mo.OwnedBy(player.Num) && dest.GetFuelCapacity() != Infinite && Clamp(dest.GetFuelCapacity()-dest.GetFuel(), 0, dest.GetFuelCapacity()) < -transferAmount.Fuel {
 		return fmt.Errorf("dest %s has %d fuel space available, cannot transfer %dmg from %s", destName, dest.GetFuelCapacity(), transferAmount.Fuel, destName)
 	}
 
@@ -249,8 +251,8 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 	// transfers with our own planets, fleets and packets are done. Anything else is settled
 	// when the turn is generated
 	mo := dest.GetMapObject()
-	if transferAmount.Cargo != (Cargo{}) && (!mo.OwnedBy(player.Num) || !(mo.Type == MapObjectTypePlanet || mo.Type == MapObjectTypeFleet || mo.Type == MapObjectTypeMineralPacket)) {
-		player.transferByHand(fleet, mo.ToTarget(), transferAmount.Cargo.Negative())
+	if !mo.OwnedBy(player.Num) || !(mo.Type == MapObjectTypePlanet || mo.Type == MapObjectTypeFleet || mo.Type == MapObjectTypeMineralPacket) {
+		player.transferByHand(fleet, mo.ToTarget(), transferAmount.Cargo.Negative(), -transferAmount.Fuel)
 	}
 
 	slog.Info("by hand transfer",

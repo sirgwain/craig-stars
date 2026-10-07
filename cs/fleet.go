@@ -112,8 +112,6 @@ type WaypointTransportTask struct {
 
 type WaypointTaskTransportAction string
 
-type transportTaskByType map[CargoType]WaypointTransportTask
-
 const (
 	// No transport task for the specified cargo.
 	TransportActionNone WaypointTaskTransportAction = ""
@@ -450,25 +448,27 @@ func (wp Waypoint) WithTransportTasks(transportTasks WaypointTransportTasks) Way
 	return wp
 }
 
-// get a list of transport tasks keyed by cargotype
-func (tt WaypointTransportTasks) getTransportTasks() transportTaskByType {
-	tasks := transportTaskByType{}
-	if tt.Fuel.Action != TransportActionNone {
-		tasks[Fuel] = tt.Fuel
-	}
-	if tt.Ironium.Action != TransportActionNone {
-		tasks[Ironium] = tt.Ironium
-	}
-	if tt.Boranium.Action != TransportActionNone {
-		tasks[Boranium] = tt.Boranium
-	}
-	if tt.Germanium.Action != TransportActionNone {
-		tasks[Germanium] = tt.Germanium
-	}
-	if tt.Colonists.Action != TransportActionNone {
-		tasks[Colonists] = tt.Colonists
-	}
+// transportTask is a waypoint transport task for a single cargo type
+type transportTask struct {
+	WaypointTransportTask
+	cargoType CargoType
+}
 
+// ordered gets the transport tasks in the order the original game processes them:
+// ironium, boranium, germanium, colonists, then fuel
+func (tt WaypointTransportTasks) ordered() []transportTask {
+	tasks := make([]transportTask, 0, 5)
+	for _, task := range []transportTask{
+		{tt.Ironium, Ironium},
+		{tt.Boranium, Boranium},
+		{tt.Germanium, Germanium},
+		{tt.Colonists, Colonists},
+		{tt.Fuel, Fuel},
+	} {
+		if task.Action != TransportActionNone {
+			tasks = append(tasks, task)
+		}
+	}
 	return tasks
 }
 

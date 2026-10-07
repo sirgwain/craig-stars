@@ -72,6 +72,7 @@ message ByHandCargoTransfer {
   MapObjectTarget map_object_target = 1;
   int32 source_fleet_num = 6;
   Cargo cargo = 7;
+  int32 fuel = 8;
 }
 
 message CargoTransfers {
