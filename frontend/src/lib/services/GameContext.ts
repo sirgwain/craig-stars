@@ -1068,6 +1068,12 @@ export async function createGameContext(
 
 		fleet.fleetOrders.waypoints = fleet.fleetOrders?.waypoints.filter((wp) => wp != sw);
 
+		// deleting down to a single waypoint turns off repeat orders
+		// (the player can still turn it back on to repeat waypoint 0's task)
+		if (fleet.fleetOrders.waypoints.length <= 1) {
+			fleet.fleetOrders.repeatOrders = false;
+		}
+
 		// select the previous waypoint
 		const wp = fleet.fleetOrders?.waypoints[selectedWaypointIndex - 1];
 		selectWaypoint(wp);
