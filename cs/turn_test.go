@@ -1001,6 +1001,41 @@ func Test_turn_fleetRepair(t *testing.T) {
 
 }
 
+func Test_turn_colonizeAfterTravel(t *testing.T) {
+	tests := []struct {
+		name       string
+		scenario   TestScenario
+		population int
+		starbase   bool
+	}{
+		{"normal colonizer", ScenarioColonizerTest(), 2500, false},
+		{"AR colonizer", ScenarioColonizerTestAR(), 2400, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, tt.scenario)
+			fleet := u.Fleet("Santa Maria #1")
+			planet := u.Planet("Planet 2")
+			u.TransferByHand(1, fleet.Name, "Planet 1", Cargo{Colonists: 25})
+			wp := NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
+			wp.Task = WaypointTaskColonize
+			fleet.Waypoints = append(fleet.Waypoints, wp)
+
+			u.GenerateTurn()
+
+			// AR warp dieoff happens before arrival colonization: 3% of 25kT
+			// rounds to 1kT lost. The new colony doesn't grow until next turn.
+			assert.Equal(t, 1, planet.PlayerNum)
+			assert.Equal(t, tt.population, planet.GetPopulation())
+			assert.True(t, fleet.Delete)
+			assert.Equal(t, tt.starbase, planet.Spec.HasStarbase)
+			if tt.starbase {
+				assert.Equal(t, "Starter Colony", planet.Spec.StarbaseDesignName)
+			}
+		})
+	}
+}
+
 func Test_turn_fleetReproduce(t *testing.T) {
 	u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
 		{
