@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Cargo } from '$lib/types/cs-proto';
+	import type { Cargo } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		cargo: Cargo | undefined;

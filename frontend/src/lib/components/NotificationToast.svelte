@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { notification } from '$lib/services/Notifications';
+	import { notification } from '#lib/services/Notifications.js';
 	import { fade } from 'svelte/transition';
 
 	function onFadeOut() {

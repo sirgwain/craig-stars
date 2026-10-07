@@ -1,12 +1,12 @@
 <script lang="ts">
-	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
-	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
-	import type { CargoDest } from '$lib/types/CargoTransferRequest';
+	import CargoTransferer from '#lib/components/game/cargotransfer/CargoTransferer.svelte';
+	import type { OnCancel, OnOk, TransferCargoEvent } from '#lib/services/Events.js';
+	import type { CargoDest } from '#lib/types/CargoTransferRequest.js';
 	import {
 		type CargoTransferRequest,
 		emptyCargoTransferRequest
-	} from '$lib/types/CargoTransferRequest';
-	import type { CommandedFleet } from '$lib/types/Fleet';
+	} from '#lib/types/CargoTransferRequest.js';
+	import type { CommandedFleet } from '#lib/types/Fleet.js';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 
@@ -54,7 +54,7 @@
 
 {#if src.spec}
 	<div
-		class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300"
+		class="flex h-full bg-base-200 shadow-sm max-h-fit min-h-fit rounded-xs border-2 border-base-300"
 	>
 		<div class="flex-col h-full w-full">
 			<div class="flex flex-col h-full w-full">

@@ -4,7 +4,7 @@
 		OnCancel,
 		OnOk,
 		TransferCargoEvent
-	} from '$lib/services/Events';
+	} from '#lib/services/Events.js';
 	import CargoTransfer from './CargoTransfer.svelte';
 
 	type Props = {

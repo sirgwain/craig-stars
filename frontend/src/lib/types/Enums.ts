@@ -1,4 +1,4 @@
-import { GameStartMode } from '$lib/types/cs-proto';
+import { GameStartMode } from '#lib/types/cs-proto.js';
 
 import { camelCase, startCase } from 'lodash-es';
 

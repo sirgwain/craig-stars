@@ -1,12 +1,12 @@
 <script lang="ts">
-	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import TextInput from '$lib/components/TextInput.svelte';
+	import EnumSelect from '#lib/components/EnumSelect.svelte';
+	import TextInput from '#lib/components/TextInput.svelte';
 	import {
 		BattleAttackWho,
 		type BattlePlan,
 		BattleTactic,
 		BattleTarget
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 
 	type Props = {
 		plan: BattlePlan;

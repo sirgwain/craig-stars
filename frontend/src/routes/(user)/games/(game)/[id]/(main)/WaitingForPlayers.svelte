@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { me } from '$lib/services/Stores';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { me } from '#lib/services/Stores.js';
 	import { onDestroy, onMount } from 'svelte';
 	import GameStatus from '../GameStatus.svelte';
-	import { playerClient } from '$lib/services/connect';
+	import { playerClient } from '#lib/services/connect.js';
 
 	const {
 		game,

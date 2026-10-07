@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import GameCard from '$lib/components/game/GameCard.svelte';
-	import { me } from '$lib/services/Stores';
-	import { gameClient } from '$lib/services/connect';
-	import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '$lib/types/Game';
-	import { humanoid } from '$lib/types/Race';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import GameCard from '#lib/components/game/GameCard.svelte';
+	import { me } from '#lib/services/Stores.js';
+	import { gameClient } from '#lib/services/connect.js';
+	import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '#lib/types/Game.js';
+	import { humanoid } from '#lib/types/Race.js';
 	import { onMount } from 'svelte';
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
-	import { UserRole } from '$lib/types/cs-proto';
+	import { UserRole } from '#lib/types/cs-proto.js';
 
 	let game: GameWithPlayersFlat | undefined = $state();
 	let race = $state(humanoid());
@@ -46,10 +46,10 @@
 		}}
 	>
 		{#if $me.role === UserRole.GUEST}
-			<label class="label" for="name">Name</label>
-			<input name="name" bind:value={name} class="input input-bordered" />
+			<label class="cs-form-label" for="name">Name</label>
+			<input name="name" bind:value={name} class="input" />
 		{/if}
-		<fieldset name="players" class="form-control mt-3">
+		<fieldset name="players" class="cs-form-control mt-3">
 			<PlayerChooser
 				raceUpdated={(updated, raceValid) => {
 					race = updated;

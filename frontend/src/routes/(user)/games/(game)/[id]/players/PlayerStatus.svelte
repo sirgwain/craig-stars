@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { me } from '$lib/services/Stores';
-	import type { PlayerStatus } from '$lib/types/cs-proto';
-	import { GameState } from '$lib/types/cs-proto';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { me } from '#lib/services/Stores.js';
+	import type { PlayerStatus } from '#lib/types/cs-proto.js';
+	import { GameState } from '#lib/types/cs-proto.js';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import GuestLink from '../(main)/GuestLink.svelte';

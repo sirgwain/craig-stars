@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
-	import { techs } from '$lib/services/Stores';
+	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import { techs } from '#lib/services/Stores.js';
 	import {
 		HullSlotTypeArmor,
 		HullSlotTypeArmorScannerElectricalMechanical,
@@ -26,8 +26,8 @@
 		HullSlotTypeWeapon,
 		HullSlotTypeWeaponShield,
 		type HullSlotType
-	} from '$lib/types/Consts';
-	import type { ShipDesignSlot } from '$lib/types/cs-proto';
+	} from '#lib/types/Consts.js';
+	import type { ShipDesignSlot } from '#lib/types/cs-proto.js';
 	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';
@@ -140,15 +140,15 @@
 		<div class="flex flex-col justify-between w-full h-full">
 			{#if shipDesignSlot}
 				<div class="grow">&nbsp;</div>
-				<span class="h-[1rem] mt-auto text-center font-bold text-black"
+				<span class="h-4 mt-auto text-center font-bold text-black"
 					>{shipDesignSlot.quantity} of {capacity}</span
 				>
 			{:else}
 				<div class="grow whitespace-pre-wrap text-center">{typeDescription()}</div>
 				{#if required}
-					<div class="h-[1rem] mt-auto text-center text-red-500 font-bold">needs {capacity}</div>
+					<div class="h-4 mt-auto text-center text-red-500 font-bold">needs {capacity}</div>
 				{:else}
-					<span class="h-[1rem] mt-auto text-center font-bold">Up to {capacity}</span>
+					<span class="h-4 mt-auto text-center font-bold">Up to {capacity}</span>
 				{/if}
 			{/if}
 		</div>

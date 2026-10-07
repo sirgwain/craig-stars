@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { UserSession } from '$lib/types/User';
+	import type { UserSession } from '#lib/types/User.js';
 	import { Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import DarkModeToggler from './DarkModeToggler.svelte';
@@ -49,7 +49,7 @@
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
 				tabindex="0"
-				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-48"
+				class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-100 rounded-box w-48"
 			>
 				{#if user}
 					<li>{user.username}</li>

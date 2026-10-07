@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Habitability from '$lib/components/icons/Habitability.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { PlanetViewState } from '$lib/types/PlayerSettings';
+	import Habitability from '#lib/components/icons/Habitability.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { PlanetViewState } from '#lib/types/PlayerSettings.js';
 
 	const { settings } = getGameContext();
 </script>

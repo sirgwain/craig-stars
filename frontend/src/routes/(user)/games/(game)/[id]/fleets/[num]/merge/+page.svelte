@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/cs-proto';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import type { Fleet } from '#lib/types/cs-proto.js';
 	import { onMount } from 'svelte';
 	import MergeFleets from '../../../dialogs/merge/MergeFleets.svelte';
-	import { emptyVector } from '$lib/types/Vector';
+	import { emptyVector } from '#lib/types/Vector.js';
 
 	const { universe, commandedFleet, commandMapObject, merge } = getGameContext();
 	let num = parseInt(page.params.num || '0');

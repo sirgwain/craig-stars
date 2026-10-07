@@ -1,6 +1,6 @@
 <script lang="ts">
-	import FilterFleets from '$lib/components/icons/FilterFleets.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import FilterFleets from '#lib/components/icons/FilterFleets.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { settings } = getGameContext();
 </script>

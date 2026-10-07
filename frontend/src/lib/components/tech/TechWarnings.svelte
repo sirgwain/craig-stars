@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { TechCategory, type TechHullComponent } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import type { TechLike } from '$lib/types/Tech';
+	import { TechCategory, type TechHullComponent } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import type { TechLike } from '#lib/types/Tech.js';
 	import { onMount } from 'svelte';
 
 	type Props = {

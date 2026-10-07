@@ -1,11 +1,11 @@
 <script lang="ts">
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table from '$lib/components/table/Table.svelte';
-	import type { TableColumn } from '$lib/components/table/Table';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { PlayerMessageType, type PlayerMessage } from '$lib/types/cs-proto';
-	import { getMapObjectTarget } from '$lib/types/Message';
+	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
+	import Table from '#lib/components/table/Table.svelte';
+	import type { TableColumn } from '#lib/components/table/Table.js';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { PlayerMessageType, type PlayerMessage } from '#lib/types/cs-proto.js';
+	import { getMapObjectTarget } from '#lib/types/Message.js';
 	import MessageDetail from './MessageDetail.svelte';
 
 	const { game, player, universe, settings, gotoTarget } = getGameContext();
@@ -66,9 +66,9 @@
 <div class="w-full">
 	<div class="flex flex-row justify-between m-2">
 		<TableSearchInput bind:value={search} />
-		<div class="form-control">
-			<label class="label cursor-pointer">
-				<span class="label-text mr-1">Show All Messages</span>
+		<div class="cs-form-control">
+			<label class="cs-form-label cursor-pointer">
+				<span class="cs-label-text mr-1">Show All Messages</span>
 				<input
 					type="checkbox"
 					class="toggle"

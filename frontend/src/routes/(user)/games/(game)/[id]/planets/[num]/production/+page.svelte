@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { ownedBy } from '$lib/types/MapObject';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { ownedBy } from '#lib/types/MapObject.js';
 	import { onMount } from 'svelte';
 	import ProductionQueue from '../../../dialogs/production/ProductionQueue.svelte';
 

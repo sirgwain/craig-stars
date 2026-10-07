@@ -1,13 +1,14 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import { gameClient } from '$lib/services/connect';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import SectionHeader from '#lib/components/SectionHeader.svelte';
+	import { gameClient } from '#lib/services/connect.js';
 	import {
 		VictoryConditionAttainTechLevels,
 		VictoryConditionExceedsSecondPlaceScore,
 		VictoryConditionOwnPlanets
-	} from '$lib/types/Consts';
+	} from '#lib/types/Consts.js';
 	import {
 		AiDifficulty,
 		Density,
@@ -19,7 +20,7 @@
 		NewGamePlayerType,
 		PlayerPositions,
 		Size
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import { PlusCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -59,7 +60,7 @@
 
 	let settings: GameSettings = $state(
 		create(GameSettingsSchema, {
-			name,
+			name: untrack(() => name),
 			public: false,
 			size: Size.SMALL,
 			density: Density.NORMAL,
@@ -70,7 +71,7 @@
 			maxMinerals: false,
 			startMode: GameStartMode.UNSPECIFIED, // normal
 			quickStartTurns: 0,
-			players,
+			players: untrack(() => players),
 			victoryConditions: {
 				conditions:
 					VictoryConditionOwnPlanets |

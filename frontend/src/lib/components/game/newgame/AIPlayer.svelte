@@ -1,6 +1,6 @@
 <script lang="ts">
-	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import { AiDifficulty, type NewGamePlayer } from '$lib/types/cs-proto';
+	import EnumSelect from '#lib/components/EnumSelect.svelte';
+	import { AiDifficulty, type NewGamePlayer } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		player: NewGamePlayer;

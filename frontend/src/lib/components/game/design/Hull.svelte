@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { techs } from '$lib/services/Stores';
-	import type { ShipDesignSlot, TechHull, TechHullSlot } from '$lib/types/cs-proto';
+	import { techs } from '#lib/services/Stores.js';
+	import type { ShipDesignSlot, TechHull, TechHullSlot } from '#lib/types/cs-proto.js';
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';

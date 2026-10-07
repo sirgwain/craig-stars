@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
-	import { GameDBObjectSchema } from '$lib/types/cs-proto';
-	import { ShipDesignSchema, type ShipDesign } from '$lib/types/cs-proto';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import ShipDesigner from '#lib/components/game/design/ShipDesigner.svelte';
+	import { GameDBObjectSchema } from '#lib/types/cs-proto.js';
+	import { ShipDesignSchema, type ShipDesign } from '#lib/types/cs-proto.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
 	import { clone, create } from '@bufbuild/protobuf';
 	import { onMount } from 'svelte';
 

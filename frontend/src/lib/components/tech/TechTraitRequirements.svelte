@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { Player } from '$lib/types/cs-proto';
-	import { TechCategory, TechOrigin } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { getLabelForLRT, getLabelForPRT, lrts } from '$lib/types/Race';
-	import type { TechLike } from '$lib/types/Tech';
+	import type { Player } from '#lib/types/cs-proto.js';
+	import { TechCategory, TechOrigin } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { getLabelForLRT, getLabelForPRT, lrts } from '#lib/types/Race.js';
+	import type { TechLike } from '#lib/types/Tech.js';
 
 	type Props = {
 		tech: TechLike;

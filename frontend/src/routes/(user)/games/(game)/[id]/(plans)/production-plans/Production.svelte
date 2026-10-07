@@ -1,16 +1,16 @@
 <script lang="ts">
-	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
+	import QuantityModifierButtons from '#lib/components/QuantityModifierButtons.svelte';
 	import {
 		ProductionPlanItemSchema,
 		QueueItemType,
 		type ProductionPlanItem
-	} from '$lib/types/cs-proto';
-	import type { DesignFinder } from '$lib/services/Universe';
-	import { getQueueItemShortName } from '$lib/types/Planet';
-	import { getAutoAlchemyDescription, hasQuantity, isAuto } from '$lib/types/QueueItemType';
+	} from '#lib/types/cs-proto.js';
+	import type { DesignFinder } from '#lib/services/Universe.js';
+	import { getQueueItemShortName } from '#lib/types/Planet.js';
+	import { getAutoAlchemyDescription, hasQuantity, isAuto } from '#lib/types/QueueItemType.js';
 	import { create } from '@bufbuild/protobuf';
 	import ProductionItemsButtons from './ProductionItemsButtons.svelte';
-	import { planItemFromQueueItemType } from '$lib/types/Player';
+	import { planItemFromQueueItemType } from '#lib/types/Player.js';
 
 	type Props = {
 		designFinder: DesignFinder;

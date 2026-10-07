@@ -2,13 +2,13 @@
 	import { page } from '$app/state';
 
 	import { goto } from '$app/navigation';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { raceClient } from '$lib/services/connect';
-	import { addError } from '$lib/services/Errors';
-	import { notify } from '$lib/services/Notifications';
-	import { HabSchema, ResearchCostSchema, type Race } from '$lib/types/cs-proto';
-	import { humanoid } from '$lib/types/Race';
-	import { loadWasm, type CS } from '$lib/wasm';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import { raceClient } from '#lib/services/connect.js';
+	import { addError } from '#lib/services/Errors.js';
+	import { notify } from '#lib/services/Notifications.js';
+	import { HabSchema, ResearchCostSchema, type Race } from '#lib/types/cs-proto.js';
+	import { humanoid } from '#lib/types/Race.js';
+	import { loadWasm, type CS } from '#lib/wasm.js';
 	import { create } from '@bufbuild/protobuf';
 	import { ConnectError } from '@connectrpc/connect';
 	import { onMount } from 'svelte';

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Scanner from '$lib/components/icons/Scanner.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import Scanner from '#lib/components/icons/Scanner.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { settings } = getGameContext();
 </script>

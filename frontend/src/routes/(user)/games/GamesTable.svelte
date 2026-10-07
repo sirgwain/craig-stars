@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Game } from '$lib/types/cs-proto';
-	import { compare, timestampToString } from '$lib/types/Timestamp';
+	import type { Game } from '#lib/types/cs-proto.js';
+	import { compare, timestampToString } from '#lib/types/Timestamp.js';
 
 	type Props = {
 		games: Game[];

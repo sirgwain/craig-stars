@@ -5,7 +5,7 @@
 	import AxisX from '../graph/AxisX.html.svelte';
 	import AxisY from '../graph/AxisY.html.svelte';
 	import Line from '../graph/Line.svelte';
-	import type { EngineJson } from '$lib/types/cs-proto';
+	import type { EngineJson } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		engine: EngineJson;

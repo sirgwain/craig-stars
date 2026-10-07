@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
-	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
-	import { Battle } from '$lib/types/Battle';
-	import { type BattleRecordTokenActionJson } from '$lib/types/cs-proto';
+	import { designFinderKey, playerFinderKey } from '#lib/services/GameContext.js';
+	import type { DesignFinder, PlayerFinder } from '#lib/services/Universe.js';
+	import { Battle } from '#lib/types/Battle.js';
+	import { type BattleRecordTokenActionJson } from '#lib/types/cs-proto.js';
 	import { getContext } from 'svelte';
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);

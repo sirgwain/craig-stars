@@ -1,16 +1,16 @@
 <script lang="ts">
-	import BattleSpeed from '$lib/components/game/BattleSpeed.svelte';
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table from '$lib/components/table/Table.svelte';
-	import type { TableColumn } from '$lib/components/table/Table';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
-	import { getHullIcon } from '$lib/techicon';
-	import type { ShipDesign } from '$lib/types/cs-proto';
-	import { getDisplayColor } from '$lib/utils/colorUtils';
+	import BattleSpeed from '#lib/components/game/BattleSpeed.svelte';
+	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
+	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
+	import Table from '#lib/components/table/Table.svelte';
+	import type { TableColumn } from '#lib/components/table/Table.js';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
+	import { getHullIcon } from '#lib/techicon.js';
+	import type { ShipDesign } from '#lib/types/cs-proto.js';
+	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

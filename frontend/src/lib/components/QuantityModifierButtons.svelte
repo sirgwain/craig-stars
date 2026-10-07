@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { quantityModifier } from '$lib/quantityModifier';
+	import { quantityModifier } from '#lib/quantityModifier.js';
 
 	type Props = {
 		modifier?: number;

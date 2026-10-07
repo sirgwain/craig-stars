@@ -1,6 +1,6 @@
 <script lang="ts">
-	import TorpedoHit from '$lib/components/icons/TorpedoHit.svelte';
-	import { Battle } from '$lib/types/Battle';
+	import TorpedoHit from '#lib/components/icons/TorpedoHit.svelte';
+	import { Battle } from '#lib/types/Battle.js';
 
 	type Props = {
 		battle: Battle;

@@ -1,8 +1,12 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet, MineralPacket, Planet, PlayerMessage } from '$lib/types/cs-proto';
-	import { MapObjectType, PlayerMessageTargetType, PlayerMessageType } from '$lib/types/cs-proto';
-	import { getMapObjectTarget } from '$lib/types/Message';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import type { Fleet, MineralPacket, Planet, PlayerMessage } from '#lib/types/cs-proto.js';
+	import {
+		MapObjectType,
+		PlayerMessageTargetType,
+		PlayerMessageType
+	} from '#lib/types/cs-proto.js';
+	import { getMapObjectTarget } from '#lib/types/Message.js';
 	import BattleMessageDetail from './BattleMessageDetail.svelte';
 	import FleetMessageDetail from './FleetMessageDetail.svelte';
 	import MineralPacketMessageDetail from './MineralPacketMessageDetail.svelte';

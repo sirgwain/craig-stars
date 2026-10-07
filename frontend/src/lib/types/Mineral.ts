@@ -1,4 +1,9 @@
-import { MineralSchema, type CargoJson, type Mineral, type MineralJson } from '$lib/types/cs-proto';
+import {
+	MineralSchema,
+	type CargoJson,
+	type Mineral,
+	type MineralJson
+} from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 
 export const totalMinerals = (c: MineralJson | CargoJson | undefined) =>

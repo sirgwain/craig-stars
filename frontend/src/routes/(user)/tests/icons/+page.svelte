@@ -1,8 +1,8 @@
 <script lang="ts">
-	import FilterFleets from '$lib/components/icons/FilterFleets.svelte';
-	import IdleFleets from '$lib/components/icons/IdleFleets.svelte';
-	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
-	import SelectedMapObject from '$lib/components/icons/SelectedMapObject.svelte';
+	import FilterFleets from '#lib/components/icons/FilterFleets.svelte';
+	import IdleFleets from '#lib/components/icons/IdleFleets.svelte';
+	import PlanetWithStarbase from '#lib/components/icons/PlanetWithStarbase.svelte';
+	import SelectedMapObject from '#lib/components/icons/SelectedMapObject.svelte';
 </script>
 
 <div class="flex flex-wrap justify-evenly">

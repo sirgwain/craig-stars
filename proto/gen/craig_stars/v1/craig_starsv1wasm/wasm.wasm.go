@@ -6,6 +6,7 @@ package craig_starsv1wasm
 
 import (
 	context "context"
+
 	grpcwasm "github.com/sirgwain/craig-stars/proto-wasm/grpcwasm"
 	v1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 )

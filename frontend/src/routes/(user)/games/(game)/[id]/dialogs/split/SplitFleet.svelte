@@ -1,16 +1,16 @@
 <script lang="ts">
-	import FleetIcon from '$lib/components/FleetIcon.svelte';
-	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
-	import type { OnCancel, OnOk, SplitFleetEvent } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { clamp } from '$lib/services/Math';
+	import FleetIcon from '#lib/components/FleetIcon.svelte';
+	import CargoTransferer from '#lib/components/game/cargotransfer/CargoTransferer.svelte';
+	import type { OnCancel, OnOk, SplitFleetEvent } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { clamp } from '#lib/services/Math.js';
 	import {
 		type CargoTransferRequest,
 		emptyCargoTransferRequest,
 		setCargo,
 		suggestCargoTransfer,
 		suggestFuelTransfer
-	} from '$lib/types/CargoTransferRequest';
+	} from '#lib/types/CargoTransferRequest.js';
 	import {
 		CargoSchema,
 		FleetSchema,
@@ -20,14 +20,14 @@
 		ShipDesignSpecSchema,
 		type Fleet,
 		type ShipToken
-	} from '$lib/types/cs-proto';
-	import { CommandedFleet, moveDamagedTokens } from '$lib/types/Fleet';
+	} from '#lib/types/cs-proto.js';
+	import { CommandedFleet, moveDamagedTokens } from '#lib/types/Fleet.js';
 	import { clone, create } from '@bufbuild/protobuf';
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
 	import { cloneDeep } from 'lodash-es';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 
 	const { universe, player } = getGameContext();
 
@@ -44,9 +44,11 @@
 	let srcTokens: ShipToken[] = $state([]);
 	let destTokens: ShipToken[] = $state([]);
 	let dest = $state<Fleet>(
-		destFleetProp
-			? clone(FleetSchema, { ...destFleetProp, gameDbObject: create(GameDBObjectSchema) })
-			: newEmptyDestFleet(src)
+		untrack(() =>
+			destFleetProp
+				? clone(FleetSchema, { ...destFleetProp, gameDbObject: create(GameDBObjectSchema) })
+				: newEmptyDestFleet(src)
+		)
 	);
 	let srcFuelCapacity: number = $derived(getFuelCapacity($player.num, srcTokens));
 	let destFuelCapacity: number = $derived(getFuelCapacity($player.num, destTokens));

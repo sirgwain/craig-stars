@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { techs } from '$lib/services/Stores';
-	import { None } from '$lib/types/Consts';
+	import { techs } from '#lib/services/Stores.js';
+	import { None } from '#lib/types/Consts.js';
 	import { QuestionMarkCircle, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import TechAvatar from '../tech/TechAvatar.svelte';
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip';
-	import type { ShipDesign } from '$lib/types/cs-proto';
+	import type { ShipDesign } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		design: ShipDesign;
@@ -25,7 +25,9 @@
 	}
 </script>
 
-<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 w-full sm:w-[430px]">
+<div
+	class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 pt-2 w-full sm:w-[430px]"
+>
 	<figure>
 		<div class="border border-secondary bg-black p-1">
 			<a class="cs-link" {href}>
@@ -45,7 +47,7 @@
 						class="w-full h-full cursor-help"
 						onpointerdown={(e) => onShipDesignTooltip(e, design)}
 					>
-						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
+						<Icon src={QuestionMarkCircle} size="16" class="cursor-help inline-block" />
 					</button>
 				</div>
 			</div>

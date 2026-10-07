@@ -1,4 +1,4 @@
-import type { Universe } from '$lib/services/Universe';
+import type { Universe } from '#lib/services/Universe.js';
 import {
 	CargoSchema,
 	type Fleet,
@@ -19,7 +19,7 @@ import {
 	WaypointTaskTransportAction,
 	type WaypointTransportTasks,
 	WaypointTransportTasksSchema
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import { create, merge, type UnknownField } from '@bufbuild/protobuf';
 import { get as pluck } from 'lodash-es';
 import { type CargoType, totalCargo } from './Cargo';

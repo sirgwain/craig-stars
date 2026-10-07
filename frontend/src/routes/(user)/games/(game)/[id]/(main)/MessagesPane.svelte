@@ -1,9 +1,13 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { getScannerTarget } from '$lib/types/Battle';
-	import type { PlayerMessage } from '$lib/types/cs-proto';
-	import { MapObjectSchema, PlayerMessageTargetType, PlayerMessageType } from '$lib/types/cs-proto';
-	import { getNextVisibleMessageNum } from '$lib/types/Message';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { getScannerTarget } from '#lib/types/Battle.js';
+	import type { PlayerMessage } from '#lib/types/cs-proto.js';
+	import {
+		MapObjectSchema,
+		PlayerMessageTargetType,
+		PlayerMessageType
+	} from '#lib/types/cs-proto.js';
+	import { getNextVisibleMessageNum } from '#lib/types/Message.js';
 	import { create } from '@bufbuild/protobuf';
 	import {
 		ArrowLongLeft,
@@ -149,7 +153,7 @@
 </script>
 
 <div class:hidden={!showMessages} class:block={showMessages}>
-	<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300">
+	<div class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300">
 		<div class="card-body p-1 gap-0">
 			<div class="flex flex-row items-center mb-1">
 				<div class="tooltip tooltip-right" data-tip="Filter these types of messages">
@@ -197,7 +201,7 @@
 				</div>
 				<div>
 					<div class="flex flex-col gap-y-1 ml-1">
-						<div class="flex flex-row btn-group">
+						<div class="flex flex-row">
 							<div class="tooltip" data-tip="previous">
 								<button
 									onclick={previous}

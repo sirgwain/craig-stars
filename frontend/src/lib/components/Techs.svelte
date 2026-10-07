@@ -1,21 +1,21 @@
 <script lang="ts">
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { techClient } from '$lib/services/connect';
-	import techjson from '$lib/ssr/techs.json';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import TechSummary from '#lib/components/tech/TechSummary.svelte';
+	import { techClient } from '#lib/services/connect.js';
+	import techjson from '#lib/ssr/techs.json';
 	import {
 		GetTechsResponseSchema,
 		TechCategory,
 		type GetTechsResponseJson
-	} from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { CommandedPlayer, canLearnTech } from '$lib/types/Player';
-	import { TechCategories, type TechLike } from '$lib/types/Tech';
-	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
-	import type { CS } from '$lib/wasm';
+	} from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { CommandedPlayer, canLearnTech } from '#lib/types/Player.js';
+	import { TechCategories, type TechLike } from '#lib/types/Tech.js';
+	import { hasRequiredLevels, levelsAbove } from '#lib/types/TechLevel.js';
+	import type { CS } from '#lib/wasm.js';
 	import { fromJson } from '@bufbuild/protobuf';
 	import { kebabCase, sortBy } from 'lodash-es';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import ItemTitle from './ItemTitle.svelte';
 	import SectionHeader from './SectionHeader.svelte';
 
@@ -27,7 +27,7 @@
 	let { player, cs }: Props = $props();
 
 	let filter = $state('');
-	let showAll = $state(player === undefined);
+	let showAll = $state(untrack(() => player === undefined));
 
 	// for ssr, we start with techs from a json file
 	let techStore = $state(
@@ -96,9 +96,9 @@
 
 <div class="flex justify-between">
 	<div><TableSearchInput bind:value={filter} /></div>
-	<div class="form-control" class:hidden={!player}>
-		<label class="label cursor-pointer">
-			<span class="label-text mr-1">Show All</span>
+	<div class="cs-form-control" class:hidden={!player}>
+		<label class="cs-form-label cursor-pointer">
+			<span class="cs-label-text mr-1">Show All</span>
 			<input type="checkbox" class="toggle" class:toggle-accent={showAll} bind:checked={showAll} />
 		</label>
 	</div>

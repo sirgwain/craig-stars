@@ -1,8 +1,8 @@
-import type { Fleet, MineralPacket, Planet, Salvage } from '$lib/types/cs-proto';
-import { CargoSchema, type Cargo, type CargoJson } from '$lib/types/cs-proto';
+import type { Fleet, MineralPacket, Planet, Salvage } from '#lib/types/cs-proto.js';
+import { CargoSchema, type Cargo, type CargoJson } from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 import { negativeCargo, totalCargo } from './Cargo';
-import { clamp } from '$lib/services/Math';
+import { clamp } from '#lib/services/Math.js';
 
 // a destination that cargo can be transferred to/from
 export type CargoDest = Fleet | Planet | MineralPacket | Salvage | undefined;

@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { clickOutside } from '$lib/clickOutside';
-	import AddWaypoint from '$lib/components/icons/AddWaypoint.svelte';
-	import AddWaypointFast from '$lib/components/icons/AddWaypointFast.svelte';
-	import Habitability from '$lib/components/icons/Habitability.svelte';
-	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
-	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
-	import Population from '$lib/components/icons/Population.svelte';
-	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
-	import type { NextPrevMapObjectProps } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { clamp } from '$lib/services/Math';
-	import { PlanetViewState } from '$lib/types/PlayerSettings';
+	import { clickOutside } from '#lib/clickOutside.js';
+	import AddWaypoint from '#lib/components/icons/AddWaypoint.svelte';
+	import AddWaypointFast from '#lib/components/icons/AddWaypointFast.svelte';
+	import Habitability from '#lib/components/icons/Habitability.svelte';
+	import MineralConcentration from '#lib/components/icons/MineralConcentration.svelte';
+	import PlanetWithStarbase from '#lib/components/icons/PlanetWithStarbase.svelte';
+	import Population from '#lib/components/icons/Population.svelte';
+	import SurfaceMinerals from '#lib/components/icons/SurfaceMinerals.svelte';
+	import type { NextPrevMapObjectProps } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { clamp } from '#lib/services/Math.js';
+	import { PlanetViewState } from '#lib/types/PlayerSettings.js';
 	import {
 		ArrowLongLeft,
 		ArrowLongRight,
@@ -93,7 +93,7 @@
 			<li class="hidden lg:block">
 				<div class="w-full px-1">
 					<input
-						class="input input-sm input-bordered w-16 pr-0 pl-1"
+						class="input input-sm w-16 pr-0 pl-1"
 						type="number"
 						min={0}
 						max={100}

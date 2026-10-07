@@ -1,9 +1,8 @@
+import { page } from '$app/state';
 import { goto } from '$app/navigation';
-import type { Page } from '@sveltejs/kit';
 import hotkeys from 'hotkeys-js';
-import { get, type Readable } from 'svelte/store';
 
-export const bindNavigationHotkeys = (gameId: bigint, page: Readable<Page>) => {
+export const bindNavigationHotkeys = (gameId: bigint) => {
 	hotkeys('esc', 'root', () => {
 		goto(`/games/${gameId}`);
 	});
@@ -13,7 +12,7 @@ export const bindNavigationHotkeys = (gameId: bigint, page: Readable<Page>) => {
 	});
 	hotkeys('F3', 'root', (event) => {
 		event.preventDefault();
-		const pathname = get(page)?.url.pathname;
+		const pathname = page.url.pathname;
 		switch (pathname) {
 			case `/games/${gameId}`:
 				goto(`/games/${gameId}/planets`);

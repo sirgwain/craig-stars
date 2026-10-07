@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { WaypointTransportTasks } from '$lib/types/cs-proto';
+	import type { WaypointTransportTasks } from '#lib/types/cs-proto.js';
 	import TransportActionIcon from './TransportActionIcon.svelte';
 
 	type Props = {

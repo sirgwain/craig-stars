@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Techs from '$lib/components/Techs.svelte';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import Techs from '#lib/components/Techs.svelte';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { player, cs } = getGameContext();
 </script>

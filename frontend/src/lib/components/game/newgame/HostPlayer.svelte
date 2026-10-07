@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Select from '$lib/components/Select.svelte';
-	import { humanoid } from '$lib/types/Race';
+	import Select from '#lib/components/Select.svelte';
+	import { humanoid } from '#lib/types/Race.js';
 	import { onMount } from 'svelte';
-	import { raceClient } from '$lib/services/connect';
-	import type { Race } from '$lib/types/cs-proto';
-	import type { NewGamePlayer } from '$lib/types/cs-proto';
+	import { raceClient } from '#lib/services/connect.js';
+	import type { Race } from '#lib/types/cs-proto.js';
+	import type { NewGamePlayer } from '#lib/types/cs-proto.js';
 
 	// races for the host
 	let hostRaces: Race[] = $state([humanoid()]);

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Cost } from '$lib/types/cs-proto';
+	import type { Cost } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		cost: Cost | undefined;

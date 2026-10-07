@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import FilterAllyDesigns from './FilterAllyDesigns.svelte';
 	import FilterAllyScanners from './FilterAllyScanners.svelte';

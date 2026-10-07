@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { ResearchCostLevel, TechField } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
+	import { ResearchCostLevel, TechField } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
 
 	type Props = {
 		field: TechField;
@@ -10,13 +10,13 @@
 	let { field, value = $bindable() }: Props = $props();
 </script>
 
-<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full md:w-auto">
+<div class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 w-full md:w-auto">
 	<div class="card-body p-3 gap-0">
 		<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
 			{enumToString(TechField, field)} Research
 		</h2>
 		<div>
-			<label class="label cursor-pointer justify-start">
+			<label class="cs-form-label cursor-pointer justify-start">
 				<input
 					type="radio"
 					name={`${enumToString(TechField, field)}ResearchCost`}
@@ -24,9 +24,9 @@
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>
-				<span class="label-text ml-2">Costs 75% extra</span>
+				<span class="cs-label-text ml-2">Costs 75% extra</span>
 			</label>
-			<label class="label cursor-pointer justify-start">
+			<label class="cs-form-label cursor-pointer justify-start">
 				<input
 					type="radio"
 					name={`${enumToString(TechField, field)}ResearchCost`}
@@ -34,9 +34,9 @@
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>
-				<span class="label-text ml-2">Costs standard amount</span>
+				<span class="cs-label-text ml-2">Costs standard amount</span>
 			</label>
-			<label class="label cursor-pointer justify-start">
+			<label class="cs-form-label cursor-pointer justify-start">
 				<input
 					type="radio"
 					name={`${enumToString(TechField, field)}ResearchCost`}
@@ -44,7 +44,7 @@
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>
-				<span class="label-text ml-2">Costs 50% less</span>
+				<span class="cs-label-text ml-2">Costs 50% less</span>
 			</label>
 		</div>
 	</div>

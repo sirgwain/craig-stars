@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
-	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { techClient } from '$lib/services/connect';
-	import { TechService } from '$lib/services/TechService';
-	import techjson from '$lib/ssr/techs.json';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import TechHullSummary from '#lib/components/game/design/Hull.svelte';
+	import TechSummary from '#lib/components/tech/TechSummary.svelte';
+	import { techClient } from '#lib/services/connect.js';
+	import { TechService } from '#lib/services/TechService.js';
+	import techjson from '#lib/ssr/techs.json';
 	import {
 		GetTechsResponseSchema,
 		TechCategory,
 		type GetTechsResponseJson,
 		type TechHull
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 
-	import type { TechLike } from '$lib/types/Tech';
+	import type { TechLike } from '#lib/types/Tech.js';
 	import { fromJson } from '@bufbuild/protobuf';
 	import { startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
@@ -57,7 +57,7 @@
 	{#if tech.tech?.category === TechCategory.SHIP_HULL || tech.tech?.category === TechCategory.STARBASE_HULL}
 		<h1 class="my-3 text-lg text-center font-semibold">Hull</h1>
 		<div
-			class="card bg-base-200 shadow w-full max-h-fit min-h-fit rounded-sm border-2 border-base-300"
+			class="card bg-base-200 shadow-sm w-full max-h-fit min-h-fit rounded-xs border-2 border-base-300"
 		>
 			<div class="w-full flex flex-row justify-center">
 				<TechHullSummary {hull} />

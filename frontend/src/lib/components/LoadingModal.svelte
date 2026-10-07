@@ -9,7 +9,7 @@
 </script>
 
 <div id="loading-modal" class="modal" class:modal-open={text !== undefined}>
-	<div class="modal-box w-64 h-40 bg-base-100 rounded-sm border-2 border-secondary">
+	<div class="modal-box w-64 h-40 bg-base-100 rounded-xs border-2 border-secondary">
 		<div class="flex flex-col justify-center h-full">
 			<div class="mx-auto">
 				<LoadingSpinner />

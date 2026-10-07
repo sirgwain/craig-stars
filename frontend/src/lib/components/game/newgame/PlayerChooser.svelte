@@ -1,9 +1,9 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { raceClient } from '$lib/services/connect';
-	import type { Race } from '$lib/types/cs-proto';
-	import { humanoid } from '$lib/types/Race';
-	import { loadWasm, type CS } from '$lib/wasm';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import { raceClient } from '#lib/services/connect.js';
+	import type { Race } from '#lib/types/cs-proto.js';
+	import { humanoid } from '#lib/types/Race.js';
+	import { loadWasm, type CS } from '#lib/wasm.js';
 	import { onMount } from 'svelte';
 	import RaceEditor from '../../../../routes/(user)/races/[id]/RaceEditor.svelte';
 	import RacePoints from '../../../../routes/(user)/races/[id]/RacePoints.svelte';
@@ -40,11 +40,8 @@
 </script>
 
 {#if races.length > 0}
-	<label class="label" for="hostRace">Race</label>
-	<select
-		class="select select-bordered"
-		onchange={(e) => raceChanged(BigInt(e.currentTarget.value))}
-	>
+	<label class="cs-form-label" for="hostRace">Race</label>
+	<select class="select" onchange={(e) => raceChanged(BigInt(e.currentTarget.value))}>
 		{#each races as race (race.id)}
 			<option value={race.id}>{race.name}</option>
 		{/each}

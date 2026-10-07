@@ -1,16 +1,17 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import FactoriesTooltip, {
 		type FactoriesTooltipProps
-	} from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
+	} from '#lib/components/game/tooltips/FactoriesTooltip.svelte';
 	import MineralTooltip, {
 		type MineralTooltipProps
-	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
+	} from '#lib/components/game/tooltips/MineralTooltip.svelte';
 	import MinesTooltip, {
 		type MinesTooltipProps
-	} from '$lib/components/game/tooltips/MinesTooltip.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip } from '$lib/services/Stores';
-	import type { CommandedPlanet } from '$lib/types/Planet';
+	} from '#lib/components/game/tooltips/MinesTooltip.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { showTooltip } from '#lib/services/Stores.js';
+	import type { CommandedPlanet } from '#lib/types/Planet.js';
 	import CommandTile from './CommandTile.svelte';
 
 	const { player } = getGameContext();
@@ -76,22 +77,50 @@
 
 {#if planet}
 	<CommandTile title="Minerals on Hand">
-		<div class="flex justify-between cursor-help" onpointerdown={onIroniumTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onIroniumTooltip}
+		>
 			<div class="text-tile-item-title text-ironium">Ironium</div>
 			<div>{planet.cargo.ironium}kT</div>
 		</div>
-		<div class="flex justify-between cursor-help" onpointerdown={onBoraniumTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onBoraniumTooltip}
+		>
 			<div class="text-tile-item-title text-boranium">Boranium</div>
 			<div>{planet.cargo.boranium}kT</div>
 		</div>
-		<div class="flex justify-between cursor-help" onpointerdown={onGermaniumTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onGermaniumTooltip}
+		>
 			<div class="text-tile-item-title text-germanium">Germanium</div>
 			<div>{planet.cargo.germanium}kT</div>
 		</div>
 
 		<div class="divider p-0 m-0"></div>
 
-		<div class="flex justify-between cursor-help" onpointerdown={onMinesTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onMinesTooltip}
+		>
 			<div class="text-tile-item-title">Mines</div>
 			<div>
 				{#if $player.race.spec.innateMining}
@@ -101,7 +130,14 @@
 				{/if}
 			</div>
 		</div>
-		<div class="flex justify-between cursor-help" onpointerdown={onFactoriesTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onFactoriesTooltip}
+		>
 			<div class="text-tile-item-title">Factories</div>
 			<div>
 				{#if $player.race.spec.innateResources}

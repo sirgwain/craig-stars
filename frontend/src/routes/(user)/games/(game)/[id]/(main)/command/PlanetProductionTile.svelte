@@ -1,14 +1,14 @@
 <script lang="ts">
-	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
-	import { MapObjectTargetSchema, type ProductionQueueItem } from '$lib/types/cs-proto';
+	import ProductionQueueItemLine from '#lib/components/game/ProductionQueueItemLine.svelte';
+	import { MapObjectTargetSchema, type ProductionQueueItem } from '#lib/types/cs-proto.js';
 	import type {
 		ClearProductionQueueProps,
 		ShowProductionQueueDialogProps
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { getMapObjectName } from '$lib/types/MapObject';
-	import type { CommandedPlanet } from '$lib/types/Planet';
-	import { emptyVector } from '$lib/types/Vector';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { getMapObjectName } from '#lib/types/MapObject.js';
+	import type { CommandedPlanet } from '#lib/types/Planet.js';
+	import { emptyVector } from '#lib/types/Vector.js';
 	import CommandTile from './CommandTile.svelte';
 	import { create } from '@bufbuild/protobuf';
 

@@ -6,7 +6,7 @@ import {
 	TechLevelSchema,
 	TechOrigin,
 	type TechHullComponent
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 import { describe, expect, it } from 'vitest';
 import { CommandedPlayer, canLearnTech } from './Player';

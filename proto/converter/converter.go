@@ -39,6 +39,9 @@ var C Converter
 // goverter:extend CSCargoTransfersToCargoTransfers
 // goverter:extend ActionsPerRoundToCSActionsPerRound
 // goverter:extend CSActionsPerRoundToActionsPerRound
+// goverter:extend ExtendProtoRace
+// goverter:extend ProtoTechHullComponentValue
+// goverter:extend CSTechHullComponentSlice
 // goverter:extend CSHabToHab
 // goverter:extend CSGameDBObjectToGameDBObject
 // goverter:extend CSMineralToMineral
@@ -157,6 +160,14 @@ var C Converter
 // goverter:extend QueueItemTypeMapToIntMap
 // goverter:extend IntMapToQueueItemTypeMap
 type Converter interface {
+	// Keep flattened protobuf mappings on pointers to avoid copying message mutexes.
+	ConvertUserDBObject(source *craig_starsv1.User) cs.DBObject
+	ConvertRaceDBObject(source *craig_starsv1.Race) cs.DBObject
+	ConvertGameDBObject(source *craig_starsv1.Game) cs.DBObject
+	ConvertUserToUserSettings(source *craig_starsv1.User) cs.UserSettings
+	ConvertMysteryTraderReward(source *craig_starsv1.PlayerMessageSpecMysteryTrader) cs.MysteryTraderReward
+	ConvertEngine(source *craig_starsv1.TechHullComponent) cs.Engine
+
 	ConvertCargo(source *craig_starsv1.Cargo) cs.Cargo
 	ConvertCSCargo(source cs.Cargo) *craig_starsv1.Cargo
 	ConvertCost(source *craig_starsv1.Cost) cs.Cost
@@ -173,8 +184,8 @@ type Converter interface {
 	// goverter:ignore Delete
 	ConvertMapObject(source *craig_starsv1.MapObject) cs.MapObject
 
-	// goverter:map . DBObject
-	// goverter:map . UserSettings
+	// goverter:map . DBObject | MapProtoUserDBObject
+	// goverter:map . UserSettings | MapProtoUserToUserSettings
 	// goverter:ignore Password
 	// goverter:ignore Email
 	ConvertUser(source *craig_starsv1.User) cs.User
@@ -185,9 +196,8 @@ type Converter interface {
 	ConvertCSUser(source cs.User) *craig_starsv1.User
 	ConvertCSUsers(source []cs.User) []*craig_starsv1.User
 
-	// goverter:map . DBObject
+	// goverter:map . DBObject | MapProtoRaceDBObject
 	// goverter:ignore Spec
-	ConvertRace(source craig_starsv1.Race) cs.Race
 	ConvertRaceP(source *craig_starsv1.Race) *cs.Race
 
 	// goverter:autoMap DBObject
@@ -195,7 +205,7 @@ type Converter interface {
 	ConvertCSRaces(source []cs.Race) []*craig_starsv1.Race
 	ConvertCSRaceSpec(source cs.RaceSpec) *craig_starsv1.RaceSpec
 
-	// goverter:map . DBObject
+	// goverter:map . DBObject | MapProtoGameDBObject
 	// goverter:ignore Rules
 	ConvertGame(source *craig_starsv1.Game) *cs.Game
 	ConvertVictoryConditions(source *craig_starsv1.VictoryConditions) cs.VictoryConditions
@@ -249,7 +259,6 @@ type Converter interface {
 	ConvertPlayerOrders(source *craig_starsv1.PlayerOrders) cs.PlayerOrders
 
 	// goverter:ignore Delete
-	ConvertShipDesign(source craig_starsv1.ShipDesign) cs.ShipDesign
 	ConvertShipDesignP(source *craig_starsv1.ShipDesign) *cs.ShipDesign
 	ConvertShipDesigns(source []*craig_starsv1.ShipDesign) []*cs.ShipDesign
 
@@ -274,7 +283,6 @@ type Converter interface {
 	// goverter:ignore RandomArtifact
 	// goverter:ignore Starbase
 	// goverter:ignore Dirty
-	ConvertPlanet(source craig_starsv1.Planet) cs.Planet
 	ConvertPlanetP(source *craig_starsv1.Planet) *cs.Planet
 	ConvertPlanets(source []*craig_starsv1.Planet) []*cs.Planet
 	ConvertPlanetOrders(source *craig_starsv1.PlanetOrders) *cs.PlanetOrders
@@ -292,18 +300,15 @@ type Converter interface {
 	ConvertBattleRecordTokenAction(source *craig_starsv1.BattleRecordTokenAction) cs.BattleRecordTokenAction
 	ConvertCSBattleRecordTokenAction(source cs.BattleRecordTokenAction) *craig_starsv1.BattleRecordTokenAction
 
-	// goverter:map . MysteryTraderReward
+	// goverter:map . MysteryTraderReward | MapProtoMysteryTraderReward
 	ConvertPlayerMessageSpecMysteryTrader(source *craig_starsv1.PlayerMessageSpecMysteryTrader) *cs.PlayerMessageSpecMysteryTrader
 
 	// goverter:autoMap MysteryTraderReward
 	ConvertCSPlayerMessageSpecMysteryTrader(source *cs.PlayerMessageSpecMysteryTrader) *craig_starsv1.PlayerMessageSpecMysteryTrader
 
-	// goverter:map . Engine
-	ConvertTechHullComponent(source craig_starsv1.TechHullComponent) cs.TechHullComponent
-	// goverter:autoMap Engine
-	ConvertCSTechHullComponent(source cs.TechHullComponent) craig_starsv1.TechHullComponent
-
+	// goverter:map . Engine | MapProtoEngine
 	ConvertTechHullComponentP(source *craig_starsv1.TechHullComponent) *cs.TechHullComponent
+	// goverter:autoMap Engine
 	ConvertCSTechHullComponentP(source *cs.TechHullComponent) *craig_starsv1.TechHullComponent
 	ConvertCSTechHullComponents(source []cs.TechHullComponent) []*craig_starsv1.TechHullComponent
 
@@ -472,6 +477,9 @@ func ExtendPlayerRace(c Converter, source cs.Race) *craig_starsv1.Race {
 }
 
 func ExtendProtoRace(c Converter, source *craig_starsv1.Race) cs.Race {
+	if source == nil {
+		return cs.Race{}
+	}
 	return *c.ConvertRaceP(source)
 }
 
@@ -618,4 +626,47 @@ func CSGameDBObjectToGameDBObject(source cs.GameDBObject) *craig_starsv1.GameDBO
 		CreatedAt: TimeToTimestamp(source.CreatedAt),
 		UpdatedAt: TimeToTimestamp(source.UpdatedAt),
 	}
+}
+
+// CSTechHullComponentSlice keeps protobuf results as pointers throughout conversion.
+func CSTechHullComponentSlice(c Converter, source []cs.TechHullComponent) []*craig_starsv1.TechHullComponent {
+	if source == nil {
+		return nil
+	}
+	dest := make([]*craig_starsv1.TechHullComponent, len(source))
+	for i := range source {
+		dest[i] = c.ConvertCSTechHullComponentP(&source[i])
+	}
+	return dest
+}
+
+func ProtoTechHullComponentValue(c Converter, source *craig_starsv1.TechHullComponent) cs.TechHullComponent {
+	if source == nil {
+		return cs.TechHullComponent{}
+	}
+	return *c.ConvertTechHullComponentP(source)
+}
+
+func MapProtoUserDBObject(c Converter, source *craig_starsv1.User) cs.DBObject {
+	return c.ConvertUserDBObject(source)
+}
+
+func MapProtoRaceDBObject(c Converter, source *craig_starsv1.Race) cs.DBObject {
+	return c.ConvertRaceDBObject(source)
+}
+
+func MapProtoGameDBObject(c Converter, source *craig_starsv1.Game) cs.DBObject {
+	return c.ConvertGameDBObject(source)
+}
+
+func MapProtoUserToUserSettings(c Converter, source *craig_starsv1.User) cs.UserSettings {
+	return c.ConvertUserToUserSettings(source)
+}
+
+func MapProtoMysteryTraderReward(c Converter, source *craig_starsv1.PlayerMessageSpecMysteryTrader) cs.MysteryTraderReward {
+	return c.ConvertMysteryTraderReward(source)
+}
+
+func MapProtoEngine(c Converter, source *craig_starsv1.TechHullComponent) cs.Engine {
+	return c.ConvertEngine(source)
 }

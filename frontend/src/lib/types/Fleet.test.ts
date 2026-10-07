@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { moveDamagedTokens } from './Fleet';
-import type { ShipTokenJson } from '$lib/types/cs-proto';
+import type { ShipTokenJson } from '#lib/types/cs-proto.js';
 
 describe('ShipToken moveDamagedTokens test', () => {
 	it('transfer no damaged tokens', () => {

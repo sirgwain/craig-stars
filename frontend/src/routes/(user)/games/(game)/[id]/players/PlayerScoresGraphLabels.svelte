@@ -18,7 +18,7 @@
 
 {#each $data as group (group.playerNum)}
 	<div
-		class="label"
+		class="cs-form-label"
 		style="
       top:{top(group.values) * 100}%;
       left:{left(group.values) * 100}%;
@@ -29,7 +29,7 @@
 {/each}
 
 <style>
-	.label {
+	.cs-form-label {
 		position: absolute;
 		transform: translate(-100%, -100%) translateY(1px);
 		font-size: 13px;

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import ErrorToast from '$lib/components/ErrorToast.svelte';
-	import Menu from '$lib/components/Menu.svelte';
-	import NotificationToast from '$lib/components/NotificationToast.svelte';
-	import { errors } from '$lib/services/Errors';
-	import { me } from '$lib/services/Stores';
+	import ErrorToast from '#lib/components/ErrorToast.svelte';
+	import Menu from '#lib/components/Menu.svelte';
+	import NotificationToast from '#lib/components/NotificationToast.svelte';
+	import { errors } from '#lib/services/Errors.js';
+	import { me } from '#lib/services/Stores.js';
 	import { onMount, type Snippet } from 'svelte';
 	import '../../css/app.css';
 	import '../../css/hulls.css';

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import PlanetHabValue from '$lib/components/game/PlanetHabValue.svelte';
-	import Starbase from '$lib/components/icons/Starbase.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { population } from '$lib/types/Cargo';
-	import { getUnderlyingMapObject, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
+	import CargoBar from '#lib/components/game/CargoBar.svelte';
+	import FuelBar from '#lib/components/game/FuelBar.svelte';
+	import PlanetHabValue from '#lib/components/game/PlanetHabValue.svelte';
+	import Starbase from '#lib/components/icons/Starbase.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { population } from '#lib/types/Cargo.js';
+	import { getUnderlyingMapObject, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
 	import FleetSummary from './FleetSummary.svelte';
 	import MapObjectIcon from './MapObjectIcon.svelte';
 	import MinefieldSummary from './MinefieldSummary.svelte';

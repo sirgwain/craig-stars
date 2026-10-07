@@ -1,8 +1,12 @@
 <script lang="ts">
-	import TextInput from '$lib/components/TextInput.svelte';
-	import type { DesignFinder } from '$lib/services/Universe';
-	import { QueueItemType, type ProductionPlan, type ProductionPlanItem } from '$lib/types/cs-proto';
-	import { planItemFromQueueItemType } from '$lib/types/Player';
+	import TextInput from '#lib/components/TextInput.svelte';
+	import type { DesignFinder } from '#lib/services/Universe.js';
+	import {
+		QueueItemType,
+		type ProductionPlan,
+		type ProductionPlanItem
+	} from '#lib/types/cs-proto.js';
+	import { planItemFromQueueItemType } from '#lib/types/Player.js';
 	import Production from './Production.svelte';
 
 	type Props = {

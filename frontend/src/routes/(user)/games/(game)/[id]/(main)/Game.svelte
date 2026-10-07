@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { addError } from '$lib/services/Errors';
+	import { addError } from '#lib/services/Errors.js';
 	import type {
 		BattlePlanChangedEvent,
 		CargoTransferDialogEvent,
@@ -15,18 +15,18 @@
 		SplitFleetEvent,
 		TransferCargoEvent,
 		TransportTasksDialogEvent
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { absoluteSize } from '$lib/types/CargoTransferRequest';
-	import { MapObjectType, type WaypointDest } from '$lib/types/cs-proto';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { absoluteSize } from '#lib/types/CargoTransferRequest.js';
+	import { MapObjectType, type WaypointDest } from '#lib/types/cs-proto.js';
 	import {
 		commandable,
 		equal as mapObjectEqual,
 		ownedBy,
 		type MapObjectLike
-	} from '$lib/types/MapObject';
-	import { None } from '$lib/types/Consts';
-	import { emptyVector, equal } from '$lib/types/Vector';
+	} from '#lib/types/MapObject.js';
+	import { None } from '#lib/types/Consts.js';
+	import { emptyVector, equal } from '#lib/types/Vector.js';
 	import type { ConnectError } from '@connectrpc/connect';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
@@ -402,7 +402,7 @@
 	</div>
 
 	<div class="flex flex-col grow">
-		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
+		<div class="flex flex-col grow border-gray-700 border-2 shadow-xs">
 			<ScannerToolbar
 				onShowSearch={() => (showSearchDialog = true)}
 				onCycleMapObject={() => selectNextMapObject()}

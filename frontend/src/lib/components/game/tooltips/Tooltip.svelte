@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tooltipComponent, tooltipLocation } from '$lib/services/Stores';
+	import { tooltipComponent, tooltipLocation } from '#lib/services/Stores.js';
 	import {
 		computePosition,
 		detectOverflow,
@@ -79,11 +79,27 @@
 	});
 </script>
 
+<svelte:window
+	onkeyup={(e) => {
+		if ($tooltipComponent && (e.key === 'Enter' || e.key === ' ')) onPointerUp();
+	}}
+	onkeydowncapture={(e) => {
+		if (!$tooltipComponent) return;
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			e.stopPropagation();
+			onPointerUp();
+		} else if (e.key === 'Tab') {
+			onPointerUp();
+		}
+	}}
+/>
+
 <div
 	bind:this={component}
 	class:block={!!$tooltipComponent}
 	class:hidden={!$tooltipComponent}
-	class="fixed bg-base-300 rounded-sm p-2 border-2 shadow-md z-[1000] text-base select-none w-full md:w-max top-0 left-0 max-h-full"
+	class="fixed bg-base-300 rounded-xs p-2 border-2 shadow-md z-[1000] text-base select-none w-full md:w-max top-0 left-0 max-h-full"
 	role="tooltip"
 >
 	{#if $tooltipComponent}

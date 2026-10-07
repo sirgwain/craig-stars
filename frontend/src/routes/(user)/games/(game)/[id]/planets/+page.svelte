@@ -1,30 +1,31 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import { goto } from '$app/navigation';
-	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
+	import MineralMini from '#lib/components/game/MineralMini.svelte';
+	import ProductionQueueItemLine from '#lib/components/game/ProductionQueueItemLine.svelte';
 	import FactoriesTooltip, {
 		type FactoriesTooltipProps
-	} from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
+	} from '#lib/components/game/tooltips/FactoriesTooltip.svelte';
 	import MinesTooltip, {
 		type MinesTooltipProps
-	} from '$lib/components/game/tooltips/MinesTooltip.svelte';
-	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table from '$lib/components/table/Table.svelte';
-	import type { TableColumn } from '$lib/components/table/Table';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip, techs } from '$lib/services/Stores';
-	import { population } from '$lib/types/Cargo';
-	import { ReportAgeUnexplored } from '$lib/types/Consts';
-	import type { Planet, ShipDesign } from '$lib/types/cs-proto';
-	import { MapObjectTargetSchema, MapObjectType, MineralSchema } from '$lib/types/cs-proto';
-	import { owned, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
-	import { getGrowth, planetsSortBy } from '$lib/types/Planet';
-	import { emptyVector } from '$lib/types/Vector';
+	} from '#lib/components/game/tooltips/MinesTooltip.svelte';
+	import type { PopulationTooltipProps } from '#lib/components/game/tooltips/PopulationTooltip.svelte';
+	import PopulationTooltip from '#lib/components/game/tooltips/PopulationTooltip.svelte';
+	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
+	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
+	import Table from '#lib/components/table/Table.svelte';
+	import type { TableColumn } from '#lib/components/table/Table.js';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { showTooltip, techs } from '#lib/services/Stores.js';
+	import { population } from '#lib/types/Cargo.js';
+	import { ReportAgeUnexplored } from '#lib/types/Consts.js';
+	import type { Planet, ShipDesign } from '#lib/types/cs-proto.js';
+	import { MapObjectTargetSchema, MapObjectType, MineralSchema } from '#lib/types/cs-proto.js';
+	import { owned, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
+	import { getGrowth, planetsSortBy } from '#lib/types/Planet.js';
+	import { emptyVector } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -306,9 +307,9 @@
 <div class="w-full">
 	<div class="flex flex-row justify-between m-2">
 		<div><TableSearchInput bind:value={search} /></div>
-		<div class="form-control">
-			<label class="label cursor-pointer">
-				<span class="label-text mr-1">Show All</span>
+		<div class="cs-form-control">
+			<label class="cs-form-label cursor-pointer">
+				<span class="cs-label-text mr-1">Show All</span>
 				<input
 					type="checkbox"
 					class="toggle"
@@ -359,25 +360,60 @@
 					{/if}
 				{:else if column.key == 'starbase'}
 					{#if row.spec?.planetStarbaseSpec?.starbaseDesignName}
-						<span class="cursor-help" onpointerdown={(e) => showDesign(e, row)}>
+						<span
+							role="button"
+							tabindex={0}
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
+							class="cursor-help"
+							onpointerdown={(e) => showDesign(e, row)}
+						>
 							{row.spec.planetStarbaseSpec.starbaseDesignName}
 						</span>
 					{/if}
 				{:else if column.key == 'population'}
-					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+					<div
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onPopulationTooltip(e, row)}
+					>
 						{population(row.cargo) ? population(row.cargo).toLocaleString() : ''}
 					</div>
 				{:else if column.key == 'populationDensity'}
-					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+					<div
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onPopulationTooltip(e, row)}
+					>
 						{((row.spec?.populationDensity ?? 0) * 100).toFixed(1)}%
 					</div>
 				{:else if column.key == 'populationGrowth'}
-					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+					<div
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onPopulationTooltip(e, row)}
+					>
 						{getGrowth(row).toLocaleString()}
 					</div>
 				{:else if column.key == 'habitability'}
 					{#if row.spec?.canTerraform}
-						<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+						<div
+							role="button"
+							tabindex={0}
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
+							class="cursor-help"
+							onpointerdown={(e) => onPopulationTooltip(e, row)}
+						>
 							<span
 								class:text-habitable={(row.spec?.habitability ?? 0) > 0}
 								class:text-uninhabitable={(row.spec?.habitability ?? 0) < 0}
@@ -387,6 +423,10 @@
 						</div>
 					{:else}
 						<span
+							role="button"
+							tabindex={0}
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
 							class="cursor-help"
 							onpointerdown={(e) => onPopulationTooltip(e, row)}
 							class:text-habitable={(row.spec?.habitability ?? 0) > 0}
@@ -412,17 +452,36 @@
 						{/if}
 					</button>
 				{:else if column.key == 'mines'}
-					<span class="cursor-help" onpointerdown={(e) => onMinesTooltip(e, planet)}>
+					<span
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onMinesTooltip(e, planet)}
+					>
 						{planet.mines} / {planet.spec?.maxMines ?? 0}</span
 					>
 				{:else if column.key == 'factories'}
-					<span class="cursor-help" onpointerdown={(e) => onFactoriesTooltip(e, planet)}>
+					<span
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onFactoriesTooltip(e, planet)}
+					>
 						{planet.factories}/ {planet.spec?.maxFactories ?? 0}
 					</span>
 				{:else if column.key == 'defense'}
 					{#if row.spec?.defenseCoverage}
 						<span
-							class:cursor-help={planet.mapObject?.playerNum ?? 0 === $player.num}
+							role="button"
+							aria-disabled={!ownedBy(planet, $player.num)}
+							tabindex={ownedBy(planet, $player.num) ? 0 : undefined}
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
+							class:cursor-help={planet.mapObject?.playerNum === $player.num}
 							onpointerdown={(e) =>
 								planet.mapObject?.playerNum === $player.num && onDefenseTooltip(e, planet)}
 							>{((row.spec?.defenseCoverage ?? 0) * 100).toFixed(1)}%

@@ -4,7 +4,7 @@ import {
 	type Cargo,
 	type CargoJson,
 	type MineralJson as Mineral
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 
 export type CargoType = ResourceType;

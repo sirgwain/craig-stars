@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Race } from '$lib/types/cs-proto';
-	import { getHabChance } from '$lib/types/Race';
+	import type { Race } from '#lib/types/cs-proto.js';
+	import { getHabChance } from '#lib/types/Race.js';
 
 	type Props = {
 		race: Race;

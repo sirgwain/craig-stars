@@ -83,7 +83,7 @@ func Copy_Wasm_Exec() error {
 }
 
 // Copy wasm_exec.js from tinygo to the frontend wasm folder
-// This copies the "wasm_exec.js" file from GOROOT/lib/wasm into
+// This copies the "wasm_exec.js" file from TINYGOROOT/targets into
 // frontend/src/lib/wasm, creating the folder if not already present.
 // cp $(tinygo env TINYGOROOT)/targets/wasm_exec.js
 func Copy_Wasm_Exec_TinyGo() error {
@@ -99,8 +99,6 @@ func Copy_Wasm_Exec_TinyGo() error {
 	goroot = strings.ReplaceAll(goroot, "\\", "/") // replace backslashes on windows
 
 	// Check if wasm executable exists or not.
-	// go 1.26.1 moved wasm_exec.js from misc/wasm to lib/wasm,
-	// but we require go 1.26.1 anyways to run our tool deps so it shouldn't matter.
 	if _, err := os.Stat(goroot + "/targets/wasm_exec.js"); errors.Is(err, os.ErrNotExist) {
 		// file doesn't exist
 		return mg.Fatalf(1, "executable was not found inside TINYGOROOT: %v", goroot)
@@ -131,6 +129,11 @@ func Generate() error {
 
 	fmt.Println("running buf gen ./...")
 	if err := sh.RunV("go", "tool", "buf", "generate"); err != nil {
+		return err
+	}
+	// Go 1.27's json.RawMessage alias produces jsontext.Value literals in MCP
+	// schemas. The MCP generator omits that import, so repair generated imports.
+	if err := sh.RunV("go", "tool", "goimports", "-w", "proto/gen"); err != nil {
 		return err
 	}
 

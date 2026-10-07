@@ -1,12 +1,12 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import TextInput from '$lib/components/TextInput.svelte';
-	import UserAvatar from '$lib/components/UserAvatar.svelte';
-	import { userClient } from '$lib/services/connect';
-	import { addError } from '$lib/services/Errors';
-	import { notify } from '$lib/services/Notifications';
-	import { me } from '$lib/services/Stores';
-	import type { User } from '$lib/types/cs-proto';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import TextInput from '#lib/components/TextInput.svelte';
+	import UserAvatar from '#lib/components/UserAvatar.svelte';
+	import { userClient } from '#lib/services/connect.js';
+	import { addError } from '#lib/services/Errors.js';
+	import { notify } from '#lib/services/Notifications.js';
+	import { me } from '#lib/services/Stores.js';
+	import type { User } from '#lib/types/cs-proto.js';
 	import { ConnectError } from '@connectrpc/connect';
 	import { onMount } from 'svelte';
 

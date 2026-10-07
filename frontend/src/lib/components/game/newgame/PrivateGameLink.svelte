@@ -1,6 +1,6 @@
 <script lang="ts">
-	import InfoToast from '$lib/components/InfoToast.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import InfoToast from '#lib/components/InfoToast.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import { Square2Stack } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -12,13 +12,13 @@
 
 <InfoToast bind:text={copiedText} />
 
-<div class="flex flex-grow">
-	<div class="w-full flex-grow">
-		<div class="form-control">
-			<label class="label"
-				><span class="label-text w-32 text-right">Invite Link</span>
+<div class="flex grow">
+	<div class="w-full grow">
+		<div class="cs-form-control">
+			<label class="cs-form-label"
+				><span class="cs-label-text w-32 text-right">Invite Link</span>
 
-				<input class="input input-bordered ml-2 flex-grow" readonly value={link} />
+				<input class="input ml-2 grow" readonly value={link} />
 			</label>
 		</div>
 	</div>

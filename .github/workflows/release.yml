@@ -36,8 +36,8 @@ jobs:
     if: github.repository == 'sirgwain/craig-stars'
     strategy:
       matrix:
-        go-version: [1.26.x]
-        tinygo-version: [0.41.1]
+        go-version: [1.27.1]
+        tinygo-version: [0.42.0]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     needs: tag
@@ -52,11 +52,12 @@ jobs:
 
       #  setup build environment
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
+          cache-dependency-path: "**/go.sum"
       - name: Setup tinygo
         uses: acifani/setup-tinygo@v2
         with:

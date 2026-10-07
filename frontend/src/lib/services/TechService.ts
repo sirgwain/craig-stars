@@ -1,4 +1,4 @@
-import techjson from '$lib/ssr/techs.json';
+import techjson from '#lib/ssr/techs.json';
 import {
 	GetTechsResponseSchema,
 	type GetTechsResponseJson,
@@ -8,8 +8,8 @@ import {
 	type TechPlanetary,
 	type TechPlanetaryScanner,
 	type TechTerraform
-} from '$lib/types/cs-proto';
-import type { TechLike, TechStore } from '$lib/types/Tech';
+} from '#lib/types/cs-proto.js';
+import type { TechLike, TechStore } from '#lib/types/Tech.js';
 import { fromJson, type UnknownField } from '@bufbuild/protobuf';
 import { kebabCase } from 'lodash-es';
 

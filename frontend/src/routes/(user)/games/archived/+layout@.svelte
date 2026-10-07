@@ -1,5 +1,5 @@
 <script lang="ts">
-	import LayoutFullWidth from '$lib/components/LayoutFullWidth.svelte';
+	import LayoutFullWidth from '#lib/components/LayoutFullWidth.svelte';
 	import type { Snippet } from 'svelte';
 	type Props = {
 		children?: Snippet;

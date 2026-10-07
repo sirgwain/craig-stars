@@ -2,15 +2,15 @@
 	import type {
 		ShowCargoTransferDialogProps,
 		ShowSplitFleetDialogProps
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import type { CargoDest } from '$lib/types/CargoTransferRequest';
-	import { MapObjectType, type Fleet } from '$lib/types/cs-proto';
-	import { canLoadFuelOrCargo, type CommandedFleet } from '$lib/types/Fleet';
-	import { commandable, getMapObjectName, key } from '$lib/types/MapObject';
-	import { onDestroy } from 'svelte';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import type { CargoDest } from '#lib/types/CargoTransferRequest.js';
+	import { MapObjectType, type Fleet } from '#lib/types/cs-proto.js';
+	import { canLoadFuelOrCargo, type CommandedFleet } from '#lib/types/Fleet.js';
+	import { commandable, getMapObjectName, key } from '#lib/types/MapObject.js';
+	import { onDestroy, untrack } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	import { getDisplayColor } from '$lib/utils/colorUtils';
+	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 
 	const {
 		universe,
@@ -31,7 +31,9 @@
 	let { fleet, cargoDestsInOrbit, onShowCargoTransferDialog, onShowSplitFleetDialog }: Props =
 		$props();
 
-	let selectedMapObjectKey = $state(cargoDestsInOrbit.length > 0 ? key(cargoDestsInOrbit[0]) : '');
+	let selectedMapObjectKey = $state(
+		untrack(() => (cargoDestsInOrbit.length > 0 ? key(cargoDestsInOrbit[0]) : ''))
+	);
 	$effect(() => {
 		if (cargoDestsInOrbit.length > 1 && selectedMapObjectKey === '') {
 			selectedMapObjectKey = key(cargoDestsInOrbit.find((f) => key(f) !== key(fleet)));
@@ -148,7 +150,7 @@
 		</select>
 
 		{#if selectedMapObject}
-			<div class="flex justify-between my-1 btn-group">
+			<div class="flex justify-between my-1">
 				<div class="tooltip" data-tip="goto fleet">
 					<button
 						onclick={gotoTarget}

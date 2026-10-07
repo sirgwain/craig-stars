@@ -1,13 +1,13 @@
 <script lang="ts">
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table from '$lib/components/table/Table.svelte';
-	import type { TableColumn } from '$lib/components/table/Table';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { raceClient } from '$lib/services/connect';
-	import { addError } from '$lib/services/Errors';
-	import { type Race } from '$lib/types/cs-proto';
-	import { getLabelForPRT } from '$lib/types/Race';
-	import { timestampToString } from '$lib/types/Timestamp';
+	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
+	import Table from '#lib/components/table/Table.svelte';
+	import type { TableColumn } from '#lib/components/table/Table.js';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import { raceClient } from '#lib/services/connect.js';
+	import { addError } from '#lib/services/Errors.js';
+	import { type Race } from '#lib/types/cs-proto.js';
+	import { getLabelForPRT } from '#lib/types/Race.js';
+	import { timestampToString } from '#lib/types/Timestamp.js';
 	import type { ConnectError } from '@connectrpc/connect';
 	import { XCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

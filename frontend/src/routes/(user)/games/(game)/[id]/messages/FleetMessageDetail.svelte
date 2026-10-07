@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { andCommaList } from '$lib/andCommandList';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { absSum } from '$lib/types/Hab';
-	import { None } from '$lib/types/Consts';
+	import { andCommaList } from '#lib/andCommandList.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { absSum } from '#lib/types/Hab.js';
+	import { None } from '#lib/types/Consts.js';
 	import {
 		CargoTransferStatus,
 		MapObjectType,
 		PlayerMessageType,
 		ResourceType,
 		type PlayerMessage
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
-	import { enumToString } from '$lib/types/Enums';
-	import { cargoDescription, population, totalCargo } from '$lib/types/Cargo';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { cargoDescription, population, totalCargo } from '#lib/types/Cargo.js';
 
 	const { game, universe, player } = getGameContext();
 
