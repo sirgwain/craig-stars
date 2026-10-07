@@ -1,7 +1,7 @@
-import type { Fleet, Waypoint, ShipToken, WaypointTransportTasks } from '$lib/types/cs-proto';
-import type { CargoDest, CargoTransferRequest } from '$lib/types/CargoTransferRequest';
-import type { CommandedFleet } from '$lib/types/Fleet';
-import type { CommandedPlanet } from '$lib/types/Planet';
+import type { Fleet, Waypoint, ShipToken, WaypointTransportTasks } from '#lib/types/cs-proto.js';
+import type { CargoDest, CargoTransferRequest } from '#lib/types/CargoTransferRequest.js';
+import type { CommandedFleet } from '#lib/types/Fleet.js';
+import type { CommandedPlanet } from '#lib/types/Planet.js';
 
 export type OnOk<T> = (e: T) => void;
 export type OnCancel = () => void;

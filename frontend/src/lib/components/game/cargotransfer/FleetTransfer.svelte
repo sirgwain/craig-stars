@@ -1,8 +1,8 @@
 <script lang="ts">
-	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import MineralBar from '$lib/components/game/MineralBar.svelte';
-	import { add } from '$lib/types/Cargo';
-	import { type CargoTransferRequest, getCargo } from '$lib/types/CargoTransferRequest';
+	import CargoBar from '#lib/components/game/CargoBar.svelte';
+	import MineralBar from '#lib/components/game/MineralBar.svelte';
+	import { add } from '#lib/types/Cargo.js';
+	import { type CargoTransferRequest, getCargo } from '#lib/types/CargoTransferRequest.js';
 
 	type Props = {
 		transferAmount: CargoTransferRequest;

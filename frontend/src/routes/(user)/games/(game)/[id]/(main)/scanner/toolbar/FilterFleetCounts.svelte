@@ -1,6 +1,6 @@
 <script lang="ts">
-	import FleetCount from '$lib/components/icons/FleetCount.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import FleetCount from '#lib/components/icons/FleetCount.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { settings } = getGameContext();
 </script>

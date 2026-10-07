@@ -1,9 +1,9 @@
 import { goto } from '$app/navigation';
-import { getScannerTarget } from '$lib/types/Battle';
-import { emptyCargo } from '$lib/types/Cargo';
-import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest';
-import { type CargoDest } from '$lib/types/CargoTransferRequest';
-import { None } from '$lib/types/Consts';
+import { getScannerTarget } from '#lib/types/Battle.js';
+import { emptyCargo } from '#lib/types/Cargo.js';
+import type { CargoTransferRequest } from '#lib/types/CargoTransferRequest.js';
+import { type CargoDest } from '#lib/types/CargoTransferRequest.js';
+import { None } from '#lib/types/Consts.js';
 import {
 	CargoSchema,
 	FleetOrdersSchema,
@@ -33,17 +33,17 @@ import {
 	type TransportPlan,
 	type Waypoint,
 	type WaypointDest
-} from '$lib/types/cs-proto';
-import { UpdateWaypointResult } from '$lib/protogen/craig_stars/v1/fleetservice_pb';
-import { CommandedFleet } from '$lib/types/Fleet';
-import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '$lib/types/Game';
-import { equal, key, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
-import { getMapObjectTarget, getMapObjectTypeForMessageType } from '$lib/types/Message';
-import { CommandedPlanet } from '$lib/types/Planet';
-import { CommandedPlayer } from '$lib/types/Player';
-import { PlayerSettings } from '$lib/types/PlayerSettings';
-import { emptyVector } from '$lib/types/Vector';
-import type { CS } from '$lib/wasm';
+} from '#lib/types/cs-proto.js';
+import { UpdateWaypointResult } from '#lib/protogen/craig_stars/v1/fleetservice_pb.js';
+import { CommandedFleet } from '#lib/types/Fleet.js';
+import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '#lib/types/Game.js';
+import { equal, key, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
+import { getMapObjectTarget, getMapObjectTypeForMessageType } from '#lib/types/Message.js';
+import { CommandedPlanet } from '#lib/types/Planet.js';
+import { CommandedPlayer } from '#lib/types/Player.js';
+import { PlayerSettings } from '#lib/types/PlayerSettings.js';
+import { emptyVector } from '#lib/types/Vector.js';
+import type { CS } from '#lib/wasm.js';
 import { create } from '@bufbuild/protobuf';
 import { findIndex, kebabCase } from 'lodash-es';
 import { getContext } from 'svelte';

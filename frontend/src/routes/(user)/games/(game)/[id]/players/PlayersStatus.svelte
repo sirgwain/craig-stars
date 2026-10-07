@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { GameState } from '$lib/types/cs-proto';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { GameState } from '#lib/types/cs-proto.js';
 	import { onDestroy, onMount } from 'svelte';
 	import PlayerStatus from './PlayerStatus.svelte';
 

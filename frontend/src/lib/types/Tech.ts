@@ -1,4 +1,4 @@
-import { clamp } from '$lib/services/Math';
+import { clamp } from '#lib/services/Math.js';
 import {
 	TechCategory,
 	TerraformHabType,
@@ -7,7 +7,7 @@ import {
 	type TechDefense,
 	type TechHull,
 	type TechHullComponent
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import { type HullSlotType, HullSlotTypeWeapon } from './Consts';
 
 export type TechLike = {

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Planet } from '$lib/types/cs-proto';
-	import { Grav, Rad, Temp } from '$lib/types/Hab';
-	import type { CommandedPlayer } from '$lib/types/Player';
+	import type { Planet } from '#lib/types/cs-proto.js';
+	import { Grav, Rad, Temp } from '#lib/types/Hab.js';
+	import type { CommandedPlayer } from '#lib/types/Player.js';
 	import PlanetHabBar from './PlanetHabBar.svelte';
 
 	type Props = {

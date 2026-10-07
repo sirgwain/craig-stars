@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
+	import { clamp } from '#lib/services/Math.js';
 
 	type Props = {
 		value: number;
@@ -9,7 +9,7 @@
 		readonly?: boolean;
 		onValueChanged?: (value: number) => number | undefined;
 	};
-	import { getXFromPointerEvent } from '$lib/services/Events';
+	import { getXFromPointerEvent } from '#lib/services/Events.js';
 
 	let {
 		value,

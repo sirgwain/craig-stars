@@ -1,6 +1,6 @@
-import type { DesignFinder } from '$lib/services/Universe';
+import type { DesignFinder } from '#lib/services/Universe.js';
 
-import { QueueItemType, type ProductionQueueItem } from '$lib/types/cs-proto';
+import { QueueItemType, type ProductionQueueItem } from '#lib/types/cs-proto.js';
 import { enumToString } from './Enums';
 
 export const validQueueItemTypes = new Set([

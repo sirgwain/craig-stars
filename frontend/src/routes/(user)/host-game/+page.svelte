@@ -1,13 +1,13 @@
 <script lang="ts">
-	import NewGame from '$lib/components/game/newgame/NewGame.svelte';
-	import { getColor } from '$lib/components/game/newgame/playerColors';
-	import { me } from '$lib/services/Stores';
+	import NewGame from '#lib/components/game/newgame/NewGame.svelte';
+	import { getColor } from '#lib/components/game/newgame/playerColors.js';
+	import { me } from '#lib/services/Stores.js';
 	import {
 		AiDifficulty,
 		NewGamePlayerSchema,
 		NewGamePlayerType,
 		type NewGamePlayer
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 
 	const players: NewGamePlayer[] = [

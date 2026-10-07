@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getColor } from '$lib/components/game/newgame/playerColors';
+	import { getColor } from '#lib/components/game/newgame/playerColors.js';
 	import type { SVGAttributes } from 'svelte/elements';
 
 	type Props = SVGAttributes<SVGElement>;

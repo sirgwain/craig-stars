@@ -31,7 +31,7 @@ export async function loadWasm(): Promise<CS> {
 	const bridge = __go_wasm__ as CSWasm & Bridge;
 
 	// load the wasm and start it up
-	const csWasmUrl = new URL('$lib/wasm/cs.wasm', import.meta.url).href;
+	const csWasmUrl = new URL('#lib/wasm/cs.wasm', import.meta.url).href;
 	const go = new Go();
 	const result = await WebAssembly.instantiateStreaming(fetch(csWasmUrl), go.importObject);
 	go.run(result.instance);

@@ -1,23 +1,23 @@
 <script lang="ts">
-	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { clamp } from '$lib/services/Math';
-	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
-	import type { CargoDest } from '$lib/types/CargoTransferRequest';
+	import QuantityModifierButtons from '#lib/components/QuantityModifierButtons.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { clamp } from '#lib/services/Math.js';
+	import { add, negativeCargo, totalCargo } from '#lib/types/Cargo.js';
+	import type { CargoDest } from '#lib/types/CargoTransferRequest.js';
 	import {
 		type CargoTransferRequest,
 		getCargo,
 		negative,
 		newCargoTransferRequest
-	} from '$lib/types/CargoTransferRequest';
+	} from '#lib/types/CargoTransferRequest.js';
 	import {
 		MapObjectTargetSchema,
 		MapObjectType,
 		ResourceType,
 		VectorSchema,
 		type Fleet
-	} from '$lib/types/cs-proto';
-	import { canTransferCargoType, type CommandedFleet } from '$lib/types/Fleet';
+	} from '#lib/types/cs-proto.js';
+	import { canTransferCargoType, type CommandedFleet } from '#lib/types/Fleet.js';
 	import { create } from '@bufbuild/protobuf';
 	import FleetTransfer from './FleetTransfer.svelte';
 	import MineralPacketTransfer from './MineralPacketTransfer.svelte';

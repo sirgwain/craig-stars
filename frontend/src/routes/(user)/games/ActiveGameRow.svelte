@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Archive from '$lib/components/icons/Archive.svelte';
-	import { me } from '$lib/services/Stores';
-	import type { GameWithPlayers } from '$lib/types/cs-proto';
+	import Archive from '#lib/components/icons/Archive.svelte';
+	import { me } from '#lib/services/Stores.js';
+	import type { GameWithPlayers } from '#lib/types/cs-proto.js';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

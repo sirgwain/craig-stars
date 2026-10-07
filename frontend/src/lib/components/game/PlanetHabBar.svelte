@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
-	import type { HabType } from '$lib/types/Hab';
-	import { getHabValueString, HabTypeShortString, habTypeString } from '$lib/types/Hab';
+	import { clamp } from '#lib/services/Math.js';
+	import type { HabType } from '#lib/types/Hab.js';
+	import { getHabValueString, HabTypeShortString, habTypeString } from '#lib/types/Hab.js';
 	import PlanetBaseHabPoint from './PlanetBaseHabPoint.svelte';
 	import PlanetHabPoint from './PlanetHabPoint.svelte';
 	import PlanetHabTerraformLine from './PlanetHabTerraformLine.svelte';

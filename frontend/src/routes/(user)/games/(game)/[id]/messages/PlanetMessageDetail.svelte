@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { UnlimitedSpaceDock } from '$lib/types/Consts';
-	import { totalMinerals } from '$lib/types/Cost';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { UnlimitedSpaceDock } from '#lib/types/Consts.js';
+	import { totalMinerals } from '#lib/types/Cost.js';
 	import {
 		CometSize,
 		PlayerMessageType,
@@ -10,10 +10,10 @@
 		type Planet,
 		type PlayerIntel,
 		type PlayerMessage
-	} from '$lib/types/cs-proto';
-	import { absSum, getTerraformHabValueString } from '$lib/types/Hab';
-	import { getLongHabName } from '$lib/types/Tech';
-	import { getFullName } from '$lib/types/QueueItemType';
+	} from '#lib/types/cs-proto.js';
+	import { absSum, getTerraformHabValueString } from '#lib/types/Hab.js';
+	import { getLongHabName } from '#lib/types/Tech.js';
+	import { getFullName } from '#lib/types/QueueItemType.js';
 	import { create } from '@bufbuild/protobuf';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 

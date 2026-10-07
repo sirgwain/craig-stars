@@ -1,14 +1,14 @@
 <script lang="ts">
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table from '$lib/components/table/Table.svelte';
-	import { defaultSortBy, type TableColumn } from '$lib/components/table/Table';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { adminClient } from '$lib/services/connect';
-	import { addError } from '$lib/services/Errors';
-	import { Size, type User } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '$lib/types/Game';
-	import { compare, timestampToString } from '$lib/types/Timestamp';
+	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
+	import Table from '#lib/components/table/Table.svelte';
+	import { defaultSortBy, type TableColumn } from '#lib/components/table/Table.js';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import { adminClient } from '#lib/services/connect.js';
+	import { addError } from '#lib/services/Errors.js';
+	import { Size, type User } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '#lib/types/Game.js';
+	import { compare, timestampToString } from '#lib/types/Timestamp.js';
 	import type { ConnectError } from '@connectrpc/connect';
 	import { onMount } from 'svelte';
 

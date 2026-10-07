@@ -1,12 +1,12 @@
 <script lang="ts">
-	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
-	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
-	import type { CargoDest } from '$lib/types/CargoTransferRequest';
+	import CargoTransferer from '#lib/components/game/cargotransfer/CargoTransferer.svelte';
+	import type { OnCancel, OnOk, TransferCargoEvent } from '#lib/services/Events.js';
+	import type { CargoDest } from '#lib/types/CargoTransferRequest.js';
 	import {
 		type CargoTransferRequest,
 		emptyCargoTransferRequest
-	} from '$lib/types/CargoTransferRequest';
-	import type { CommandedFleet } from '$lib/types/Fleet';
+	} from '#lib/types/CargoTransferRequest.js';
+	import type { CommandedFleet } from '#lib/types/Fleet.js';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 

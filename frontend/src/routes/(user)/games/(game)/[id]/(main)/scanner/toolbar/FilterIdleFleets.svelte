@@ -1,6 +1,6 @@
 <script lang="ts">
-	import IdleFleets from '$lib/components/icons/IdleFleets.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import IdleFleets from '#lib/components/icons/IdleFleets.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { settings } = getGameContext();
 </script>

@@ -3,8 +3,8 @@
 </script>
 
 <script lang="ts">
-	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import TechSummary from '#lib/components/tech/TechSummary.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	let { tech, showResearchCost = false }: TechTooltipProps = $props();
 

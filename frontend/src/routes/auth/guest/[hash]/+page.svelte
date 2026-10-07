@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import { GameState } from '$lib/types/cs-proto';
-	import { gameClient } from '$lib/services/connect';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import { GameState } from '#lib/types/cs-proto.js';
+	import { gameClient } from '#lib/services/connect.js';
 	import { onMount } from 'svelte';
 
 	let hash = page.params.hash;

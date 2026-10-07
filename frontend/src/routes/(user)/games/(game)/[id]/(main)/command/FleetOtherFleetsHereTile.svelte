@@ -2,15 +2,15 @@
 	import type {
 		ShowCargoTransferDialogProps,
 		ShowSplitFleetDialogProps
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import type { CargoDest } from '$lib/types/CargoTransferRequest';
-	import { MapObjectType, type Fleet } from '$lib/types/cs-proto';
-	import { canLoadFuelOrCargo, type CommandedFleet } from '$lib/types/Fleet';
-	import { commandable, getMapObjectName, key } from '$lib/types/MapObject';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import type { CargoDest } from '#lib/types/CargoTransferRequest.js';
+	import { MapObjectType, type Fleet } from '#lib/types/cs-proto.js';
+	import { canLoadFuelOrCargo, type CommandedFleet } from '#lib/types/Fleet.js';
+	import { commandable, getMapObjectName, key } from '#lib/types/MapObject.js';
 	import { onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	import { getDisplayColor } from '$lib/utils/colorUtils';
+	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 
 	const {
 		universe,

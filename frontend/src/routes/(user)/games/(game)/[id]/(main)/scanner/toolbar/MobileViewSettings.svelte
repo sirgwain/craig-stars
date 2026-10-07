@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import PlanetViewStateHab from './PlanetViewStateHab.svelte';
 	import PlanetViewStateMineralConc from './PlanetViewStateMineralConc.svelte';
 	import PlanetViewStatesNormal from './PlanetViewStateNormal.svelte';

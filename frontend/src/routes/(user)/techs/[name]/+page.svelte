@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
-	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { techClient } from '$lib/services/connect';
-	import { TechService } from '$lib/services/TechService';
-	import techjson from '$lib/ssr/techs.json';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import TechHullSummary from '#lib/components/game/design/Hull.svelte';
+	import TechSummary from '#lib/components/tech/TechSummary.svelte';
+	import { techClient } from '#lib/services/connect.js';
+	import { TechService } from '#lib/services/TechService.js';
+	import techjson from '#lib/ssr/techs.json';
 	import {
 		GetTechsResponseSchema,
 		TechCategory,
 		type GetTechsResponseJson,
 		type TechHull
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 
-	import type { TechLike } from '$lib/types/Tech';
+	import type { TechLike } from '#lib/types/Tech.js';
 	import { fromJson } from '@bufbuild/protobuf';
 	import { startCase } from 'lodash-es';
 	import { onMount } from 'svelte';

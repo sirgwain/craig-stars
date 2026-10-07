@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import GameCard from '$lib/components/game/GameCard.svelte';
-	import GameSettingsEditor from '$lib/components/game/newgame/GameSettingsEditor.svelte';
-	import { addError } from '$lib/services/Errors';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { me } from '$lib/services/Stores';
-	import { gameClient, playerClient } from '$lib/services/connect';
-	import type { Player } from '$lib/types/cs-proto';
-	import { GameSettingsSchema, PlayerType, type GameSettings } from '$lib/types/cs-proto';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import GameCard from '#lib/components/game/GameCard.svelte';
+	import GameSettingsEditor from '#lib/components/game/newgame/GameSettingsEditor.svelte';
+	import { addError } from '#lib/services/Errors.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { me } from '#lib/services/Stores.js';
+	import { gameClient, playerClient } from '#lib/services/connect.js';
+	import type { Player } from '#lib/types/cs-proto.js';
+	import { GameSettingsSchema, PlayerType, type GameSettings } from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import type { ConnectError } from '@connectrpc/connect';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';

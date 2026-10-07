@@ -1,15 +1,15 @@
 <script lang="ts">
-	import FormError from '$lib/components/FormError.svelte';
-	import TextInput from '$lib/components/TextInput.svelte';
-	import Hull from '$lib/components/game/design/Hull.svelte';
-	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
-	import { HullSlotTypeNone } from '$lib/types/Consts';
-	import { canLearnTech } from '$lib/types/Player';
-	import { canFillSlot, hullAllowed } from '$lib/types/Tech';
-	import { hasRequiredLevels } from '$lib/types/TechLevel';
-	import type { TechHull, TechHullComponent, TechHullSlot } from '$lib/types/cs-proto';
+	import FormError from '#lib/components/FormError.svelte';
+	import TextInput from '#lib/components/TextInput.svelte';
+	import Hull from '#lib/components/game/design/Hull.svelte';
+	import TechAvatar from '#lib/components/tech/TechAvatar.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
+	import { HullSlotTypeNone } from '#lib/types/Consts.js';
+	import { canLearnTech } from '#lib/types/Player.js';
+	import { canFillSlot, hullAllowed } from '#lib/types/Tech.js';
+	import { hasRequiredLevels } from '#lib/types/TechLevel.js';
+	import type { TechHull, TechHullComponent, TechHullSlot } from '#lib/types/cs-proto.js';
 	import {
 		CostSchema,
 		ShipDesignSlotSchema,
@@ -17,7 +17,7 @@
 		type ShipDesign,
 		type ShipDesignSlot,
 		type ShipDesignSpec
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import { ChevronLeft, ChevronRight, QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

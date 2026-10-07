@@ -1,16 +1,16 @@
 <script lang="ts">
-	import Unarchive from '$lib/components/icons/Unarchive.svelte';
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table from '$lib/components/table/Table.svelte';
-	import { defaultSortBy, type TableColumn } from '$lib/components/table/Table';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { gameClient } from '$lib/services/connect';
-	import { addError } from '$lib/services/Errors';
-	import { me } from '$lib/services/Stores';
-	import { Size, type Game } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '$lib/types/Game';
-	import { timestampToString } from '$lib/types/Timestamp';
+	import Unarchive from '#lib/components/icons/Unarchive.svelte';
+	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
+	import Table from '#lib/components/table/Table.svelte';
+	import { defaultSortBy, type TableColumn } from '#lib/components/table/Table.js';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import { gameClient } from '#lib/services/connect.js';
+	import { addError } from '#lib/services/Errors.js';
+	import { me } from '#lib/services/Stores.js';
+	import { Size, type Game } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '#lib/types/Game.js';
+	import { timestampToString } from '#lib/types/Timestamp.js';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';

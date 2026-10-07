@@ -1,5 +1,5 @@
-import type { MapObjectLike } from '$lib/types/MapObject';
-import type { CommandedPlayer } from '$lib/types/Player';
+import type { MapObjectLike } from '#lib/types/MapObject.js';
+import type { CommandedPlayer } from '#lib/types/Player.js';
 import { find } from 'lodash-es';
 
 // for a list of orbiting fleets, return whether there are enemies, friends, both or neither

@@ -3,12 +3,12 @@
 </script>
 
 <script lang="ts">
-	import AxisX from '$lib/components/graph/AxisX.html.svelte';
-	import AxisY from '$lib/components/graph/AxisY.html.svelte';
-	import MultiLine from '$lib/components/graph/MultiLine.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import AxisX from '#lib/components/graph/AxisX.html.svelte';
+	import AxisY from '#lib/components/graph/AxisY.html.svelte';
+	import MultiLine from '#lib/components/graph/MultiLine.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
-	import type { PlayerScoreJson } from '$lib/types/cs-proto';
+	import type { PlayerScoreJson } from '#lib/types/cs-proto.js';
 	import { scaleOrdinal } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
 	import PlayerScoresGraphLabels from './PlayerScoresGraphLabels.svelte';

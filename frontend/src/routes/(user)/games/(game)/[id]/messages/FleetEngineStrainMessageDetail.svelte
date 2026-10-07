@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PlayerMessage } from '$lib/types/cs-proto';
+	import type { PlayerMessage } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		message: PlayerMessage;

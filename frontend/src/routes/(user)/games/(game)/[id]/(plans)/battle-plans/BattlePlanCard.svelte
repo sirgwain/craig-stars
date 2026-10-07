@@ -4,8 +4,8 @@
 		BattleTactic,
 		BattleTarget,
 		type BattlePlan
-	} from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
+	} from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

@@ -6,7 +6,7 @@ import type {
 	Planet,
 	Salvage,
 	Wormhole
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import {
 	type MapObject,
 	MapObjectSchema,
@@ -15,7 +15,7 @@ import {
 	MapObjectType,
 	type Vector,
 	type VectorJson
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 import { None } from './Consts';
 import { getTokenCount, hasDestination } from './Fleet';

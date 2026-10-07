@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { enumToString } from '$lib/types/Enums';
+	import { enumToString } from '#lib/types/Enums.js';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';

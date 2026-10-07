@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { MapObjectSchema, MapObjectType, PlanetSchema, type Planet } from '$lib/types/cs-proto';
+	import {
+		MapObjectSchema,
+		MapObjectType,
+		PlanetSchema,
+		type Planet
+	} from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import PlanetMineralsGraph from '../../games/(game)/[id]/(main)/PlanetMineralsGraph.svelte';
 

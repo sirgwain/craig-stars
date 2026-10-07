@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
-	import { techs } from '$lib/services/Stores';
+	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import { techs } from '#lib/services/Stores.js';
 	import {
 		HullSlotTypeArmor,
 		HullSlotTypeArmorScannerElectricalMechanical,
@@ -26,8 +26,8 @@
 		HullSlotTypeWeapon,
 		HullSlotTypeWeaponShield,
 		type HullSlotType
-	} from '$lib/types/Consts';
-	import type { ShipDesignSlot } from '$lib/types/cs-proto';
+	} from '#lib/types/Consts.js';
+	import type { ShipDesignSlot } from '#lib/types/cs-proto.js';
 	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';

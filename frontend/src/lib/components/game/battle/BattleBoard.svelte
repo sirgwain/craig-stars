@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type Battle, type PhaseToken } from '$lib/types/Battle';
+	import { type Battle, type PhaseToken } from '#lib/types/Battle.js';
 	import BattleBoardAction from './BattleBoardAction.svelte';
 	import BattleBoardAttack from './BattleBoardAttack.svelte';
 	import BattleBoardPhaseControls from './BattleBoardPhaseControls.svelte';

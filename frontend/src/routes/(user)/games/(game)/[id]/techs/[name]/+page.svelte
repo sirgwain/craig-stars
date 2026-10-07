@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
-	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { TechCategory, type TechHull } from '$lib/types/cs-proto';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import TechHullSummary from '#lib/components/game/design/Hull.svelte';
+	import TechSummary from '#lib/components/tech/TechSummary.svelte';
+	import { TechCategory, type TechHull } from '#lib/types/cs-proto.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
 
 	const { game, player } = getGameContext();
 

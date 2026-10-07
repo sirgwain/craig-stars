@@ -1,16 +1,16 @@
 <script lang="ts">
 	import FactoriesTooltip, {
 		type FactoriesTooltipProps
-	} from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
+	} from '#lib/components/game/tooltips/FactoriesTooltip.svelte';
 	import MineralTooltip, {
 		type MineralTooltipProps
-	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
+	} from '#lib/components/game/tooltips/MineralTooltip.svelte';
 	import MinesTooltip, {
 		type MinesTooltipProps
-	} from '$lib/components/game/tooltips/MinesTooltip.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip } from '$lib/services/Stores';
-	import type { CommandedPlanet } from '$lib/types/Planet';
+	} from '#lib/components/game/tooltips/MinesTooltip.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { showTooltip } from '#lib/services/Stores.js';
+	import type { CommandedPlanet } from '#lib/types/Planet.js';
 	import CommandTile from './CommandTile.svelte';
 
 	const { player } = getGameContext();

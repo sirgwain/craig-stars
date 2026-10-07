@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tooltipComponent, tooltipLocation } from '$lib/services/Stores';
+	import { tooltipComponent, tooltipLocation } from '#lib/services/Stores.js';
 	import {
 		computePosition,
 		detectOverflow,

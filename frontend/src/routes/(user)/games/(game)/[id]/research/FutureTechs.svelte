@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
-	import { canLearnTech } from '$lib/types/Player';
-	import type { TechLike } from '$lib/types/Tech';
-	import { get, hasRequiredLevels, subtract, sum } from '$lib/types/TechLevel';
-	import { type TechField } from '$lib/types/cs-proto';
+	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
+	import { canLearnTech } from '#lib/types/Player.js';
+	import type { TechLike } from '#lib/types/Tech.js';
+	import { get, hasRequiredLevels, subtract, sum } from '#lib/types/TechLevel.js';
+	import { type TechField } from '#lib/types/cs-proto.js';
 
 	type FutureTech = {
 		tech: TechLike;

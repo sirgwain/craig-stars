@@ -1,14 +1,14 @@
 <script lang="ts">
-	import InnateScannerTooltip from '$lib/components/game/tooltips/InnateScannerTooltip.svelte';
-	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
+	import InnateScannerTooltip from '#lib/components/game/tooltips/InnateScannerTooltip.svelte';
+	import type { PopulationTooltipProps } from '#lib/components/game/tooltips/PopulationTooltip.svelte';
+	import PopulationTooltip from '#lib/components/game/tooltips/PopulationTooltip.svelte';
 	import ResourcesTooltip, {
 		type ResourcesTooltipProps
-	} from '$lib/components/game/tooltips/ResourcesTooltip.svelte';
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip, techs } from '$lib/services/Stores';
-	import type { CommandedPlanet } from '$lib/types/Planet';
+	} from '#lib/components/game/tooltips/ResourcesTooltip.svelte';
+	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { showTooltip, techs } from '#lib/services/Stores.js';
+	import type { CommandedPlanet } from '#lib/types/Planet.js';
 	import CommandTile from './CommandTile.svelte';
 
 	const { player, universe } = getGameContext();

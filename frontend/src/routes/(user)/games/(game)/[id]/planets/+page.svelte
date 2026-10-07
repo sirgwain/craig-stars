@@ -1,30 +1,30 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
+	import MineralMini from '#lib/components/game/MineralMini.svelte';
+	import ProductionQueueItemLine from '#lib/components/game/ProductionQueueItemLine.svelte';
 	import FactoriesTooltip, {
 		type FactoriesTooltipProps
-	} from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
+	} from '#lib/components/game/tooltips/FactoriesTooltip.svelte';
 	import MinesTooltip, {
 		type MinesTooltipProps
-	} from '$lib/components/game/tooltips/MinesTooltip.svelte';
-	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table from '$lib/components/table/Table.svelte';
-	import type { TableColumn } from '$lib/components/table/Table';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip, techs } from '$lib/services/Stores';
-	import { population } from '$lib/types/Cargo';
-	import { ReportAgeUnexplored } from '$lib/types/Consts';
-	import type { Planet, ShipDesign } from '$lib/types/cs-proto';
-	import { MapObjectTargetSchema, MapObjectType, MineralSchema } from '$lib/types/cs-proto';
-	import { owned, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
-	import { getGrowth, planetsSortBy } from '$lib/types/Planet';
-	import { emptyVector } from '$lib/types/Vector';
+	} from '#lib/components/game/tooltips/MinesTooltip.svelte';
+	import type { PopulationTooltipProps } from '#lib/components/game/tooltips/PopulationTooltip.svelte';
+	import PopulationTooltip from '#lib/components/game/tooltips/PopulationTooltip.svelte';
+	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
+	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
+	import Table from '#lib/components/table/Table.svelte';
+	import type { TableColumn } from '#lib/components/table/Table.js';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { showTooltip, techs } from '#lib/services/Stores.js';
+	import { population } from '#lib/types/Cargo.js';
+	import { ReportAgeUnexplored } from '#lib/types/Consts.js';
+	import type { Planet, ShipDesign } from '#lib/types/cs-proto.js';
+	import { MapObjectTargetSchema, MapObjectType, MineralSchema } from '#lib/types/cs-proto.js';
+	import { owned, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
+	import { getGrowth, planetsSortBy } from '#lib/types/Planet.js';
+	import { emptyVector } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

@@ -1,7 +1,13 @@
-import type { Universe } from '$lib/services/Universe';
-import { FleetSchema, MapObjectType, PlanetSchema, Prt, WormholeSchema } from '$lib/types/cs-proto';
-import type { CommandedPlayer } from '$lib/types/Player';
-import { PlanetViewState, PlayerSettings } from '$lib/types/PlayerSettings';
+import type { Universe } from '#lib/services/Universe.js';
+import {
+	FleetSchema,
+	MapObjectType,
+	PlanetSchema,
+	Prt,
+	WormholeSchema
+} from '#lib/types/cs-proto.js';
+import type { CommandedPlayer } from '#lib/types/Player.js';
+import { PlanetViewState, PlayerSettings } from '#lib/types/PlayerSettings.js';
 import { create } from '@bufbuild/protobuf';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readScannerColors } from './colors';

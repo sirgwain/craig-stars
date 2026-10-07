@@ -2,6 +2,9 @@
 	"name": "frontend",
 	"version": "0.0.0-develop",
 	"type": "module",
+	"engines": {
+		"node": ">=22.17"
+	},
 	"scripts": {
 		"dev": "vite dev --host 0.0.0.0",
 		"build": "vite build",
@@ -15,9 +18,6 @@
 		"format": "prettier --write .",
 		"generate": "buf generate"
 	},
-	"overrides": {
-		"cookie": "^0.7.0"
-	},
 	"devDependencies": {
 		"@bufbuild/buf": "^1.71.0",
 		"@bufbuild/protobuf": "^2.12.0",
@@ -30,9 +30,9 @@
 		"@playwright/test": "^1.61.0",
 		"@steeze-ui/heroicons": "^2.4.2",
 		"@steeze-ui/svelte-icon": "^1.6.2",
-		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.36.3",
-		"@sveltejs/vite-plugin-svelte": "^6.1.0",
+		"@sveltejs/adapter-static": "^4.0.0",
+		"@sveltejs/kit": "^3.0.1",
+		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tailwindcss/typography": "^0.5.20",
 		"@tailwindcss/vite": "^4.3.3",
 		"@types/d3-array": "^3.2.2",
@@ -71,14 +71,18 @@
 		"prettier": "^3.8.4",
 		"prettier-plugin-svelte": "^4.1.1",
 		"prettier-plugin-tailwindcss": "^0.8.0",
-		"svelte": "^5.36.13",
-		"svelte-check": "^4.6.0",
+		"svelte": "^5.57.1",
+		"svelte-check": "^4.7.5",
 		"tailwindcss": "^4.3.3",
 		"ts-enum-util": "^4.1.0",
-		"typescript": "^5.9.3",
+		"typescript": "^6.0.0",
 		"typescript-eslint": "^8.61.1",
-		"vite": "^7.0.4",
+		"vite": "^8.0.12",
 		"vitest": "^4.1.11",
 		"vitest-browser-svelte": "^2.1.1"
+	},
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
 	}
 }

@@ -8,6 +8,19 @@ test('create a new game', async ({ newGamePage }) => {
 	await expect(gameLink).toHaveText(`${name} - 2400`);
 });
 
+test('navigation hotkeys follow the current route', async ({ testGamePage }) => {
+	const { page, gameId } = await testGamePage('Kitchen Sink');
+	await expect(page.locator('[data-type="game-link"]').first()).toBeVisible();
+
+	for (const report of ['planets', 'fleets', 'designs', 'messages', 'battles']) {
+		await page.keyboard.press('F3');
+		await expect(page).toHaveURL(new RegExp(`/games/${gameId}/${report}$`));
+	}
+
+	await page.keyboard.press('Escape');
+	await expect(page).toHaveURL(new RegExp(`/games/${gameId}$`));
+});
+
 test('submit turn', async ({ newGamePage }) => {
 	const { page, name } = newGamePage;
 	apiErrorsFailTest(page);

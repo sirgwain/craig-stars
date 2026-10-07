@@ -1,13 +1,13 @@
 <script lang="ts">
-	import InfoToast from '$lib/components/InfoToast.svelte';
-	import type { GuestUser } from '$lib/types/cs-proto';
-	import type { PlayerStatus } from '$lib/types/cs-proto';
-	import { gameClient } from '$lib/services/connect';
-	import { getGameContext } from '$lib/services/GameContext';
+	import InfoToast from '#lib/components/InfoToast.svelte';
+	import type { GuestUser } from '#lib/types/cs-proto.js';
+	import type { PlayerStatus } from '#lib/types/cs-proto.js';
+	import { gameClient } from '#lib/services/connect.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import { Square2Stack } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
-	import { addError } from '$lib/services/Errors';
+	import { addError } from '#lib/services/Errors.js';
 	import type { ConnectError } from '@connectrpc/connect';
 
 	const { game } = getGameContext();

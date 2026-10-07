@@ -1,31 +1,31 @@
 <script lang="ts">
-	import { asyncToVoidWrapper } from '$lib/asyncToVoid';
-	import CostComponent from '$lib/components/game/Cost.svelte';
-	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
-	import { onAllocatedTooltip } from '$lib/components/game/tooltips/AllocatedTooltip';
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
-	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
-	import type { CostJson as Cost } from '$lib/types/cs-proto';
+	import { asyncToVoidWrapper } from '#lib/asyncToVoid.js';
+	import CostComponent from '#lib/components/game/Cost.svelte';
+	import ProductionQueueItemLine from '#lib/components/game/ProductionQueueItemLine.svelte';
+	import { onAllocatedTooltip } from '#lib/components/game/tooltips/AllocatedTooltip.js';
+	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
+	import QuantityModifierButtons from '#lib/components/QuantityModifierButtons.svelte';
+	import type { CostJson as Cost } from '#lib/types/cs-proto.js';
 	import {
 		ProductionQueueItemSchema,
 		QueueItemCompletionEstimateSchema,
 		QueueItemType,
 		type ProductionQueueItem,
 		type ShipDesign
-	} from '$lib/types/cs-proto';
-	import { type ProductionPlan } from '$lib/types/cs-proto';
-	import { addError, CSError } from '$lib/services/Errors';
-	import type { OnCancel, OnOk } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
-	import { divide } from '$lib/types/Cost';
-	import { CommandedPlanet } from '$lib/types/Planet';
+	} from '#lib/types/cs-proto.js';
+	import { type ProductionPlan } from '#lib/types/cs-proto.js';
+	import { addError, CSError } from '#lib/services/Errors.js';
+	import type { OnCancel, OnOk } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
+	import { divide } from '#lib/types/Cost.js';
+	import { CommandedPlanet } from '#lib/types/Planet.js';
 	import {
 		getAutoAlchemyDescription,
 		getFullName,
 		hasQuantity,
 		isAuto
-	} from '$lib/types/QueueItemType';
+	} from '#lib/types/QueueItemType.js';
 	import { clone, create } from '@bufbuild/protobuf';
 	import {
 		ArrowLongDown,
@@ -40,7 +40,7 @@
 	import { clamp } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
-	import { Infinite } from '$lib/types/Consts';
+	import { Infinite } from '#lib/types/Consts.js';
 
 	// used to load the Genesis Device tech
 	const GenesisDevice = 'Genesis Device';

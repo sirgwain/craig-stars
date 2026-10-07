@@ -1,6 +1,6 @@
 import { userClient } from './services/connect';
 import { me } from './services/Stores';
-import { userNotFound, UserSession, UserStatuses } from '$lib/types/User';
+import { userNotFound, UserSession, UserStatuses } from '#lib/types/User.js';
 
 export async function authGuard(): Promise<UserSession | undefined> {
 	try {

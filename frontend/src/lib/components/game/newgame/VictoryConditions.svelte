@@ -7,12 +7,12 @@
 		VictoryConditionOwnCapitalShips,
 		VictoryConditionOwnPlanets,
 		VictoryConditionProductionCapacity
-	} from '$lib/types/Consts';
+	} from '#lib/types/Consts.js';
 	import {
 		VictoryConditionsSchema,
 		type GameSettings,
 		type VictoryConditions
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import VictoryConditionCheckbox from './VictoryConditionCheckbox.svelte';
 	import VictoryConditionInput from './VictoryConditionInput.svelte';

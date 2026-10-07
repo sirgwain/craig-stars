@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { WaypointTaskTransportAction, type TransportPlan } from '$lib/types/cs-proto';
+	import { WaypointTaskTransportAction, type TransportPlan } from '#lib/types/cs-proto.js';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import TransportActionDescription from './TransportActionDescription.svelte';

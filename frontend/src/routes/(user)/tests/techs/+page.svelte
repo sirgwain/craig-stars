@@ -1,14 +1,14 @@
 <script lang="ts">
-	import TechSummary from '$lib/components/tech/TechSummary.svelte';
+	import TechSummary from '#lib/components/tech/TechSummary.svelte';
 	import {
 		MinefieldType,
 		Prt,
 		TechCategory,
 		TechHullComponentSchema,
 		type TechHullComponent
-	} from '$lib/types/cs-proto';
-	import { CommandedPlayer } from '$lib/types/Player';
-	import { HullSlotTypeShield } from '$lib/types/Consts';
+	} from '#lib/types/cs-proto.js';
+	import { CommandedPlayer } from '#lib/types/Player.js';
+	import { HullSlotTypeShield } from '#lib/types/Consts.js';
 	import { create } from '@bufbuild/protobuf';
 	import TestBreadcrumb from '../TestBreadcrumb.svelte';
 

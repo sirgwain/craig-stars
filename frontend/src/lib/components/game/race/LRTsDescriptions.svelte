@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Race } from '$lib/types/cs-proto';
+	import type { Race } from '#lib/types/cs-proto.js';
 	import {
 		ARM,
 		BET,
@@ -18,7 +18,7 @@
 		TT,
 		UR,
 		type LRT
-	} from '$lib/types/Race';
+	} from '#lib/types/Race.js';
 
 	type Props = {
 		race: Race;

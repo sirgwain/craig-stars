@@ -1,12 +1,12 @@
 <script lang="ts">
-	import MineralConcentrationPoint from '$lib/components/game/MineralConcentrationPoint.svelte';
+	import MineralConcentrationPoint from '#lib/components/game/MineralConcentrationPoint.svelte';
 	import MineralTooltip, {
 		type MineralTooltipProps
-	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { clamp } from '$lib/services/Math';
-	import { showTooltip } from '$lib/services/Stores';
-	import type { MineralJson, Planet } from '$lib/types/cs-proto';
+	} from '#lib/components/game/tooltips/MineralTooltip.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { clamp } from '#lib/services/Math.js';
+	import { showTooltip } from '#lib/services/Stores.js';
+	import type { MineralJson, Planet } from '#lib/types/cs-proto.js';
 
 	const { settings } = getGameContext();
 

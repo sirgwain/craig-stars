@@ -3,9 +3,9 @@
 		MysteryTraderRewardType,
 		PlayerMessageType,
 		type PlayerMessage
-	} from '$lib/types/cs-proto';
-	import { isHullComponent } from '$lib/types/MysteryTrader';
-	import { sum } from '$lib/types/TechLevel';
+	} from '#lib/types/cs-proto.js';
+	import { isHullComponent } from '#lib/types/MysteryTrader.js';
+	import { sum } from '#lib/types/TechLevel.js';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	type Props = {

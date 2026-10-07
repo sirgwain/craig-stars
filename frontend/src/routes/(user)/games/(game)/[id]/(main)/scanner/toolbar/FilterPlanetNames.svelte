@@ -1,6 +1,6 @@
 <script lang="ts">
-	import PlanetNames from '$lib/components/icons/PlanetNames.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import PlanetNames from '#lib/components/icons/PlanetNames.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { settings } = getGameContext();
 </script>

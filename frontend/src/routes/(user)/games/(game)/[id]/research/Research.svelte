@@ -1,18 +1,18 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import { CommandedPlayer, TechFields } from '$lib/types/Player';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import SectionHeader from '#lib/components/SectionHeader.svelte';
+	import { CommandedPlayer, TechFields } from '#lib/types/Player.js';
 	import { Beaker } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import SpinnerNumberText from '$lib/components/SpinnerNumberText.svelte';
-	import Factory from '$lib/components/icons/Factory.svelte';
-	import Microscope from '$lib/components/icons/Microscope.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { enumToString } from '$lib/types/Enums';
-	import { get } from '$lib/types/TechLevel';
-	import { NextResearchField, PlayerResearchSpecSchema, TechField } from '$lib/types/cs-proto';
+	import EnumSelect from '#lib/components/EnumSelect.svelte';
+	import SpinnerNumberText from '#lib/components/SpinnerNumberText.svelte';
+	import Factory from '#lib/components/icons/Factory.svelte';
+	import Microscope from '#lib/components/icons/Microscope.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { get } from '#lib/types/TechLevel.js';
+	import { NextResearchField, PlayerResearchSpecSchema, TechField } from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import FutureTechs from './FutureTechs.svelte';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { UserSession } from '$lib/types/User';
+	import type { UserSession } from '#lib/types/User.js';
 	import { Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import DarkModeToggler from './DarkModeToggler.svelte';

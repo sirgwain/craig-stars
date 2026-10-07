@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { clickOutside } from '$lib/clickOutside';
-	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup';
-	import type { SelectWaypointProps } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { clamp } from '$lib/services/Math';
-	import { None } from '$lib/types/Consts';
+	import { clickOutside } from '#lib/clickOutside.js';
+	import { onScannerContextPopup } from '#lib/components/game/tooltips/ScannerContextPopup.js';
+	import type { SelectWaypointProps } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { clamp } from '#lib/services/Math.js';
+	import { None } from '#lib/types/Consts.js';
 	import {
 		MapObjectType,
 		VectorSchema,
@@ -12,10 +12,10 @@
 		type Fleet,
 		type Vector,
 		type WaypointDest
-	} from '$lib/types/cs-proto';
-	import { filterFleet } from '$lib/types/Filter';
-	import { emptyMapObject, type MapObjectLike, type Position } from '$lib/types/MapObject';
-	import { emptyVector, equal } from '$lib/types/Vector';
+	} from '#lib/types/cs-proto.js';
+	import { filterFleet } from '#lib/types/Filter.js';
+	import { emptyMapObject, type MapObjectLike, type Position } from '#lib/types/MapObject.js';
+	import { emptyVector, equal } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';

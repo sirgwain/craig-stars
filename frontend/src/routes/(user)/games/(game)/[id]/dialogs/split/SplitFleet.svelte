@@ -1,16 +1,16 @@
 <script lang="ts">
-	import FleetIcon from '$lib/components/FleetIcon.svelte';
-	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
-	import type { OnCancel, OnOk, SplitFleetEvent } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { clamp } from '$lib/services/Math';
+	import FleetIcon from '#lib/components/FleetIcon.svelte';
+	import CargoTransferer from '#lib/components/game/cargotransfer/CargoTransferer.svelte';
+	import type { OnCancel, OnOk, SplitFleetEvent } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { clamp } from '#lib/services/Math.js';
 	import {
 		type CargoTransferRequest,
 		emptyCargoTransferRequest,
 		setCargo,
 		suggestCargoTransfer,
 		suggestFuelTransfer
-	} from '$lib/types/CargoTransferRequest';
+	} from '#lib/types/CargoTransferRequest.js';
 	import {
 		CargoSchema,
 		FleetSchema,
@@ -20,8 +20,8 @@
 		ShipDesignSpecSchema,
 		type Fleet,
 		type ShipToken
-	} from '$lib/types/cs-proto';
-	import { CommandedFleet, moveDamagedTokens } from '$lib/types/Fleet';
+	} from '#lib/types/cs-proto.js';
+	import { CommandedFleet, moveDamagedTokens } from '#lib/types/Fleet.js';
 	import { clone, create } from '@bufbuild/protobuf';
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

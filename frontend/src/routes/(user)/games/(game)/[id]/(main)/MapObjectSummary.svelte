@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
-	import Cycle from '$lib/components/icons/Cycle.svelte';
-	import Starbase from '$lib/components/icons/Starbase.svelte';
-	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
+	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
+	import Cycle from '#lib/components/icons/Cycle.svelte';
+	import Starbase from '#lib/components/icons/Starbase.svelte';
+	import type { ShowCargoTransferDialogProps } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import type {
 		Fleet,
 		Minefield,
@@ -12,9 +12,9 @@
 		Planet,
 		Salvage,
 		Wormhole
-	} from '$lib/types/cs-proto';
-	import { MapObjectType } from '$lib/types/cs-proto';
-	import { getMapObjectName } from '$lib/types/MapObject';
+	} from '#lib/types/cs-proto.js';
+	import { MapObjectType } from '#lib/types/cs-proto.js';
+	import { getMapObjectName } from '#lib/types/MapObject.js';
 	import FleetSummary from './FleetSummary.svelte';
 	import MinefieldSummary from './MinefieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';

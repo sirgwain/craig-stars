@@ -1,13 +1,13 @@
 <script lang="ts">
-	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip';
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip';
-	import type { ChangeMassDriverSpeedProps } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
-	import { UnlimitedSpaceDock } from '$lib/types/Consts';
-	import type { CommandedPlanet } from '$lib/types/Planet';
-	import type { Fleet, ShipDesign } from '$lib/types/cs-proto';
+	import WarpSpeedGauge from '#lib/components/game/WarpSpeedGauge.svelte';
+	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
+	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import type { ChangeMassDriverSpeedProps } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
+	import { UnlimitedSpaceDock } from '#lib/types/Consts.js';
+	import type { CommandedPlanet } from '#lib/types/Planet.js';
+	import type { Fleet, ShipDesign } from '#lib/types/cs-proto.js';
 	import CommandTile from './CommandTile.svelte';
 
 	const { game, player, universe, settings } = getGameContext();

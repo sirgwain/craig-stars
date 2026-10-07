@@ -1,7 +1,7 @@
 <script lang="ts">
-	import HabChance from '$lib/components/game/race/HabChance.svelte';
-	import { Grav, Rad, Temp } from '$lib/types/Hab';
-	import { HabSchema, type Race } from '$lib/types/cs-proto';
+	import HabChance from '#lib/components/game/race/HabChance.svelte';
+	import { Grav, Rad, Temp } from '#lib/types/Hab.js';
+	import { HabSchema, type Race } from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
 	import Habitation from './Habitation.svelte';

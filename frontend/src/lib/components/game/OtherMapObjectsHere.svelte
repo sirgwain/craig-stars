@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { MapObjectSchema, MapObjectType, type Vector } from '$lib/types/cs-proto';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { type CommandedFleet } from '$lib/types/Fleet';
+	import { MapObjectSchema, MapObjectType, type Vector } from '#lib/types/cs-proto.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { type CommandedFleet } from '#lib/types/Fleet.js';
 	import {
 		equal,
 		getMapObjectName,
 		key,
 		type MapObjectLike,
 		type MapObjectTargetLike
-	} from '$lib/types/MapObject';
+	} from '#lib/types/MapObject.js';
 	import { create } from '@bufbuild/protobuf';
 	import { flatten } from 'lodash-es';
 	import type { HTMLSelectAttributes } from 'svelte/elements';
-	import { getDisplayColor } from '$lib/utils/colorUtils';
+	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 
 	const { player, universe, settings } = getGameContext();
 

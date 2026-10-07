@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { authGuard } from '$lib/authGuard';
-	import HomePage from '$lib/components/HomePage.svelte';
-	import { me } from '$lib/services/Stores';
+	import { page } from '$app/state';
+	import { authGuard } from '#lib/authGuard.js';
+	import HomePage from '#lib/components/HomePage.svelte';
+	import { me } from '#lib/services/Stores.js';
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
 
@@ -11,16 +11,15 @@
 	import '../css/mapobjects.css';
 	import '../css/planets.css';
 	import '../css/techs.css';
-	import { UserStatuses } from '$lib/types/User';
-	type Props = {
-		children?: Snippet;
-	};
+	import { UserStatuses } from '#lib/types/User.js';
+
+	type Props = { children?: Snippet };
 
 	let { children }: Props = $props();
-
-	const publicRoute =
-		$page.url.pathname.startsWith('/auth') || $page.url.pathname.startsWith('/docs');
-	const wasmExecUrl = new URL('$lib/wasm/wasm_exec.js', import.meta.url).href;
+	const publicRoute = $derived(
+		page.url.pathname.startsWith('/auth') || page.url.pathname.startsWith('/docs')
+	);
+	const wasmExecUrl = new URL('#lib/wasm/wasm_exec.js', import.meta.url).href;
 
 	// check the user
 	onMount(() => {

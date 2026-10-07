@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { defaultRules } from '$lib/types/Rules';
+	import { defaultRules } from '#lib/types/Rules.js';
 
 	// Pull helpers from Tech.ts
-	import { getCloakPercentForCloakUnits, getLongHabName, type TechLike } from '$lib/types/Tech';
+	import { getCloakPercentForCloakUnits, getLongHabName, type TechLike } from '#lib/types/Tech.js';
 
 	// Use Tech base type from protogen plus specific tech subtypes
 	import {
@@ -12,7 +12,7 @@
 		type TechHullComponent,
 		type TechPlanetaryScanner,
 		type TechTerraform
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 
 	// Rules type is the inferred type of defaultRules (RulesJson)
 	type Rules = typeof defaultRules;

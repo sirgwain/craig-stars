@@ -1,15 +1,15 @@
 <script lang="ts">
-	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
+	import WarpSpeedGauge from '#lib/components/game/WarpSpeedGauge.svelte';
 	import type {
 		ChangeWaypointProps,
 		DeleteWaypointProps,
 		SelectWaypointProps
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { StargateWarpSpeed } from '$lib/types/Consts';
-	import { MapObjectType, WaypointSchema, type Waypoint } from '$lib/types/cs-proto';
-	import { CommandedFleet } from '$lib/types/Fleet';
-	import { distance, emptyVector } from '$lib/types/Vector';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { StargateWarpSpeed } from '#lib/types/Consts.js';
+	import { MapObjectType, WaypointSchema, type Waypoint } from '#lib/types/cs-proto.js';
+	import { CommandedFleet } from '#lib/types/Fleet.js';
+	import { distance, emptyVector } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
 	import CommandTile from './CommandTile.svelte';
 

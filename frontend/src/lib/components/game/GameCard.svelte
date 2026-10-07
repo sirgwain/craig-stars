@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Density, GameState, Size, type Game } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { type GameWithPlayersFlat } from '$lib/types/Game';
+	import { Density, GameState, Size, type Game } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { type GameWithPlayersFlat } from '#lib/types/Game.js';
 	import { Check, Trash, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

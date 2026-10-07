@@ -1,9 +1,9 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { PlayerRelation, type PlayerRelationship } from '$lib/types/cs-proto';
-	import { CommandedPlayer } from '$lib/types/Player';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import SectionHeader from '#lib/components/SectionHeader.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { PlayerRelation, type PlayerRelationship } from '#lib/types/cs-proto.js';
+	import { CommandedPlayer } from '#lib/types/Player.js';
 
 	const { universe } = getGameContext();
 

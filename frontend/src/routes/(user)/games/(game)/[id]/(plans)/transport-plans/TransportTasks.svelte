@@ -4,7 +4,7 @@
 		type WaypointTransportTask,
 		type WaypointTransportTasks,
 		WaypointTransportTaskSchema
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import TransportTasks from './TransportTask.svelte';
 

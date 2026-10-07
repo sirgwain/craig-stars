@@ -1,8 +1,8 @@
 <script lang="ts">
-	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import NumberInput from '$lib/components/NumberInput.svelte';
-	import { WaypointTaskTransportAction } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
+	import EnumSelect from '#lib/components/EnumSelect.svelte';
+	import NumberInput from '#lib/components/NumberInput.svelte';
+	import { WaypointTaskTransportAction } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
 
 	type Props = {
 		action: WaypointTaskTransportAction | undefined;

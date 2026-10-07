@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { VictoryCondition } from '$lib/types/Consts';
+	import type { VictoryCondition } from '#lib/types/Consts.js';
 
 	type Props = {
 		conditions: number;

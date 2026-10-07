@@ -1,24 +1,24 @@
 <script lang="ts">
-	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import OtherMapObjectsHere from '$lib/components/game/OtherMapObjectsHere.svelte';
-	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
+	import MineralMini from '#lib/components/game/MineralMini.svelte';
+	import OtherMapObjectsHere from '#lib/components/game/OtherMapObjectsHere.svelte';
+	import WarpSpeedGauge from '#lib/components/game/WarpSpeedGauge.svelte';
 	import type {
 		ChangeWaypointProps,
 		ShowTransportTasksDialogEventProps
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { ReportAgeUnexplored } from '$lib/types/Consts';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { ReportAgeUnexplored } from '#lib/types/Consts.js';
 	import {
 		MapObjectTargetSchema,
 		MapObjectType,
 		WaypointTask,
 		type TransportPlan
-	} from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { emptyTransportTasks, WaypointTasks } from '$lib/types/Fleet';
-	import { owned, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
-	import { getMineralOutput } from '$lib/types/Planet';
-	import { emptyVector } from '$lib/types/Vector';
+	} from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { emptyTransportTasks, WaypointTasks } from '#lib/types/Fleet.js';
+	import { owned, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
+	import { getMineralOutput } from '#lib/types/Planet.js';
+	import { emptyVector } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
 	import { PencilSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

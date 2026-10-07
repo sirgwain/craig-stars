@@ -1,5 +1,5 @@
-import { showTooltip } from '$lib/services/Stores';
-import type { Cost } from '$lib/types/cs-proto';
+import { showTooltip } from '#lib/services/Stores.js';
+import type { Cost } from '#lib/types/cs-proto.js';
 import AllocatedTooltip from './AllocatedTooltip.svelte';
 
 export function onAllocatedTooltip(e: PointerEvent | MouseEvent, cost: Cost | undefined) {

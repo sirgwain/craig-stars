@@ -1,7 +1,7 @@
 <script lang="ts">
-	import FactoriesTooltip from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
-	import MineralTooltip from '$lib/components/game/tooltips/MineralTooltip.svelte';
-	import ResourcesTooltip from '$lib/components/game/tooltips/ResourcesTooltip.svelte';
+	import FactoriesTooltip from '#lib/components/game/tooltips/FactoriesTooltip.svelte';
+	import MineralTooltip from '#lib/components/game/tooltips/MineralTooltip.svelte';
+	import ResourcesTooltip from '#lib/components/game/tooltips/ResourcesTooltip.svelte';
 </script>
 
 <h1 class="text-xl">Mineral Tooltip</h1>

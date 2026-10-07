@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
+	import { clamp } from '#lib/services/Math.js';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

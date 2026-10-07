@@ -29,7 +29,7 @@
 {/each}
 
 <style>
-	.label {
+	.cs-form-label {
 		position: absolute;
 		transform: translate(-100%, -100%) translateY(1px);
 		font-size: 13px;

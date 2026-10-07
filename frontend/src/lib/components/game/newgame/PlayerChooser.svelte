@@ -1,9 +1,9 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { raceClient } from '$lib/services/connect';
-	import type { Race } from '$lib/types/cs-proto';
-	import { humanoid } from '$lib/types/Race';
-	import { loadWasm, type CS } from '$lib/wasm';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import { raceClient } from '#lib/services/connect.js';
+	import type { Race } from '#lib/types/cs-proto.js';
+	import { humanoid } from '#lib/types/Race.js';
+	import { loadWasm, type CS } from '#lib/wasm.js';
 	import { onMount } from 'svelte';
 	import RaceEditor from '../../../../routes/(user)/races/[id]/RaceEditor.svelte';
 	import RacePoints from '../../../../routes/(user)/races/[id]/RacePoints.svelte';

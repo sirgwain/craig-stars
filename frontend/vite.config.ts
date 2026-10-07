@@ -1,5 +1,7 @@
 /// <reference types="vitest/config" />
 
+import adapter from '@sveltejs/adapter-static';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { playwright } from '@vitest/browser-playwright';
@@ -12,7 +14,14 @@ const json = readFileSync(file, 'utf8');
 const pkg = JSON.parse(json);
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [
+		tailwindcss(),
+		sveltekit({
+			preprocess: vitePreprocess(),
+			adapter: adapter({ fallback: 'index.html' }),
+			prerender: { entries: [] }
+		})
+	],
 	test: {
 		reporters: ['junit', process.env.CI ? 'github-actions' : 'default'],
 		outputFile: '../tmp/test-results/vitest-report.xml',

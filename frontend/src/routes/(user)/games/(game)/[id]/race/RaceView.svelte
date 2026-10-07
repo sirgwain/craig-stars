@@ -1,13 +1,13 @@
 <script lang="ts">
-	import HabChance from '$lib/components/game/race/HabChance.svelte';
-	import LRTsDescriptions from '$lib/components/game/race/LRTsDescriptions.svelte';
-	import PRTDescription from '$lib/components/game/race/PRTDescription.svelte';
-	import Population from '$lib/components/icons/Population.svelte';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import type { Race, RaceSpec } from '$lib/types/cs-proto';
-	import { Grav, Rad, Temp } from '$lib/types/Hab';
-	import { getLabelForPRT } from '$lib/types/Race';
-	import type { WasmClient } from '$lib/wasm';
+	import HabChance from '#lib/components/game/race/HabChance.svelte';
+	import LRTsDescriptions from '#lib/components/game/race/LRTsDescriptions.svelte';
+	import PRTDescription from '#lib/components/game/race/PRTDescription.svelte';
+	import Population from '#lib/components/icons/Population.svelte';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import type { Race, RaceSpec } from '#lib/types/cs-proto.js';
+	import { Grav, Rad, Temp } from '#lib/types/Hab.js';
+	import { getLabelForPRT } from '#lib/types/Race.js';
+	import type { WasmClient } from '#lib/wasm.js';
 	import HabBar from './HabBar.svelte';
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';

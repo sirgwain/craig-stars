@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Race } from '$lib/types/cs-proto';
-	import type { WasmClient } from '$lib/wasm';
+	import type { Race } from '#lib/types/cs-proto.js';
+	import type { WasmClient } from '#lib/wasm.js';
 	import { User } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

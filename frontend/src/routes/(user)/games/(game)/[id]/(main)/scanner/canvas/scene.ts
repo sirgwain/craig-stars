@@ -2,9 +2,9 @@
  * Scene builders turn the universe into flat lists of things to draw. These only rebuild when
  * the universe, settings or commanded objects change, not on every pan/zoom frame.
  */
-import type { Universe } from '$lib/services/Universe';
-import { population } from '$lib/types/Cargo';
-import { NoScanner, None, ReportAgeUnexplored } from '$lib/types/Consts';
+import type { Universe } from '#lib/services/Universe.js';
+import { population } from '#lib/types/Cargo.js';
+import { NoScanner, None, ReportAgeUnexplored } from '#lib/types/Consts.js';
 import {
 	MapObjectTargetSchema,
 	MapObjectType,
@@ -13,15 +13,21 @@ import {
 	type Minefield,
 	type Planet,
 	type Waypoint
-} from '$lib/types/cs-proto';
-import type { CommandedFleet } from '$lib/types/Fleet';
-import { filterFleet } from '$lib/types/Filter';
-import { equal, owned, positionKey, type MapObjectLike, type Position } from '$lib/types/MapObject';
-import type { CommandedPlanet } from '$lib/types/Planet';
-import type { CommandedPlayer } from '$lib/types/Player';
-import { PlanetViewState, type PlayerSettings } from '$lib/types/PlayerSettings';
-import { emptyVector } from '$lib/types/Vector';
-import { getDisplayColor } from '$lib/utils/colorUtils';
+} from '#lib/types/cs-proto.js';
+import type { CommandedFleet } from '#lib/types/Fleet.js';
+import { filterFleet } from '#lib/types/Filter.js';
+import {
+	equal,
+	owned,
+	positionKey,
+	type MapObjectLike,
+	type Position
+} from '#lib/types/MapObject.js';
+import type { CommandedPlanet } from '#lib/types/Planet.js';
+import type { CommandedPlayer } from '#lib/types/Player.js';
+import { PlanetViewState, type PlayerSettings } from '#lib/types/PlayerSettings.js';
+import { emptyVector } from '#lib/types/Vector.js';
+import { getDisplayColor } from '#lib/utils/colorUtils.js';
 import { create } from '@bufbuild/protobuf';
 import { getEnemiesAndFriends } from '../Scanner';
 import type { ScannerColors } from './colors';

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { equal, getMapObjectName, type MapObjectLike } from '$lib/types/MapObject';
-	import { distance, emptyVector } from '$lib/types/Vector';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { equal, getMapObjectName, type MapObjectLike } from '#lib/types/MapObject.js';
+	import { distance, emptyVector } from '#lib/types/Vector.js';
 
 	const { highlightedMapObject, selectedMapObject, commandedMapObject } = getGameContext();
 

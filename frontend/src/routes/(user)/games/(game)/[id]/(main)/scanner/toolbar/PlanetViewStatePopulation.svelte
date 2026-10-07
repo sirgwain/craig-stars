@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Population from '$lib/components/icons/Population.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { PlanetViewState } from '$lib/types/PlayerSettings';
+	import Population from '#lib/components/icons/Population.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { PlanetViewState } from '#lib/types/PlayerSettings.js';
 
 	const { settings } = getGameContext();
 </script>

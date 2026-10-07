@@ -1,11 +1,11 @@
 <script lang="ts">
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table from '$lib/components/table/Table.svelte';
-	import type { TableColumn } from '$lib/components/table/Table';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { PlayerMessageType, type PlayerMessage } from '$lib/types/cs-proto';
-	import { getMapObjectTarget } from '$lib/types/Message';
+	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
+	import Table from '#lib/components/table/Table.svelte';
+	import type { TableColumn } from '#lib/components/table/Table.js';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { PlayerMessageType, type PlayerMessage } from '#lib/types/cs-proto.js';
+	import { getMapObjectTarget } from '#lib/types/Message.js';
 	import MessageDetail from './MessageDetail.svelte';
 
 	const { game, player, universe, settings, gotoTarget } = getGameContext();

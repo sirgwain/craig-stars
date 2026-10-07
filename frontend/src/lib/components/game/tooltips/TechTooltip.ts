@@ -1,5 +1,5 @@
-import { showTooltip } from '$lib/services/Stores';
-import type { TechLike } from '$lib/types/Tech';
+import { showTooltip } from '#lib/services/Stores.js';
+import type { TechLike } from '#lib/types/Tech.js';
 import TechTooltip from './TechTooltip.svelte';
 
 export function onTechTooltip(

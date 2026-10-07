@@ -2,7 +2,7 @@ import { page } from '@vitest/browser/context';
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import CargoBar from './CargoBar.svelte';
-import { CargoSchema } from '$lib/types/cs-proto';
+import { CargoSchema } from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 
 describe('CargoBar', () => {

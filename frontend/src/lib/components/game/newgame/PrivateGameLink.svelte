@@ -1,6 +1,6 @@
 <script lang="ts">
-	import InfoToast from '$lib/components/InfoToast.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import InfoToast from '#lib/components/InfoToast.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import { Square2Stack } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

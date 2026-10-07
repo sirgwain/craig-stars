@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { ResearchCostLevel, TechField } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
+	import { ResearchCostLevel, TechField } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
 
 	type Props = {
 		field: TechField;

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { NextPrevMapObjectProps, RenameFleetProps } from '$lib/services/Events';
+	import type { NextPrevMapObjectProps, RenameFleetProps } from '#lib/services/Events.js';
 
-	import { getGameContext } from '$lib/services/GameContext';
-	import { getHullIcon } from '$lib/techicon';
-	import type { ShipDesign } from '$lib/types/cs-proto';
-	import type { CommandedFleet } from '$lib/types/Fleet';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { getHullIcon } from '#lib/techicon.js';
+	import type { ShipDesign } from '#lib/types/cs-proto.js';
+	import type { CommandedFleet } from '#lib/types/Fleet.js';
 	import CommandTile from './CommandTile.svelte';
 
 	const { universe } = getGameContext();

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { type HabType, Grav, Temp, Rad } from '$lib/types/Hab';
-	import { clamp } from '$lib/services/Math';
+	import { type HabType, Grav, Temp, Rad } from '#lib/types/Hab.js';
+	import { clamp } from '#lib/services/Math.js';
 
 	type Props = {
 		habType: HabType;

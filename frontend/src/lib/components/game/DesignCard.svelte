@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { techs } from '$lib/services/Stores';
-	import { None } from '$lib/types/Consts';
+	import { techs } from '#lib/services/Stores.js';
+	import { None } from '#lib/types/Consts.js';
 	import { QuestionMarkCircle, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import TechAvatar from '../tech/TechAvatar.svelte';
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip';
-	import type { ShipDesign } from '$lib/types/cs-proto';
+	import type { ShipDesign } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		design: ShipDesign;

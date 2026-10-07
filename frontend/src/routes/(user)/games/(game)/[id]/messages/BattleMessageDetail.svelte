@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { getBattleRecordDetails } from '$lib/types/Battle';
-	import { PlayerMessageType, type PlayerMessage } from '$lib/types/cs-proto';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { getBattleRecordDetails } from '#lib/types/Battle.js';
+	import { PlayerMessageType, type PlayerMessage } from '#lib/types/cs-proto.js';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { player, universe } = getGameContext();

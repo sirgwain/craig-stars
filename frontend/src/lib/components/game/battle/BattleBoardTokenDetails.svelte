@@ -1,22 +1,22 @@
 <script lang="ts">
-	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { designFinderKey, getGameContext, playerFinderKey } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
-	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
-	import type { Battle, PhaseToken } from '$lib/types/Battle';
-	import { enumToString } from '$lib/types/Enums';
+	import TechAvatar from '#lib/components/tech/TechAvatar.svelte';
+	import { designFinderKey, getGameContext, playerFinderKey } from '#lib/services/GameContext.js';
+	import { techs } from '#lib/services/Stores.js';
+	import type { DesignFinder, PlayerFinder } from '#lib/services/Universe.js';
+	import type { Battle, PhaseToken } from '#lib/types/Battle.js';
+	import { enumToString } from '#lib/types/Enums.js';
 	import {
 		BattleTactic,
 		BattleTacticSchema,
 		BattleTarget,
 		BattleTargetSchema
-	} from '$lib/types/cs-proto';
+	} from '#lib/types/cs-proto.js';
 	import { enumFromJson } from '@bufbuild/protobuf';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { getContext } from 'svelte';
 	import { onShipDesignTooltip } from '../tooltips/ShipDesignTooltip';
-	import { getDisplayColor } from '$lib/utils/colorUtils';
+	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 	import BattleSpeed from '../BattleSpeed.svelte';
 
 	const { player, universe, settings } = getGameContext();

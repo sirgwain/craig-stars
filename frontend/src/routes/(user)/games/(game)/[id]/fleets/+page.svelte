@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table from '$lib/components/table/Table.svelte';
-	import type { TableColumn } from '$lib/components/table/Table';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { type Fleet } from '$lib/types/cs-proto';
-	import { filterFleet } from '$lib/types/Filter';
-	import { fleetsSortBy, getDestination, getEta, getLocation, getTask } from '$lib/types/Fleet';
-	import { getMapObjectName } from '$lib/types/MapObject';
+	import CargoBar from '#lib/components/game/CargoBar.svelte';
+	import FuelBar from '#lib/components/game/FuelBar.svelte';
+	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
+	import Table from '#lib/components/table/Table.svelte';
+	import type { TableColumn } from '#lib/components/table/Table.js';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { type Fleet } from '#lib/types/cs-proto.js';
+	import { filterFleet } from '#lib/types/Filter.js';
+	import { fleetsSortBy, getDestination, getEta, getLocation, getTask } from '#lib/types/Fleet.js';
+	import { getMapObjectName } from '#lib/types/MapObject.js';
 
 	const {
 		game,

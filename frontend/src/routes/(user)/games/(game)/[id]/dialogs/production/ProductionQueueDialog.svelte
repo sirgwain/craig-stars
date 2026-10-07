@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { OnCancel, OnOk } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import type { CommandedPlanet } from '$lib/types/Planet';
+	import type { OnCancel, OnOk } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import type { CommandedPlanet } from '#lib/types/Planet.js';
 	import ProductionQueue from './ProductionQueue.svelte';
 
 	const { commandedPlanet } = getGameContext();

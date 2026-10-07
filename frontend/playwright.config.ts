@@ -7,6 +7,9 @@ const port = 4173;
 // const port = 5173;
 
 export default defineConfig({
+	// Resolve #lib imports in shared application code through Playwright's TS loader.
+	tsconfig: './e2e/tsconfig.json',
+
 	// Global setup to authenticate once
 	globalSetup: './e2e/global.setup.ts',
 

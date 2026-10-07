@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Cost from '$lib/components/game/Cost.svelte';
-	import Hull from '$lib/components/game/design/Hull.svelte';
-	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { techs } from '$lib/services/Stores';
-	import { total } from '$lib/types/Cost';
-	import type { ShipDesign } from '$lib/types/cs-proto';
+	import Cost from '#lib/components/game/Cost.svelte';
+	import Hull from '#lib/components/game/design/Hull.svelte';
+	import TechAvatar from '#lib/components/tech/TechAvatar.svelte';
+	import { techs } from '#lib/services/Stores.js';
+	import { total } from '#lib/types/Cost.js';
+	import type { ShipDesign } from '#lib/types/cs-proto.js';
 	import DesignStats from '../DesignStats.svelte';
 
 	type Props = {

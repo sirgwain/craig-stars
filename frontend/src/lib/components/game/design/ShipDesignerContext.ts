@@ -1,5 +1,5 @@
-import type { ShipDesignSlotJson as ShipDesignSlot } from '$lib/types/cs-proto';
-import type { TechHullComponent, TechHullSlot } from '$lib/types/cs-proto';
+import type { ShipDesignSlotJson as ShipDesignSlot } from '#lib/types/cs-proto.js';
+import type { TechHullComponent, TechHullSlot } from '#lib/types/cs-proto.js';
 import { writable } from 'svelte/store';
 
 export type ShipDesignerContext = {

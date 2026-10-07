@@ -1,12 +1,12 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import HabChance from '$lib/components/game/race/HabChance.svelte';
-	import LRTsDescriptions from '$lib/components/game/race/LRTsDescriptions.svelte';
-	import PRTDescription from '$lib/components/game/race/PRTDescription.svelte';
-	import Population from '$lib/components/icons/Population.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { getLabelForPRT } from '$lib/types/Race';
-	import { Grav, Rad, Temp } from '$lib/types/Hab';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import HabChance from '#lib/components/game/race/HabChance.svelte';
+	import LRTsDescriptions from '#lib/components/game/race/LRTsDescriptions.svelte';
+	import PRTDescription from '#lib/components/game/race/PRTDescription.svelte';
+	import Population from '#lib/components/icons/Population.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { getLabelForPRT } from '#lib/types/Race.js';
+	import { Grav, Rad, Temp } from '#lib/types/Hab.js';
 	import HabBar from './HabBar.svelte';
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';

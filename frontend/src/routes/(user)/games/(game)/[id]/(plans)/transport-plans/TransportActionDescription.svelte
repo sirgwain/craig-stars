@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { WaypointTaskTransportAction } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
+	import { WaypointTaskTransportAction } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
 	import TransportActionIcon from './TransportActionIcon.svelte';
 
 	type Props = {

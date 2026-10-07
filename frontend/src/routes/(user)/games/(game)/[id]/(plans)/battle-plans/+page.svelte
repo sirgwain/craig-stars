@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { addError } from '$lib/services/Errors';
-	import { getGameContext } from '$lib/services/GameContext';
-	import type { BattlePlan } from '$lib/types/cs-proto';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import { addError } from '#lib/services/Errors.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import type { BattlePlan } from '#lib/types/cs-proto.js';
 	import type { ConnectError } from '@connectrpc/connect';
 	import BattlePlanCard from './BattlePlanCard.svelte';
 

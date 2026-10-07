@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { clickOutside } from '$lib/clickOutside';
-	import DisclosureHeader from '$lib/components/DisclosureHeader.svelte';
+	import { clickOutside } from '#lib/clickOutside.js';
+	import DisclosureHeader from '#lib/components/DisclosureHeader.svelte';
 	import type {
 		BattlePlanChangedProps,
 		ChangeMassDriverSpeedProps,
@@ -16,10 +16,10 @@
 		ShowSplitFleetDialogProps,
 		ShowTransportTasksDialogEventProps,
 		SplitAllProps
-	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { commandable, equalsTarget, getMapObjectName } from '$lib/types/MapObject';
-	import { distance, emptyVector, equal as equalPosition } from '$lib/types/Vector';
+	} from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { commandable, equalsTarget, getMapObjectName } from '#lib/types/MapObject.js';
+	import { distance, emptyVector, equal as equalPosition } from '#lib/types/Vector.js';
 	import { slide } from 'svelte/transition';
 	import MapObjectSummary from '../MapObjectSummary.svelte';
 	import MapObjectSummaryCollapsed from '../MapObjectSummaryMini.svelte';
@@ -36,7 +36,7 @@
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
-	import { MapObjectType } from '$lib/types/cs-proto';
+	import { MapObjectType } from '#lib/types/cs-proto.js';
 
 	const {
 		player,

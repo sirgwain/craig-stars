@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
-	import { type Battle } from '$lib/types/Battle';
-	import { BattleRecordTokenActionType } from '$lib/types/cs-proto';
+	import { clamp } from '#lib/services/Math.js';
+	import { type Battle } from '#lib/types/Battle.js';
+	import { BattleRecordTokenActionType } from '#lib/types/cs-proto.js';
 	import {
 		ArrowLongLeft,
 		ArrowLongRight,

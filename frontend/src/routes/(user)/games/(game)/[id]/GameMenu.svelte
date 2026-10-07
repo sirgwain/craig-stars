@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import DarkModeToggler from '$lib/components/DarkModeToggler.svelte';
-	import UserAvatar from '$lib/components/UserAvatar.svelte';
-	import { GameState } from '$lib/types/cs-proto';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { me } from '$lib/services/Stores';
+	import { page } from '$app/state';
+	import DarkModeToggler from '#lib/components/DarkModeToggler.svelte';
+	import UserAvatar from '#lib/components/UserAvatar.svelte';
+	import { GameState } from '#lib/types/cs-proto.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { me } from '#lib/services/Stores.js';
 	import { ArrowUpTray, Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
@@ -38,13 +38,11 @@
 		</div>
 	</div>
 	<div class="flex-initial">
-		{#if $page.url.pathname === `/games/${$game.id}` && !$player.submittedTurn && $game.state === GameState.WAITING_FOR_PLAYERS}
-			<button type="button" onclick={onSubmitTurn} class="btn btn-primary" title="submit turn"
-				><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
-					src={ArrowUpTray}
-					size="16"
-				/></button
-			>
+		{#if page.url.pathname === `/games/${$game.id}` && !$player.submittedTurn && $game.state === GameState.WAITING_FOR_PLAYERS}
+			<button type="button" onclick={onSubmitTurn} class="btn btn-primary" title="submit turn">
+				<span class="hidden md:inline-block mr-1">Submit Turn</span>
+				<Icon src={ArrowUpTray} size="16" />
+			</button>
 		{/if}
 
 		{#if !$player.submittedTurn}
@@ -136,21 +134,19 @@
 						{/if}
 					</ul>
 					<ul>
-						<li>
-							<DarkModeToggler />
-						</li>
-						<li class="md:hidden menu-title">
-							<span>Game</span>
-						</li>
+						<li><DarkModeToggler /></li>
+						<li class="md:hidden menu-title"><span>Game</span></li>
+
 						<li>
 							<a href={`/games/${$game.id}/race`} class="justify-between">Race</a>
 						</li>
+
 						<li>
 							<a href={`/games/${$game.id}/techs`} class="justify-between">Techs</a>
 						</li>
-						<li>
-							<a href="/settings" class="justify-between">Settings</a>
-						</li>
+
+						<li><a href="/settings" class="justify-between">Settings</a></li>
+
 						{#if $me.isAdmin()}
 							<li><div class="divider"></div></li>
 							<li>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { NextPrevMapObjectProps } from '$lib/services/Events';
-	import type { CommandedPlanet } from '$lib/types/Planet';
+	import type { NextPrevMapObjectProps } from '#lib/services/Events.js';
+	import type { CommandedPlanet } from '#lib/types/Planet.js';
 	import CommandTile from './CommandTile.svelte';
 
 	type Props = {

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import MineralTooltip, {
 		type MineralTooltipProps
-	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
-	import { showTooltip } from '$lib/services/Stores';
-	import type { MineralJson, Planet } from '$lib/types/cs-proto';
+	} from '#lib/components/game/tooltips/MineralTooltip.svelte';
+	import { showTooltip } from '#lib/services/Stores.js';
+	import type { MineralJson, Planet } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		mineral: MineralJson | undefined;

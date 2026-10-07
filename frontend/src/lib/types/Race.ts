@@ -4,7 +4,7 @@ import {
 	ResearchCostLevel,
 	SpendLeftoverPointsOn,
 	type Race
-} from '$lib/types/cs-proto';
+} from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 import { Grav, Rad, Temp, type HabType } from './Hab';
 

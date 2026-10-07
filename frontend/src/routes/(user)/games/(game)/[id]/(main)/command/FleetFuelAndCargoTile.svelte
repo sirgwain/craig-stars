@@ -1,9 +1,9 @@
 <script lang="ts">
-	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { canTransferCargo, type CommandedFleet } from '$lib/types/Fleet';
+	import CargoBar from '#lib/components/game/CargoBar.svelte';
+	import FuelBar from '#lib/components/game/FuelBar.svelte';
+	import type { ShowCargoTransferDialogProps } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { canTransferCargo, type CommandedFleet } from '#lib/types/Fleet.js';
 	import CommandTile from './CommandTile.svelte';
 
 	const { universe } = getGameContext();

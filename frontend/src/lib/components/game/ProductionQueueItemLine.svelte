@@ -2,16 +2,16 @@
 	import {
 		QueueItemCompletionEstimateSchema,
 		type ProductionQueueItem
-	} from '$lib/protogen/craig_stars/v1/planet_pb';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { Infinite } from '$lib/types/Consts';
+	} from '#lib/protogen/craig_stars/v1/planet_pb.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { Infinite } from '#lib/types/Consts.js';
 	import {
 		getAutoAlchemyDescription,
 		getFullName,
 		getShortName,
 		hasQuantity,
 		isAuto
-	} from '$lib/types/QueueItemType';
+	} from '#lib/types/QueueItemType.js';
 	import { create } from '@bufbuild/protobuf';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip';
 

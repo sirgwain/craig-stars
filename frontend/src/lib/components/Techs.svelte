@@ -1,18 +1,18 @@
 <script lang="ts">
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { techClient } from '$lib/services/connect';
-	import techjson from '$lib/ssr/techs.json';
+	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
+	import TechSummary from '#lib/components/tech/TechSummary.svelte';
+	import { techClient } from '#lib/services/connect.js';
+	import techjson from '#lib/ssr/techs.json';
 	import {
 		GetTechsResponseSchema,
 		TechCategory,
 		type GetTechsResponseJson
-	} from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { CommandedPlayer, canLearnTech } from '$lib/types/Player';
-	import { TechCategories, type TechLike } from '$lib/types/Tech';
-	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
-	import type { CS } from '$lib/wasm';
+	} from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { CommandedPlayer, canLearnTech } from '#lib/types/Player.js';
+	import { TechCategories, type TechLike } from '#lib/types/Tech.js';
+	import { hasRequiredLevels, levelsAbove } from '#lib/types/TechLevel.js';
+	import type { CS } from '#lib/wasm.js';
 	import { fromJson } from '@bufbuild/protobuf';
 	import { kebabCase, sortBy } from 'lodash-es';
 	import { onMount } from 'svelte';

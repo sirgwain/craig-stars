@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cargoPercent, emptyCargo, totalCargo } from '$lib/types/Cargo';
-	import type { Cargo } from '$lib/types/cs-proto';
+	import { cargoPercent, emptyCargo, totalCargo } from '#lib/types/Cargo.js';
+	import type { Cargo } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		value: Cargo | undefined;

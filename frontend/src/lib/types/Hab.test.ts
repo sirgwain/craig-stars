@@ -1,4 +1,4 @@
-import { TerraformHabType } from '$lib/types/cs-proto';
+import { TerraformHabType } from '#lib/types/cs-proto.js';
 import { describe, it, expect } from 'vitest';
 import { getGravString, getTempString, getTerraformHabValueString } from './Hab';
 

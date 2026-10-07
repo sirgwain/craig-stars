@@ -1,4 +1,4 @@
-import { MapObjectType, PlayerMessageTargetType, type PlayerMessage } from '$lib/types/cs-proto';
+import { MapObjectType, PlayerMessageTargetType, type PlayerMessage } from '#lib/types/cs-proto.js';
 import type { MapObjectTargetLike } from './MapObject';
 import type { PlayerSettings } from './PlayerSettings';
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { GameState } from '$lib/types/cs-proto';
-	import { getGameContext } from '$lib/services/GameContext';
+	import { GameState } from '#lib/types/cs-proto.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import Game from './Game.svelte';
 	import GameSetup from './GameSetup.svelte';
 	import WaitingForPlayers from './WaitingForPlayers.svelte';

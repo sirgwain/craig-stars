@@ -1,5 +1,5 @@
-import { showTooltip } from '$lib/services/Stores';
-import type { ShipDesign } from '$lib/types/cs-proto';
+import { showTooltip } from '#lib/services/Stores.js';
+import type { ShipDesign } from '#lib/types/cs-proto.js';
 import ShipDesignTooltip from './ShipDesignTooltip.svelte';
 
 export function onShipDesignTooltip(e: PointerEvent | MouseEvent, design: ShipDesign | undefined) {

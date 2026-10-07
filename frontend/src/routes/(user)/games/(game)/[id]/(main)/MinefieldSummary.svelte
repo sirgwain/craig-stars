@@ -1,12 +1,12 @@
 <script lang="ts">
 	import TextTooltip, {
 		type TextTooltipProps
-	} from '$lib/components/game/tooltips/TextTooltip.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip } from '$lib/services/Stores';
-	import { type Minefield, type MinefieldSpec, MinefieldType } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { ownedBy } from '$lib/types/MapObject';
+	} from '#lib/components/game/tooltips/TextTooltip.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { showTooltip } from '#lib/services/Stores.js';
+	import { type Minefield, type MinefieldSpec, MinefieldType } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { ownedBy } from '#lib/types/MapObject.js';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import type { ChangeEventHandler } from 'svelte/elements';

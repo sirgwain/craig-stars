@@ -1,10 +1,10 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import GameCard from '$lib/components/game/GameCard.svelte';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import GameCard from '#lib/components/game/GameCard.svelte';
 	import type { Snippet } from 'svelte';
 	import PlayersStatus from './players/PlayersStatus.svelte';
-	import type { GameWithPlayers } from '$lib/types/cs-proto';
-	import { getGameWithPlayersFlat } from '$lib/types/Game';
+	import type { GameWithPlayers } from '#lib/types/cs-proto.js';
+	import { getGameWithPlayersFlat } from '#lib/types/Game.js';
 
 	type Props = {
 		game: GameWithPlayers;

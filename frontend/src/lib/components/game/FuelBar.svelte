@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getXFromPointerEvent } from '$lib/services/Events';
-	import { clamp } from '$lib/services/Math';
+	import { getXFromPointerEvent } from '#lib/services/Events.js';
+	import { clamp } from '#lib/services/Math.js';
 
 	type Props = {
 		value: number;

@@ -3,18 +3,18 @@
  * to a pixel-snapped anchor and its icon, name, fleet count and selection arrow are drawn at
  * fixed pixel offsets from that anchor, like the original Stars! scanner.
  */
-import type { Universe } from '$lib/services/Universe';
-import { StargateWarpSpeed } from '$lib/types/Consts';
-import { MapObjectType, type Fleet, type Minefield, type Waypoint } from '$lib/types/cs-proto';
+import type { Universe } from '#lib/services/Universe.js';
+import { StargateWarpSpeed } from '#lib/types/Consts.js';
+import { MapObjectType, type Fleet, type Minefield, type Waypoint } from '#lib/types/cs-proto.js';
 import {
 	equal,
 	type MapObjectLike,
 	type MovingMapObject,
 	type Position
-} from '$lib/types/MapObject';
-import type { CommandedPlayer } from '$lib/types/Player';
-import type { PlayerSettings } from '$lib/types/PlayerSettings';
-import { getDisplayColor, getStrokeColor } from '$lib/utils/colorUtils';
+} from '#lib/types/MapObject.js';
+import type { CommandedPlayer } from '#lib/types/Player.js';
+import type { PlayerSettings } from '#lib/types/PlayerSettings.js';
+import { getDisplayColor, getStrokeColor } from '#lib/utils/colorUtils.js';
 import {
 	headingAngle,
 	mineralBarMax,

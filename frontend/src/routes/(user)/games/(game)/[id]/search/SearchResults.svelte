@@ -1,11 +1,17 @@
 <script lang="ts">
-	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import type { OnCancel, OnOk } from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { population } from '$lib/types/Cargo';
-	import { None, ReportAgeUnexplored } from '$lib/types/Consts';
-	import type { Fleet, MysteryTrader, Planet } from '$lib/types/cs-proto';
-	import { getMapObjectName, key, owned, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
+	import MineralMini from '#lib/components/game/MineralMini.svelte';
+	import type { OnCancel, OnOk } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
+	import { population } from '#lib/types/Cargo.js';
+	import { None, ReportAgeUnexplored } from '#lib/types/Consts.js';
+	import type { Fleet, MysteryTrader, Planet } from '#lib/types/cs-proto.js';
+	import {
+		getMapObjectName,
+		key,
+		owned,
+		ownedBy,
+		type MapObjectLike
+	} from '#lib/types/MapObject.js';
 	import { onMount } from 'svelte';
 
 	const { player, universe, settings } = getGameContext();

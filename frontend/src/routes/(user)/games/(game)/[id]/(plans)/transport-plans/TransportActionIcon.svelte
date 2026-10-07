@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { WaypointTaskTransportAction } from '$lib/types/cs-proto';
-	import { enumToString } from '$lib/types/Enums';
-	import { isLoadAction, isUnloadAction } from '$lib/types/Fleet';
+	import { WaypointTaskTransportAction } from '#lib/types/cs-proto.js';
+	import { enumToString } from '#lib/types/Enums.js';
+	import { isLoadAction, isUnloadAction } from '#lib/types/Fleet.js';
 	import { ArrowDown, ArrowUp, ArrowsUpDown, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

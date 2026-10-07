@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Prt, type Race, ResearchCostSchema, TechField } from '$lib/types/cs-proto';
+	import { Prt, type Race, ResearchCostSchema, TechField } from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
 	import ResearchCostField from './ResearchCostField.svelte';
 

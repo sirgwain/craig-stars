@@ -1,7 +1,7 @@
 <script module lang="ts">
-	import type { HabType } from '$lib/types/Hab';
-	import type { CommandedPlayer } from '$lib/types/Player';
-	import type { Planet } from '$lib/types/cs-proto';
+	import type { HabType } from '#lib/types/Hab.js';
+	import type { CommandedPlayer } from '#lib/types/Player.js';
+	import type { Planet } from '#lib/types/cs-proto.js';
 
 	export type HabTooltipProps = {
 		player: CommandedPlayer;
@@ -11,7 +11,7 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import {
 		add,
 		emptyHab,
@@ -19,8 +19,8 @@
 		getHabValueString,
 		habTypeString,
 		withHabValue
-	} from '$lib/types/Hab';
-	import { isImmune } from '$lib/types/Race';
+	} from '#lib/types/Hab.js';
+	import { isImmune } from '#lib/types/Race.js';
 
 	const { cs } = getGameContext();
 	let { player, planet, habType }: HabTooltipProps = $props();

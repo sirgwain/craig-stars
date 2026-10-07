@@ -1,11 +1,11 @@
 <script lang="ts">
-	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import LRTsDescriptions from '$lib/components/game/race/LRTsDescriptions.svelte';
-	import PRTDescription from '$lib/components/game/race/PRTDescription.svelte';
-	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import TextInput from '$lib/components/TextInput.svelte';
-	import { Prt, type Race, SpendLeftoverPointsOn } from '$lib/types/cs-proto';
-	import { getLabelForPRT } from '$lib/types/Race';
+	import EnumSelect from '#lib/components/EnumSelect.svelte';
+	import LRTsDescriptions from '#lib/components/game/race/LRTsDescriptions.svelte';
+	import PRTDescription from '#lib/components/game/race/PRTDescription.svelte';
+	import SectionHeader from '#lib/components/SectionHeader.svelte';
+	import TextInput from '#lib/components/TextInput.svelte';
+	import { Prt, type Race, SpendLeftoverPointsOn } from '#lib/types/cs-proto.js';
+	import { getLabelForPRT } from '#lib/types/Race.js';
 
 	import Habitability from './Habitability.svelte';
 	import LRTs from './LRTs.svelte';

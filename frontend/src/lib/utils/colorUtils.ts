@@ -1,6 +1,6 @@
-import type { CommandedPlayer } from '$lib/types/Player';
-import type { PlayerSettings } from '$lib/types/PlayerSettings';
-import type { Universe } from '$lib/services/Universe';
+import type { CommandedPlayer } from '#lib/types/Player.js';
+import type { PlayerSettings } from '#lib/types/PlayerSettings.js';
+import type { Universe } from '#lib/services/Universe.js';
 
 /**
  * Gets the display color for a map object based on player relationship and settings

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Planet } from '$lib/types/cs-proto';
+	import type { Planet } from '#lib/types/cs-proto.js';
 
 	type Props = {
 		planet: Planet;

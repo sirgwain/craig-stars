@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import Designs from '../Designs.svelte';
 
 	const { game, universe } = getGameContext();

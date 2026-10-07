@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
+	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import { startCase } from 'lodash-es';
 	import PlayerScores from './PlayerScores.svelte';
 	import PlayerScoresGraph, { type ValueType } from './PlayerScoresGraph.svelte';

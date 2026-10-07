@@ -1,4 +1,4 @@
-import { TechField, TechLevelSchema, type TechLevel } from '$lib/types/cs-proto';
+import { TechField, TechLevelSchema, type TechLevel } from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 
 export const emptyTechLevel = (): TechLevel =>

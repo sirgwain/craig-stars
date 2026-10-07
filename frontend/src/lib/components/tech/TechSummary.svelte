@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { CommandedPlayer } from '$lib/types/Player';
-	import { isHullComponent, type TechLike } from '$lib/types/Tech';
+	import type { CommandedPlayer } from '#lib/types/Player.js';
+	import { isHullComponent, type TechLike } from '#lib/types/Tech.js';
 	import Cost from '../game/Cost.svelte';
 	import TechDescription from './TechDescription.svelte';
 	import TechEngineGraph from './TechEngineGraph.svelte';
@@ -12,9 +12,9 @@
 		type TechDefense,
 		type TechHull,
 		type TechHullComponent
-	} from '$lib/types/cs-proto';
-	import { levelsAbove } from '$lib/types/TechLevel';
-	import type { CS } from '$lib/wasm';
+	} from '#lib/types/cs-proto.js';
+	import { levelsAbove } from '#lib/types/TechLevel.js';
+	import type { CS } from '#lib/wasm.js';
 	import { kebabCase } from 'lodash-es';
 	import TechAvatar from './TechAvatar.svelte';
 	import TechDefenseGraph from './TechDefenseGraph.svelte';
