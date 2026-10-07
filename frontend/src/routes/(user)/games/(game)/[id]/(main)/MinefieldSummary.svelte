@@ -36,6 +36,12 @@
 		});
 	}
 
+	function onDetonateTooltip(e: PointerEvent) {
+		showTooltip<TextTooltipProps>(e.x, e.y, TextTooltip, {
+			text: 'Significantly increases minefield decay rate, but ALL ships in the field (friendly or enemy) will take damage each turn as though they hit a mine. Friendly mine layer ships are unaffected.'
+		});
+	}
+
 	// update the minefield to detonate on the server
 	const minefieldDetonateChecked: ChangeEventHandler<HTMLInputElement> = async (e) => {
 		if (minefield.minefieldOrders) {
@@ -144,6 +150,17 @@
 							type="checkbox"
 						/> Detonate
 					</label>
+					<span
+						role="button"
+						tabindex={0}
+						aria-label="Show minefield detonate details"
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help ml-1"
+						onpointerdown={(e) => onDetonateTooltip(e)}
+					>
+						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
+					</span>
 				</div>
 			{/if}
 		{/if}
