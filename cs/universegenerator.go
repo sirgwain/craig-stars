@@ -44,6 +44,9 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 
 	var err error
 	for _, player := range ug.Players {
+		if player.Relations == nil {
+			player.Relations = player.defaultRelationships(ug.Players, ug.ComputerPlayersFormAlliances)
+		}
 		player.Race.Spec = ComputeRaceSpec(&player.Race, &ug.Rules)
 		player.discoverer = newDiscovererWithAllies(ug.log, player, ug.Players)
 	}
@@ -56,7 +59,6 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 	ug.area = area
 
 	ug.generatePlayerPlans()
-	ug.generatePlayerRelations()
 
 	if err := ug.generatePlayerPlanetReports(); err != nil {
 		return err
@@ -80,6 +82,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 
 			if planet.Starbase != nil {
 				planet.Starbase.InjectDesigns(player.Designs)
+				planet.Starbase.Spec = ComputeFleetSpec(&ug.Rules, player, planet.Starbase)
 			}
 			planet.Spec = ComputePlanetSpec(&ug.Rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
@@ -637,7 +640,7 @@ func (ug *universeGenerator) generatePlanets() error {
 		slog.Int("areaX", ug.area.X),
 		slog.Int("areaY", ug.area.Y))
 
-	names := planetNames
+	names := slices.Clone(planetNames)
 	rules := &ug.Rules
 	rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
 
@@ -722,8 +725,8 @@ func (ug *universeGenerator) generateWormholes() error {
 }
 
 func (ug *universeGenerator) generateAIPlayers() {
-	names := AINames
-	cheaterNames := AICheaterNames
+	names := slices.Clone(AINames)
+	cheaterNames := slices.Clone(AICheaterNames)
 	ug.Rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
 	ug.Rules.random.Shuffle(len(cheaterNames), func(i, j int) { cheaterNames[i], cheaterNames[j] = cheaterNames[j], cheaterNames[i] })
 	for index, player := range ug.Players {

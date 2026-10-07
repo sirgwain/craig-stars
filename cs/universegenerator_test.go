@@ -12,7 +12,7 @@ import (
 func TestGenerateUniverse(t *testing.T) {
 	t.Run("Medium Packed", func(t *testing.T) {
 		client := NewGamer()
-		game := client.CreateGame(1, *NewGameSettings())
+		game := newSeededGame(*NewGameSettings())
 		game.Size = SizeMedium
 		game.Density = DensityPacked
 		game.GalaxyClumping = true
@@ -41,7 +41,7 @@ func TestGenerateUniverse(t *testing.T) {
 	})
 	t.Run("Normal", func(t *testing.T) {
 		client := NewGamer()
-		game := client.CreateGame(1, *NewGameSettings())
+		game := newSeededGame(*NewGameSettings())
 
 		numPlanets, err := game.Rules.GetNumPlanets(game.Size, game.Density)
 		if err != nil {
@@ -67,7 +67,7 @@ func TestGenerateUniverse(t *testing.T) {
 	})
 	t.Run("Computer Alliances", func(t *testing.T) {
 		client := NewGamer()
-		game := client.CreateGame(1, *NewGameSettings())
+		game := newSeededGame(*NewGameSettings())
 
 		player1 := client.NewPlayer(1, *NewRace(), &game.Rules).WithNum(1)
 		player2 := client.NewPlayer(1, *NewRace(), &game.Rules).WithNum(2).WithAIControlled(true)
@@ -81,14 +81,14 @@ func TestGenerateUniverse(t *testing.T) {
 	})
 	t.Run("Multiple Players, multiple planets", func(t *testing.T) {
 		client := NewGamer()
-		game := client.CreateGame(1, *NewGameSettings())
+		game := newSeededGame(*NewGameSettings())
 
 		player1 := client.NewPlayer(1, *NewRace().WithPRT(IT), &game.Rules).WithAIControlled(true)
 		player1.Num = 1
 		player2 := client.NewPlayer(1, *NewRace(), &game.Rules).WithAIControlled(true)
 		player2.Num = 2
 		player3 := client.NewPlayer(1, *NewRace().WithPRT(PP), &game.Rules).WithAIControlled(true)
-		player3.Num = 2
+		player3.Num = 3
 
 		players := []*Player{player1, player2, player3}
 		universe, err := client.GenerateUniverse(game, players)
@@ -106,7 +106,7 @@ func TestGenerateUniverse(t *testing.T) {
 
 	t.Run("Acc BBS Pop Test", func(t *testing.T) {
 		client := NewGamer()
-		game := client.CreateGame(1, *NewGameSettings().WithGameStartMode(GameStartModeAccBBS))
+		game := newSeededGame(*NewGameSettings().WithGameStartMode(GameStartModeAccBBS))
 
 		numPlanets, err := game.Rules.GetNumPlanets(game.Size, game.Density)
 		assert.NoError(t, err)
@@ -146,7 +146,7 @@ func TestGenerateUniverse(t *testing.T) {
 
 	t.Run("Max Mode", func(t *testing.T) {
 		client := NewGamer()
-		game := client.CreateGame(1, *NewGameSettings().WithGameStartMode(GameStartModeMax))
+		game := newSeededGame(*NewGameSettings().WithGameStartMode(GameStartModeMax))
 
 		numPlanets, err := game.Rules.GetNumPlanets(game.Size, game.Density)
 		if err != nil {

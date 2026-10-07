@@ -3,6 +3,7 @@
 package cs
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -29,11 +30,7 @@ func testSmallFreighterWithQuantity(player *Player, quantity int) *Fleet {
 				design: NewShipDesign(player.Num, 1).
 					WithName("Small Freighter").
 					WithHull(SmallFreighter.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
-					}).
+					WithSlots(slices.Clone(DesignSmallFreighter.Slots)).
 					WithSpec(&rules, player)},
 		},
 		battlePlan:        &player.BattlePlans[0],
@@ -51,43 +48,6 @@ func testSmallFreighterWithQuantity(player *Player, quantity int) *Fleet {
 	return fleet
 }
 
-func testStealingFreighter(player *Player, quantity int) *Fleet {
-	fleet := &Fleet{
-		MapObject: MapObject{
-			Type:      MapObjectTypeFleet,
-			PlayerNum: player.Num,
-			Num:       1,
-		},
-		BaseName: "Stealing Freighter",
-		Tokens: []ShipToken{
-			{
-				Quantity:  quantity,
-				DesignNum: 1,
-				design: NewShipDesign(player.Num, 1).
-					WithName("Stealing Freighter").
-					WithHull(MediumFreighter.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: RobberBaronScanner.Name, HullSlotIndex: 3, Quantity: 1},
-					}).
-					WithSpec(&rules, player)},
-		},
-		battlePlan:        &player.BattlePlans[0],
-		OrbitingPlanetNum: None,
-		FleetOrders: FleetOrders{
-			Waypoints: []Waypoint{
-				NewPositionWaypoint(Vector{}, 5),
-			},
-		},
-	}
-
-	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-	fleet.Fuel = fleet.Spec.FuelCapacity
-	return fleet
-}
-
-// create a new Galleon (with fuel scoop) fleet for testing
 func testGalleon(player *Player) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
@@ -103,48 +63,7 @@ func testGalleon(player *Player) *Fleet {
 				design: NewShipDesign(player.Num, 1).
 					WithName("Galleon").
 					WithHull(Galleon.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: SubGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
-					}).
-					WithSpec(&rules, player)},
-		},
-		battlePlan:        &player.BattlePlans[0],
-		OrbitingPlanetNum: None,
-		FleetOrders: FleetOrders{
-			Waypoints: []Waypoint{
-				NewPositionWaypoint(Vector{}, 5),
-			},
-		},
-	}
-
-	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-	fleet.Fuel = fleet.Spec.FuelCapacity
-	return fleet
-
-}
-
-// create a new mini mine layer fleet for testing
-func testMiniMineLayer(player *Player) *Fleet {
-	fleet := &Fleet{
-		MapObject: MapObject{
-			Type:      MapObjectTypeFleet,
-			PlayerNum: player.Num,
-			Num:       1,
-		},
-		BaseName: "Little Hen",
-		Tokens: []ShipToken{
-			{
-				Quantity:  1,
-				DesignNum: 1,
-				design: NewShipDesign(player.Num, 1).
-					WithName("Little Hen").
-					WithHull(MiniMineLayer.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: MineDispenser40.Name, HullSlotIndex: 2, Quantity: 2},
-						{HullComponent: MineDispenser40.Name, HullSlotIndex: 3, Quantity: 2},
-						{HullComponent: BatScanner.Name, HullSlotIndex: 4, Quantity: 1},
-					}).
+					WithSlots(slices.Clone(DesignGalleon.Slots)).
 					WithSpec(&rules, player)},
 		},
 		battlePlan:        &player.BattlePlans[0],
@@ -176,46 +95,10 @@ func testCloakedScout(player *Player) *Fleet {
 				design: NewShipDesign(player.Num, 1).
 					WithName("Cloaked Scout").
 					WithHull(Scout.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
-					}).
+					WithSlots(slices.Clone(DesignCloakedScout.Slots)).
 					WithSpec(&rules, player)},
 		},
 		OrbitingPlanetNum: None,
-	}
-	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-	fleet.Fuel = fleet.Spec.FuelCapacity
-	return fleet
-}
-
-func testRemoteTerraformer(player *Player) *Fleet {
-	fleet := &Fleet{
-		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-		BaseName:  "Remote Terraformer",
-		Tokens: []ShipToken{
-			{
-				Quantity:  1,
-				DesignNum: 1,
-				design: NewShipDesign(player.Num, 1).
-					WithName("Remote Terraformer").
-					WithHull(MiniMiner.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: BatScanner.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: OrbitalAdjuster.Name, HullSlotIndex: 3, Quantity: 1},
-						{HullComponent: OrbitalAdjuster.Name, HullSlotIndex: 4, Quantity: 1},
-					}).
-					WithSpec(&rules, player)},
-		},
-		battlePlan:        &player.BattlePlans[0],
-		OrbitingPlanetNum: None,
-		FleetOrders: FleetOrders{
-			Waypoints: []Waypoint{
-				NewPositionWaypoint(Vector{}, 5),
-			},
-		},
 	}
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
@@ -237,10 +120,7 @@ func testGatePrivateer(player *Player, quantity int) *Fleet {
 				design: NewShipDesign(player.Num, 1).
 					WithName("Gate Privateer").
 					WithHull(Privateer.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: JumpGate.Name, HullSlotIndex: 3, Quantity: 1},
-					}).
+					WithSlots(slices.Clone(DesignGatePrivateer.Slots)).
 					WithSpec(&rules, player)},
 		},
 		battlePlan:        &player.BattlePlans[0],
@@ -268,10 +148,7 @@ func testPotatoBug(player *Player) *Fleet {
 				design: NewShipDesign(player.Num, 1).
 					WithName("Potato Bug").
 					WithHull(MidgetMiner.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: RoboMidgetMiner.Name, HullSlotIndex: 2, Quantity: 1},
-					}).
+					WithSlots(slices.Clone(DesignPotatoBug.Slots)).
 					WithSpec(&rules, player)},
 		},
 		battlePlan:        &player.BattlePlans[0],
@@ -298,10 +175,7 @@ func testSantaMaria(player *Player) *Fleet {
 				design: NewShipDesign(player.Num, 1).
 					WithName("Santa Maria").
 					WithHull(ColonyShip.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
-					}).
+					WithSlots(slices.Clone(DesignSantaMaria.Slots)).
 					WithSpec(&rules, player),
 			},
 		},
@@ -330,10 +204,7 @@ func testSantaMariaIFE(player *Player) *Fleet {
 				design: NewShipDesign(player.Num, 1).
 					WithName("Santa Maria").
 					WithHull(ColonyShip.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
-					}).
+					WithSlots(slices.Clone(DesignSantaMariaIFE.Slots)).
 					WithSpec(&rules, player),
 			},
 		},
@@ -855,7 +726,7 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 			universe := Universe{log: testLogger, Fleets: []*Fleet{fleet}}
 			universe.buildMaps([]*Player{player})
 
-			rules := NewRules()
+			rules := NewRulesWithSeed(0)
 			rules.random = tt.random
 
 			fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
