@@ -97,3 +97,19 @@ func Test_message_packetImpactSnapshot(t *testing.T) {
 	assert.Equal(t, 3, message.Spec.MineralPacketDamage.DefensesDestroyed)
 	assert.Equal(t, 50, message.Spec.MineralPacketDamage.Uncaught)
 }
+
+func Test_message_invasionStartingPopulations(t *testing.T) {
+	attacker, defender := &Player{Num: 1}, &Player{Num: 2}
+	planet := &Planet{MapObject: MapObject{Num: 3, Name: "Earth", PlayerNum: 2}}
+	for _, player := range []*Player{attacker, defender} {
+		messager.planetInvaded(player, planet, "Invaders", attacker, defender, 12000, 10000, 8700, 10000, true)
+		message := player.Messages[0]
+		assert.Equal(t, 12000, message.Spec.Amount)
+		assert.Equal(t, 10000, message.Spec.Amount2)
+		assert.Equal(t, 8700, message.Spec.Invasion.AttackersKilled)
+		assert.Equal(t, 10000, message.Spec.Invasion.DefendersKilled)
+		assert.Equal(t, "Earth", message.TargetName)
+	}
+	assert.Equal(t, PlayerMessageFleetInvadedPlanet, attacker.Messages[0].Type)
+	assert.Equal(t, PlayerMessagePlanetInvaded, defender.Messages[0].Type)
+}

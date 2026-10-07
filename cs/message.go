@@ -238,6 +238,7 @@ const (
 	PlayerMessagePlanetInvadeInvalidStarbase
 	PlayerMessageFleetStargateDestroyed
 	PlayerMessageFleetEngineStrainDestroyed
+	PlayerMessagePlanetRemoteTerraform
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -687,6 +688,25 @@ func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, 
  * Planet Messages
  */
 
+func (m *messageClient) planetProductionQueueStatus(player *Player, planet *Planet, completed bool) {
+	messageType := PlayerMessagePlanetProductionQueueEmpty
+	if completed {
+		messageType = PlayerMessagePlanetProductionQueueComplete
+	}
+	player.Messages = append(player.Messages, newPlanetMessage(messageType, planet))
+}
+
+// Amount is the signed change; Amount2 is the resulting raw habitat value.
+func (m *messageClient) planetRemoteTerraform(player *Player, planet *Planet, fleet *Fleet, result TerraformResult) {
+	spec := PlayerMessageSpec{
+		HabType: FromHabType(result.Type), Amount: result.Direction, Amount2: planet.Hab.Get(result.Type),
+		SourcePlayerNum: fleet.PlayerNum,
+	}.withTargetFleet(fleet)
+	// Use the same public fleet name as other fleet reports for the planet owner.
+	spec.TargetName = newFleetMessage(player, PlayerMessagePlanetRemoteTerraform, fleet).TargetName
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetRemoteTerraform, planet).withSpec(spec))
+}
+
 func (m *messageClient) planetHomeworld(player *Player, planet *Planet) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetHomeworld, planet))
 }
@@ -795,7 +815,8 @@ func (m *messageClient) planetInstaform(player *Player, planet *Planet, terrafor
 		withSpec(PlayerMessageSpec{TerraformAmount: terraformAmount}))
 }
 
-func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackersKilled int, defendersKilled int, successful bool) {
+// Amount and Amount2 snapshot the initial attacking and defending populations in colonists.
+func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackers int, defenders int, attackersKilled int, defendersKilled int, successful bool) {
 	invasion := PlayerMessageSpecInvasion{
 		FleetName:         fleetName,
 		AttackerPlayerNum: attacker.Num,
@@ -806,10 +827,10 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName 
 	}
 	if player.Num == attacker.Num {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageFleetInvadedPlanet, planet).
-			withSpec(PlayerMessageSpec{Invasion: &invasion}))
+			withSpec(PlayerMessageSpec{Amount: attackers, Amount2: defenders, Invasion: &invasion}))
 	} else {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetInvaded, planet).
-			withSpec(PlayerMessageSpec{Invasion: &invasion}))
+			withSpec(PlayerMessageSpec{Amount: attackers, Amount2: defenders, Invasion: &invasion}))
 	}
 }
 

@@ -944,6 +944,8 @@ func PlayerMessageTypeToCSPlayerMessageType(m craig_starsv1.PlayerMessageType) c
 		return cs.PlayerMessageFleetStargateDestroyed
 	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_ENGINE_STRAIN_DESTROYED:
 		return cs.PlayerMessageFleetEngineStrainDestroyed
+	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_REMOTE_TERRAFORM:
+		return cs.PlayerMessagePlanetRemoteTerraform
 	default:
 		return cs.PlayerMessageType(0)
 	}
@@ -1197,6 +1199,8 @@ func CSPlayerMessageTypeToPlayerMessageType(m cs.PlayerMessageType) craig_starsv
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_STARGATE_DESTROYED
 	case cs.PlayerMessageFleetEngineStrainDestroyed:
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_ENGINE_STRAIN_DESTROYED
+	case cs.PlayerMessagePlanetRemoteTerraform:
+		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_REMOTE_TERRAFORM
 	default:
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_UNSPECIFIED
 	}

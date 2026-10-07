@@ -36,6 +36,23 @@
 	{message.text}
 {:else if message.type === PlayerMessageType.PLANET_COLONIZED}
 	Your colonists are now in control of {planetName}.
+{:else if message.type === PlayerMessageType.PLANET_PRODUCTION_QUEUE_EMPTY}
+	The production queue on {planetName} is empty.
+{:else if message.type === PlayerMessageType.PLANET_PRODUCTION_QUEUE_COMPLETE}
+	{planetName} has completed its production queue.
+{:else if message.type === PlayerMessageType.PLANET_REMOTE_TERRAFORM}
+	{@const spec = message.spec}
+	{#if spec?.sourcePlayerNum === $player.num}
+		Your fleet
+	{:else}
+		A {$universe.getPlayerPluralName(spec?.sourcePlayerNum)} fleet
+	{/if}
+	{spec?.mapObjectTarget?.targetName} has remotely terraformed {planetName},
+	{(spec?.amount ?? 0) > 0 ? 'increasing' : 'decreasing'} its {getLongHabName(spec?.habType ?? 0)}
+	by {Math.abs(spec?.amount ?? 0)}% to {getTerraformHabValueString(
+		spec?.habType ?? 0,
+		spec?.amount2 ?? 0
+	)}.
 {:else if message.type === PlayerMessageType.PLANET_INVADE_INVALID_EMPTY}
 	{message.spec?.mapObjectTarget?.targetName} has orders to beam colonists to {planetName}, but the
 	planet is uninhabited. The order has been canceled.
@@ -274,34 +291,46 @@
 {:else if message.type === PlayerMessageType.FLEET_INVADED_PLANET}
 	{@const invasion = message.spec?.invasion}
 	{#if invasion}
+		{#if (message.spec?.amount ?? 0) > 0}
+			The invasion began with {(message.spec?.amount ?? 0).toLocaleString()} attacking colonists and {(
+				message.spec?.amount2 ?? 0
+			).toLocaleString()} defending colonists.
+		{/if}
 		{#if invasion.successful}
 			Your troops beaming down from {invasion.fleetName || 'multiple fleets'} have successfully wrested
 			{planetName}
-			from {$universe.getPlayerName(invasion.defenderPlayerNum)} control, killing off all their colonists
-			with only {invasion.attackersKilled} causalties.
+			from the {$universe.getPlayerPluralName(invasion.defenderPlayerNum)}, killing off all their
+			colonists with only {invasion.attackersKilled.toLocaleString()} casualties.
 		{:else}
 			Your troops beaming down from {invasion.fleetName || 'multiple fleets'} tried to invade {planetName},
-			but all of them were massacred by the {$universe.getPlayerName(invasion.defenderPlayerNum)}.
-			Your valiant fighters managed to kill {invasion.defendersKilled} of their colonists in return.
+			but all of them were massacred by the {$universe.getPlayerPluralName(
+				invasion.defenderPlayerNum
+			)}. Your valiant fighters managed to kill {invasion.defendersKilled.toLocaleString()} of their colonists
+			in return.
 		{/if}
 	{:else}
-		{planetName} was invaded, but your spies no nothing of the outcome.
+		{planetName} was invaded, but your spies know nothing of the outcome.
 	{/if}
 {:else if message.type === PlayerMessageType.PLANET_INVADED}
 	{@const invasion = message.spec?.invasion}
 	{#if invasion}
+		{#if (message.spec?.amount ?? 0) > 0}
+			The invasion began with {(message.spec?.amount ?? 0).toLocaleString()} attacking colonists and {(
+				message.spec?.amount2 ?? 0
+			).toLocaleString()} defending colonists.
+		{/if}
 		{#if invasion.successful}
-			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ||
+			{$universe.getPlayerPluralName(invasion.attackerPlayerNum)}'s {invasion.fleetName ||
 				'multiple fleets'} have successfully invaded {planetName} and wrested it from your control. Your
-			colonists managed to defeat {invasion.attackersKilled} of their invaders before being overrun. Your
-			troops beaming down from {invasion.fleetName || 'multiple fleets'} have successfully wrested
+			colonists managed to defeat {invasion.attackersKilled.toLocaleString()} of their invaders before
+			being overrun.
 		{:else}
-			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ||
+			{$universe.getPlayerPluralName(invasion.attackerPlayerNum)}'s {invasion.fleetName ||
 				'multiple fleets'} tried to invade {planetName}, but your troops were able to fend them off.
-			You lost {invasion.defendersKilled} colonists in the process.
+			You lost {invasion.defendersKilled.toLocaleString()} colonists in the process.
 		{/if}
 	{:else}
-		{planetName} was invaded, but your spies no nothing of the outcome.
+		{planetName} was invaded, but your spies know nothing of the outcome.
 	{/if}
 {:else if message.type === PlayerMessageType.PLANET_POPULATION_DECREASED_OVERCROWDING}
 	The population on {planetName} has decreased by {(-(message.spec?.amount ?? 0)).toLocaleString()}

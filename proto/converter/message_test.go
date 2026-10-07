@@ -10,7 +10,7 @@ import (
 )
 
 func Test_message_newSpecsRoundTrip(t *testing.T) {
-	for messageType := cs.PlayerMessageFleetColonizeInvalidNotPlanet; messageType <= cs.PlayerMessageFleetStargateDestroyed; messageType++ {
+	for messageType := cs.PlayerMessageFleetColonizeInvalidNotPlanet; messageType <= cs.PlayerMessagePlanetRemoteTerraform; messageType++ {
 		message := cs.PlayerMessage{Type: messageType, Spec: cs.PlayerMessageSpec{
 			Amount: -1, Amount2: 0, HabType: cs.TerraformHabTypeGrav,
 			Distance: 123.45, HasMassDriver: true, PlanetEmptied: true, Error: "details",
