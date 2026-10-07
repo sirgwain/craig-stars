@@ -1,4 +1,4 @@
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import ScannerCanvas from './ScannerCanvas.svelte';
 
@@ -57,7 +57,10 @@ vi.mock('#lib/services/GameContext.js', async () => {
 	return { getGameContext: () => context };
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+	vi.restoreAllMocks();
+	vi.unstubAllGlobals();
+});
 
 async function scanner() {
 	const created = vi.spyOn(document, 'createElement');
@@ -76,12 +79,12 @@ async function scanner() {
 	await expect.poll(() => canvas.dataset.view).toBeDefined();
 	await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 	const ctx = canvas.getContext('2d')!;
-	// Count the dots in each minefield's interior rather than its antialiased edges. Reading
-	// back a canvas can switch Chrome's rasterizer, which slightly changes edge colors.
+	// Sample inside each circle, away from antialiased edges and the selected field's solid
+	// center marker. Reading back a canvas can slightly change edge colors in Chrome.
 	const dots = () =>
 		[80, 160].map((x, field) => {
 			const dpr = window.devicePixelRatio;
-			const data = ctx.getImageData((x - 16) * dpr, 64 * dpr, 32 * dpr, 32 * dpr).data;
+			const data = ctx.getImageData((x - 24) * dpr, 64 * dpr, 16 * dpr, 32 * dpr).data;
 			let count = 0;
 			for (let i = 0; i < data.length; i += 4) {
 				if (data[i + (field === 0 ? 2 : 0)] > 40 && data[i + 1] === 0) count++;
@@ -89,9 +92,10 @@ async function scanner() {
 			return count;
 		});
 	const before = dots();
-	// Both the regular and darkened selected minefield must have a visible dot fill.
-	expect(before[0]).toBeGreaterThan(100);
-	expect(before[1]).toBeGreaterThan(100);
+	// Pixel counts vary with the display's pixel ratio. Require visible dots in both fields,
+	// then compare recovery against the baseline captured at the same pixel ratio.
+	expect(before[0]).toBeGreaterThan(0);
+	expect(before[1]).toBeGreaterThan(0);
 	// simulate the browser discarding canvas bitmaps while the phone sleeps
 	const discard = () => {
 		for (const result of created.mock.results) {
@@ -105,23 +109,30 @@ async function scanner() {
 	return { canvas, dots, before, discard };
 }
 
-it('rebuilds discarded minefield patterns on the next redraw', async () => {
-	const { dots, before, discard } = await scanner();
-	discard();
-	state.redraw();
-	await expect.poll(dots).toEqual(before);
-});
+describe.each([1, 2])('at device pixel ratio %s', (dpr) => {
+	beforeEach(() => vi.stubGlobal('devicePixelRatio', dpr));
 
-it.each([
-	[
-		'contextrestored',
-		(canvas: HTMLCanvasElement) => canvas.dispatchEvent(new Event('contextrestored'))
-	],
-	['visibilitychange', () => document.dispatchEvent(new Event('visibilitychange'))],
-	['pageshow', () => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))]
-])('redraws on %s', async (_, wake) => {
-	const { canvas, dots, before, discard } = await scanner();
-	discard();
-	wake(canvas);
-	await expect.poll(dots).toEqual(before);
+	it('rebuilds discarded minefield patterns on the next redraw', async () => {
+		const { dots, before, discard } = await scanner();
+		discard();
+		state.redraw();
+		await expect.poll(dots).toEqual(before);
+	});
+
+	it.each([
+		[
+			'contextrestored',
+			(canvas: HTMLCanvasElement) => canvas.dispatchEvent(new Event('contextrestored'))
+		],
+		['visibilitychange', () => document.dispatchEvent(new Event('visibilitychange'))],
+		[
+			'pageshow',
+			() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
+		]
+	])('redraws on %s', async (_, wake) => {
+		const { canvas, dots, before, discard } = await scanner();
+		discard();
+		wake(canvas);
+		await expect.poll(dots).toEqual(before);
+	});
 });
