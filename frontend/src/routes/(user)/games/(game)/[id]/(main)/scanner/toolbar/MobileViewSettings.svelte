@@ -13,6 +13,7 @@
 	import FilterAllyDesigns from './FilterAllyDesigns.svelte';
 	import FilterEnemyDesigns from './FilterEnemyDesigns.svelte';
 	import { clamp } from 'lodash-es';
+	import FilterPlanetNames from './FilterPlanetNames.svelte';
 	import FilterPlayerColors from './FilterPlayerColors.svelte';
 
 	const { player, settings } = getGameContext();
@@ -39,6 +40,9 @@
 	</div>
 	<div class="menu-title">Filter</div>
 	<div class="flex flex-row justify-center w-full">
+		<div class="h-10 w-10">
+			<FilterPlanetNames />
+		</div>
 		<div class="h-10 w-10">
 			<FilterFleetCounts />
 		</div>

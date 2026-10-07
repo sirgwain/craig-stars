@@ -19,14 +19,14 @@
 <script lang="ts">
 	import { quadtree } from 'd3-quadtree';
 	import type { ZoomTransform } from 'd3-zoom';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
-	import { getScannerContext } from './Scanner';
-
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const { scale } = getScannerContext();
 
 	type Props = {
+		// the map objects to find
+		data: MapObjectLike[];
+		// css pixels per light year, before zooming
+		pixelsPerLightYear: { x: number; y: number };
+		width: number;
+		height: number;
 		// transform to transform our mouse to world coords
 		transform: ZoomTransform;
 		/** The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
@@ -42,6 +42,10 @@
 	};
 
 	let {
+		data,
+		pixelsPerLightYear,
+		width,
+		height,
 		transform,
 		searchRadius,
 		pointermove,
@@ -59,8 +63,11 @@
 
 		[x1, y1] = transform.invert([x1, y1]);
 
-		const found = finder.find(x1, y1, searchRadius / $scale);
-		const position = { x: Math.round(x1 / $xScale(1)), y: Math.round(y1 / $yScale(1)) };
+		const found = finder.find(x1, y1, searchRadius / transform.k);
+		const position = {
+			x: Math.round(x1 / pixelsPerLightYear.x),
+			y: Math.round(y1 / pixelsPerLightYear.y)
+		};
 
 		return { position, found };
 	}
@@ -135,16 +142,17 @@
 		quadtree<MapObjectLike>()
 			.extent([
 				[-1, -1],
-				[$width + 1, $height + 1]
+				[width + 1, height + 1]
 			])
-			.x((d) => $xGet(d.mapObject))
-			.y((d) => $yGet(d.mapObject))
-			.addAll($data)
+			.x((d) => Number(d.mapObject?.position?.x ?? 0) * pixelsPerLightYear.x)
+			.y((d) => Number(d.mapObject?.position?.y ?? 0) * pixelsPerLightYear.y)
+			.addAll(data)
 	);
 </script>
 
 <div
 	class="absolute h-full w-full z-10"
+	data-type="scanner-overlay"
 	role="link"
 	tabindex="-1"
 	ontouchstart={onTouchStart}

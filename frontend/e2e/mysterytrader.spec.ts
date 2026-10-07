@@ -1,6 +1,6 @@
 import { MysteryTraderRewardType } from '../src/lib/protogen/craig_stars/v1/mysterytrader_pb';
-import { key } from '../src/lib/types/MapObject';
 import { expect, submitTurn, test } from './setup';
+import { clickMapObject, dblclickMapObject } from './helpers/scanner';
 
 test('Mystery Trader Test', async ({ testGamePage }) => {
 	const { page, universe } = await testGamePage('Mystery Trader');
@@ -17,7 +17,7 @@ test('Mystery Trader Test', async ({ testGamePage }) => {
 		const mt = universe.mysteryTraders[i];
 
 		// click the homeworld once to cycle to the colonizer
-		await page.locator(`[data-id="${key(freighter)}"]`).dblclick({ force: true });
+		await dblclickMapObject(page, freighter);
 		await page
 			.locator(`[data-type="command-tile"][data-id="${freighter.mapObject?.name}"]`)
 			.first();
@@ -30,7 +30,7 @@ test('Mystery Trader Test', async ({ testGamePage }) => {
 		);
 
 		// shift click the planet to set a waypoint at max speed
-		await page.locator(`[data-id="${key(mt)}"]`).click({ force: true, modifiers: ['Shift'] });
+		await clickMapObject(page, mt, { modifiers: ['Shift'] });
 
 		// wait for the TransferCargo to complete
 		await updateFleetOrdersResponse;

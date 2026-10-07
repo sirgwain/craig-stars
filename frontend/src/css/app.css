@@ -2,6 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+	--scanner-background: #000000;
+	--scanner-salvage: #ffff00;
+	--scanner-owned-packet: #0900ff;
+	--scanner-commanded-fleet: #ffff00;
+	--scanner-name: #ffffff;
+	--scanner-selection: #ffffff;
+	--scanner-mineral-axis: #c0c0c0;
+	--scanner-warp-line: #ffffff;
+	--scanner-planet-owned: #00ff00;
+	--scanner-planet-unexplored: #999999;
+	--scanner-planet-explored: #ffffff;
+	--scanner-planet-outline: #999999;
+	--scanner-planet-habitable: #00ff00;
+	--scanner-planet-terraformable: #ffff00;
+	--scanner-planet-uninhabitable: #ff0000;
+	--scanner-planet-habitable-ring: #007f00;
+	--scanner-planet-terraformable-ring: #7f7f00;
+	--scanner-planet-uninhabitable-ring: #7f0000;
+	--scanner-planet-pop-owned: #00ff00;
+	--scanner-planet-pop-owned-ring: #007f00;
+	--scanner-planet-pop-friend: #ffff00;
+	--scanner-planet-pop-friend-ring: #7f7f00;
+	--scanner-planet-pop-enemy: #ff0000;
+	--scanner-planet-pop-enemy-ring: #ff0000;
+	--scanner-ironium: #0000ff;
+	--scanner-boranium: #007f00;
+	--scanner-germanium: #ffff00;
+
+	--scanner-range: #8b0000;
+	--scanner-range-pen: #7f7f00;
+	--scanner-packet-dest: #6b0065;
+	--scanner-route: #fdfd00;
+	--scanner-wormhole: #8a2be2;
+	--mystery-trader: #00ffff;
+	--ironium-bar: #0900ff;
+	--boranium-bar: #00ff00;
+	--germanium-bar: #ffff00;
+	--starbase-fill: #fdfd00;
+	--starbase-stroke: #7f7f00;
+	--starbase-fort-fill: #00007f;
+	--starbase-fort-stroke: #00002f;
+	--stargate-fill: #008100;
+	--stargate-stroke: #005c00;
+	--massdriver-fill: #8d0085;
+	--massdriver-stroke: #6b0065;
+	--orbit-neutral: #ffffff;
+	--orbit-friends: #ffff00;
+	--orbit-enemies: #ff0000;
+	--orbit-mixed-ring: #ff00ff;
+	--orbit-mixed-count: #eb2eeb;
+	--scanner-locator: #ffffff;
+}
+
 @layer components {
 	.bg-primary-focus {
 		@apply bg-[color-mix(in_oklab,oklch(var(--p)),black_7%)];
@@ -50,13 +104,16 @@
 		@apply font-semibold;
 	}
 	.ironium-bar {
-		@apply bg-[#0900ff] fill-[#0900ff];
+		background-color: var(--ironium-bar);
+		fill: var(--ironium-bar);
 	}
 	.boranium-bar {
-		@apply bg-[#00ff00] fill-[#00ff00];
+		background-color: var(--boranium-bar);
+		fill: var(--boranium-bar);
 	}
 	.germanium-bar {
-		@apply bg-[#ffff00] fill-[#ffff00];
+		background-color: var(--germanium-bar);
+		fill: var(--germanium-bar);
 	}
 	.colonists-bar {
 		@apply bg-[#ffffff];
@@ -123,13 +180,6 @@
 	.rad-point {
 		@apply stroke-[#00FF00] fill-none;
 	}
-	.scanner {
-		@apply fill-[#8B0000];
-	}
-	.scanner-pen {
-		@apply fill-[#7F7F00];
-	}
-
 	.text-queue-item-skipped {
 		@apply text-secondary;
 	}
@@ -154,38 +204,8 @@
 		@apply fill-gray-500;
 	}
 
-	.fill-mystery-trader {
-		@apply fill-[#00FFFF];
-	}
-
 	.text-mystery-trader {
-		@apply text-[#00FFFF];
-	}
-
-	.stroke-orbit {
-		@apply stroke-[#FFFFFF];
-	}
-	.stroke-orbit-enemies {
-		@apply stroke-[#FF0000];
-	}
-	.stroke-orbit-friends-and-enemies {
-		@apply stroke-[#FF00FF];
-	}
-	.stroke-orbit-friends {
-		@apply stroke-[#FFFF00];
-	}
-
-	.fill-orbit {
-		@apply fill-[#FFFFFF];
-	}
-	.fill-orbit-enemies {
-		@apply fill-[#FF0000];
-	}
-	.fill-orbit-friends-and-enemies {
-		@apply fill-[#eb2eeb];
-	}
-	.fill-orbit-friends {
-		@apply fill-[#FFFF00];
+		color: var(--mystery-trader);
 	}
 
 	.fill-fleet-owned {
@@ -210,68 +230,6 @@
 	}
 }
 
-.scanner-wormhole {
-	fill: #8a2be2;
-}
-
-.wormhole-link {
-	fill: none;
-	stroke: #8a2be2;
-	stroke-linecap: round;
-}
-
-.show-location-line {
-	fill: none;
-	stroke: #ffffff;
-	stroke-linecap: round;
-	stroke-width: 2;
-}
-
-.waypoint-line {
-	fill: none;
-	stroke-linejoin: round;
-	stroke-linecap: round;
-	stroke: #0900ff;
-}
-
-.waypoint-line-commanded {
-	fill: none;
-	stroke-linejoin: round;
-	stroke-linecap: round;
-	stroke: #8480ff;
-}
-
-.waypoint-line-selected {
-	fill: none;
-	stroke-linejoin: round;
-	stroke-linecap: round;
-	stroke: #9d9afc;
-}
-
-.packet-dest-line {
-	fill: none;
-	stroke-linecap: square;
-	stroke: #6b0065;
-}
-
-.packet-arrow {
-	fill: #6b0065;
-}
-
-.route-line {
-	fill: none;
-	stroke-linecap: square;
-	stroke: #fdfd00;
-}
-
-.route-arrow {
-	fill: #fdfd00;
-}
-
-.warpline-arrow {
-	fill: none;
-}
-
 .beam-line {
 	fill: none;
 	stroke-linejoin: round;
@@ -280,31 +238,9 @@
 	stroke: #ff0000;
 }
 
-.fleet-commanded {
-	fill: '#FFFF00' !important;
-}
-
 .starbase {
-	fill: #fdfd00;
-	stroke: #7f7f00;
-	stroke-width: 0.5;
-}
-
-.starbase-fort {
-	fill: #00007f;
-	stroke: #00002f;
-	stroke-width: 0.5;
-}
-
-.stargate {
-	fill: #008100;
-	stroke: #005c00;
-	stroke-width: 0.5;
-}
-
-.massdriver {
-	fill: #8d0085;
-	stroke: #6b0065;
+	fill: var(--starbase-fill);
+	stroke: var(--starbase-stroke);
 	stroke-width: 0.5;
 }
 

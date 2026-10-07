@@ -7,6 +7,7 @@
 	import FilterFleetCounts from './FilterFleetCounts.svelte';
 	import FilterIdleFleets from './FilterIdleFleets.svelte';
 	import FilterMyDesigns from './FilterMyDesigns.svelte';
+	import FilterPlanetNames from './FilterPlanetNames.svelte';
 	import FilterPlayerColors from './FilterPlayerColors.svelte';
 	import FilterScanners from './FilterScanners.svelte';
 
@@ -16,6 +17,9 @@
 </script>
 
 <ul {...props}>
+	<li class="h-10 w-10">
+		<FilterPlanetNames />
+	</li>
 	<li class="h-10 w-10">
 		<FilterFleetCounts />
 	</li>

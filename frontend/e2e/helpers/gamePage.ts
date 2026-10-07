@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { key, type MapObjectLike } from '../../src/lib/types/MapObject';
+import type { MapObjectLike } from '../../src/lib/types/MapObject';
+import { clickMapObject } from './scanner';
 
 export type CargoName = 'fuel' | 'ironium' | 'boranium' | 'germanium' | 'colonists';
 export type CargoAmounts = Partial<Record<CargoName, number>>;
@@ -25,13 +26,6 @@ export class GamePage {
 		return this.page.locator('[data-type="map-object-summary"]').first();
 	}
 
-	mapObject(object: MapObjectLike | undefined): Locator {
-		if (!object?.mapObject) {
-			throw new Error('map object not found');
-		}
-		return this.page.locator(`[data-id="${key(object)}"]`);
-	}
-
 	scannerContextPopup(): Locator {
 		return this.page.locator('[data-id="scanner-context-popup"]');
 	}
@@ -48,7 +42,7 @@ export class GamePage {
 		object: MapObjectLike | undefined,
 		options: Parameters<Locator['click']>[0] = {}
 	): Promise<void> {
-		await this.mapObject(object).click({ force: true, ...options });
+		await clickMapObject(this.page, object, options);
 	}
 
 	async rightClickMapObject(object: MapObjectLike | undefined): Promise<void> {
