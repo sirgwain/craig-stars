@@ -1638,7 +1638,7 @@ func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToke
 	fleet.Position = position
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
-	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 	fleet.Tags = tags
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
@@ -1951,7 +1951,7 @@ func (t *turnGenerator) fleetRefuel() {
 
 		if fleet.Spec.FuelGeneration > 0 {
 			fleet.Fuel = Clamp(fleet.Fuel+fleet.Spec.FuelGeneration, 0, fleet.Spec.FuelCapacity)
-			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 			t.log.Debug("fleet generated fuel",
 				slog.Int("Player", fleet.PlayerNum),
 				slog.String("Fleet", fleet.Name),
@@ -1971,7 +1971,7 @@ func (t *turnGenerator) fleetRefuel() {
 		planetPlayer := t.game.getPlayer(planet.PlayerNum)
 		if planetPlayer.IsFriend(fleet.PlayerNum) {
 			fleet.Fuel = fleet.Spec.FuelCapacity
-			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 
 			t.log.Debug("fleet refueled at starbase",
 				slog.Int("Player", fleet.PlayerNum),
