@@ -455,7 +455,10 @@ func requestLogger() func(next http.Handler) http.Handler {
 				// always log the user_agent for now
 				attrs = append(attrs, slog.String("user_agent", r.Header.Get("User-Agent")))
 
-				if ww.Status() >= 400 {
+				if ww.Status() == 499 && r.Context().Err() == context.Canceled {
+					// Connect uses 499 for requests canceled by the client.
+					slog.LogAttrs(r.Context(), slog.LevelDebug, "", attrs...)
+				} else if ww.Status() >= 400 {
 					slog.LogAttrs(r.Context(), slog.LevelError, "", attrs...)
 				} else {
 					slog.LogAttrs(r.Context(), slog.LevelInfo, "", attrs...)

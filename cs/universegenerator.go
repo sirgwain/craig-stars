@@ -844,6 +844,7 @@ func (ug *universeGenerator) generatePlayerStartingPlanets() error {
 	for _, player := range ug.Players {
 		fleetNum := 1
 		var homeworld *Planet
+		homeworldIndex := playerPlanetsIndexes[player.Num-1]
 		extraPoints, pointsType := player.Race.ComputeLeftoverRacePoints(rules.RaceStartingPoints)
 
 		// assign player starting planets
@@ -861,14 +862,14 @@ func (ug *universeGenerator) generatePlayerStartingPlanets() error {
 			var playerPlanet *Planet
 			if startingPlanet.Homeworld && homeworld == nil {
 				// place homeworld and track it so we know where to base extra world placement on
-				playerPlanet = ug.getPlanet(playerPlanetsIndexes[player.Num-1] + 1)
+				playerPlanet = ug.Planets[homeworldIndex]
 				homeworld = playerPlanet
 			} else {
-				secondPlanetIndex, err := ug.placeExtraPlayerPlanet(homeworld.Num-1, 12, 35)
-				playerPlanet = ug.getPlanet(secondPlanetIndex + 1)
+				secondPlanetIndex, err := ug.placeExtraPlayerPlanet(homeworldIndex, 12, 35, playerPlanetsIndexes)
 				if err != nil {
 					return err
 				}
+				playerPlanet = ug.Planets[secondPlanetIndex]
 			}
 
 			var surface Mineral
@@ -915,7 +916,7 @@ func (ug *universeGenerator) generatePlayerStartingPlanets() error {
 // It prefers planets whose distance from the home is within [pctLo, pctHi] * dGal,
 // falling back to the nearest planet outside that band.
 // Returns the index into ug.Universe.Planets.
-func (ug *universeGenerator) placeExtraPlayerPlanet(homeIdx int, pctLo, pctHi int) (int, error) {
+func (ug *universeGenerator) placeExtraPlayerPlanet(homeIdx int, pctLo, pctHi int, reservedIndexes []int) (int, error) {
 	if homeIdx < 0 || homeIdx >= len(ug.Universe.Planets) {
 		return -1, fmt.Errorf("pickSecondPlanetNearHome: invalid home index %d", homeIdx)
 	}
@@ -935,32 +936,34 @@ func (ug *universeGenerator) placeExtraPlayerPlanet(homeIdx int, pctLo, pctHi in
 
 	hw := ug.Universe.Planets[homeIdx]
 
-	var picked *Planet
-	var closest *Planet
+	picked := -1
+	closest := -1
 
-	for _, planet := range ug.Planets {
-		if planet.Owned() {
+	for i, planet := range ug.Planets {
+		// All homeworlds are reserved before extra worlds are assigned, including
+		// homeworlds whose owners have not been initialized yet.
+		if i == homeIdx || planet.Owned() || slices.Contains(reservedIndexes, i) {
 			continue
 		}
 		dx := int(planet.Position.X - hw.Position.X)
-		dy := int(planet.Position.X - hw.Position.X)
+		dy := int(planet.Position.Y - hw.Position.Y)
 		dist := dx*dx + dy*dy
 		if dist >= distMin && dist <= distMax {
 			numFound++
 			if ug.Rules.random.Intn(numFound) == 0 {
-				picked = planet
+				picked = i
 			}
-		} else if picked == nil && dist < distBest {
+		} else if picked == -1 && dist < distBest {
 			distBest = dist
-			closest = planet
+			closest = i
 		}
 	}
 
-	if picked != nil {
-		return picked.Num, nil
+	if picked != -1 {
+		return picked, nil
 	}
-	if closest != nil {
-		return closest.Num, nil
+	if closest != -1 {
+		return closest, nil
 	}
 
 	return -1, fmt.Errorf("pickSecondPlanetNearHome: no eligible planets")

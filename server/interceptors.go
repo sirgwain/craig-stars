@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -42,6 +43,14 @@ func newErrorLogInterceptor() connect.UnaryInterceptorFunc {
 		) (connect.AnyResponse, error) {
 			res, err := next(ctx, req)
 			if err != nil {
+				// Navigating away can cancel an in-flight query. Preserve cancellation
+				// through service errors that otherwise wrap every DB error as internal.
+				if ctx.Err() == context.Canceled && errors.Is(err, context.Canceled) {
+					slog.DebugContext(ctx, "grpc call canceled",
+						slog.Any("error", err),
+						slog.String("Procedure", req.Spec().Procedure))
+					return res, connect.NewError(connect.CodeCanceled, err)
+				}
 				slog.Error("grpc call failed",
 					slog.Any("error", err),
 					slog.String("Procedure", req.Spec().Procedure))
