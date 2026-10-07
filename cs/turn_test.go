@@ -2171,3 +2171,59 @@ func Test_turn_productionQueueMessages(t *testing.T) {
 		})
 	}
 }
+
+func Test_turn_fleetUnloadColonistsOnPlanetThatDiedThisTurn(t *testing.T) {
+	newUniverse := func(owner int) *testUniverse {
+		s := TwoPlayerScenario()
+		s.Players[1].Player = AIPlayer("Player 2").Player
+		s.Players[0].Fleets[0].At = "Planet 2"
+		s.Players[0].Fleets[0].Cargo = Cargo{Colonists: 10}
+		s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{
+			To:             "Planet 2",
+			Task:           WaypointTaskTransport,
+			TransportTasks: WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionUnloadAll}},
+		}}
+		s.Planets[1].Owner = owner
+		return newTestUniverse(t, s)
+	}
+
+	t.Run("take over a planet whose population died this turn", func(t *testing.T) {
+		u := newUniverse(2)
+		planet, fleet := u.Planet("Planet 2"), u.FleetFor(1, "Long Range Scout #1")
+		u.turn.planetInit()
+		// bombed out before we unload
+		planet.emptyPlanet()
+
+		u.turn.fleetUnload()
+
+		assert.Equal(t, 1, planet.PlayerNum)
+		assert.Equal(t, 1000, planet.GetPopulation())
+		assert.Equal(t, 0, fleet.Cargo.Colonists)
+		assert.Len(t, u.Messages(2, PlayerMessagePlanetInvaded), 1)
+	})
+
+	t.Run("retake our own planet that died this turn", func(t *testing.T) {
+		u := newUniverse(1)
+		planet := u.Planet("Planet 2")
+		u.turn.planetInit()
+		planet.emptyPlanet()
+
+		u.turn.fleetUnload()
+
+		assert.Equal(t, 1, planet.PlayerNum)
+		assert.Equal(t, 1000, planet.GetPopulation())
+	})
+
+	t.Run("planets empty at the start of the turn can't be taken", func(t *testing.T) {
+		u := newUniverse(2)
+		planet, fleet := u.Planet("Planet 2"), u.FleetFor(1, "Long Range Scout #1")
+		planet.emptyPlanet()
+		u.turn.planetInit()
+
+		u.turn.fleetUnload()
+
+		assert.False(t, planet.Owned())
+		assert.Equal(t, 10, fleet.Cargo.Colonists)
+		assert.Len(t, u.Messages(1, PlayerMessageFleetTransportInvalid), 1)
+	})
+}

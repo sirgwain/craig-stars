@@ -52,6 +52,7 @@ func (t *turnGenerator) generateTurn() error {
 
 	t.computeSpecs()
 	t.packetInit()
+	t.planetInit()
 
 	// wp0 tasks
 	t.fleetInit()
@@ -240,6 +241,19 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 			slog.Int("RemainingDefenders", invasion.remainingDefenders),
 			slog.Bool("AttackerWon", invasion.successful),
 		)
+
+		if defender == attacker {
+			// we beamed colonists back onto our own planet after it died off this turn
+			messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.attackersKilledByDefenses, invasion.successful)
+			planet.emptyPlanet()
+			planet.PlayerNum = attacker.Num
+			planet.setPopulation(invasion.remainingAttackers)
+			if len(attacker.ProductionPlans) > 0 {
+				plan := attacker.ProductionPlans[0]
+				plan.Apply(planet)
+			}
+			continue
+		}
 
 		// during invasion, even if the player loses the planet, they discover the invader
 		for _, fleet := range invasion.fleets {
@@ -743,6 +757,16 @@ func (t *turnGenerator) fleetMarkWaypointsProcessed() {
 		wp := &fleet.Waypoints[0]
 		// like the original game, fleets waiting to load try again after production
 		wp.processed = wp.Task != WaypointTaskTransport || !wp.WaitAtWaypoint
+	}
+}
+
+// planetInit records who owns each planet at the start of the turn
+func (t *turnGenerator) planetInit() {
+	for _, planet := range t.game.Planets {
+		planet.ownerAtTurnStart = Unowned
+		if planet.Owned() {
+			planet.ownerAtTurnStart = planet.PlayerNum
+		}
 	}
 }
 

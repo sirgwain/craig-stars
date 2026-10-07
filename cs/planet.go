@@ -30,6 +30,9 @@ type Planet struct {
 	Starbase             *Fleet     `json:"-"`
 	Dirty                bool       `json:"-"`
 	bonusResources       int
+	// the player who owned this planet when the turn started. Colonists can take over a planet that was
+	// inhabited at the start of the turn, even if its population died during the turn
+	ownerAtTurnStart int
 }
 
 type PlanetOrders struct {

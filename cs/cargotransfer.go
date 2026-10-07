@@ -719,13 +719,19 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 	return transferAmount, CargoTransferStatusNone
 }
 
-// invade queues an invasion of another player's planet with colonists from a fleet. It returns how many
+// invade queues an invasion of another player's planet with colonists from a fleet. Like the original
+// game, colonists can also take over a planet whose population died off this turn. It returns how many
 // colonists (in kT) invade
 func (t *cargoTransferer) invade(player *Player, fleet *Fleet, planet *Planet, colonists int) (int, CargoTransferStatus) {
+	defender := t.game.getPlayer(planet.PlayerNum)
+	if !planet.Owned() {
+		defender = t.game.getPlayer(planet.ownerAtTurnStart)
+	}
+
 	status := CargoTransferStatusNone
 	switch {
-	case !planet.Owned():
-		// don't beam colonists to their death
+	case defender == nil:
+		// the planet was empty when the turn started, don't beam colonists to their death
 		status = CargoTransferStatusDestUnowned
 	case planet.Spec.HasStarbase:
 		status = CargoTransferStatusDestStarbase
@@ -744,7 +750,7 @@ func (t *cargoTransferer) invade(player *Player, fleet *Fleet, planet *Planet, c
 	t.invader.addInvasion(invasion{
 		planet:    planet,
 		attacker:  player,
-		defender:  t.game.getPlayer(planet.PlayerNum),
+		defender:  defender,
 		attackers: colonists * 100,
 		fleets:    []*Fleet{fleet},
 	})
