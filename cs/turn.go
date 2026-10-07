@@ -714,6 +714,22 @@ func (t *turnGenerator) fleetRoute() {
 	}
 }
 
+// fleetHasStandingOrders is true for a fleet whose last waypoint has a task it keeps doing,
+// so it isn't idle when it gets there
+func (t *turnGenerator) fleetHasStandingOrders(fleet *Fleet) bool {
+	wp0 := fleet.Waypoints[0]
+	switch wp0.Task {
+	case WaypointTaskTransport, WaypointTaskColonize, WaypointTaskRemoteMining, WaypointTaskScrapFleet, WaypointTaskLayMinefield, WaypointTaskPatrol,
+		WaypointTaskTransferFleet:
+		return true
+	case WaypointTaskRoute:
+		// a fleet routed to one of our planets that has a route keeps going
+		planet := t.game.getOrbitingPlanet(fleet)
+		return planet != nil && planet.OwnedBy(fleet.PlayerNum) && planet.RouteTargetType != MapObjectTypeNone
+	}
+	return false
+}
+
 func (t *turnGenerator) fleetNotifyIdle() {
 	// don't notify the first year
 	if t.game.Year == t.game.Rules.StartingYear {
@@ -740,7 +756,7 @@ func (t *turnGenerator) fleetNotifyIdle() {
 			continue
 		}
 
-		if fleet.Waypoints[0].Task == WaypointTaskNone {
+		if !t.fleetHasStandingOrders(fleet) {
 			player := t.game.getPlayer(fleet.PlayerNum)
 			messager.fleetCompletedAssignedOrders(player, fleet)
 
@@ -914,6 +930,7 @@ func (t *turnGenerator) mysteryTraderMove() {
 // 1/5 of its move toward its target's current position, or the rest of its move once its target is done
 // moving, so chains of pursuers follow each other.
 func (t *turnGenerator) fleetMove() {
+	followers := t.fleetFollow()
 	pursuits := []*fleetMove{}
 
 	for _, fleet := range t.game.Fleets {
@@ -970,6 +987,82 @@ func (t *turnGenerator) fleetMove() {
 	}
 
 	t.fleetPursue(pursuits)
+	t.fleetFinishFollow(followers)
+}
+
+// fleetFollow gives fleets that reached another fleet to transport or merge with it, and have no other
+// orders, that fleet's next waypoint for this turn, so they move with it. Followers can follow other
+// followers, up to 8 deep.
+func (t *turnGenerator) fleetFollow() []*Fleet {
+	isFollowing := func(fleet *Fleet) bool {
+		if fleet.Delete || fleet.Starbase || len(fleet.Waypoints) != 1 {
+			return false
+		}
+		wp0 := fleet.Waypoints[0]
+		return wp0.TargetType == MapObjectTypeFleet && !wp0.WaitAtWaypoint &&
+			(wp0.Task == WaypointTaskTransport || wp0.Task == WaypointTaskMergeWithFleet)
+	}
+
+	pending := []*Fleet{}
+	for _, fleet := range t.game.Fleets {
+		if isFollowing(fleet) {
+			pending = append(pending, fleet)
+		}
+	}
+
+	followers := []*Fleet{}
+	for i := 0; i < 8 && len(pending) > 0; i++ {
+		waiting := []*Fleet{}
+		for _, fleet := range pending {
+			wp0 := fleet.Waypoints[0]
+			target := t.game.getFleet(wp0.TargetPlayerNum, wp0.TargetNum)
+			switch {
+			case target == nil || target.Delete:
+				// nothing to follow
+			case isFollowing(target):
+				// follow it once we know where it's going
+				waiting = append(waiting, fleet)
+			case len(target.Waypoints) > 1 && !target.Waypoints[0].WaitAtWaypoint:
+				wp1 := target.Waypoints[1]
+				if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum == fleet.PlayerNum && wp1.TargetNum == fleet.Num {
+					// the target is coming to us
+					continue
+				}
+				// go where it's going, its orders there aren't ours
+				wp1.Task = WaypointTaskNone
+				wp1.TransportTasks = WaypointTransportTasks{}
+				fleet.Waypoints = append(fleet.Waypoints, wp1)
+				followers = append(followers, fleet)
+			}
+		}
+		pending = waiting
+	}
+	return followers
+}
+
+// fleetFinishFollow ends the follow for fleets that followed a fleet this turn. They wait where they are for new orders.
+func (t *turnGenerator) fleetFinishFollow(followers []*Fleet) {
+	for _, fleet := range followers {
+		if fleet.Delete {
+			continue
+		}
+
+		wp0 := fleet.Waypoints[0]
+		fleet.targetLocation(t.game.Universe, &wp0)
+		wp0.Task = WaypointTaskNone
+		wp0.TransportTasks = WaypointTransportTasks{}
+		wp0.PartiallyComplete = false
+		wp0.WaitAtWaypoint = false
+		fleet.Waypoints = []Waypoint{wp0}
+		fleet.WarpSpeed = 0
+		fleet.Heading = VectorFloat64{}
+
+		messager.fleetFollowedFleet(t.game.getPlayer(fleet.PlayerNum), fleet)
+		t.log.Debug("fleet followed fleet",
+			slog.Int("Player", fleet.PlayerNum),
+			slog.String("Fleet", fleet.Name),
+		)
+	}
 }
 
 // fleetPursue moves fleets pursuing other fleets in up to 10 passes
@@ -1132,11 +1225,9 @@ func (t *turnGenerator) fleetMoveInterrupted(fleet *Fleet, interrupted *fleetMov
 }
 
 // finishFleetMove updates the universe after a fleet's move, deleting it if it lost all its ships
-// and repeating its orders
 func (t *turnGenerator) finishFleetMove(move *fleetMove) {
 	fleet := move.fleet
 	player := t.game.getPlayer(fleet.PlayerNum)
-	wp0 := move.wp0
 
 	t.log.Debug("moved fleet",
 		slog.Int("Player", fleet.PlayerNum),
@@ -1169,20 +1260,6 @@ func (t *turnGenerator) finishFleetMove(move *fleetMove) {
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, fleet)
 	fleet.reduceFuelToMax()
 
-	// remove the previous waypoint, it's been processed already
-	if fleet.RepeatOrders && !wp0.PartiallyComplete {
-		// if we are supposed to repeat orders,
-		wp0.processed = false
-		wp0.WaitAtWaypoint = false
-		wp0.PartiallyComplete = false
-		fleet.Waypoints = append(fleet.Waypoints, wp0)
-
-		t.log.Debug("repeating waypoint",
-			slog.Int("Player", fleet.PlayerNum),
-			slog.String("Fleet", fleet.Name),
-			slog.String("Waypoint", fmt.Sprintf("%s: %s", wp0.TargetName, wp0.Task)),
-		)
-	}
 }
 
 // kill off colonists on fleets from radiation poisoning.
@@ -3017,7 +3094,13 @@ func (t *turnGenerator) fleetPatrol(player *Player) {
 				wpTarget.PartiallyComplete = false
 			}
 
+			// repeating patrols come back to patrol here again after the intercept
+			base := *wp
+			base.processed = false
 			fleet.Waypoints = append(fleet.Waypoints, wpTarget)
+			if fleet.RepeatOrders {
+				fleet.Waypoints = append(fleet.Waypoints, base)
+			}
 
 			messager.fleetPatrolTargeted(player, fleet, closest)
 

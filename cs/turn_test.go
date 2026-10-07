@@ -250,21 +250,24 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Repeat Orders", func(t *testing.T) {
+		load := ScenarioWaypoint{
+			To:             "Planet 1",
+			Warp:           5,
+			Task:           WaypointTaskTransport,
+			TransportTasks: WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionLoadAll}},
+		}
 		s := singleFleetScenario(DesignSmallFreighter)
 		s.Planets[0].Cargo = Cargo{1000, 1000, 1000, 1000}
 		s.Players[0].Fleets = []ScenarioFleet{{Design: "Small Freighter", At: "Planet 1", RepeatOrders: true, Waypoints: []ScenarioWaypoint{
-			{
-				To:             "Planet 1",
-				Warp:           5,
-				Task:           WaypointTaskTransport,
-				TransportTasks: WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionLoadAll}},
-			},
+			load,
 			{
 				Position:       Vector{50, 0},
 				Warp:           5,
 				Task:           WaypointTaskTransport,
 				TransportTasks: WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionUnloadAll}},
 			},
+			// come back to load again, like Stars!
+			load,
 		}}}
 		u := newTestUniverse(t, s)
 		game, planet, fleet := u.Game, u.Planet("Planet 1"), u.Fleet("Small Freighter #1")
@@ -278,11 +281,12 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, Vector{25, 0}, fleet.Position)
 		assert.Equal(t, 3, len(fleet.Waypoints))
 
-		// generate the second turn, should move to dest and unload
+		// generate the second turn, should move to dest and unload, and the dest goes to the end of the orders
 		u.GenerateTurn()
 		assert.Equal(t, 0, fleet.Cargo.Ironium)
 		assert.Equal(t, Vector{50, 0}, fleet.Position)
-		assert.Equal(t, 2, len(fleet.Waypoints))
+		assert.Equal(t, 3, len(fleet.Waypoints))
+		assert.Equal(t, Vector{50, 0}, fleet.Waypoints[2].Position)
 		// should have created salvage with ironium drop
 		salvage := game.Salvages[0]
 		assert.Equal(t, 120, salvage.Cargo.Ironium)
@@ -297,13 +301,26 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, Vector{0, 0}, fleet.Position)
 		assert.Equal(t, 120, fleet.Cargo.Ironium)
 		assert.Equal(t, 760, planet.Cargo.Ironium)
-		assert.Equal(t, 2, len(fleet.Waypoints))
+		assert.Equal(t, 3, len(fleet.Waypoints))
 
 		// generate a fifth turn, should move again towards dest
 		u.GenerateTurn()
 		assert.Equal(t, Vector{25, 0}, fleet.Position)
 		assert.Equal(t, 3, len(fleet.Waypoints))
+	})
 
+	t.Run("Repeat Orders don't repeat a single waypoint", func(t *testing.T) {
+		s := singleFleetScenario(DesignSmallFreighter)
+		s.Players[0].Fleets = []ScenarioFleet{{Design: "Small Freighter", At: "Planet 1", RepeatOrders: true, Waypoints: []ScenarioWaypoint{
+			{To: "Planet 1", Warp: 5},
+			{Position: Vector{20, 0}, Warp: 5},
+		}}}
+		u := newTestUniverse(t, s)
+		fleet := u.Fleet("Small Freighter #1")
+
+		u.GenerateTurn()
+		assert.Equal(t, Vector{20, 0}, fleet.Position)
+		assert.Equal(t, 1, len(fleet.Waypoints))
 	})
 
 	t.Run("TransportRepeat", func(t *testing.T) {
@@ -318,19 +335,21 @@ func Test_turn_fleetMove(t *testing.T) {
 				Concentration: ScenarioValue(Mineral{}),
 			},
 		}
+		load := ScenarioWaypoint{
+			To:             "Planet 1",
+			Warp:           5,
+			Task:           WaypointTaskTransport,
+			TransportTasks: WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionLoadAll}},
+		}
 		s.Players[0].Fleets = []ScenarioFleet{{Design: "Galleon", At: "Planet 1", RepeatOrders: true, Waypoints: []ScenarioWaypoint{
-			{
-				To:             "Planet 1",
-				Warp:           5,
-				Task:           WaypointTaskTransport,
-				TransportTasks: WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionLoadAll}},
-			},
+			load,
 			{
 				To:             "Planet 2",
 				Warp:           5,
 				Task:           WaypointTaskTransport,
 				TransportTasks: WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
 			},
+			load,
 		}}}
 		u := newTestUniverse(t, s)
 		planet1, planet2, fleet := u.Planet("Planet 1"), u.Planet("Planet 2"), u.Fleet("Galleon #1")
@@ -346,7 +365,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
 		assert.Equal(t, 1028, planet2.Cargo.Colonists)
 		assert.Equal(t, 75, planet2.PartialPopulation)
-		assert.Equal(t, 2, len(fleet.Waypoints))
+		assert.Equal(t, 3, len(fleet.Waypoints))
 
 		// generate the second turn, should move back to planet 1
 		u.GenerateTurn()
@@ -360,7 +379,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, 1000, fleet.Cargo.Colonists)
 		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[1].TargetType)
 		assert.Equal(t, planet2.Num, fleet.Waypoints[1].TargetNum)
-		assert.Equal(t, 2, len(fleet.Waypoints))
+		assert.Equal(t, 3, len(fleet.Waypoints))
 
 		// generate the third turn, should move back to planet2 and unload
 		u.GenerateTurn()
@@ -372,7 +391,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
 		assert.Equal(t, Cargo{}, fleet.Cargo)
 		assert.Equal(t, 2360, planet2.Cargo.Colonists)
-		assert.Equal(t, 2, len(fleet.Waypoints))
+		assert.Equal(t, 3, len(fleet.Waypoints))
 
 		// generate a couple more turns, we should eventually stop unloading cargo due to the SetAmountTo and growth
 		// p2 -> p1
@@ -387,7 +406,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
 		assert.Equal(t, Cargo{Colonists: 1000}, fleet.Cargo) // we have leftover
 		assert.Equal(t, 3121, planet2.Cargo.Colonists)       // planet is ready to go!
-		assert.Equal(t, 2, len(fleet.Waypoints))
+		assert.Equal(t, 3, len(fleet.Waypoints))
 
 	})
 
@@ -403,17 +422,18 @@ func Test_turn_fleetMove(t *testing.T) {
 				Concentration: ScenarioValue(Mineral{}),
 			},
 		}
-		s.Players[0].Fleets = []ScenarioFleet{{Design: "Galleon", At: "Planet 1", RepeatOrders: true, Waypoints: []ScenarioWaypoint{
-			{
-				To:   "Planet 1",
-				Warp: 5,
-				Task: WaypointTaskTransport,
-				TransportTasks: WaypointTransportTasks{
-					Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 33},
-					Boranium:  WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 33},
-					Germanium: WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 34},
-				},
+		load := ScenarioWaypoint{
+			To:   "Planet 1",
+			Warp: 5,
+			Task: WaypointTaskTransport,
+			TransportTasks: WaypointTransportTasks{
+				Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 33},
+				Boranium:  WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 33},
+				Germanium: WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 34},
 			},
+		}
+		s.Players[0].Fleets = []ScenarioFleet{{Design: "Galleon", At: "Planet 1", RepeatOrders: true, Waypoints: []ScenarioWaypoint{
+			load,
 			{
 				To:   "Planet 2",
 				Warp: 5,
@@ -424,6 +444,7 @@ func Test_turn_fleetMove(t *testing.T) {
 					Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
 				},
 			},
+			load,
 		}}}
 		u := newTestUniverse(t, s)
 		planet1, planet2, fleet := u.Planet("Planet 1"), u.Planet("Planet 2"), u.Fleet("Galleon #1")
@@ -437,7 +458,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
 		assert.Equal(t, planet1.Num, fleet.Waypoints[0].TargetNum)
 		assert.Equal(t, Cargo{330, 330, 340, 0}, fleet.Cargo)
-		assert.Equal(t, 2, len(fleet.Waypoints))
+		assert.Equal(t, 3, len(fleet.Waypoints))
 
 		// our hold is full, so we move
 		u.GenerateTurn()
@@ -449,7 +470,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
 		assert.Equal(t, Cargo{0, 0, 0, 0}, fleet.Cargo)
 		assert.Equal(t, Mineral{330, 330, 340}, planet2.Cargo.ToMineral())
-		assert.Equal(t, 2, len(fleet.Waypoints))
+		assert.Equal(t, 3, len(fleet.Waypoints))
 		// go back and load again from p1
 		assert.Equal(t, Vector{0, 0}, fleet.Waypoints[1].Position)
 		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[1].TargetType)
@@ -1022,6 +1043,115 @@ func Test_turn_fleetPursuit(t *testing.T) {
 		assert.Greater(t, own.Position.X, wormhole.Position.X)
 		assert.Greater(t, own.Position.Y, 0)
 	})
+}
+
+func Test_turn_fleetFollow(t *testing.T) {
+	scout := func(name string, position Vector) ScenarioFleet {
+		return ScenarioFleet{Name: name, Design: "Long Range Scout", Position: position, Fuel: 300}
+	}
+	newUniverse := func(t *testing.T, fleets ...ScenarioFleet) *testUniverse {
+		return newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{{Designs: Designs(DesignLongRangeScout), Fleets: fleets}},
+			Planets: []ScenarioPlanet{{Name: "Planet 1", Owner: 1, Position: Vector{1000, 1000}, Cargo: Cargo{Colonists: 2500}}},
+		})
+	}
+	follow := func(fleet, target *Fleet, task WaypointTask) {
+		wp := NewFleetWaypoint(target.Position, target.Num, target.PlayerNum, target.Name, 5)
+		wp.Task = task
+		fleet.Waypoints = []Waypoint{wp}
+	}
+	moveTo := func(fleet *Fleet, position Vector) {
+		fleet.Waypoints = []Waypoint{NewPositionWaypoint(fleet.Position, 0), NewPositionWaypoint(position, 5)}
+	}
+
+	t.Run("follow a fleet one turn", func(t *testing.T) {
+		u := newUniverse(t, scout("Follower", Vector{0, 0}), scout("Target", Vector{0, 0}))
+		follower, target := u.Fleet("Follower"), u.Fleet("Target")
+		follow(follower, target, WaypointTaskTransport)
+		moveTo(target, Vector{100, 0})
+
+		u.Run((*turnGenerator).fleetMove)
+
+		assert.Equal(t, Vector{25, 0}, target.Position)
+		assert.Equal(t, Vector{25, 0}, follower.Position)
+		// the follower waits for new orders
+		assert.Len(t, follower.Waypoints, 1)
+		assert.Equal(t, WaypointTaskNone, follower.Waypoints[0].Task)
+		assert.Equal(t, MapObjectTypeNone, follower.Waypoints[0].TargetType)
+		assert.Len(t, u.Messages(1, PlayerMessageFleetFollowedFleet), 1)
+	})
+
+	t.Run("follow a follower", func(t *testing.T) {
+		u := newUniverse(t, scout("Follower 2", Vector{0, 0}), scout("Follower 1", Vector{0, 0}), scout("Target", Vector{0, 0}))
+		follower2, follower1, target := u.Fleet("Follower 2"), u.Fleet("Follower 1"), u.Fleet("Target")
+		follow(follower2, follower1, WaypointTaskTransport)
+		follow(follower1, target, WaypointTaskMergeWithFleet)
+		moveTo(target, Vector{100, 0})
+
+		u.Run((*turnGenerator).fleetMove)
+
+		assert.Equal(t, Vector{25, 0}, follower1.Position)
+		assert.Equal(t, Vector{25, 0}, follower2.Position)
+	})
+
+	t.Run("target isn't moving", func(t *testing.T) {
+		u := newUniverse(t, scout("Follower", Vector{0, 0}), scout("Target", Vector{0, 0}))
+		follower, target := u.Fleet("Follower"), u.Fleet("Target")
+		follow(follower, target, WaypointTaskTransport)
+
+		u.Run((*turnGenerator).fleetMove)
+
+		// keep our orders with the fleet
+		assert.Equal(t, Vector{0, 0}, follower.Position)
+		assert.Equal(t, MapObjectTypeFleet, follower.Waypoints[0].TargetType)
+		assert.Equal(t, WaypointTaskTransport, follower.Waypoints[0].Task)
+		assert.Empty(t, u.Messages(1, PlayerMessageFleetFollowedFleet))
+	})
+
+	t.Run("patrol doesn't follow", func(t *testing.T) {
+		u := newUniverse(t, scout("Patrol", Vector{0, 0}), scout("Target", Vector{0, 0}))
+		patrol, target := u.Fleet("Patrol"), u.Fleet("Target")
+		follow(patrol, target, WaypointTaskPatrol)
+		moveTo(target, Vector{100, 0})
+
+		u.Run((*turnGenerator).fleetMove)
+
+		assert.Equal(t, Vector{0, 0}, patrol.Position)
+		assert.Equal(t, WaypointTaskPatrol, patrol.Waypoints[0].Task)
+	})
+}
+
+func Test_turn_fleetNotifyIdle(t *testing.T) {
+	tests := []struct {
+		name        string
+		task        WaypointTask
+		wantMessage bool
+	}{
+		{"no task", WaypointTaskNone, true},
+		{"merge", WaypointTaskMergeWithFleet, true},
+		{"transport", WaypointTaskTransport, false},
+		{"colonize", WaypointTaskColonize, false},
+		{"remote mining", WaypointTaskRemoteMining, false},
+		{"scrap", WaypointTaskScrapFleet, false},
+		{"lay mines", WaypointTaskLayMinefield, false},
+		{"patrol", WaypointTaskPatrol, false},
+		{"transfer", WaypointTaskTransferFleet, false},
+		{"route with no route", WaypointTaskRoute, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, SingleUnitScenario())
+			u.Game.Year = u.Game.Rules.StartingYear + 1
+			fleet := u.Fleet("Long Range Scout #1")
+			fleet.Age = 1
+			fleet.PreviousPosition = &Vector{-10, 0}
+			fleet.Waypoints[0].Task = tt.task
+
+			u.Run((*turnGenerator).fleetNotifyIdle)
+
+			assert.Equal(t, tt.wantMessage, len(u.Messages(1, PlayerMessageFleetOrdersComplete)) == 1)
+		})
+	}
 }
 
 func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
@@ -1618,10 +1748,12 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 	// generate a turn to setup the patrol target
 	u.GenerateTurn()
 
-	// fleet1 should target fleet2
-	assert.Equal(t, 2, len(fleet1.Waypoints))
+	// fleet1 should target fleet2, then come back to patrol
+	assert.Equal(t, 3, len(fleet1.Waypoints))
 	assert.Equal(t, fleet2.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
 	assert.Equal(t, fleet2.Num, fleet1.Waypoints[1].TargetNum)
+	assert.Equal(t, planet.Num, fleet1.Waypoints[2].TargetNum)
+	assert.Equal(t, WaypointTaskPatrol, fleet1.Waypoints[2].Task)
 
 	// generate a turn to allow the player1 fleet to attack player2's fleet
 	u.GenerateTurn()
@@ -1649,7 +1781,7 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 	// fleet1 should target fleet3
 	assert.Equal(t, planet.Position, fleet1.Position)
 	assert.Equal(t, planet.Num, fleet1.OrbitingPlanetNum)
-	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, 3, len(fleet1.Waypoints))
 	assert.Equal(t, fleet3.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
 	assert.Equal(t, fleet3.Num, fleet1.Waypoints[1].TargetNum)
 

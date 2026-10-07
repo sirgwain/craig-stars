@@ -742,6 +742,58 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 	}
 }
 
+func TestFleet_advanceWaypoints(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+	planet := NewPlanet().WithNum(1).withPosition(Vector{10, 0})
+	planet.Name = "Planet 1"
+	a := NewPositionWaypoint(Vector{0, 0}, 5)
+	b := NewPlanetWaypoint(Vector{10, 0}, 1, "Planet 1", 5)
+	c := NewPositionWaypoint(Vector{20, 0}, 5)
+	intercept := NewFleetWaypoint(Vector{10, 0}, 2, 2, "Enemy", 5)
+	intercept.PartiallyComplete = true
+	transportFleet := NewFleetWaypoint(Vector{10, 0}, 2, 1, "Freighter", 5)
+	transportFleet.Task = WaypointTaskTransport
+	scoutFleet := NewFleetWaypoint(Vector{10, 0}, 2, 1, "Scout", 5)
+
+	type want struct {
+		positions []Vector
+		wp0Target MapObjectType
+	}
+	tests := []struct {
+		name      string
+		waypoints []Waypoint
+		repeat    bool
+		want      want
+	}{
+		{"no repeat", []Waypoint{a, b, c}, false, want{[]Vector{{10, 0}, {20, 0}}, MapObjectTypePlanet}},
+		{"repeat sends reached waypoint to the end", []Waypoint{a, b, c}, true, want{[]Vector{{10, 0}, {20, 0}, {10, 0}}, MapObjectTypePlanet}},
+		{"repeat doesn't repeat the last waypoint", []Waypoint{a, b}, true, want{[]Vector{{10, 0}}, MapObjectTypePlanet}},
+		{"repeat doesn't repeat if the last waypoint is already there", []Waypoint{a, b, c, b}, true, want{[]Vector{{10, 0}, {20, 0}, {10, 0}}, MapObjectTypePlanet}},
+		{"repeat doesn't repeat an intercept", []Waypoint{a, intercept, a}, true, want{[]Vector{{10, 0}, {0, 0}}, MapObjectTypePlanet}},
+		{"reaching a fleet makes wp0 where we are", []Waypoint{a, scoutFleet}, false, want{[]Vector{{10, 0}}, MapObjectTypePlanet}},
+		{"reaching a fleet to transport keeps the fleet", []Waypoint{a, transportFleet}, false, want{[]Vector{{10, 0}}, MapObjectTypeFleet}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fleet := testLongRangeScout(player).withWaypoints(tt.waypoints...)
+			fleet.RepeatOrders = tt.repeat
+			fleet.Position = Vector{10, 0}
+			fleet.OrbitingPlanetNum = planet.Num
+			universe := Universe{log: testLogger, Fleets: []*Fleet{fleet}, Planets: []*Planet{planet}}
+			universe.buildMaps([]*Player{player})
+
+			fleet.advanceWaypoints(&universe, tt.waypoints[1])
+
+			positions := []Vector{}
+			for _, wp := range fleet.Waypoints {
+				positions = append(positions, wp.Position)
+			}
+			assert.Equal(t, tt.want.positions, positions)
+			assert.Equal(t, tt.want.wp0Target, fleet.Waypoints[0].TargetType)
+		})
+	}
+}
+
 func TestFleet_moveStepFuel(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 	fleet := testLongRangeScout(player).

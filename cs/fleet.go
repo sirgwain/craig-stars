@@ -822,12 +822,11 @@ func (fleet *Fleet) removeEmptyTokens() {
 // other fleets make it in several, following their target (see turnGenerator.fleetMove).
 type fleetMove struct {
 	fleet         *Fleet
-	wp0           Waypoint // wp0 at the start of the move
-	start         Vector   // position at the start of the move
-	budget        float64  // ly this fleet can move this turn, warp²
-	moved         float64  // ly moved so far this turn
-	fuelUsed      int      // fuel charged so far this turn for the distance moved
-	fuelGenerated int      // ramscoop fuel generated so far this turn
+	start         Vector  // position at the start of the move
+	budget        float64 // ly this fleet can move this turn, warp²
+	moved         float64 // ly moved so far this turn
+	fuelUsed      int     // fuel charged so far this turn for the distance moved
+	fuelGenerated int     // ramscoop fuel generated so far this turn
 	ranOutOfFuel  bool
 	target        *Fleet // the fleet being pursued, if any
 	done          bool
@@ -837,7 +836,6 @@ func newFleetMove(fleet *Fleet) *fleetMove {
 	wp1 := fleet.Waypoints[1]
 	return &fleetMove{
 		fleet:  fleet,
-		wp0:    fleet.Waypoints[0],
 		start:  fleet.Position,
 		budget: float64(wp1.WarpSpeed * wp1.WarpSpeed),
 	}
@@ -1296,7 +1294,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 	// if we wait at a waypoint while unloading, we "complete" our move but don't actually move
 	// TODO: this is weird, can we just not complete a move if we are waiting at a waypoint?
 	if !wp0.WaitAtWaypoint {
-		fleet.Waypoints = fleet.Waypoints[1:]
+		fleet.advanceWaypoints(mapObjectGetter, wp1)
 	}
 
 	// we arrived, process the current task (the previous waypoint)
@@ -1307,6 +1305,51 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 		wp1 = fleet.Waypoints[1]
 		fleet.WarpSpeed = wp1.WarpSpeed
 		fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
+	}
+}
+
+// advanceWaypoints makes the waypoint we just reached our new wp0. With repeat orders, the reached
+// waypoint goes to the end of the list so the fleet goes around again, unless it was the last waypoint,
+// the last waypoint is already there, or it was a waypoint to intercept a fleet.
+func (fleet *Fleet) advanceWaypoints(mapObjectGetter mapObjectGetter, reached Waypoint) {
+	wp0 := fleet.Waypoints[1]
+	rest := fleet.Waypoints[2:]
+
+	// we reached a fleet, our new wp0 is where we are, unless we need the fleet for our task
+	if wp0.TargetType == MapObjectTypeFleet && wp0.Task != WaypointTaskTransport && wp0.Task != WaypointTaskMergeWithFleet {
+		fleet.targetLocation(mapObjectGetter, &wp0)
+	}
+
+	waypoints := make([]Waypoint, 0, len(rest)+2)
+	waypoints = append(waypoints, wp0)
+	waypoints = append(waypoints, rest...)
+
+	if fleet.RepeatOrders && len(rest) > 0 && rest[len(rest)-1].Position != reached.Position && !reached.isIntercept() {
+		reached.processed = false
+		reached.WaitAtWaypoint = false
+		waypoints = append(waypoints, reached)
+	}
+
+	fleet.Waypoints = waypoints
+}
+
+// isIntercept is true for waypoints added to intercept a fleet while patrolling. They aren't repeated.
+func (wp *Waypoint) isIntercept() bool {
+	// repeating patrols mark their intercepts PartiallyComplete so they're never repeated
+	return wp.PartiallyComplete || (wp.Task == WaypointTaskPatrol && wp.TargetType == MapObjectTypeFleet)
+}
+
+// targetLocation points a waypoint at where this fleet is: the planet it's orbiting, or its position in space
+func (fleet *Fleet) targetLocation(mapObjectGetter mapObjectGetter, wp *Waypoint) {
+	wp.Position = fleet.Position
+	wp.clearTarget()
+	if fleet.OrbitingPlanetNum == None {
+		return
+	}
+	if planet := mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum); planet != nil {
+		wp.TargetType = MapObjectTypePlanet
+		wp.TargetNum = planet.Num
+		wp.TargetName = planet.Name
 	}
 }
 

@@ -22,6 +22,7 @@ Version Info:
 004 - Set BaseHab of Homeworlds to Hab. They were accidentally 0
 005 - Update MineralConcentrations on all worlds where they are low
 006 - Cleanup duplicate discord_id users
+007 - Add wp0 to the end of repeating orders, so they loop like Stars!
 
 */
 
@@ -32,7 +33,7 @@ type upgrade struct {
 	tx *client
 }
 
-const LATEST_VERSION = int64(6)
+const LATEST_VERSION = int64(7)
 
 func (conn *dbConn) mustUpgrade() {
 
@@ -76,6 +77,8 @@ func (tx *client) ensureUpgrade(ctx context.Context) error {
 			err = u.upgrade5(ctx)
 		case 5:
 			err = u.upgrade6(ctx)
+		case 6:
+			err = u.upgrade7(ctx)
 		}
 
 		// check for any issues upgrading
@@ -330,5 +333,47 @@ func (u *upgrade) upgrade6(ctx context.Context) error {
 		return fmt.Errorf("create unique index: %w", err)
 	}
 
+	return nil
+}
+
+// upgrade7 updates repeating orders for repeat orders that work like Stars!. It only updates
+// the waypoints of fleets with repeat orders, not the rest of the game.
+func (u *upgrade) upgrade7(ctx context.Context) error {
+	tx := u.tx.tx
+	rows, err := tx.QueryContext(ctx, `SELECT id, waypoints FROM fleets WHERE repeat_orders = 1 AND starbase = 0`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	type fleetWaypoints struct {
+		id        int64
+		waypoints generated.Waypoints
+	}
+	updates := []fleetWaypoints{}
+	cleaner := cs.NewCleaner()
+	for rows.Next() {
+		var fleet fleetWaypoints
+		if err := rows.Scan(&fleet.id, &fleet.waypoints); err != nil {
+			return fmt.Errorf("reading fleet waypoints: %w", err)
+		}
+		waypoints, changed := cleaner.FixRepeatOrders(fleet.waypoints)
+		if changed {
+			fleet.waypoints = waypoints
+			updates = append(updates, fleet)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	rows.Close()
+
+	for _, fleet := range updates {
+		if _, err := tx.ExecContext(ctx, `UPDATE fleets SET waypoints = ? WHERE id = ?`, &fleet.waypoints, fleet.id); err != nil {
+			return fmt.Errorf("updating fleet %d waypoints: %w", fleet.id, err)
+		}
+	}
+
+	slog.InfoContext(ctx, "updated repeat orders", slog.Int("Fleets", len(updates)))
 	return nil
 }
