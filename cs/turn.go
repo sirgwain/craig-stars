@@ -55,9 +55,7 @@ func (t *turnGenerator) generateTurn() error {
 
 	// wp0 tasks
 	t.fleetInit()
-	t.fleetByHandLoads()
-	t.fleetByHandUnloads()
-	t.fleetClearByHandCargoTransfers()
+	t.fleetByHandTransfers()
 	t.fleetScrap()
 	t.fleetUnload()
 	t.fleetColonize()
@@ -166,67 +164,61 @@ func (t *turnGenerator) fleetInit() {
 	}
 }
 
-// fleetByHandLoads will do any by hand cargo transfer load orders
-func (t *turnGenerator) fleetByHandLoads() {
+// fleetByHandTransfers settles any by hand cargo transfers players made with things they don't own.
+// Loads are settled for all players before unloads
+func (t *turnGenerator) fleetByHandTransfers() {
 	cargoTransferer := newCargoTransferer(t.log, t.game)
+
+	settlements := []*byHandSettlement{}
 	for _, player := range t.game.Players {
-		if len(player.CargoTransfers) == 0 {
-			continue
-		}
-
-		// CargoTransfers are a map of transfer per location
-		// process each transfer for a location in order
-		for _, transfers := range player.CargoTransfers {
-			results := cargoTransferer.loadByHands(player, transfers)
-
-			// for by hand transfers, we only care if something went wrong
-			for _, result := range results {
-				if result.status == CargoTransferStatusNone {
-					// the player assumes all by hand transfer go through, so if it works, don't send any messages
-					if result.wanted != result.transferred {
-						// we transferred some but not all, someone else got to it first perhaps
-						messager.fleetByHandTransferIncomplete(player, result.fleet, result.dest, result.cargoType, result.transferred, result.wanted, result.status)
-					}
-					continue
-				}
-				// alert the player of any issues
-				messager.fleetByHandTransferIncomplete(player, result.fleet, result.dest, result.cargoType, result.transferred, result.wanted, result.status)
-			}
-		}
+		settlements = append(settlements, cargoTransferer.byHandSettlements(player)...)
 	}
-}
 
-// fleetByHandUnloads will do any by hand cargo transfer unload orders
-func (t *turnGenerator) fleetByHandUnloads() {
-	cargoTransferer := newCargoTransferer(t.log, t.game)
-	for _, player := range t.game.Players {
-		if len(player.CargoTransfers) == 0 {
-			continue
-		}
+	// cargo each player is giving away at a location, and how much of it they turned out not to have
+	type bucketKey struct {
+		playerNum int
+		position  Vector
+	}
+	unloads := map[bucketKey]Cargo{}
+	deficits := map[bucketKey]Cargo{}
+	for _, s := range settlements {
+		key := bucketKey{s.player.Num, s.position}
+		unloads[key] = unloads[key].Add(s.cargo.PositiveOnly())
+	}
 
-		// CargoTransfers are a map of transfer per location
-		// process each transfer for a location in order
-		for _, transfers := range player.CargoTransfers {
-			results := cargoTransferer.unloadByHands(player, transfers)
+	for _, s := range settlements {
+		key := bucketKey{s.player.Num, s.position}
+		deficit := deficits[key]
+		results := cargoTransferer.settleByHandLoads(s, unloads[key], &deficit)
+		deficits[key] = deficit
+		t.sendByHandResults(s.player, results)
+	}
 
-			for _, result := range results {
-				if result.status == CargoTransferStatusNone {
-					// the player assumes all by hand transfer go through, so if it works, don't send any messages
-					if result.wanted != result.transferred {
-						// we transferred some but not all, someone else got to it first perhaps
-						messager.fleetByHandTransferIncomplete(player, result.fleet, result.dest, result.cargoType, result.transferred, result.wanted, result.status)
-					}
-					continue
-				}
-
-				// alert the player of any issues
-				messager.fleetByHandTransferIncomplete(player, result.fleet, result.dest, result.cargoType, result.transferred, result.wanted, result.status)
-			}
-		}
+	for _, s := range settlements {
+		key := bucketKey{s.player.Num, s.position}
+		deficit := deficits[key]
+		results := cargoTransferer.settleByHandUnloads(s, &deficit)
+		deficits[key] = deficit
+		t.sendByHandResults(s.player, results)
 	}
 
 	// resolve any by hand invasions
 	t.resolveInvasions(cargoTransferer.invader)
+
+	// all transfers are processed
+	for _, player := range t.game.Players {
+		player.CargoTransfers = CargoTransfers{}
+	}
+}
+
+// sendByHandResults lets the player know about any by hand transfers that didn't go through
+func (t *turnGenerator) sendByHandResults(player *Player, results []byHandResult) {
+	for _, result := range results {
+		if result.fleet == nil {
+			continue
+		}
+		messager.fleetByHandTransferIncomplete(player, result.fleet, result.target, result.cargoType, result.transferred, result.wanted, result.status)
+	}
 }
 
 // resolveInvasions resolves all invasions for an invader helper
@@ -307,13 +299,6 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 
 			}
 		}
-	}
-}
-
-// fleetClearByHandCargoTransfers clear's out all by-hand style cargo transfers after they are processed
-func (t *turnGenerator) fleetClearByHandCargoTransfers() {
-	for _, p := range t.game.Players {
-		p.CargoTransfers = CargoTransfers{}
 	}
 }
 

@@ -246,9 +246,12 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		}
 	}
 
-	// record this call with the player
-	target := dest.GetMapObject().ToTarget()
-	player.transferByHand(fleet, target, transferAmount.Cargo.Negative())
+	// transfers with our own planets, fleets and packets are done. Anything else is settled
+	// when the turn is generated
+	mo := dest.GetMapObject()
+	if transferAmount.Cargo != (Cargo{}) && (!mo.OwnedBy(player.Num) || !(mo.Type == MapObjectTypePlanet || mo.Type == MapObjectTypeFleet || mo.Type == MapObjectTypeMineralPacket)) {
+		player.transferByHand(fleet, mo.ToTarget(), transferAmount.Cargo.Negative())
+	}
 
 	slog.Info("by hand transfer",
 		slog.Int64("GameID", player.GameID),
@@ -428,12 +431,6 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 
 	// transfer the cargo as per the player's request
 	if err = o.TransferByHand(rules, player, source, dest, request.TransferAmount); err != nil {
-		return nil, nil, err
-	}
-
-	// split any immediate cargo transfers we did before based on capacity
-	// exclude the one we just made
-	if err := player.CargoTransfers.splitByHandTransfers(source, dest, true); err != nil {
 		return nil, nil, err
 	}
 
@@ -637,11 +634,6 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	// update fleet specs
 	fleet.Spec = ComputeFleetSpec(rules, player, &fleet)
 	source.Spec = ComputeFleetSpec(rules, player, source)
-
-	// split any immediate cargo transfers as well
-	if err := player.CargoTransfers.splitByHandTransfers(source, &fleet, false); err != nil {
-		return nil, fmt.Errorf("unable to split immediate cargo transfers %w", err)
-	}
 
 	// update fuel usage estimates
 	source.ComputeFuelUsage(player)

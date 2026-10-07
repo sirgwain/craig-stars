@@ -876,15 +876,8 @@ func Test_orders_SplitFleet(t *testing.T) {
 				},
 				transferAmount: CargoTransferRequest{Cargo: Cargo{-5, -5, -5, -5}, Fuel: -130},
 			},
-			want: want{
-				cargoTransfers: []ByHandCargoTransfer{
-					{
-						SourceFleetNum:  1,
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Small Freighter #2", TargetNum: 2, TargetPlayerNum: 1},
-						Cargo:           Cargo{5, 5, 5, 5},
-					},
-				},
-			},
+			// transfers between our own fleets are final, so they aren't recorded
+			want: want{},
 		},
 		{
 			name: "split mixed fleet of 2 scouts <-> 2 freighters into one of each",
@@ -948,15 +941,8 @@ func Test_orders_SplitFleet(t *testing.T) {
 					Cargo: Cargo{Ironium: -5},
 				},
 			},
-			want: want{
-				cargoTransfers: []ByHandCargoTransfer{
-					{
-						SourceFleetNum:  1,
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Fleet #2", TargetNum: 2, TargetPlayerNum: 1},
-						Cargo:           Cargo{Ironium: 5},
-					},
-				},
-			},
+			// transfers between our own fleets are final, so they aren't recorded
+			want: want{},
 		},
 		{
 			name: "split colony ship off of full fleet",
@@ -1002,15 +988,8 @@ func Test_orders_SplitFleet(t *testing.T) {
 					Cargo: Cargo{Colonists: -25},
 				},
 			},
-			want: want{
-				cargoTransfers: []ByHandCargoTransfer{
-					{
-						SourceFleetNum:  1,
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Fleet #2", TargetNum: 2, TargetPlayerNum: 1},
-						Cargo:           Cargo{Colonists: 25},
-					},
-				},
-			},
+			// transfers between our own fleets are final, so they aren't recorded
+			want: want{},
 		},
 		{
 			name: "delete source",
@@ -1431,19 +1410,8 @@ func Test_orders_SplitAll(t *testing.T) {
 			},
 			wantErr: false,
 			wantCargoTransfers: CargoTransfers{
-				// should split by hands into 10 separate loads
-				"(0, 0)": []ByHandCargoTransfer{
-					{SourceFleetNum: 1, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 10, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 9, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 8, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 7, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 6, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 5, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 4, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 3, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 2, Cargo: Cargo{Colonists: -10}},
-				},
+				// the load stays with the source fleet. Shortfalls are settled from every fleet at the location
+				"(0, 0)": []ByHandCargoTransfer{{SourceFleetNum: 1, Cargo: Cargo{Colonists: -100}}},
 			},
 		},
 	}

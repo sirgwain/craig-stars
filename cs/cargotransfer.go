@@ -6,18 +6,17 @@ import (
 	"slices"
 )
 
-// ByHandCargoTransfers are any cargo transfers performed by the player in the UI that need to be
-// processed when a turn is generated. It is per fleet for a target. When a fleet is split or merged
-// its by hand transfers are also split and merged.
+// ByHandCargoTransfers are cargo transfers the player made in the UI with something they don't own. They
+// are settled when a turn is generated. When a fleet is deleted or merged its by hand transfers go to the
+// fleet that took its place.
 type ByHandCargoTransfer struct {
 	MapObjectTarget
 	SourceFleetNum int   `json:"sourceFleetNum,omitempty"`
 	Cargo          Cargo `json:"cargo"`
 }
 
-// CargoTransfers are per player ByHandCargoTransfers per location on the map. This makes processing
-// easier so we can account for transfers to/from a target and then between fleets at that location
-// The ByHandCargoTransfers are stored and processed in order they are made by the player
+// CargoTransfers are a player's ByHandCargoTransfers, keyed by the location they were made. Each location
+// is a shared cargo bucket for the player, see settleByHandLoads and settleByHandUnloads.
 type CargoTransfers map[string][]ByHandCargoTransfer
 
 type cargoTransferer struct {
@@ -124,71 +123,7 @@ func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObje
 	cargoTransfers[key] = append(cargoTransfers[key], transfer)
 }
 
-// splitByHandTransfers splits the ByHandCargoTransfers for a source fleet into two
-// ByHandCargoTransfers, based on capacity of each fleet
-func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *Fleet, excludeLatest bool) error {
-	key := source.Position.String()
-	transfers, ok := cargoTransfers[key]
-	if !ok || len(transfers) == 1 && excludeLatest {
-		// no transfers
-		return nil
-	}
-	latest := transfers[len(transfers)-1]
-	if excludeLatest {
-		transfers = transfers[:len(transfers)-1]
-	}
-
-	updatedTransfers := make([]ByHandCargoTransfer, 0, len(transfers))
-	for _, transfer := range transfers {
-		if transfer.SourceFleetNum != source.Num {
-			updatedTransfers = append(updatedTransfers, transfer)
-			continue
-		}
-		// if one of the splits is empty assign the by hand transfer to the other one
-		if source.Spec.CargoCapacity == 0 {
-			transfer.SourceFleetNum = dest.Num
-			updatedTransfers = append(updatedTransfers, transfer)
-			continue
-		} else if dest.Spec.CargoCapacity == 0 {
-			transfer.SourceFleetNum = source.Num
-			updatedTransfers = append(updatedTransfers, transfer)
-			continue
-		}
-
-		// split this transfer
-		sourceCargo := transfer.Cargo.ToArray()
-		cargo1, cargo2, err := splitValues(
-			source.Spec.CargoCapacity+dest.Spec.CargoCapacity,
-			source.Spec.CargoCapacity,
-			dest.Spec.CargoCapacity,
-			sourceCargo[:]...)
-		if err != nil {
-			return err
-		}
-		// copy this transfer into two transfers
-		transfer1 := transfer
-		transfer2 := transfer
-
-		transfer1.Cargo = NewCargoFromArray([4]int(cargo1))
-		if transfer1.Cargo.absSum() > 0 {
-			updatedTransfers = append(updatedTransfers, transfer1)
-		}
-
-		transfer2.Cargo = NewCargoFromArray([4]int(cargo2))
-		if transfer2.Cargo.absSum() > 0 {
-			transfer2.SourceFleetNum = dest.Num
-			updatedTransfers = append(updatedTransfers, transfer2)
-		}
-	}
-
-	if excludeLatest {
-		updatedTransfers = append(updatedTransfers, latest)
-	}
-	cargoTransfers[key] = updatedTransfers
-	return nil
-}
-
-// move all byHand transfers from one fleet to another (in case a fleet is deleted)
+// moveByHandTransfers moves all byHand transfers from one fleet to another (in case a fleet is deleted)
 func (cargoTransfers CargoTransfers) moveByHandTransfers(source *Fleet, dest *Fleet) {
 	key := source.Position.String()
 	transfers, ok := cargoTransfers[key]
@@ -206,372 +141,426 @@ func (cargoTransfers CargoTransfers) moveByHandTransfers(source *Fleet, dest *Fl
 			transfer.TargetNum = dest.Num
 		}
 	}
-
 }
 
-// mergeByHandTransfers merges cargo transfers from merging fleets into a source fleet
+// mergeByHandTransfers gives the by hand transfers of fleets merging into fleet to fleet
 func (cargoTransfers CargoTransfers) mergeByHandTransfers(fleet *Fleet, mergingFleets []*Fleet) {
-	key := fleet.Position.String()
-	transfers, ok := cargoTransfers[key]
-	if !ok {
-		// no transfers
+	for _, mergingFleet := range mergingFleets {
+		if mergingFleet != fleet {
+			cargoTransfers.moveByHandTransfers(mergingFleet, fleet)
+		}
+	}
+}
+
+// By hand transfers are applied as soon as the player makes them, so the player sees the result right
+// away. Transfers between a player's own fleets, planets and mineral packets are final. Nothing else
+// touches those before turn generation, so they are never replayed.
+//
+// Transfers with anything the player doesn't own (salvage, jettisoned cargo, other players' planets,
+// fleets and packets) only changed the player's intel, so they are settled at turn generation. Each
+// location is a shared cargo bucket for the player: all of their fleets there, and their planet if they
+// own it. Settling moves the player's net exchange with each target in or out of the bucket. If another
+// player got to a target first and it has less than the player took, the shortfall comes back out of
+// the bucket. If a target can't accept what the player gave, it goes back into the bucket.
+//
+// All players' loads are settled before any unloads.
+
+// byHandSettlement is a player's net by hand exchange with one target at a location
+type byHandSettlement struct {
+	player   *Player
+	position Vector
+	target   MapObjectTarget
+	// cargo given to the target. Negative amounts were taken from it
+	cargo Cargo
+	// the player's fleets that transferred with the target, in order
+	fleetNums []int
+}
+
+// byHandResult is a by hand transfer that didn't go through as the player made it
+type byHandResult struct {
+	fleet       *Fleet
+	target      MapObjectTarget
+	cargoType   CargoType
+	transferred int
+	wanted      int
+	status      CargoTransferStatus
+}
+
+// byHandBucket is everything a player owns at a location that can hold by hand cargo
+type byHandBucket struct {
+	// the fleets that transferred with the target, then the player's other fleets here
+	fleets []*Fleet
+	// how many of fleets transferred with the target
+	numTransferred int
+	planet         *Planet
+}
+
+// byHandSettlements gets a player's by hand transfers that need settling, one per location and target
+func (t *cargoTransferer) byHandSettlements(player *Player) []*byHandSettlement {
+	settlements := []*byHandSettlement{}
+
+	// settle locations in a consistent order
+	keys := make([]string, 0, len(player.CargoTransfers))
+	for key := range player.CargoTransfers {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+
+	for _, key := range keys {
+		transfers := player.CargoTransfers[key]
+		if len(transfers) == 0 {
+			continue
+		}
+
+		position, ok := t.byHandPosition(player, transfers)
+		if !ok {
+			t.log.Error("unable to find location of by hand transfers",
+				slog.Int("Player", player.Num),
+				slog.String("Location", key))
+			continue
+		}
+
+		settlementsByTarget := map[MapObjectTarget]*byHandSettlement{}
+		for _, transfer := range transfers {
+			if t.byHandTransferIsFinal(player, transfer.MapObjectTarget) {
+				// earlier versions recorded transfers between owned objects. They're already done
+				continue
+			}
+
+			target := transfer.MapObjectTarget
+			// jettisons are all the same target at a location
+			if target.TargetType == MapObjectTypeNone {
+				target = MapObjectTarget{TargetPosition: position}
+			}
+
+			// don't let a name or position change split a target
+			key := MapObjectTarget{TargetType: target.TargetType, TargetNum: target.TargetNum, TargetPlayerNum: target.TargetPlayerNum}
+			settlement, ok := settlementsByTarget[key]
+			if !ok {
+				settlement = &byHandSettlement{player: player, position: position, target: target}
+				settlementsByTarget[key] = settlement
+				settlements = append(settlements, settlement)
+			}
+			settlement.cargo = settlement.cargo.Add(transfer.Cargo)
+			if !slices.Contains(settlement.fleetNums, transfer.SourceFleetNum) {
+				settlement.fleetNums = append(settlement.fleetNums, transfer.SourceFleetNum)
+			}
+		}
+	}
+
+	return settlements
+}
+
+// byHandPosition finds where a player's by hand transfers happened
+func (t *cargoTransferer) byHandPosition(player *Player, transfers []ByHandCargoTransfer) (Vector, bool) {
+	for _, transfer := range transfers {
+		if fleet := t.game.getFleet(player.Num, transfer.SourceFleetNum); fleet != nil && !fleet.Delete {
+			return fleet.Position, true
+		}
+	}
+	for _, transfer := range transfers {
+		if transfer.TargetType != MapObjectTypeNone {
+			return transfer.TargetPosition, true
+		}
+	}
+	return Vector{}, false
+}
+
+// byHandTransferIsFinal is true for transfers with a player's own planets, fleets and mineral packets.
+// These are done when the player makes them and don't need settling
+func (t *cargoTransferer) byHandTransferIsFinal(player *Player, target MapObjectTarget) bool {
+	switch target.TargetType {
+	case MapObjectTypePlanet:
+		planet := t.game.getPlanet(target.TargetNum)
+		return planet != nil && planet.OwnedBy(player.Num)
+	case MapObjectTypeFleet, MapObjectTypeMineralPacket:
+		return target.TargetPlayerNum == player.Num
+	}
+	return false
+}
+
+// getByHandBucket gets everything a player owns at a settlement's location that can hold cargo.
+// Fleets that transferred with the target come first
+func (t *cargoTransferer) getByHandBucket(s *byHandSettlement) byHandBucket {
+	bucket := byHandBucket{}
+	for _, num := range s.fleetNums {
+		if fleet := t.game.getFleet(s.player.Num, num); fleet != nil && !fleet.Delete && fleet.Position == s.position {
+			bucket.fleets = append(bucket.fleets, fleet)
+		}
+	}
+
+	others := []*Fleet{}
+	for _, mo := range t.game.getMapObjectsAtPosition(s.position) {
+		switch mo := mo.(type) {
+		case *Fleet:
+			if mo.PlayerNum == s.player.Num && !mo.Delete && !mo.Starbase && !slices.Contains(bucket.fleets, mo) {
+				others = append(others, mo)
+			}
+		case *Planet:
+			if mo.OwnedBy(s.player.Num) {
+				bucket.planet = mo
+			}
+		}
+	}
+	slices.SortFunc(others, func(a, b *Fleet) int { return a.Num - b.Num })
+	bucket.numTransferred = len(bucket.fleets)
+	bucket.fleets = append(bucket.fleets, others...)
+
+	return bucket
+}
+
+// fleet gets the fleet that represents the player in a settlement
+func (b byHandBucket) fleet() *Fleet {
+	if len(b.fleets) > 0 {
+		return b.fleets[0]
+	}
+	return nil
+}
+
+// removeFromTransferred takes cargo out of the fleets that transferred with the target, returning any
+// amount they don't have
+func (b byHandBucket) removeFromTransferred(cargoType CargoType, amount int) int {
+	return removeFromFleets(b.fleets[:b.numTransferred], cargoType, amount)
+}
+
+// removeFromOthers takes cargo out of the player's other fleets, the ones with the most first, and
+// then their planet. It returns any amount they don't have
+func (b byHandBucket) removeFromOthers(cargoType CargoType, amount int) int {
+	others := slices.Clone(b.fleets[b.numTransferred:])
+	slices.SortStableFunc(others, func(a, b *Fleet) int { return b.Cargo.GetAmount(cargoType) - a.Cargo.GetAmount(cargoType) })
+	amount = removeFromFleets(others, cargoType, amount)
+	if b.planet != nil {
+		removed := min(amount, b.planet.Cargo.GetAmount(cargoType))
+		b.planet.Cargo = b.planet.Cargo.SubtractAmount(cargoType, removed)
+		amount -= removed
+	}
+	return amount
+}
+
+func removeFromFleets(fleets []*Fleet, cargoType CargoType, amount int) int {
+	for _, fleet := range fleets {
+		removed := min(amount, fleet.Cargo.GetAmount(cargoType))
+		fleet.Cargo = fleet.Cargo.SubtractAmount(cargoType, removed)
+		amount -= removed
+	}
+	return amount
+}
+
+// add puts cargo back in the bucket's fleets, then its planet. Anything left over is jettisoned
+func (t *cargoTransferer) addToBucket(s *byHandSettlement, b byHandBucket, cargoType CargoType, amount int) {
+	for _, fleet := range b.fleets {
+		added := min(amount, fleet.availableCargoSpace())
+		fleet.Cargo = fleet.Cargo.AddAmount(cargoType, added)
+		amount -= added
+	}
+	if amount == 0 {
 		return
 	}
-
-	// merge any by hand transfers these merging fleets are part of
-	updatedTransfers := make([]ByHandCargoTransfer, 0, len(transfers))
-	for _, transfer := range transfers {
-
-		if transfer.SourceFleetNum == fleet.Num &&
-			slices.ContainsFunc(mergingFleets, func(f *Fleet) bool { return transfer.Targeting(f.MapObject) }) {
-			// this transfer is the source fleet transfering to one of the merged fleets
-			// drop this order as it's "completed" by the merge
-			continue
-		}
-
-		if !slices.ContainsFunc(mergingFleets, func(f *Fleet) bool { return transfer.SourceFleetNum == f.Num }) {
-			// this transfer isn't about a merging fleet, continue
-			updatedTransfers = append(updatedTransfers, transfer)
-			continue
-		}
-
-		if transfer.MapObjectTarget.Targeting(fleet.MapObject) {
-			// the fleet we are merging in is transfering to the source fleet
-			// we can drop this order as it's "completed" by the merge
-			continue
-		}
-
-		var prevTransfer *ByHandCargoTransfer
-		if len(updatedTransfers) > 0 {
-			prevTransfer = &updatedTransfers[len(updatedTransfers)-1]
-		}
-
-		// if the previous transfer is the fleet we're merging into AND the target is the same, just merge the request
-		// into the previous transfer
-		if prevTransfer != nil && prevTransfer.SourceFleetNum == fleet.Num && prevTransfer.MapObjectTarget == transfer.MapObjectTarget {
-			prevTransfer.Cargo = prevTransfer.Cargo.Add(transfer.Cargo)
-			continue
-		}
-
-		// give this transfer to the merged fleet
-		transfer.SourceFleetNum = fleet.Num
-		updatedTransfers = append(updatedTransfers, transfer)
+	if b.planet != nil {
+		b.planet.Cargo = b.planet.Cargo.AddAmount(cargoType, amount)
+		return
 	}
-
-	cargoTransfers[key] = updatedTransfers
+	if cargoType == Colonists {
+		// colonists can't survive in space
+		t.log.Warn("by hand colonists returned with nowhere to go",
+			slog.Int("Player", s.player.Num),
+			slog.String("Target", s.target.PrettyString()),
+			slog.Int("Colonists", amount*100))
+		return
+	}
+	t.game.getOrCreateSalvage(s.position, s.player.Num, Cargo{}.WithCargo(cargoType, amount))
 }
 
-// getUnloadTasks creates a WaypointTransportTask for each positive cargo value in the ByHandCargoTransfer
-func (o ByHandCargoTransfer) getUnloadTasks() WaypointTransportTasks {
-	tt := WaypointTransportTasks{}
-	if o.Cargo.Ironium > 0 {
-		tt.Ironium.Action = TransportActionUnloadAmount
-		tt.Ironium.Amount = o.Cargo.Ironium
+// findByHandTarget finds the cargo holder for a settlement's target
+func (t *cargoTransferer) findByHandTarget(s *byHandSettlement) (CargoHolder, bool) {
+	dest, ok := t.game.getCargoHolder(s.target.TargetType, s.target.TargetNum, s.target.TargetPlayerNum)
+	if !ok || dest.Deleted() {
+		return nil, false
 	}
-	if o.Cargo.Boranium > 0 {
-		tt.Boranium.Action = TransportActionUnloadAmount
-		tt.Boranium.Amount = o.Cargo.Boranium
-	}
-	if o.Cargo.Germanium > 0 {
-		tt.Germanium.Action = TransportActionUnloadAmount
-		tt.Germanium.Amount = o.Cargo.Germanium
-	}
-	if o.Cargo.Colonists > 0 {
-		tt.Colonists.Action = TransportActionUnloadAmount
-		tt.Colonists.Amount = o.Cargo.Colonists
-	}
-
-	return tt
+	return dest, true
 }
 
-// getLoadTasks creates a WaypointTransportTask for each negative cargo value in the ByHandCargoTransfer
-func (o ByHandCargoTransfer) getLoadTasks() WaypointTransportTasks {
-	tt := WaypointTransportTasks{}
-	if o.Cargo.Ironium < 0 {
-		tt.Ironium.Action = TransportActionLoadAmount
-		tt.Ironium.Amount = -o.Cargo.Ironium
-	}
-	if o.Cargo.Boranium < 0 {
-		tt.Boranium.Action = TransportActionLoadAmount
-		tt.Boranium.Amount = -o.Cargo.Boranium
-	}
-	if o.Cargo.Germanium < 0 {
-		tt.Germanium.Action = TransportActionLoadAmount
-		tt.Germanium.Amount = -o.Cargo.Germanium
-	}
-	if o.Cargo.Colonists < 0 {
-		tt.Colonists.Action = TransportActionLoadAmount
-		tt.Colonists.Amount = -o.Cargo.Colonists
+// settleByHandLoads takes the cargo a player loaded from a target. If the target is gone or has less
+// than the player loaded, the shortfall comes out of the bucket: first the fleets that loaded it, then
+// cargo the player is giving away at this location (added to deficit and taken out of the unloads),
+// then the player's other fleets and planet. unloads is the cargo the player is giving away here.
+func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, deficit *Cargo) (results []byHandResult) {
+	toLoad := s.cargo.NegativeOnly().Negative()
+	if toLoad == (Cargo{}) {
+		return nil
 	}
 
-	return tt
-}
-
-// loadByHands performs all load parts of ByHandCargoTransfers for a player at a location
-// because some loads might require a different fleet's unload to happen first, this tracks how much
-// cargo is currently unloaded at this location as it proccesses tasks, and it loads from that "bucket" first
-func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTransfer) []cargoTransferResult {
-	var results []cargoTransferResult
-
-	// we iterate over transfers by their target so we can keep track of the running cargo amount from by hand unloads
-	transfersByTarget := make(map[MapObjectTarget][]ByHandCargoTransfer)
-	for _, transfer := range transfers {
-		transfersByTarget[transfer.MapObjectTarget] = append(transfersByTarget[transfer.MapObjectTarget], transfer)
+	bucket := t.getByHandBucket(s)
+	fleet := bucket.fleet()
+	if fleet == nil {
+		// all the fleets that loaded this cargo are gone, so is the cargo
+		t.log.Warn("no fleets left to settle by hand load",
+			slog.Int("Player", s.player.Num),
+			slog.String("Target", s.target.PrettyString()))
+		return nil
 	}
 
-	for _, transfers := range transfersByTarget {
-		// as we do by hand loads, load from any by hand unloads first
-		// do this by keeping track of a bucket of cargo for this transfer
-		// the idea is to handle scenarios like this
-		//
-		// Fleet 1 unloads 50kT ironium
-		// Fleet 2 loads 60kT ironium
-		// in the above scenario, Fleet 2 loads 50kT from the bucket, and 10kT from the dest
-		cargoInBucket := Cargo{}
-		for _, transfer := range transfers {
-			fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
-			if fleet == nil {
-				// don't kill turn processing for this because it's unclear how to fix it to unblock players
-				t.log.Error("fleet not found for ByHandCargoTransfer",
-					slog.Int("Player", player.Num),
-					slog.Int("Fleet", transfer.SourceFleetNum))
-				continue
-			}
+	dest, found := t.findByHandTarget(s)
+	for _, cargoType := range CargoTypes {
+		wanted := toLoad.GetAmount(cargoType)
+		if wanted == 0 {
+			continue
+		}
 
-			// add any by hand unloads to the bucket
-			cargoInBucket = cargoInBucket.Add(transfer.Cargo.PositiveOnly())
+		loaded := 0
+		status := CargoTransferStatusNone
+		if !found {
+			status = CargoTransferStatusDestCargo
+		} else if !dest.CanLoad(fleet) {
+			status = CargoTransferStatusOwned
+		} else {
+			loaded = min(wanted, dest.GetCargo().GetAmount(cargoType))
+			dest.SetCargo(dest.GetCargo().SubtractAmount(cargoType, loaded))
+		}
 
-			// find any loads. A fleet loading 5kT of ironium from a planet would have transfer of {ironium: -5}
-			cargoToLoad := transfer.Cargo.NegativeOnly()
+		if loaded == wanted {
+			continue
+		}
 
-			// load from the bucket first
-			for _, cargoType := range CargoTypes {
-				amount := cargoToLoad.GetAmount(cargoType)
-				amountInBucket := cargoInBucket.GetAmount(cargoType)
-				// if we are loading cargo, take it from the bucket first
-				if amount < 0 && amountInBucket > 0 {
-					loadAmount := min(0, amount+amountInBucket)
-					cargoInBucket = cargoInBucket.SetAmount(cargoType, amountInBucket+loadAmount)
-					cargoToLoad = cargoToLoad.SetAmount(cargoType, loadAmount)
+		t.log.Debug("by hand load came up short",
+			slog.Int("Player", s.player.Num),
+			slog.String("Target", s.target.PrettyString()),
+			slog.String("CargoType", cargoType.String()),
+			slog.Int("Wanted", wanted),
+			slog.Int("Loaded", loaded))
 
-					t.log.Debug("by hand load cargo",
-						slog.Int("Player", player.Num),
-						slog.String("Fleet", fleet.Name),
-						slog.String("Target", transfer.MapObjectTarget.PrettyString()),
-						slog.String("cargoInBucket", cargoInBucket.PrettyString()),
-						slog.String("cargoToLoad", cargoToLoad.PrettyString()),
-					)
+		remaining := bucket.removeFromTransferred(cargoType, wanted-loaded)
+		lost := min(remaining, unloads.GetAmount(cargoType)-deficit.GetAmount(cargoType))
+		*deficit = deficit.AddAmount(cargoType, lost)
+		remaining = bucket.removeFromOthers(cargoType, remaining-lost)
+		if remaining > 0 {
+			// this should never happen. The player can't have used more than they had
+			t.log.Error("by hand load shortfall is more than the player has",
+				slog.Int("Player", s.player.Num),
+				slog.String("Target", s.target.PrettyString()),
+				slog.String("CargoType", cargoType.String()),
+				slog.Int("Remaining", remaining))
+		}
+		results = append(results, byHandResult{fleet: fleet, target: s.target, cargoType: cargoType, transferred: loaded, wanted: wanted, status: status})
+	}
 
-				}
-			}
-			// update the transfer with the actual amount we're loading
-			transfer.Cargo = cargoToLoad
-
-			if cargoToLoad == (Cargo{}) {
-				// skip any empty requests
-				continue
-			}
-
-			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
-			if !ok || dest.Deleted() {
-				// can't load from space
-				// TODO: send the user a message
-				t.log.Error("target not found for ByHandCargoTransfer load",
-					slog.Int("Player", player.Num),
-					slog.String("Fleet", fleet.Name),
-					slog.String("Target", transfer.MapObjectTarget.PrettyString()))
-				continue
-			}
-
-			// convert all by hand load transfers into "Load Amount" style WaypointTransportTasks
-			transportTasks := transfer.getLoadTasks()
-
-			// for by hand transfers, the fleet already thinks it loaded this cargo, so take away the cargo and make the
-			// fleet load it for real
-			fleet.Cargo = fleet.Cargo.Add(cargoToLoad.NegativeOnly())
-
-			mo := dest.GetMapObject()
-			if mo.OwnedBy(fleet.PlayerNum) && mo.Type != MapObjectTypeSalvage {
-				// this transfer already happened so reverse it and add it again for real this time
-				dest.SetCargo(dest.GetCargo().Subtract(cargoToLoad.NegativeOnly()))
-			}
-			t.log.Debug("by hand load cargo",
-				slog.Int("Player", fleet.PlayerNum),
-				slog.String("Fleet", fleet.Name),
-				slog.String("Dest", dest.GetMapObject().Name),
-				slog.String("Cargo", fleet.Cargo.PrettyString()),
-				slog.String("DestCargo", dest.GetCargo().PrettyString()),
-				slog.String("CargoToLoad", cargoToLoad.PrettyString()))
-
-			results = append(results, t.load(fleet, dest, transportTasks)...)
-
-			// never zero cargo when we're done
-			fleet.Cargo = fleet.Cargo.PositiveOnly()
-			dest.SetCargo(dest.GetCargo().PositiveOnly())
-
+	if found {
+		// delete this salvage or packet if we emptied it
+		if salvage, ok := dest.(*Salvage); ok && salvage.Cargo == (Cargo{}) {
+			t.game.deleteSalvage(salvage)
+		}
+		if packet, ok := dest.(*MineralPacket); ok && packet.Cargo == (Cargo{}) {
+			t.game.deletePacket(packet)
 		}
 	}
+
 	return results
 }
 
-// unloadByHands processes all by hand unloads for a player for a location
-// this tracks invasions to be resolved after all by hand unloads for all fleets are complete
-// this also unloads in reverse as it will not unload cargo that is going to be loaded later
-func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoTransfer) []cargoTransferResult {
-	var results []cargoTransferResult
-
-	// we iterate over transfers by their target so we can keep track of the running cargo amount from by hand loads
-	transfersByTarget := make(map[MapObjectTarget][]ByHandCargoTransfer)
-	for _, transfer := range transfers {
-		transfersByTarget[transfer.MapObjectTarget] = append(transfersByTarget[transfer.MapObjectTarget], transfer)
+// settleByHandUnloads gives a target the cargo a player unloaded to it. Any deficit from loads that came
+// up short is taken out first. Anything the target can't accept goes back in the bucket.
+// Colonists unloaded on another player's planet invade it.
+func (t *cargoTransferer) settleByHandUnloads(s *byHandSettlement, deficit *Cargo) (results []byHandResult) {
+	toUnload := s.cargo.PositiveOnly()
+	if toUnload == (Cargo{}) {
+		return nil
 	}
 
-	for _, transfers := range transfersByTarget {
-		// as we do by hand unloads, don't unload any cargo we by hand loaded
-		// do this by keeping track of a bucket of cargo for this transfer
-		// the idea is to handle scenarios like this
-		//
-		// Fleet 1 unloads 50kT ironium
-		// Fleet 2 loads 10kT ironium
-		// in the above scenario, Fleet 2 loads 10kT from the bucket, and Fleet 1 only unloads 40kT
+	bucket := t.getByHandBucket(s)
+	fleet := bucket.fleet()
 
-		// loads happen first, so for unloads, handle it in reverse
-		cargoInBucket := Cargo{}
-		for i := len(transfers) - 1; i >= 0; i-- {
-			transfer := transfers[i]
-			fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
-			if fleet == nil {
-				// don't kill turn processing for this because it's unclear how to fix it to unblock players
-				t.log.Error("fleet not found for ByHandCargoTransfer",
-					slog.Int("Player", player.Num),
-					slog.Int("Fleet", transfer.SourceFleetNum))
-				continue
-			}
+	var dest CargoHolder
+	found := false
+	if s.target.TargetType == MapObjectTypeNone {
+		dest, found = t.game.getOrCreateSalvage(s.position, s.player.Num, Cargo{}), true
+	} else {
+		dest, found = t.findByHandTarget(s)
+	}
+	target := s.target
+	if found {
+		target = dest.GetMapObject().ToTarget()
+	}
 
-			// add any by hand loads to the bucket (these would be negative)
-			cargoInBucket = cargoInBucket.Add(transfer.Cargo.NegativeOnly())
-
-			cargoToUnload := transfer.Cargo.PositiveOnly()
-
-			// account for any by hand loads from the bucket
-			for _, cargoType := range CargoTypes {
-				amount := cargoToUnload.GetAmount(cargoType)
-				amountInBucket := cargoInBucket.GetAmount(cargoType)
-				// if we are loading cargo, take it from the bucket first
-				if amount > 0 && amountInBucket < 0 {
-					unloadAmount := max(0, amount+amountInBucket)
-					cargoInBucket = cargoInBucket.SetAmount(cargoType, amountInBucket+unloadAmount)
-					cargoToUnload = cargoToUnload.SetAmount(cargoType, unloadAmount)
-
-					t.log.Debug("by hand unload cargo",
-						slog.Int("Player", player.Num),
-						slog.String("Fleet", fleet.Name),
-						slog.String("Target", transfer.MapObjectTarget.PrettyString()),
-						slog.String("cargoInBucket", cargoInBucket.PrettyString()),
-						slog.String("cargoToUnload", cargoToUnload.PrettyString()),
-					)
-
-				}
-			}
-			// update the transfer with the actual amount we're loading
-			transfer.Cargo = cargoToUnload
-
-			if cargoToUnload == (Cargo{}) {
-				// skip any empty requests
-				continue
-			}
-
-			if transfer.Targeting(fleet.MapObject) {
-				// uh oh, we can't transfer to ourselves
-				t.log.Warn("fleet tried to transfer by hand to itself",
-					slog.Int("Player", player.Num),
-					slog.String("Fleet", fleet.Name))
-
-				continue
-			}
-
-			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
-			if !ok {
-				if transfer.TargetType != MapObjectTypeNone {
-					// uh oh, our dest went away. Log an error, it's a bug
-					t.log.Error("target not found for ByHandCargoTransfer unload",
-						slog.Int("Player", player.Num),
-						slog.String("Fleet", fleet.Name),
-						slog.String("Target", transfer.MapObjectTarget.PrettyString()))
-
-					continue
-				}
-
-				// we are transferring to the void, create a salvage
-				dest = t.game.getOrCreateSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
-			}
-
-			// for by hand transfers, the fleet already thinks it unloaded this cargo, so add back the cargo and make the
-			// fleet unload it for real
-			fleet.Cargo = fleet.Cargo.Add(cargoToUnload.PositiveOnly())
-
-			// convert all by hand unload transfers into "Unload Amount" style WaypointTransportTasks
-			transportTasks := transfer.getUnloadTasks()
-
-			fleetCargoStart := fleet.Cargo
-			destCargoStart := dest.GetCargo()
-
-			mo := dest.GetMapObject()
-			if mo.OwnedBy(fleet.PlayerNum) && mo.Type != MapObjectTypeSalvage {
-				// this transfer already happened so reverse it and transfer it again for real this time
-				dest.SetCargo(dest.GetCargo().Subtract(cargoToUnload.PositiveOnly()))
-			}
-
-			transferResults := t.unload(fleet, dest, transportTasks)
-			t.log.Debug("by hand unload cargo",
-				slog.Int("Player", fleet.PlayerNum),
-				slog.String("Fleet", fleet.Name),
-				slog.String("Dest", dest.GetMapObject().Name),
-				slog.String("FleetCargoStart", fleetCargoStart.PrettyString()),
-				slog.String("FleetCargoEnd", fleet.Cargo.PrettyString()),
-				slog.String("DestCargoStart", destCargoStart.PrettyString()),
-				slog.String("DestCargoEnd", dest.GetCargo().PrettyString()),
-				slog.String("CargoToUnload", cargoToUnload.PrettyString()))
-
-			for _, result := range transferResults {
-				if result.status != CargoTransferStatusNone {
-					// something went wrong, reset the fleet to what it was before
-					// if we don't do this, we end up with
-					fleet.Cargo = fleet.Cargo.SubtractAmount(result.cargoType, cargoToUnload.GetAmount(result.cargoType))
-					dest.SetCargo(dest.GetCargo().AddAmount(result.cargoType, cargoToUnload.GetAmount(result.cargoType)))
-					t.log.Error("fleet tried to transfer by hand, but failed",
-						slog.Int("Player", player.Num),
-						slog.Int("Fleet", transfer.SourceFleetNum),
-						slog.String("CargoType", result.cargoType.String()),
-						slog.Int("Amount", cargoToUnload.GetAmount(result.cargoType)))
-
-					continue
-				}
-				// i.e. we wanted to unload 100, but only unloaded 20
-				if result.wanted != result.transferred {
-					// we didn't fully unload, reset the source and dest to account for this
-					fleet.Cargo = fleet.Cargo.SubtractAmount(result.cargoType, result.wanted-result.transferred)
-					dest.SetCargo(dest.GetCargo().AddAmount(result.cargoType, result.wanted-result.transferred))
-
-					t.log.Warn("fleet tried to transfer by hand, but only transferred",
-						slog.Int("Player", player.Num),
-						slog.Int("Fleet", transfer.SourceFleetNum),
-						slog.String("CargoType", result.cargoType.String()),
-						slog.Int("Amount", cargoToUnload.GetAmount(result.cargoType)),
-						slog.Int("Wanted", result.wanted),
-						slog.Int("Transferred", result.transferred))
-				}
-
-			}
-
-			results = append(results, transferResults...)
-
-			// never zero cargo when we're done
-			fleet.Cargo = fleet.Cargo.PositiveOnly()
-			dest.SetCargo(dest.GetCargo().PositiveOnly())
+	for _, cargoType := range CargoTypes {
+		wanted := toUnload.GetAmount(cargoType)
+		if wanted == 0 {
+			continue
 		}
+
+		// we can't unload cargo we lost on an earlier load
+		lost := min(wanted, deficit.GetAmount(cargoType))
+		*deficit = deficit.SubtractAmount(cargoType, lost)
+		amount := wanted - lost
+
+		unloaded := 0
+		status := CargoTransferStatusNone
+		if lost > 0 {
+			status = CargoTransferStatusCargo
+		}
+		if amount > 0 {
+			if !found {
+				status = CargoTransferStatusDestCargoCapacity
+			} else if planet, ok := dest.(*Planet); ok && cargoType == Colonists && !planet.OwnedBy(s.player.Num) {
+				unloaded, status = t.byHandInvade(s, fleet, planet, amount)
+			} else {
+				unloaded = amount
+				if capacity := dest.GetCargoCapacity(); capacity != Infinite {
+					unloaded = min(amount, max(0, capacity-dest.GetCargo().Total()))
+				}
+				if unloaded < amount {
+					status = CargoTransferStatusDestCargoCapacity
+				}
+				dest.SetCargo(dest.GetCargo().AddAmount(cargoType, unloaded))
+			}
+
+			if returned := amount - unloaded; returned > 0 {
+				t.addToBucket(s, bucket, cargoType, returned)
+			}
+		}
+
+		if unloaded == wanted {
+			continue
+		}
+
+		t.log.Debug("by hand unload came up short",
+			slog.Int("Player", s.player.Num),
+			slog.String("Target", s.target.PrettyString()),
+			slog.String("CargoType", cargoType.String()),
+			slog.Int("Wanted", wanted),
+			slog.Int("Unloaded", unloaded))
+
+		results = append(results, byHandResult{fleet: fleet, target: target, cargoType: cargoType, transferred: unloaded, wanted: wanted, status: status})
 	}
+
+	if found && dest.GetMapObject().Type == MapObjectTypeSalvage && dest.GetCargo() == (Cargo{}) {
+		// nothing was jettisoned after all
+		t.game.deleteSalvage(dest.(*Salvage))
+	}
+
 	return results
+}
+
+// byHandInvade queues an invasion of another player's planet with colonists unloaded by hand
+func (t *cargoTransferer) byHandInvade(s *byHandSettlement, fleet *Fleet, planet *Planet, colonists int) (int, CargoTransferStatus) {
+	if !planet.Owned() {
+		// don't beam colonists to their death
+		return 0, CargoTransferStatusDestUnowned
+	}
+	if planet.Spec.HasStarbase {
+		return 0, CargoTransferStatusDestStarbase
+	}
+	if s.player.Race.Spec.LivesOnStarbases || fleet == nil {
+		return 0, CargoTransferStatusOwned
+	}
+
+	t.invader.addInvasion(invasion{
+		planet:    planet,
+		attacker:  s.player,
+		defender:  t.game.getPlayer(planet.PlayerNum),
+		attackers: colonists * 100,
+		fleets:    []*Fleet{fleet},
+	})
+	return colonists, CargoTransferStatusNone
 }
 
 // load executes cargo load operations for a single fleet, returning a result for each cargoType transfered
