@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import { goto } from '$app/navigation';
 	import MineralMini from '#lib/components/game/MineralMini.svelte';
 	import ProductionQueueItemLine from '#lib/components/game/ProductionQueueItemLine.svelte';
@@ -359,25 +360,60 @@
 					{/if}
 				{:else if column.key == 'starbase'}
 					{#if row.spec?.planetStarbaseSpec?.starbaseDesignName}
-						<span class="cursor-help" onpointerdown={(e) => showDesign(e, row)}>
+						<span
+							role="button"
+							tabindex={0}
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
+							class="cursor-help"
+							onpointerdown={(e) => showDesign(e, row)}
+						>
 							{row.spec.planetStarbaseSpec.starbaseDesignName}
 						</span>
 					{/if}
 				{:else if column.key == 'population'}
-					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+					<div
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onPopulationTooltip(e, row)}
+					>
 						{population(row.cargo) ? population(row.cargo).toLocaleString() : ''}
 					</div>
 				{:else if column.key == 'populationDensity'}
-					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+					<div
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onPopulationTooltip(e, row)}
+					>
 						{((row.spec?.populationDensity ?? 0) * 100).toFixed(1)}%
 					</div>
 				{:else if column.key == 'populationGrowth'}
-					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+					<div
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onPopulationTooltip(e, row)}
+					>
 						{getGrowth(row).toLocaleString()}
 					</div>
 				{:else if column.key == 'habitability'}
 					{#if row.spec?.canTerraform}
-						<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+						<div
+							role="button"
+							tabindex={0}
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
+							class="cursor-help"
+							onpointerdown={(e) => onPopulationTooltip(e, row)}
+						>
 							<span
 								class:text-habitable={(row.spec?.habitability ?? 0) > 0}
 								class:text-uninhabitable={(row.spec?.habitability ?? 0) < 0}
@@ -387,6 +423,10 @@
 						</div>
 					{:else}
 						<span
+							role="button"
+							tabindex={0}
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
 							class="cursor-help"
 							onpointerdown={(e) => onPopulationTooltip(e, row)}
 							class:text-habitable={(row.spec?.habitability ?? 0) > 0}
@@ -412,17 +452,36 @@
 						{/if}
 					</button>
 				{:else if column.key == 'mines'}
-					<span class="cursor-help" onpointerdown={(e) => onMinesTooltip(e, planet)}>
+					<span
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onMinesTooltip(e, planet)}
+					>
 						{planet.mines} / {planet.spec?.maxMines ?? 0}</span
 					>
 				{:else if column.key == 'factories'}
-					<span class="cursor-help" onpointerdown={(e) => onFactoriesTooltip(e, planet)}>
+					<span
+						role="button"
+						tabindex={0}
+						onkeydown={onPointerKeyDown}
+						onkeyup={onPointerKeyUp}
+						class="cursor-help"
+						onpointerdown={(e) => onFactoriesTooltip(e, planet)}
+					>
 						{planet.factories}/ {planet.spec?.maxFactories ?? 0}
 					</span>
 				{:else if column.key == 'defense'}
 					{#if row.spec?.defenseCoverage}
 						<span
-							class:cursor-help={planet.mapObject?.playerNum ?? 0 === $player.num}
+							role="button"
+							aria-disabled={!ownedBy(planet, $player.num)}
+							tabindex={ownedBy(planet, $player.num) ? 0 : undefined}
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
+							class:cursor-help={planet.mapObject?.playerNum === $player.num}
 							onpointerdown={(e) =>
 								planet.mapObject?.playerNum === $player.num && onDefenseTooltip(e, planet)}
 							>{((row.spec?.defenseCoverage ?? 0) * 100).toFixed(1)}%

@@ -14,8 +14,16 @@
 
 	let { designFinder, playerFinder, battleRecord }: Props = $props();
 
-	setContext<DesignFinder>(designFinderKey, designFinder);
-	setContext<PlayerFinder>(playerFinderKey, playerFinder);
+	setContext<DesignFinder>(designFinderKey, {
+		getDesign: (playerNum, num) => designFinder.getDesign(playerNum, num),
+		getMyDesign: (num) => designFinder.getMyDesign(num)
+	});
+	setContext<PlayerFinder>(playerFinderKey, {
+		getPlayerIntel: (num) => playerFinder.getPlayerIntel(num),
+		getPlayerName: (num) => playerFinder.getPlayerName(num),
+		getPlayerPluralName: (num) => playerFinder.getPlayerPluralName(num),
+		getPlayerColor: (num) => playerFinder.getPlayerColor(num)
+	});
 
 	let battle = $derived(
 		new Battle(battleRecord.num, battleRecord.position, designFinder, battleRecord)

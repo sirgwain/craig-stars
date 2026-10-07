@@ -8,7 +8,7 @@
 	import { MapObjectType, type Fleet } from '#lib/types/cs-proto.js';
 	import { canLoadFuelOrCargo, type CommandedFleet } from '#lib/types/Fleet.js';
 	import { commandable, getMapObjectName, key } from '#lib/types/MapObject.js';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 
@@ -31,7 +31,9 @@
 	let { fleet, cargoDestsInOrbit, onShowCargoTransferDialog, onShowSplitFleetDialog }: Props =
 		$props();
 
-	let selectedMapObjectKey = $state(cargoDestsInOrbit.length > 0 ? key(cargoDestsInOrbit[0]) : '');
+	let selectedMapObjectKey = $state(
+		untrack(() => (cargoDestsInOrbit.length > 0 ? key(cargoDestsInOrbit[0]) : ''))
+	);
 	$effect(() => {
 		if (cargoDestsInOrbit.length > 1 && selectedMapObjectKey === '') {
 			selectedMapObjectKey = key(cargoDestsInOrbit.find((f) => key(f) !== key(fleet)));

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import MineralConcentrationPoint from '#lib/components/game/MineralConcentrationPoint.svelte';
 	import MineralTooltip, {
 		type MineralTooltipProps
@@ -108,21 +109,45 @@
 		<div class="text-germanium">Germanium</div>
 	</div>
 	<div class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2 pr-3">
-		<div class="h-full relative cursor-help" onpointerdown={onIroniumTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			aria-label="Show Ironium details"
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="h-full relative cursor-help"
+			onpointerdown={onIroniumTooltip}
+		>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.ironium?.toFixed()}%;`}
 				class="absolute ironium-concentration w-auto h-full ironium"
 			/>
 			<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full"></div>
 		</div>
-		<div class="h-full relative cursor-help" onpointerdown={onBoraniumTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			aria-label="Show Boranium details"
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="h-full relative cursor-help"
+			onpointerdown={onBoraniumTooltip}
+		>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.boranium?.toFixed()}%;`}
 				class="absolute boranium-concentration w-auto h-full boranium"
 			/>
 			<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full"></div>
 		</div>
-		<div class="h-full relative cursor-help" onpointerdown={onGermaniumTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			aria-label="Show Germanium details"
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="h-full relative cursor-help"
+			onpointerdown={onGermaniumTooltip}
+		>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.germanium?.toFixed()}%;`}
 				class="absolute germanium-concentration  h-full germanium"

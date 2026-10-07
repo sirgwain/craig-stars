@@ -25,18 +25,26 @@
 	const { cs } = getGameContext();
 	let { player, planet, habType }: HabTooltipProps = $props();
 
-	const currentHab = getHabValue(planet.hab, habType);
-	const terraformedHab = getHabValue(planet.spec?.terraformAmount ?? {}, habType);
-	const habString = getHabValueString(habType, currentHab);
-	const terraformedHabString = getHabValueString(
-		habType,
-		getHabValue(add(planet.hab ?? emptyHab(), withHabValue(habType, terraformedHab)), habType)
+	const currentHab = $derived(getHabValue(planet.hab, habType));
+	const terraformedHab = $derived(getHabValue(planet.spec?.terraformAmount ?? {}, habType));
+	const habString = $derived(getHabValueString(habType, currentHab));
+	const terraformedHabString = $derived(
+		getHabValueString(
+			habType,
+			getHabValue(add(planet.hab ?? emptyHab(), withHabValue(habType, terraformedHab)), habType)
+		)
 	);
-	const habLowString = getHabValueString(habType, getHabValue(player.race.habLow, habType));
-	const habHighString = getHabValueString(habType, getHabValue(player.race.habHigh, habType));
-	const habCenter = getHabValue(player.race.spec.habCenter, habType);
-	const habAfterTerraforming = add(planet.hab ?? emptyHab(), withHabValue(habType, terraformedHab));
-	const habValueAfterTerraforming = getHabValue(habAfterTerraforming, habType);
+	const habLowString = $derived(
+		getHabValueString(habType, getHabValue(player.race.habLow, habType))
+	);
+	const habHighString = $derived(
+		getHabValueString(habType, getHabValue(player.race.habHigh, habType))
+	);
+	const habCenter = $derived(getHabValue(player.race.spec.habCenter, habType));
+	const habAfterTerraforming = $derived(
+		add(planet.hab ?? emptyHab(), withHabValue(habType, terraformedHab))
+	);
+	const habValueAfterTerraforming = $derived(getHabValue(habAfterTerraforming, habType));
 
 	let habitabilityAfterTerraforming = $state(0);
 	$effect(() => {

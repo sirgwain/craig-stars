@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import { cargoPercent, emptyCargo, totalCargo } from '#lib/types/Cargo.js';
 	import type { Cargo } from '#lib/types/cs-proto.js';
 
@@ -15,8 +16,14 @@
 </script>
 
 <div
+	role="button"
+	aria-disabled={!(canTransferCargo && onPointerDown)}
+	tabindex={canTransferCargo && onPointerDown ? 0 : undefined}
+	aria-label={canTransferCargo ? 'Transfer cargo' : undefined}
+	onkeydown={onPointerKeyDown}
+	onkeyup={onPointerKeyUp}
 	onpointerdown={(e) => (canTransferCargo && onPointerDown ? onPointerDown(e) : undefined)}
-	class="border border-secondary h-[1rem] text-[0rem] relative bg-gauge select-none"
+	class="border border-secondary h-4 text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={canTransferCargo}
 >
 	<div

@@ -1,7 +1,7 @@
 /// <reference types="vitest/config" />
 
 import adapter from '@sveltejs/adapter-static';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { playwright } from '@vitest/browser-playwright';
@@ -28,7 +28,9 @@ export default defineConfig({
 
 		projects: [
 			{
-				extends: './vite.config.ts',
+				// Browser component tests use Vitest's HTML harness, without SvelteKit's router.
+				plugins: [tailwindcss(), svelte({ preprocess: vitePreprocess() })],
+				define: { PKG: pkg },
 				test: {
 					name: 'client',
 					browser: {

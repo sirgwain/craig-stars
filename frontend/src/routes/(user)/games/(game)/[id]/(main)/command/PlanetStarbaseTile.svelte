@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import WarpSpeedGauge from '#lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
 	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
@@ -44,7 +45,14 @@
 
 {#if starbase?.spec}
 	<CommandTile title={starbase.baseName}>
-		<div class="cursor-help" onpointerdown={showDesign}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="cursor-help"
+			onpointerdown={showDesign}
+		>
 			<div class="flex justify-between">
 				<div class="text-tile-item-title">Dock Capacity</div>
 				{#if starbase.spec.shipDesignSpec?.spaceDock === UnlimitedSpaceDock}
@@ -82,14 +90,19 @@
 		<div>
 			<div
 				class="flex justify-between cursor-help"
+				role="button"
+				aria-disabled={!stargate}
+				tabindex={stargate ? 0 : undefined}
+				onkeydown={onPointerKeyDown}
+				onkeyup={onPointerKeyUp}
 				onpointerdown={(e) => stargate && onTechTooltip(e, stargate)}
 			>
 				<div class="text-tile-item-title">Stargate</div>
 				{#if stargate}
 					<div>
-						<button type="button" class="w-full h-full">
+						<span class="w-full h-full">
 							{stargate.tech?.name}
-						</button>
+						</span>
 					</div>
 				{:else}
 					<div>none</div>
@@ -97,14 +110,19 @@
 			</div>
 			<div
 				class="flex justify-between cursor-help"
+				role="button"
+				aria-disabled={!massDriver}
+				tabindex={massDriver ? 0 : undefined}
+				onkeydown={onPointerKeyDown}
+				onkeyup={onPointerKeyUp}
 				onpointerdown={(e) => massDriver && onTechTooltip(e, massDriver)}
 			>
 				<div class="text-tile-item-title">Mass Driver</div>
 				{#if starbase.spec.hasMassDriver}
 					<div>
-						<button type="button" class="w-full h-full">
+						<span class="w-full h-full">
 							Warp {starbase.spec.shipDesignSpec?.safePacketSpeed}
-						</button>
+						</span>
 					</div>
 				{:else}
 					<div>none</div>

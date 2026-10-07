@@ -31,15 +31,10 @@
 	}: Props = $props();
 
 	// local state for the ui components
-	// eslint-disable-next-line svelte/prefer-writable-derived
-	let fleet = $state(rest.fleet);
+	let fleet = $derived(rest.fleet);
 	let waypoint: Waypoint = $derived(
 		fleet.fleetOrders.waypoints[selectedWaypointIndex] ?? create(WaypointSchema)
 	);
-
-	$effect(() => {
-		fleet = rest.fleet;
-	});
 
 	let previousWaypoint: Waypoint | undefined = $derived.by(() => {
 		if (selectedWaypointIndex > 0) {

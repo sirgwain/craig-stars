@@ -27,7 +27,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
 	import { cloneDeep } from 'lodash-es';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 
 	const { universe, player } = getGameContext();
 
@@ -44,9 +44,11 @@
 	let srcTokens: ShipToken[] = $state([]);
 	let destTokens: ShipToken[] = $state([]);
 	let dest = $state<Fleet>(
-		destFleetProp
-			? clone(FleetSchema, { ...destFleetProp, gameDbObject: create(GameDBObjectSchema) })
-			: newEmptyDestFleet(src)
+		untrack(() =>
+			destFleetProp
+				? clone(FleetSchema, { ...destFleetProp, gameDbObject: create(GameDBObjectSchema) })
+				: newEmptyDestFleet(src)
+		)
 	);
 	let srcFuelCapacity: number = $derived(getFuelCapacity($player.num, srcTokens));
 	let destFuelCapacity: number = $derived(getFuelCapacity($player.num, destTokens));

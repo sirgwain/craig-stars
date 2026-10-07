@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import FormError from '#lib/components/FormError.svelte';
 	import TextInput from '#lib/components/TextInput.svelte';
 	import Hull from '#lib/components/game/design/Hull.svelte';
@@ -66,7 +67,9 @@
 	let highlightedSlots: number[] = $state([]);
 
 	// only show hull components that actually fit on this hull
-	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotTypeNone);
+	let validHullSlotTypes = $derived(
+		hull.slots.reduce((type, slot) => type | +slot.type, HullSlotTypeNone)
+	);
 
 	let selectedComponent = $derived(
 		$shipDesignerContext.selectedHullComponent ??
@@ -294,7 +297,14 @@
 				{#if selectedComponent}
 					<div>
 						Cost of one {selectedComponent.tech?.name}
-						<span class="inline-block" onpointerdown={(e) => onTechTooltip(e, selectedComponent)}
+						<span
+							role="button"
+							tabindex={0}
+							aria-label="Show component details"
+							onkeydown={onPointerKeyDown}
+							onkeyup={onPointerKeyUp}
+							class="inline-block"
+							onpointerdown={(e) => onTechTooltip(e, selectedComponent)}
 							><Icon
 								src={QuestionMarkCircle}
 								size="16"

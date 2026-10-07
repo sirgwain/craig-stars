@@ -13,8 +13,8 @@ on:
   workflow_dispatch: # allow manually triggering on drafts if need be
 
 env:
-  go-version: 1.26.x
-  tinygo-version: 0.41.1
+  go-version: 1.27.1
+  tinygo-version: 0.42.0
 
 jobs:
   test_backend:
@@ -32,11 +32,12 @@ jobs:
 
       # build & test
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ env.go-version }}
           check-latest: true
           cache: true
+          cache-dependency-path: "**/go.sum"
 
       - name: Setup Mage
         uses: magefile/mage-action@v3
@@ -78,11 +79,12 @@ jobs:
 
       # build the backend (fast)
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ env.go-version }}
           check-latest: true
           cache: true
+          cache-dependency-path: "**/go.sum"
       - name: Setup tinygo
         uses: acifani/setup-tinygo@v2
         with:

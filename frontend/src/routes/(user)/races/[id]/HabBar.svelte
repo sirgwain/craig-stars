@@ -128,8 +128,6 @@
 	});
 </script>
 
-<svelte:document {onmouseup} {onmousemove} />
-
 <div bind:this={container} class="grow px-1 overflow-hidden h-full">
 	<svg {width} {height} viewBox={`0 0 ${width} ${height}`}>
 		<rect x="0" y="0" {width} {height} fill="black"></rect>

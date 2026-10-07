@@ -15,7 +15,7 @@
 	import type { CS } from '#lib/wasm.js';
 	import { fromJson } from '@bufbuild/protobuf';
 	import { kebabCase, sortBy } from 'lodash-es';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import ItemTitle from './ItemTitle.svelte';
 	import SectionHeader from './SectionHeader.svelte';
 
@@ -27,7 +27,7 @@
 	let { player, cs }: Props = $props();
 
 	let filter = $state('');
-	let showAll = $state(player === undefined);
+	let showAll = $state(untrack(() => player === undefined));
 
 	// for ssr, we start with techs from a json file
 	let techStore = $state(

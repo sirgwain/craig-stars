@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import PlanetHabBars from '#lib/components/game/PlanetHabBars.svelte';
 	import PlanetHabValue from '#lib/components/game/PlanetHabValue.svelte';
 	import type { HabTooltipProps } from '#lib/components/game/tooltips/HabTooltip.svelte';
@@ -78,7 +79,14 @@
 			</div>
 		</div>
 	{:else}
-		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>
+		<div
+			role="button"
+			tabindex={0}
+			onkeydown={onPointerKeyDown}
+			onkeyup={onPointerKeyUp}
+			class="flex justify-between cursor-help"
+			onpointerdown={onPopulationTooltip}
+		>
 			<div class="ml-[5.5rem]">
 				Value: <PlanetHabValue {planet} />
 			</div>

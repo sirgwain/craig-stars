@@ -79,6 +79,22 @@
 	});
 </script>
 
+<svelte:window
+	onkeyup={(e) => {
+		if ($tooltipComponent && (e.key === 'Enter' || e.key === ' ')) onPointerUp();
+	}}
+	onkeydowncapture={(e) => {
+		if (!$tooltipComponent) return;
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			e.stopPropagation();
+			onPointerUp();
+		} else if (e.key === 'Tab') {
+			onPointerUp();
+		}
+	}}
+/>
+
 <div
 	bind:this={component}
 	class:block={!!$tooltipComponent}

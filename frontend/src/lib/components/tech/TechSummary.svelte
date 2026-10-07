@@ -59,7 +59,7 @@
 			: 0
 	);
 
-	let cost = $state(techLike.tech?.cost);
+	let cost = $derived(techLike.tech?.cost);
 	$effect(() => {
 		if (!(cs && techLike.tech && player)) {
 			return;

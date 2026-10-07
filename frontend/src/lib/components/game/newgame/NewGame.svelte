@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import ItemTitle from '#lib/components/ItemTitle.svelte';
 	import SectionHeader from '#lib/components/SectionHeader.svelte';
@@ -59,7 +60,7 @@
 
 	let settings: GameSettings = $state(
 		create(GameSettingsSchema, {
-			name,
+			name: untrack(() => name),
 			public: false,
 			size: Size.SMALL,
 			density: Density.NORMAL,
@@ -70,7 +71,7 @@
 			maxMinerals: false,
 			startMode: GameStartMode.UNSPECIFIED, // normal
 			quickStartTurns: 0,
-			players,
+			players: untrack(() => players),
 			victoryConditions: {
 				conditions:
 					VictoryConditionOwnPlanets |

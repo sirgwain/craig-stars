@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getXFromPointerEvent } from '#lib/services/Events.js';
+	import { getXFromPointerEvent, sliderValueForKey } from '#lib/services/Events.js';
 
 	import { clamp } from '#lib/services/Math.js';
 
@@ -133,11 +133,33 @@
 			onValueDragged?.(value);
 		}
 	};
+
+	function onKeyDown(e: KeyboardEvent) {
+		const next = sliderValueForKey(e.key, value, min, max);
+		if (next === undefined) return;
+		e.preventDefault();
+		e.stopPropagation();
+		value = next;
+		onValueDragged?.(value);
+		onValueChanged?.(value);
+	}
 </script>
 
 <div
+	role="slider"
+	aria-label="Warp speed"
+	aria-valuemin={min}
+	aria-valuemax={max}
+	aria-valuenow={value}
+	aria-valuetext={useStargate && value === stargateSpeed
+		? 'Use Stargate'
+		: value === 0
+			? warp0Text
+			: `Warp ${value}`}
+	tabindex="0"
+	onkeydown={onKeyDown}
 	bind:this={ref}
-	class="border border-secondary w-full h-[1rem] text-[0rem] relative cursor-pointer select-none"
+	class="border border-secondary w-full h-4 text-[0rem] relative cursor-pointer select-none"
 	onpointerdown={onPointerDown}
 	ontouchstart={onTouchStart}
 	ontouchmove={onTouchMove}

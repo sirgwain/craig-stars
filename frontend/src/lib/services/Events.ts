@@ -8,6 +8,60 @@ export type OnCancel = () => void;
 export type OnClose = () => void;
 export type OnShowDialog<T> = (e: T) => void;
 
+// Keyboard activation shares the existing pointer behavior and tooltip positioning.
+export function onPointerKeyDown(e: KeyboardEvent) {
+	if (e.key !== 'Enter' && e.key !== ' ') return;
+	if (!(e.currentTarget instanceof HTMLElement)) return;
+	e.preventDefault();
+	e.stopPropagation();
+	if (e.repeat) return;
+	const rect = e.currentTarget.getBoundingClientRect();
+	e.currentTarget.dispatchEvent(
+		new PointerEvent('pointerdown', {
+			bubbles: true,
+			cancelable: true,
+			clientX: rect.left + rect.width / 2,
+			clientY: rect.top + rect.height / 2
+		})
+	);
+}
+
+export function onPointerKeyUp(e: KeyboardEvent) {
+	if (e.key !== 'Enter' && e.key !== ' ') return;
+	e.preventDefault();
+	e.stopPropagation();
+	window.dispatchEvent(new PointerEvent('pointerup'));
+}
+
+export function sliderValueForKey(key: string, value: number, min: number, max: number) {
+	let next: number;
+	switch (key) {
+		case 'ArrowLeft':
+		case 'ArrowDown':
+			next = value - 1;
+			break;
+		case 'ArrowRight':
+		case 'ArrowUp':
+			next = value + 1;
+			break;
+		case 'PageDown':
+			next = value - 10;
+			break;
+		case 'PageUp':
+			next = value + 10;
+			break;
+		case 'Home':
+			next = min;
+			break;
+		case 'End':
+			next = max;
+			break;
+		default:
+			return undefined;
+	}
+	return Math.min(max, Math.max(min, next));
+}
+
 export function getXFromPointerEvent(e: PointerEvent, elem: HTMLElement | undefined): number {
 	if (!elem) {
 		return 0;
