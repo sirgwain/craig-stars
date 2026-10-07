@@ -1,4 +1,3 @@
-import { MapObjectType } from '../src/lib/protogen/craig_stars/v1/common_pb';
 import { expect, submitTurn, test } from './setup';
 
 test('Cargo Transfer Planet Owned', async ({ testGamePage }) => {
@@ -246,8 +245,9 @@ test('Cargo Transfer MineralPacket', async ({ testGamePage }) => {
 		});
 	});
 
+	let updatedUniverse: Awaited<ReturnType<typeof submitTurn>>['universe'];
 	await test.step('submit turn', async () => {
-		await submitTurn(page);
+		({ universe: updatedUniverse } = await submitTurn(page));
 	});
 
 	await test.step('verify fleet and mineral packet cargo after submit', async () => {
@@ -257,7 +257,7 @@ test('Cargo Transfer MineralPacket', async ({ testGamePage }) => {
 			germanium: '13kT'
 		});
 
-		await page.locator(`[data-id="${MapObjectType.MINERAL_PACKET}-1-1"]`).click({ force: true });
+		await gamePage.selectMapObject(updatedUniverse?.mineralPackets[0]);
 
 		await gamePage.expectSummarySelection(/^Humanoids Mineral Packet #1$/);
 		await gamePage.scrollSummaryText('Location: (25, 0) Traveling at');

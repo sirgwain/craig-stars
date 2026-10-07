@@ -1,6 +1,7 @@
 import { WaypointTask } from '../src/lib/protogen/craig_stars/v1/fleet_pb';
-import { key, nearest } from '../src/lib/types/MapObject';
+import { nearest } from '../src/lib/types/MapObject';
 import { apiErrorsFailTest, expect, submitTurn, test } from './setup';
+import { clickMapObject } from './helpers/scanner';
 
 test('new game scout test', async ({ newGamePage }) => {
 	const { page, universe } = newGamePage;
@@ -17,14 +18,12 @@ test('new game scout test', async ({ newGamePage }) => {
 	}
 
 	// click the homeworld once to cycle to the first ship, a scout
-	await page.locator(`[data-id="${key(homeworld)}"]`).click({ force: true });
+	await clickMapObject(page, homeworld);
 
 	await page.locator('[data-type="command-tile"][data-id="Long Range Scout #1"]').first();
 
 	// shift/meta click the planet to set a waypoint
-	await page
-		.locator(`[data-id="${key(nearestPlanet)}"]`)
-		.click({ force: true, modifiers: ['Shift', 'Meta'] });
+	await clickMapObject(page, nearestPlanet, { modifiers: ['Shift', 'Meta'] });
 
 	// waypoints tile should update
 	const fleetWaypointsTile = await page
@@ -54,12 +53,12 @@ test('Scout Test', async ({ testGamePage }) => {
 	const planet2 = universe.planets[1];
 
 	// click the homeworld once to cycle to the first ship, a scout
-	await page.locator(`[data-id="${key(homeworld)}"]`).click({ force: true });
+	await clickMapObject(page, homeworld);
 
 	await page.locator('[data-type="command-tile"][data-id="Long Range Scout #1"]').first();
 
 	// meta click the planet to set a waypoint at max speed
-	await page.locator(`[data-id="${key(planet2)}"]`).click({ force: true, modifiers: ['Meta'] });
+	await clickMapObject(page, planet2, { modifiers: ['Meta'] });
 
 	// waypoints tile should update
 	const fleetWaypointsTile = await page
@@ -78,8 +77,8 @@ test('Scout Test', async ({ testGamePage }) => {
 	).toBe(planet2.mapObject?.num);
 
 	// click the nearest planet twice to cycle to the scout
-	await page.locator(`[data-id="${key(planet2)}"]`).click({ force: true });
-	await page.locator(`[data-id="${key(planet2)}"]`).click({ force: true });
+	await clickMapObject(page, planet2);
+	await clickMapObject(page, planet2);
 
 	await expect(
 		page.locator('[data-type="command-tile"][data-id="Orbiting Planet 2"]').first()
@@ -97,7 +96,7 @@ test('Colonizer Test', async ({ testGamePage }) => {
 	const planet2 = universe.planets[1];
 
 	// click the homeworld once to cycle to the colonizer
-	await page.locator(`[data-id="${key(homeworld)}"]`).click({ force: true });
+	await clickMapObject(page, homeworld);
 
 	await page.locator('[data-type="command-tile"][data-id="Santa Maria #1"]').first();
 
@@ -129,7 +128,7 @@ test('Colonizer Test', async ({ testGamePage }) => {
 	);
 
 	// meta click the planet to set a waypoint at max speed
-	await page.locator(`[data-id="${key(planet2)}"]`).click({ force: true, modifiers: ['Meta'] });
+	await clickMapObject(page, planet2, { modifiers: ['Meta'] });
 
 	await updateFleetOrderResponse;
 
@@ -157,8 +156,8 @@ test('Colonizer Test', async ({ testGamePage }) => {
 	expect(updatedPlanet2?.mapObject?.playerNum).toBe(player.num);
 
 	// click the second planet twice to command it
-	await page.locator(`[data-id="${key(updatedPlanet2)}"]`).click({ force: true });
-	await page.locator(`[data-id="${key(updatedPlanet2)}"]`).click({ force: true });
+	await clickMapObject(page, updatedPlanet2);
+	await clickMapObject(page, updatedPlanet2);
 
 	await expect(
 		page.locator('[data-type="command-tile"][data-id="Planet 2"]').first()
@@ -189,7 +188,7 @@ test('Colonizer Test AR builds starter starbase', async ({ testGamePage }) => {
 	const planet2 = universe.planets[1];
 
 	// click the homeworld once to cycle to the colonizer
-	await page.locator(`[data-id="${key(homeworld)}"]`).click({ force: true });
+	await clickMapObject(page, homeworld);
 
 	await page.locator('[data-type="command-tile"][data-id="Santa Maria #1"]').first();
 
@@ -218,7 +217,7 @@ test('Colonizer Test AR builds starter starbase', async ({ testGamePage }) => {
 			resp.status() === 200
 	);
 
-	await page.locator(`[data-id="${key(planet2)}"]`).click({ force: true, modifiers: ['Meta'] });
+	await clickMapObject(page, planet2, { modifiers: ['Meta'] });
 
 	await updateFleetOrderResponse;
 
@@ -248,8 +247,8 @@ test('Colonizer Test AR builds starter starbase', async ({ testGamePage }) => {
 	expect(updatedPlanet2?.spec?.planetStarbaseSpec?.starbaseDesignName).toBe('Starter Colony');
 
 	// click the second planet twice to command it
-	await page.locator(`[data-id="${key(updatedPlanet2)}"]`).click({ force: true });
-	await page.locator(`[data-id="${key(updatedPlanet2)}"]`).click({ force: true });
+	await clickMapObject(page, updatedPlanet2);
+	await clickMapObject(page, updatedPlanet2);
 
 	await expect(
 		page.locator('[data-type="command-tile"][data-id="Planet 2"]').first()

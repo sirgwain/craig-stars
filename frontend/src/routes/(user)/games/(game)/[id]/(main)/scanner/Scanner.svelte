@@ -21,28 +21,10 @@
 	import { select } from 'd3-selection';
 	import { zoom, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import hotkeys from 'hotkeys-js';
-	import { Html, LayerCake, Svg } from 'layercake';
 	import { onDestroy, onMount } from 'svelte';
-	import { derived as derivedStore, writable } from 'svelte/store';
+	import { derived as derivedStore } from 'svelte/store';
 	import MapObjectQuadTreeFinder, { type FinderEvent } from './MapObjectQuadTreeFinder.svelte';
-	import { setScannerContext } from './Scanner';
-	import ScannerFleets from './ScannerFleets.svelte';
-	import ScannerMapObjectLocation from './ScannerMapObjectLocation.svelte';
-	import ScannerMinefieldPattern from './ScannerMinefieldPattern.svelte';
-	import ScannerMinefields from './ScannerMinefields.svelte';
-	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
-	import ScannerMysteryTraders from './ScannerMysteryTraders.svelte';
-	import ScannerNames from './ScannerNames.svelte';
-	import ScannerPacketDests from './ScannerPacketDests.svelte';
-	import ScannerPlanets from './ScannerPlanets.svelte';
-	import ScannerRouteDests from './ScannerRouteDests.svelte';
-	import ScannerSalvages from './ScannerSalvages.svelte';
-	import ScannerScanners from './ScannerScanners.svelte';
-	import ScannerWarpLine from './ScannerWarpLine.svelte';
-	import ScannerWaypoints from './ScannerWaypoints.svelte';
-	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
-	import ScannerWormholes from './ScannerWormholes.svelte';
-	import SelectedMapObject from './SelectedMapObject.svelte';
+	import ScannerCanvas from './ScannerCanvas.svelte';
 
 	const {
 		game,
@@ -92,13 +74,14 @@
 	let shouldAddWaypoint = $state(false);
 	let waypointHighlighted = $state(false);
 
-	// our map scales for .75 to 10x, but the icons for the planets and fleets are 2x min
+	// css pixels per light year, before zooming
+	let pixelsPerLightYear = $derived({ x: scaler.x(1) - scaler.x(0), y: scaler.y(1) - scaler.y(0) });
+
+	// our map scales for .75 to 10x, but the icons for the planets and fleets shrink below 2x
 	const minZoom = 0.75;
 	const maxZoom = 10;
 	const minObjectZoom = 2;
-	const scale = writable(1.5); // default 3x zoom
-	const objectScale = derivedStore([scale], ([s]) => clamp(s, minObjectZoom, maxZoom));
-	setScannerContext({ scale, objectScale });
+	let scale = $state(1.5); // default zoom
 
 	// zoom state that changes but doesn't cause a reaction
 	let zooming = false;
@@ -190,11 +173,11 @@
 		switch (e.key) {
 			case '+':
 			case '=':
-				zoomViewport(clamp($scale + 1, minZoom, maxZoom));
+				zoomViewport(clamp(scale + 1, minZoom, maxZoom));
 				break;
 			case '-':
 			case '_':
-				zoomViewport(clamp($scale - 1, minZoom, maxZoom));
+				zoomViewport(clamp(scale - 1, minZoom, maxZoom));
 				break;
 		}
 	}
@@ -213,7 +196,7 @@
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, unknown>) {
 		transform = e.transform;
-		$scale = transform.k;
+		scale = transform.k;
 	}
 
 	function handleZoomStart() {
@@ -230,14 +213,14 @@
 			return;
 		}
 
-		select(root).call(zoomBehavior.scaleTo, $scale);
+		select(root).call(zoomBehavior.scaleTo, scale);
 		const scaled: Vector = create(VectorSchema, {
 			x: scaler.x(Number(position.x ?? 0)),
 			y: scaler.y(Number(position.y ?? 0))
 		});
 		select(root)
 			.call(zoomBehavior.translateTo, scaled.x, scaled.y)
-			.call(zoomBehavior.scaleTo, $scale);
+			.call(zoomBehavior.scaleTo, scale);
 	}
 
 	// zoom the viewport to a specific scale
@@ -252,7 +235,7 @@
 		});
 		select(root)
 			.call(zoomBehavior.translateTo, scaled.x, scaled.y)
-			.call(zoomBehavior.scaleTo, $scale);
+			.call(zoomBehavior.scaleTo, scale);
 	}
 
 	// turn off dragging
@@ -515,8 +498,6 @@
 
 	// all our data in LayerCake are mapObjects/waypoints. Add this custom getter to get the
 	// x/y coords of a mapobject or waypoint
-	const xGet = (mo: { position: Position | undefined }) => mo.position?.x ?? 0;
-	const yGet = (mo: { position: Position | undefined }) => mo.position?.y ?? 0;
 </script>
 
 <svelte:window onresize={handleResize} onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
@@ -531,53 +512,27 @@
 	bind:this={rect}
 	use:clickOutside={disableAddWaypointMode}
 >
-	<LayerCake
-		data={$data}
-		x={xGet}
-		y={yGet}
-		xDomain={[0, $game.area.x]}
-		yDomain={[0, $game.area.y]}
-		xRange={xRange(clientRect.width, clientRect.height)}
-		yRange={yRange(clientRect.width, clientRect.height)}
-		yReverse={true}
-		bind:element={root}
-	>
-		<Svg>
-			<g transform={transform?.toString()}>
-				<ScannerScanners />
-				<ScannerMinefieldPattern />
-				<ScannerMinefields />
-				<ScannerPacketDests />
-				<ScannerRouteDests />
-				<ScannerWaypoints />
-				<ScannerPlanets />
-				<ScannerMineralPackets />
-				<ScannerWormholes />
-				<ScannerFleets />
-				<ScannerMysteryTraders />
-				<ScannerWarpLine />
-				<ScannerWormholeLinks />
-				<ScannerSalvages />
-				<SelectedMapObject />
-				{#if showLocator}
-					<ScannerMapObjectLocation show={$mostRecentMapObject} />
-				{/if}
-			</g>
-		</Svg>
-		<Html>
-			{#if transform}
-				<ScannerNames {transform} />
-
-				<MapObjectQuadTreeFinder
-					contextmenu={onContextMenu}
-					pointermove={onPointerMove}
-					pointerdown={onPointerDown}
-					pointerup={onPointerUp}
-					touchmove={onPointerMove}
-					searchRadius={20}
-					{transform}
-				/>
-			{/if}
-		</Html>
-	</LayerCake>
+	<div class="relative w-full h-full" bind:this={root}>
+		<ScannerCanvas
+			{transform}
+			{pixelsPerLightYear}
+			{minObjectZoom}
+			locate={showLocator ? $mostRecentMapObject : undefined}
+		/>
+		{#if transform}
+			<MapObjectQuadTreeFinder
+				data={$data}
+				{pixelsPerLightYear}
+				width={clientRect.width}
+				height={clientRect.height}
+				contextmenu={onContextMenu}
+				pointermove={onPointerMove}
+				pointerdown={onPointerDown}
+				pointerup={onPointerUp}
+				touchmove={onPointerMove}
+				searchRadius={20}
+				{transform}
+			/>
+		{/if}
+	</div>
 </div>

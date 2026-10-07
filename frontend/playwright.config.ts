@@ -1,5 +1,5 @@
 /// <reference types="node"/>
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 const command = 'npm run build && npm run preview';
 const port = 4173;
@@ -27,12 +27,24 @@ export default defineConfig({
 		},
 		{
 			name: 'authenticated-tests',
-			testIgnore: '**/login.spec.ts',
+			testIgnore: ['**/login.spec.ts', '**/*.mobile.spec.ts'],
 			use: {
 				baseURL: `http://localhost:${port}`,
 				headless: true,
 				trace: 'on-first-retry',
 				storageState: '.auth/user.json' // Use cached authentication state
+			}
+		},
+		{
+			// phone sized, touch enabled tests
+			name: 'mobile-tests',
+			testMatch: '**/*.mobile.spec.ts',
+			use: {
+				...devices['Pixel 7'],
+				baseURL: `http://localhost:${port}`,
+				headless: true,
+				trace: 'on-first-retry',
+				storageState: '.auth/user.json'
 			}
 		}
 	],
