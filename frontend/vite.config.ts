@@ -19,7 +19,11 @@ export default defineConfig({
 		sveltekit({
 			preprocess: vitePreprocess(),
 			adapter: adapter({ fallback: 'index.html' }),
-			prerender: { entries: [] }
+			prerender: { entries: [] },
+			version: {
+				name: pkg.version,
+				pollInterval: pkg.version === '0.0.0-develop' ? 0 : 5 * 60_000
+			}
 		})
 	],
 	test: {

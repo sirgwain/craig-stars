@@ -58,6 +58,7 @@ func NewRulesServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+RulesServiceGetRulesProcedure,
 			connect.WithSchema(rulesServiceMethods.ByName("GetRules")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -89,6 +90,7 @@ func NewRulesServiceHandler(svc RulesServiceHandler, opts ...connect.HandlerOpti
 		RulesServiceGetRulesProcedure,
 		svc.GetRules,
 		connect.WithSchema(rulesServiceMethods.ByName("GetRules")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.RulesService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

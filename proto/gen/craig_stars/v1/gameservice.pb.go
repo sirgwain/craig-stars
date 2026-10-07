@@ -1612,28 +1612,28 @@ const file_craig_stars_v1_gameservice_proto_rawDesc = "" +
 	"\agame_id\x18\x01 \x01(\x03R\x06gameId\x128\n" +
 	"\bsettings\x18\x02 \x01(\v2\x1c.craig_stars.v1.GameSettingsR\bsettings\"I\n" +
 	"\x12UpdateGameResponse\x123\n" +
-	"\x04game\x18\x01 \x01(\v2\x1f.craig_stars.v1.GameWithPlayersR\x04game2\x93\v\n" +
+	"\x04game\x18\x01 \x01(\v2\x1f.craig_stars.v1.GameWithPlayersR\x04game2\xb6\v\n" +
 	"\vGameService\x12P\n" +
-	"\tAddPlayer\x12 .craig_stars.v1.AddPlayerRequest\x1a!.craig_stars.v1.AddPlayerResponse\x12V\n" +
-	"\vArchiveGame\x12\".craig_stars.v1.ArchiveGameRequest\x1a#.craig_stars.v1.ArchiveGameResponse\x12S\n" +
+	"\tAddPlayer\x12 .craig_stars.v1.AddPlayerRequest\x1a!.craig_stars.v1.AddPlayerResponse\x12[\n" +
+	"\vArchiveGame\x12\".craig_stars.v1.ArchiveGameRequest\x1a#.craig_stars.v1.ArchiveGameResponse\"\x03\x90\x02\x02\x12S\n" +
 	"\n" +
 	"CreateGame\x12!.craig_stars.v1.CreateGameRequest\x1a\".craig_stars.v1.CreateGameResponse\x12S\n" +
 	"\n" +
 	"DeleteGame\x12!.craig_stars.v1.DeleteGameRequest\x1a\".craig_stars.v1.DeleteGameResponse\x12e\n" +
 	"\x10DeletePlayerSlot\x12'.craig_stars.v1.DeletePlayerSlotRequest\x1a(.craig_stars.v1.DeletePlayerSlotResponse\x12h\n" +
-	"\x11ForceGenerateTurn\x12(.craig_stars.v1.ForceGenerateTurnRequest\x1a).craig_stars.v1.ForceGenerateTurnResponse\x12J\n" +
-	"\aGetGame\x12\x1e.craig_stars.v1.GetGameRequest\x1a\x1f.craig_stars.v1.GetGameResponse\x12n\n" +
-	"\x13GetGameByInviteHash\x12*.craig_stars.v1.GetGameByInviteHashRequest\x1a+.craig_stars.v1.GetGameByInviteHashResponse\x12M\n" +
-	"\bGetGames\x12\x1f.craig_stars.v1.GetGamesRequest\x1a .craig_stars.v1.GetGamesResponse\x12Y\n" +
-	"\fGetGuestUser\x12#.craig_stars.v1.GetGuestUserRequest\x1a$.craig_stars.v1.GetGuestUserResponse\x12M\n" +
+	"\x11ForceGenerateTurn\x12(.craig_stars.v1.ForceGenerateTurnRequest\x1a).craig_stars.v1.ForceGenerateTurnResponse\x12O\n" +
+	"\aGetGame\x12\x1e.craig_stars.v1.GetGameRequest\x1a\x1f.craig_stars.v1.GetGameResponse\"\x03\x90\x02\x01\x12s\n" +
+	"\x13GetGameByInviteHash\x12*.craig_stars.v1.GetGameByInviteHashRequest\x1a+.craig_stars.v1.GetGameByInviteHashResponse\"\x03\x90\x02\x01\x12R\n" +
+	"\bGetGames\x12\x1f.craig_stars.v1.GetGamesRequest\x1a .craig_stars.v1.GetGamesResponse\"\x03\x90\x02\x01\x12^\n" +
+	"\fGetGuestUser\x12#.craig_stars.v1.GetGuestUserRequest\x1a$.craig_stars.v1.GetGuestUserResponse\"\x03\x90\x02\x01\x12M\n" +
 	"\bJoinGame\x12\x1f.craig_stars.v1.JoinGameRequest\x1a .craig_stars.v1.JoinGameResponse\x12S\n" +
 	"\n" +
 	"KickPlayer\x12!.craig_stars.v1.KickPlayerRequest\x1a\".craig_stars.v1.KickPlayerResponse\x12P\n" +
 	"\tLeaveGame\x12 .craig_stars.v1.LeaveGameRequest\x1a!.craig_stars.v1.LeaveGameResponse\x12P\n" +
-	"\tStartGame\x12 .craig_stars.v1.StartGameRequest\x1a!.craig_stars.v1.StartGameResponse\x12\\\n" +
-	"\rUnarchiveGame\x12$.craig_stars.v1.UnarchiveGameRequest\x1a%.craig_stars.v1.UnarchiveGameResponse\x12S\n" +
+	"\tStartGame\x12 .craig_stars.v1.StartGameRequest\x1a!.craig_stars.v1.StartGameResponse\x12a\n" +
+	"\rUnarchiveGame\x12$.craig_stars.v1.UnarchiveGameRequest\x1a%.craig_stars.v1.UnarchiveGameResponse\"\x03\x90\x02\x02\x12X\n" +
 	"\n" +
-	"UpdateGame\x12!.craig_stars.v1.UpdateGameRequest\x1a\".craig_stars.v1.UpdateGameResponseB\xc3\x01\n" +
+	"UpdateGame\x12!.craig_stars.v1.UpdateGameRequest\x1a\".craig_stars.v1.UpdateGameResponse\"\x03\x90\x02\x02B\xc3\x01\n" +
 	"\x12com.craig_stars.v1B\x10GameserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

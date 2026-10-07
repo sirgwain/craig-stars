@@ -80,18 +80,21 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+AdminServiceGetAllGamesProcedure,
 			connect.WithSchema(adminServiceMethods.ByName("GetAllGames")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getUserGames: connect.NewClient[v1.GetUserGamesRequest, v1.GetUserGamesResponse](
 			httpClient,
 			baseURL+AdminServiceGetUserGamesProcedure,
 			connect.WithSchema(adminServiceMethods.ByName("GetUserGames")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getUsers: connect.NewClient[v1.GetUsersRequest, v1.GetUsersResponse](
 			httpClient,
 			baseURL+AdminServiceGetUsersProcedure,
 			connect.WithSchema(adminServiceMethods.ByName("GetUsers")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -154,18 +157,21 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		AdminServiceGetAllGamesProcedure,
 		svc.GetAllGames,
 		connect.WithSchema(adminServiceMethods.ByName("GetAllGames")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	adminServiceGetUserGamesHandler := connect.NewUnaryHandler(
 		AdminServiceGetUserGamesProcedure,
 		svc.GetUserGames,
 		connect.WithSchema(adminServiceMethods.ByName("GetUserGames")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	adminServiceGetUsersHandler := connect.NewUnaryHandler(
 		AdminServiceGetUsersProcedure,
 		svc.GetUsers,
 		connect.WithSchema(adminServiceMethods.ByName("GetUsers")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.AdminService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -8,21 +8,35 @@ import "craig_stars/v1/race.proto";
 
 service GameService {
   rpc AddPlayer(AddPlayerRequest) returns (AddPlayerResponse);
-  rpc ArchiveGame(ArchiveGameRequest) returns (ArchiveGameResponse);
+  rpc ArchiveGame(ArchiveGameRequest) returns (ArchiveGameResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
   rpc CreateGame(CreateGameRequest) returns (CreateGameResponse);
   rpc DeleteGame(DeleteGameRequest) returns (DeleteGameResponse);
   rpc DeletePlayerSlot(DeletePlayerSlotRequest) returns (DeletePlayerSlotResponse);
   rpc ForceGenerateTurn(ForceGenerateTurnRequest) returns (ForceGenerateTurnResponse);
-  rpc GetGame(GetGameRequest) returns (GetGameResponse);
-  rpc GetGameByInviteHash(GetGameByInviteHashRequest) returns (GetGameByInviteHashResponse);
-  rpc GetGames(GetGamesRequest) returns (GetGamesResponse);
-  rpc GetGuestUser(GetGuestUserRequest) returns (GetGuestUserResponse);
+  rpc GetGame(GetGameRequest) returns (GetGameResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc GetGameByInviteHash(GetGameByInviteHashRequest) returns (GetGameByInviteHashResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc GetGames(GetGamesRequest) returns (GetGamesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc GetGuestUser(GetGuestUserRequest) returns (GetGuestUserResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   rpc JoinGame(JoinGameRequest) returns (JoinGameResponse);
   rpc KickPlayer(KickPlayerRequest) returns (KickPlayerResponse);
   rpc LeaveGame(LeaveGameRequest) returns (LeaveGameResponse);
   rpc StartGame(StartGameRequest) returns (StartGameResponse);
-  rpc UnarchiveGame(UnarchiveGameRequest) returns (UnarchiveGameResponse);
-  rpc UpdateGame(UpdateGameRequest) returns (UpdateGameResponse);
+  rpc UnarchiveGame(UnarchiveGameRequest) returns (UnarchiveGameResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+  rpc UpdateGame(UpdateGameRequest) returns (UpdateGameResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
 }
 
 message AddPlayerRequest {

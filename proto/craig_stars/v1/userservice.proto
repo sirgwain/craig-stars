@@ -6,9 +6,15 @@ import "craig_stars/v1/user.proto";
 
 service UserService {
   // User methods
-  rpc GetMe(GetMeRequest) returns (GetMeResponse);
-  rpc GetUser(GetUserRequest) returns (GetUserResponse);
-  rpc UpdateUserSettings(UpdateUserSettingsRequest) returns (UpdateUserSettingsResponse);
+  rpc GetMe(GetMeRequest) returns (GetMeResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc UpdateUserSettings(UpdateUserSettingsRequest) returns (UpdateUserSettingsResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
   rpc TestDiscordWebhook(TestDiscordWebhookRequest) returns (TestDiscordWebhookResponse);
 }
 

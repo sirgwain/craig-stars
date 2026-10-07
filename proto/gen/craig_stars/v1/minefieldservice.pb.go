@@ -237,10 +237,10 @@ const file_craig_stars_v1_minefieldservice_proto_rawDesc = "" +
 	"\rminefield_num\x18\x02 \x01(\x05R\fminefieldNum\x12J\n" +
 	"\x10minefield_orders\x18\x03 \x01(\v2\x1f.craig_stars.v1.MinefieldOrdersR\x0fminefieldOrders\"X\n" +
 	"\x1dUpdateMinefieldOrdersResponse\x127\n" +
-	"\tminefield\x18\x01 \x01(\v2\x19.craig_stars.v1.MinefieldR\tminefield2\xe3\x01\n" +
-	"\x10MinefieldService\x12Y\n" +
-	"\fGetMinefield\x12#.craig_stars.v1.GetMinefieldRequest\x1a$.craig_stars.v1.GetMinefieldResponse\x12t\n" +
-	"\x15UpdateMinefieldOrders\x12,.craig_stars.v1.UpdateMinefieldOrdersRequest\x1a-.craig_stars.v1.UpdateMinefieldOrdersResponseB\xc8\x01\n" +
+	"\tminefield\x18\x01 \x01(\v2\x19.craig_stars.v1.MinefieldR\tminefield2\xed\x01\n" +
+	"\x10MinefieldService\x12^\n" +
+	"\fGetMinefield\x12#.craig_stars.v1.GetMinefieldRequest\x1a$.craig_stars.v1.GetMinefieldResponse\"\x03\x90\x02\x01\x12y\n" +
+	"\x15UpdateMinefieldOrders\x12,.craig_stars.v1.UpdateMinefieldOrdersRequest\x1a-.craig_stars.v1.UpdateMinefieldOrdersResponse\"\x03\x90\x02\x02B\xc8\x01\n" +
 	"\x12com.craig_stars.v1B\x15MinefieldserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

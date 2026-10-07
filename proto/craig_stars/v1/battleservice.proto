@@ -8,7 +8,9 @@ import "craig_stars/v1/player.proto";
 import "craig_stars/v1/shipdesign.proto";
 
 service BattleService {
-  rpc GetTestBattle(GetTestBattleRequest) returns (GetTestBattleResponse);
+  rpc GetTestBattle(GetTestBattleRequest) returns (GetTestBattleResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
 
 message GetTestBattleRequest {}

@@ -109,9 +109,9 @@ const file_craig_stars_v1_rulesservice_proto_rawDesc = "" +
 	"!craig_stars/v1/rulesservice.proto\x12\x0ecraig_stars.v1\x1a\x1acraig_stars/v1/rules.proto\"\x11\n" +
 	"\x0fGetRulesRequest\"?\n" +
 	"\x10GetRulesResponse\x12+\n" +
-	"\x05rules\x18\x01 \x01(\v2\x15.craig_stars.v1.RulesR\x05rules2]\n" +
-	"\fRulesService\x12M\n" +
-	"\bGetRules\x12\x1f.craig_stars.v1.GetRulesRequest\x1a .craig_stars.v1.GetRulesResponseB\xc4\x01\n" +
+	"\x05rules\x18\x01 \x01(\v2\x15.craig_stars.v1.RulesR\x05rules2b\n" +
+	"\fRulesService\x12R\n" +
+	"\bGetRules\x12\x1f.craig_stars.v1.GetRulesRequest\x1a .craig_stars.v1.GetRulesResponse\"\x03\x90\x02\x01B\xc4\x01\n" +
 	"\x12com.craig_stars.v1B\x11RulesserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

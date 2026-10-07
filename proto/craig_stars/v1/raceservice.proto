@@ -5,10 +5,16 @@ package craig_stars.v1;
 import "craig_stars/v1/race.proto";
 
 service RaceService {
-  rpc GetRaces(GetRacesRequest) returns (GetRacesResponse);
-  rpc GetRace(GetRaceRequest) returns (GetRaceResponse);
+  rpc GetRaces(GetRacesRequest) returns (GetRacesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc GetRace(GetRaceRequest) returns (GetRaceResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   rpc CreateRace(CreateRaceRequest) returns (CreateRaceResponse);
-  rpc UpdateRace(UpdateRaceRequest) returns (UpdateRaceResponse);
+  rpc UpdateRace(UpdateRaceRequest) returns (UpdateRaceResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
   rpc DeleteRace(DeleteRaceRequest) returns (DeleteRaceResponse);
 }
 

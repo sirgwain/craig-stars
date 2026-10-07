@@ -27,6 +27,7 @@ import (
 	"github.com/sirgwain/craig-stars/hash"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
 	"github.com/sirgwain/craig-stars/test/testgames"
+	"github.com/sirgwain/craig-stars/version"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/singleflight"
@@ -309,6 +310,7 @@ func Start(config configpkg.Config) error {
 
 	// Mount the grpc calls to /api/grpc
 	r.Group(func(r chi.Router) {
+		r.Use(withVersionHeader)
 		r.Use(server.authAPIOrSession(m))
 		r.Use(server.userSessionCtx)
 
@@ -399,6 +401,14 @@ func Start(config configpkg.Config) error {
 	slog.Info("shutdown complete")
 
 	return nil
+}
+
+// Advertise the release even when authentication or a Connect handler fails.
+func withVersionHeader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-App-Version", version.Semver)
+		next.ServeHTTP(w, r)
+	})
 }
 
 // custom dbClient Middleware to begin a dbClientMiddleware and commit it if successful

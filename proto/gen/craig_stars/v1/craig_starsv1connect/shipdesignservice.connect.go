@@ -75,12 +75,14 @@ func NewShipDesignServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			httpClient,
 			baseURL+ShipDesignServiceGetShipDesignProcedure,
 			connect.WithSchema(shipDesignServiceMethods.ByName("GetShipDesign")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getShipDesigns: connect.NewClient[v1.GetShipDesignsRequest, v1.GetShipDesignsResponse](
 			httpClient,
 			baseURL+ShipDesignServiceGetShipDesignsProcedure,
 			connect.WithSchema(shipDesignServiceMethods.ByName("GetShipDesigns")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		createShipDesign: connect.NewClient[v1.CreateShipDesignRequest, v1.CreateShipDesignResponse](
@@ -93,6 +95,7 @@ func NewShipDesignServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			httpClient,
 			baseURL+ShipDesignServiceUpdateShipDesignProcedure,
 			connect.WithSchema(shipDesignServiceMethods.ByName("UpdateShipDesign")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		deleteShipDesign: connect.NewClient[v1.DeleteShipDesignRequest, v1.DeleteShipDesignResponse](
@@ -158,12 +161,14 @@ func NewShipDesignServiceHandler(svc ShipDesignServiceHandler, opts ...connect.H
 		ShipDesignServiceGetShipDesignProcedure,
 		svc.GetShipDesign,
 		connect.WithSchema(shipDesignServiceMethods.ByName("GetShipDesign")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	shipDesignServiceGetShipDesignsHandler := connect.NewUnaryHandler(
 		ShipDesignServiceGetShipDesignsProcedure,
 		svc.GetShipDesigns,
 		connect.WithSchema(shipDesignServiceMethods.ByName("GetShipDesigns")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	shipDesignServiceCreateShipDesignHandler := connect.NewUnaryHandler(
@@ -176,6 +181,7 @@ func NewShipDesignServiceHandler(svc ShipDesignServiceHandler, opts ...connect.H
 		ShipDesignServiceUpdateShipDesignProcedure,
 		svc.UpdateShipDesign,
 		connect.WithSchema(shipDesignServiceMethods.ByName("UpdateShipDesign")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	shipDesignServiceDeleteShipDesignHandler := connect.NewUnaryHandler(

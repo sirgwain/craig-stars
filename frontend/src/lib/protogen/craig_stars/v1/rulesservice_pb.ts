@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file craig_stars/v1/rulesservice.proto.
  */
 export const file_craig_stars_v1_rulesservice: GenFile = /*@__PURE__*/
-  fileDesc("CiFjcmFpZ19zdGFycy92MS9ydWxlc3NlcnZpY2UucHJvdG8SDmNyYWlnX3N0YXJzLnYxIhEKD0dldFJ1bGVzUmVxdWVzdCI4ChBHZXRSdWxlc1Jlc3BvbnNlEiQKBXJ1bGVzGAEgASgLMhUuY3JhaWdfc3RhcnMudjEuUnVsZXMyXQoMUnVsZXNTZXJ2aWNlEk0KCEdldFJ1bGVzEh8uY3JhaWdfc3RhcnMudjEuR2V0UnVsZXNSZXF1ZXN0GiAuY3JhaWdfc3RhcnMudjEuR2V0UnVsZXNSZXNwb25zZWIGcHJvdG8z", [file_craig_stars_v1_rules]);
+  fileDesc("CiFjcmFpZ19zdGFycy92MS9ydWxlc3NlcnZpY2UucHJvdG8SDmNyYWlnX3N0YXJzLnYxIhEKD0dldFJ1bGVzUmVxdWVzdCI4ChBHZXRSdWxlc1Jlc3BvbnNlEiQKBXJ1bGVzGAEgASgLMhUuY3JhaWdfc3RhcnMudjEuUnVsZXMyYgoMUnVsZXNTZXJ2aWNlElIKCEdldFJ1bGVzEh8uY3JhaWdfc3RhcnMudjEuR2V0UnVsZXNSZXF1ZXN0GiAuY3JhaWdfc3RhcnMudjEuR2V0UnVsZXNSZXNwb25zZSIDkAIBYgZwcm90bzM", [file_craig_stars_v1_rules]);
 
 /**
  * @generated from message craig_stars.v1.GetRulesRequest

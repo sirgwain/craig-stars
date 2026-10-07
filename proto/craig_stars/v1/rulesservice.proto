@@ -5,7 +5,9 @@ package craig_stars.v1;
 import "craig_stars/v1/rules.proto";
 
 service RulesService {
-  rpc GetRules(GetRulesRequest) returns (GetRulesResponse);
+  rpc GetRules(GetRulesRequest) returns (GetRulesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
 
 message GetRulesRequest {}

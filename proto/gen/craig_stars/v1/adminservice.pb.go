@@ -376,12 +376,12 @@ const file_craig_stars_v1_adminservice_proto_rawDesc = "" +
 	"\x05games\x18\x01 \x03(\v2\x1f.craig_stars.v1.GameWithPlayersR\x05games\"\x11\n" +
 	"\x0fGetUsersRequest\">\n" +
 	"\x10GetUsersResponse\x12*\n" +
-	"\x05users\x18\x01 \x03(\v2\x14.craig_stars.v1.UserR\x05users2\xf7\x02\n" +
+	"\x05users\x18\x01 \x03(\v2\x14.craig_stars.v1.UserR\x05users2\x86\x03\n" +
 	"\fAdminService\x12e\n" +
-	"\x10ConvertGuestUser\x12'.craig_stars.v1.ConvertGuestUserRequest\x1a(.craig_stars.v1.ConvertGuestUserResponse\x12V\n" +
-	"\vGetAllGames\x12\".craig_stars.v1.GetAllGamesRequest\x1a#.craig_stars.v1.GetAllGamesResponse\x12Y\n" +
-	"\fGetUserGames\x12#.craig_stars.v1.GetUserGamesRequest\x1a$.craig_stars.v1.GetUserGamesResponse\x12M\n" +
-	"\bGetUsers\x12\x1f.craig_stars.v1.GetUsersRequest\x1a .craig_stars.v1.GetUsersResponseB\xc4\x01\n" +
+	"\x10ConvertGuestUser\x12'.craig_stars.v1.ConvertGuestUserRequest\x1a(.craig_stars.v1.ConvertGuestUserResponse\x12[\n" +
+	"\vGetAllGames\x12\".craig_stars.v1.GetAllGamesRequest\x1a#.craig_stars.v1.GetAllGamesResponse\"\x03\x90\x02\x01\x12^\n" +
+	"\fGetUserGames\x12#.craig_stars.v1.GetUserGamesRequest\x1a$.craig_stars.v1.GetUserGamesResponse\"\x03\x90\x02\x01\x12R\n" +
+	"\bGetUsers\x12\x1f.craig_stars.v1.GetUsersRequest\x1a .craig_stars.v1.GetUsersResponse\"\x03\x90\x02\x01B\xc4\x01\n" +
 	"\x12com.craig_stars.v1B\x11AdminserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

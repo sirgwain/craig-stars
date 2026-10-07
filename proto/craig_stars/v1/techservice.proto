@@ -7,10 +7,14 @@ import "craig_stars/v1/tech.proto";
 // TechService exposes read-only tech endpoints equivalent to REST techs.go.
 service TechService {
   // GetTechs returns the full tech store (StaticTechStore).
-  rpc GetTechs(GetTechsRequest) returns (GetTechsResponse);
+  rpc GetTechs(GetTechsRequest) returns (GetTechsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   // GetTech returns a single tech by name.
-  rpc GetTech(GetTechRequest) returns (GetTechResponse);
+  rpc GetTech(GetTechRequest) returns (GetTechResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
 
 message GetTechsRequest {}

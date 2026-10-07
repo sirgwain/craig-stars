@@ -5,8 +5,12 @@ package craig_stars.v1;
 import "craig_stars/v1/minefield.proto";
 
 service MinefieldService {
-  rpc GetMinefield(GetMinefieldRequest) returns (GetMinefieldResponse);
-  rpc UpdateMinefieldOrders(UpdateMinefieldOrdersRequest) returns (UpdateMinefieldOrdersResponse);
+  rpc GetMinefield(GetMinefieldRequest) returns (GetMinefieldResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc UpdateMinefieldOrders(UpdateMinefieldOrdersRequest) returns (UpdateMinefieldOrdersResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
 }
 
 message GetMinefieldRequest {

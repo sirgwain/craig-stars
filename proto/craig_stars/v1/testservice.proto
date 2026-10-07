@@ -6,7 +6,9 @@ import "craig_stars/v1/game.proto";
 
 service TestService {
   rpc CreateTestGame(CreateTestGameRequest) returns (CreateTestGameResponse);
-  rpc GetTestGameNames(GetTestGameNamesRequest) returns (GetTestGameNamesResponse);
+  rpc GetTestGameNames(GetTestGameNamesRequest) returns (GetTestGameNamesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
 
 message CreateTestGameRequest {

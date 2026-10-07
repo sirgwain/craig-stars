@@ -81,12 +81,14 @@ func NewFleetServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+FleetServiceGetFleetProcedure,
 			connect.WithSchema(fleetServiceMethods.ByName("GetFleet")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		updateFleetOrders: connect.NewClient[v1.UpdateFleetOrdersRequest, v1.UpdateFleetOrdersResponse](
 			httpClient,
 			baseURL+FleetServiceUpdateFleetOrdersProcedure,
 			connect.WithSchema(fleetServiceMethods.ByName("UpdateFleetOrders")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 		splitFleet: connect.NewClient[v1.SplitFleetRequest, v1.SplitFleetResponse](
@@ -117,6 +119,7 @@ func NewFleetServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+FleetServiceRenameFleetProcedure,
 			connect.WithSchema(fleetServiceMethods.ByName("RenameFleet")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -190,12 +193,14 @@ func NewFleetServiceHandler(svc FleetServiceHandler, opts ...connect.HandlerOpti
 		FleetServiceGetFleetProcedure,
 		svc.GetFleet,
 		connect.WithSchema(fleetServiceMethods.ByName("GetFleet")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	fleetServiceUpdateFleetOrdersHandler := connect.NewUnaryHandler(
 		FleetServiceUpdateFleetOrdersProcedure,
 		svc.UpdateFleetOrders,
 		connect.WithSchema(fleetServiceMethods.ByName("UpdateFleetOrders")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	fleetServiceSplitFleetHandler := connect.NewUnaryHandler(
@@ -226,6 +231,7 @@ func NewFleetServiceHandler(svc FleetServiceHandler, opts ...connect.HandlerOpti
 		FleetServiceRenameFleetProcedure,
 		svc.RenameFleet,
 		connect.WithSchema(fleetServiceMethods.ByName("RenameFleet")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.FleetService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

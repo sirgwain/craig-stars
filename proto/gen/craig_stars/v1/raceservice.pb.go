@@ -468,14 +468,14 @@ const file_craig_stars_v1_raceservice_proto_rawDesc = "" +
 	"\x04race\x18\x01 \x01(\v2\x14.craig_stars.v1.RaceR\x04race\",\n" +
 	"\x11DeleteRaceRequest\x12\x17\n" +
 	"\arace_id\x18\x01 \x01(\x03R\x06raceId\"\x14\n" +
-	"\x12DeleteRaceResponse2\xa7\x03\n" +
-	"\vRaceService\x12M\n" +
-	"\bGetRaces\x12\x1f.craig_stars.v1.GetRacesRequest\x1a .craig_stars.v1.GetRacesResponse\x12J\n" +
-	"\aGetRace\x12\x1e.craig_stars.v1.GetRaceRequest\x1a\x1f.craig_stars.v1.GetRaceResponse\x12S\n" +
+	"\x12DeleteRaceResponse2\xb6\x03\n" +
+	"\vRaceService\x12R\n" +
+	"\bGetRaces\x12\x1f.craig_stars.v1.GetRacesRequest\x1a .craig_stars.v1.GetRacesResponse\"\x03\x90\x02\x01\x12O\n" +
+	"\aGetRace\x12\x1e.craig_stars.v1.GetRaceRequest\x1a\x1f.craig_stars.v1.GetRaceResponse\"\x03\x90\x02\x01\x12S\n" +
 	"\n" +
-	"CreateRace\x12!.craig_stars.v1.CreateRaceRequest\x1a\".craig_stars.v1.CreateRaceResponse\x12S\n" +
+	"CreateRace\x12!.craig_stars.v1.CreateRaceRequest\x1a\".craig_stars.v1.CreateRaceResponse\x12X\n" +
 	"\n" +
-	"UpdateRace\x12!.craig_stars.v1.UpdateRaceRequest\x1a\".craig_stars.v1.UpdateRaceResponse\x12S\n" +
+	"UpdateRace\x12!.craig_stars.v1.UpdateRaceRequest\x1a\".craig_stars.v1.UpdateRaceResponse\"\x03\x90\x02\x02\x12S\n" +
 	"\n" +
 	"DeleteRace\x12!.craig_stars.v1.DeleteRaceRequest\x1a\".craig_stars.v1.DeleteRaceResponseB\xc3\x01\n" +
 	"\x12com.craig_stars.v1B\x10RaceserviceProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"

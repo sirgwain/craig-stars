@@ -69,6 +69,7 @@ func NewTestServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+TestServiceGetTestGameNamesProcedure,
 			connect.WithSchema(testServiceMethods.ByName("GetTestGameNames")),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -113,6 +114,7 @@ func NewTestServiceHandler(svc TestServiceHandler, opts ...connect.HandlerOption
 		TestServiceGetTestGameNamesProcedure,
 		svc.GetTestGameNames,
 		connect.WithSchema(testServiceMethods.ByName("GetTestGameNames")),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/craig_stars.v1.TestService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
