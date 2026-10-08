@@ -7,49 +7,8 @@ import (
 
 	"log/slog"
 
-	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestCargoTransfers_mergeFleetCargoTransfers(t *testing.T) {
-	type args struct {
-		fleet         *Fleet
-		mergingFleets []*Fleet
-	}
-	tests := []struct {
-		name           string
-		cargoTransfers CargoTransfers
-		args           args
-		want           []ByHandCargoTransfer
-	}{
-		{
-			name: "merging fleets give their transfers to the fleet",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{SourceFleetNum: 1, Cargo: Cargo{Ironium: 1}},
-					{SourceFleetNum: 2, Cargo: Cargo{Ironium: 1}, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeSalvage, TargetNum: 1}},
-					{SourceFleetNum: 3, Cargo: Cargo{Ironium: 1}},
-				},
-			},
-			args: args{
-				fleet:         &Fleet{MapObject: MapObject{Num: 1}},
-				mergingFleets: []*Fleet{{MapObject: MapObject{Num: 1}}, {MapObject: MapObject{Num: 2}}},
-			},
-			want: []ByHandCargoTransfer{
-				{SourceFleetNum: 1, Cargo: Cargo{Ironium: 1}},
-				{SourceFleetNum: 1, Cargo: Cargo{Ironium: 1}, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeSalvage, TargetNum: 1}},
-				{SourceFleetNum: 3, Cargo: Cargo{Ironium: 1}},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.cargoTransfers.mergeByHandTransfers(tt.args.fleet, tt.args.mergingFleets)
-			got := tt.cargoTransfers.getTransfers(tt.args.fleet.Position)
-			test.CompareAsJSON(t, got, tt.want)
-		})
-	}
-}
 
 func TestCargoTransferer_getCargoLoadAmount(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))

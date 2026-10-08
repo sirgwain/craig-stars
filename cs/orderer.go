@@ -255,12 +255,9 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		}
 	}
 
-	// transfers with our own planets, fleets and packets are done. Anything else is settled
-	// when the turn is generated
-	mo := dest.GetMapObject()
-	if !mo.OwnedBy(player.Num) || !(mo.Type == MapObjectTypePlanet || mo.Type == MapObjectTypeFleet || mo.Type == MapObjectTypeMineralPacket) {
-		player.transferByHand(fleet, mo.ToTarget(), transferAmount.Cargo.Negative(), -transferAmount.Fuel)
-	}
+	// record the transfer. Transfers with our own planets, fleets and packets are done, but are kept so
+	// shortfalls can follow the cargo. Anything else is settled when the turn is generated
+	player.transferByHand(fleet, dest.GetMapObject().ToTarget(), transferAmount.Cargo.Negative(), -transferAmount.Fuel)
 
 	slog.Info("by hand transfer",
 		slog.Int64("GameID", player.GameID),
@@ -421,9 +418,9 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	if len(source.Tokens) == 0 {
 		// source is gone, no cargo transfer needed, just make sure the dest has all cargo and we're done
 		source.Delete = true
+		player.transferByHand(source, dest.MapObject.ToTarget(), source.Cargo, source.Fuel)
 		dest.Cargo = dest.Cargo.Add(source.Cargo)
 		dest.Fuel += source.Fuel
-		player.CargoTransfers.moveByHandTransfers(source, dest)
 
 		return source, dest, nil
 	}
@@ -431,9 +428,9 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	if len(dest.Tokens) == 0 {
 		// dest is gone, no cargo transfer needed, just make sure the source has all cargo and we're done
 		dest.Delete = true
+		player.transferByHand(dest, source.MapObject.ToTarget(), dest.Cargo, dest.Fuel)
 		source.Cargo = source.Cargo.Add(dest.Cargo)
 		source.Fuel += dest.Fuel
-		player.CargoTransfers.moveByHandTransfers(dest, source)
 
 		return source, dest, nil
 	}
@@ -640,6 +637,9 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	}
 	source.Tokens = updatedTokens
 
+	// record the cargo the new fleet took so by hand transfers can follow it
+	player.transferByHand(source, fleet.MapObject.ToTarget(), fleet.Cargo, fleet.Fuel)
+
 	// update fleet specs
 	fleet.Spec = ComputeFleetSpec(rules, player, &fleet)
 	source.Spec = ComputeFleetSpec(rules, player, source)
@@ -693,15 +693,13 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		}
 
 		// add cargo and fuel to the dest fleet
+		player.transferByHand(mergingFleet, fleet.MapObject.ToTarget(), mergingFleet.Cargo, mergingFleet.Fuel)
 		fleet.Cargo = fleet.Cargo.Add(mergingFleet.Cargo)
 		fleet.Fuel += mergingFleet.Fuel
 
 		// mark the merging fleet for deletion
 		mergingFleet.Delete = true
 	}
-
-	// merge cargo transfers
-	player.CargoTransfers.mergeByHandTransfers(fleet, fleets)
 
 	slog.Info("merged fleet",
 		slog.Int64("GameID", player.GameID),

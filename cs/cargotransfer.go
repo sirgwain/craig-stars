@@ -6,9 +6,9 @@ import (
 	"slices"
 )
 
-// ByHandCargoTransfers are cargo transfers the player made in the UI with something they don't own. They
-// are settled when a turn is generated. When a fleet is deleted or merged its by hand transfers go to the
-// fleet that took its place.
+// ByHandCargoTransfers are cargo transfers the player made in the UI, in order. Cargo and fuel are what
+// the source fleet gave the target; negative amounts were taken from it. Splits and merges are recorded
+// as transfers between the fleets, so cargo can be followed if a load comes up short.
 type ByHandCargoTransfer struct {
 	MapObjectTarget
 	SourceFleetNum int   `json:"sourceFleetNum,omitempty"`
@@ -16,8 +16,8 @@ type ByHandCargoTransfer struct {
 	Fuel           int   `json:"fuel,omitempty"`
 }
 
-// CargoTransfers are a player's ByHandCargoTransfers, keyed by the location they were made. Each location
-// is a shared cargo bucket for the player, see settleByHandLoads and settleByHandUnloads.
+// CargoTransfers are a player's ByHandCargoTransfers, keyed by the location they were made. See
+// fleetByHandTransfers for how they're settled.
 type CargoTransfers map[string][]ByHandCargoTransfer
 
 type cargoTransferer struct {
@@ -131,52 +131,51 @@ func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObje
 	cargoTransfers[key] = append(cargoTransfers[key], transfer)
 }
 
-// moveByHandTransfers moves all byHand transfers from one fleet to another (in case a fleet is deleted)
-func (cargoTransfers CargoTransfers) moveByHandTransfers(source *Fleet, dest *Fleet) {
-	key := source.Position.String()
-	transfers, ok := cargoTransfers[key]
-	if !ok {
-		// no transfers
-		return
-	}
-
-	for i := range transfers {
-		transfer := &transfers[i]
-		if transfer.SourceFleetNum == source.Num {
-			transfer.SourceFleetNum = dest.Num
-		}
-		if transfer.Targeting(source.MapObject) {
-			transfer.TargetNum = dest.Num
-		}
-	}
-}
-
-// mergeByHandTransfers gives the by hand transfers of fleets merging into fleet to fleet
-func (cargoTransfers CargoTransfers) mergeByHandTransfers(fleet *Fleet, mergingFleets []*Fleet) {
-	for _, mergingFleet := range mergingFleets {
-		if mergingFleet != fleet {
-			cargoTransfers.moveByHandTransfers(mergingFleet, fleet)
-		}
-	}
-}
-
 // By hand transfers are applied as soon as the player makes them, so the player sees the result right
-// away. Transfers between a player's own fleets, planets and mineral packets are final. Nothing else
-// touches those before turn generation, so they are never replayed.
+// away. Every transfer is recorded in order, including transfers between a player's own fleets,
+// planets and mineral packets, and splits and merges. Transfers with the player's own things are final,
+// nothing else touches them before turn generation.
 //
 // Transfers with anything the player doesn't own (salvage, jettisoned cargo, other players' planets,
 // fleets and packets) only changed the player's intel, so they are settled at turn generation. Each
-// location is a shared cargo bucket for the player: all of their fleets there, and their planet if they
-// own it. Settling moves the player's net exchange with each target in or out of the bucket. If another
-// player got to a target first and it has less than the player took, the shortfall comes back out of
-// the bucket. If a target can't accept what the player gave, it goes back into the bucket.
-//
-// All players' loads are settled before any unloads.
+// player's net exchange with each target is settled, all players' loads before any unloads. If another
+// player got to a target first and it has less than the player loaded, the player's transfers at that
+// location are replayed in order, like the original game, with each one limited to what was actually
+// there. Only the fleets and planet the missing cargo was passed through come up short. If a target
+// can't accept what the player gave, it goes back to the fleets that gave it.
+
+// byHandHolder identifies something a player transferred cargo with by hand
+type byHandHolder struct {
+	Type      MapObjectType
+	Num       int
+	PlayerNum int
+}
+
+// byHandLocation is a player's by hand transfers at one location
+type byHandLocation struct {
+	player    *Player
+	position  Vector
+	transfers []ByHandCargoTransfer
+	// cargo in the player's own fleets, planet and packets here, as the player saw it before anything is
+	// settled
+	seen map[byHandHolder]Cargo
+	// settlements with things the player doesn't own
+	settlements []*byHandSettlement
+	// cargo the player's loads from each target came up short
+	shortfalls map[byHandHolder]Cargo
+	// cargo each target had, and the cargo the player loaded from it, when its loads were settled
+	available map[byHandHolder]Cargo
+	loaded    map[byHandHolder]Cargo
+	// cargo the player gave to each target but didn't have, because of a shortfall
+	lost map[byHandHolder]Cargo
+}
 
 // byHandSettlement is a player's net by hand exchange with one target at a location
 type byHandSettlement struct {
+	location *byHandLocation
 	player   *Player
 	position Vector
+	holder   byHandHolder
 	target   MapObjectTarget
 	// cargo and fuel given to the target. Negative amounts were taken from it
 	cargo Cargo
@@ -195,18 +194,29 @@ type byHandResult struct {
 	status      CargoTransferStatus
 }
 
-// byHandBucket is everything a player owns at a location that can hold by hand cargo
+// byHandBucket is where cargo that didn't go through goes back to: the fleets that transferred with a
+// target, then the player's planet
 type byHandBucket struct {
-	// the fleets that transferred with the target, then the player's other fleets here
 	fleets []*Fleet
-	// how many of fleets transferred with the target
-	numTransferred int
-	planet         *Planet
+	planet *Planet
 }
 
-// byHandSettlements gets a player's by hand transfers that need settling, one per location and target
-func (t *cargoTransferer) byHandSettlements(player *Player) []*byHandSettlement {
-	settlements := []*byHandSettlement{}
+// byHandHolder gets the holder for a transfer's target. Jettisons are all the same target at a location
+func newByHandHolder(target MapObjectTarget) byHandHolder {
+	if target.TargetType == MapObjectTypeNone {
+		return byHandHolder{}
+	}
+	return byHandHolder{Type: target.TargetType, Num: target.TargetNum, PlayerNum: target.TargetPlayerNum}
+}
+
+// fleetHolder gets the holder for one of a player's fleets
+func fleetHolder(player *Player, num int) byHandHolder {
+	return byHandHolder{Type: MapObjectTypeFleet, Num: num, PlayerNum: player.Num}
+}
+
+// byHandLocations gets a player's by hand transfers, one per location, with the settlements they need
+func (t *cargoTransferer) byHandLocations(player *Player) []*byHandLocation {
+	locations := []*byHandLocation{}
 
 	// settle locations in a consistent order
 	keys := make([]string, 0, len(player.CargoTransfers))
@@ -229,26 +239,38 @@ func (t *cargoTransferer) byHandSettlements(player *Player) []*byHandSettlement 
 			continue
 		}
 
-		settlementsByTarget := map[MapObjectTarget]*byHandSettlement{}
+		location := &byHandLocation{
+			player:     player,
+			position:   position,
+			transfers:  transfers,
+			seen:       map[byHandHolder]Cargo{},
+			shortfalls: map[byHandHolder]Cargo{},
+			available:  map[byHandHolder]Cargo{},
+			loaded:     map[byHandHolder]Cargo{},
+			lost:       map[byHandHolder]Cargo{},
+		}
+		locations = append(locations, location)
+
+		settlementsByHolder := map[byHandHolder]*byHandSettlement{}
 		for _, transfer := range transfers {
-			if t.byHandTransferIsFinal(player, transfer.MapObjectTarget) {
-				// earlier versions recorded transfers between owned objects. They're already done
+			source := fleetHolder(player, transfer.SourceFleetNum)
+			location.seen[source] = t.ownedCargo(player, source)
+
+			holder := newByHandHolder(transfer.MapObjectTarget)
+			if t.byHandTransferIsFinal(player, holder) {
+				location.seen[holder] = t.ownedCargo(player, holder)
 				continue
 			}
 
-			target := transfer.MapObjectTarget
-			// jettisons are all the same target at a location
-			if target.TargetType == MapObjectTypeNone {
-				target = MapObjectTarget{TargetPosition: position}
-			}
-
-			// don't let a name or position change split a target
-			key := MapObjectTarget{TargetType: target.TargetType, TargetNum: target.TargetNum, TargetPlayerNum: target.TargetPlayerNum}
-			settlement, ok := settlementsByTarget[key]
+			settlement, ok := settlementsByHolder[holder]
 			if !ok {
-				settlement = &byHandSettlement{player: player, position: position, target: target}
-				settlementsByTarget[key] = settlement
-				settlements = append(settlements, settlement)
+				target := transfer.MapObjectTarget
+				if holder == (byHandHolder{}) {
+					target = MapObjectTarget{TargetPosition: position}
+				}
+				settlement = &byHandSettlement{location: location, player: player, position: position, holder: holder, target: target}
+				settlementsByHolder[holder] = settlement
+				location.settlements = append(location.settlements, settlement)
 			}
 			settlement.cargo = settlement.cargo.Add(transfer.Cargo)
 			settlement.fuel += transfer.Fuel
@@ -258,7 +280,7 @@ func (t *cargoTransferer) byHandSettlements(player *Player) []*byHandSettlement 
 		}
 	}
 
-	return settlements
+	return locations
 }
 
 // byHandPosition finds where a player's by hand transfers happened
@@ -276,45 +298,82 @@ func (t *cargoTransferer) byHandPosition(player *Player, transfers []ByHandCargo
 	return Vector{}, false
 }
 
-// byHandTransferIsFinal is true for transfers with a player's own planets, fleets and mineral packets.
-// These are done when the player makes them and don't need settling
-func (t *cargoTransferer) byHandTransferIsFinal(player *Player, target MapObjectTarget) bool {
-	switch target.TargetType {
+// byHandTransferIsFinal is true for a player's own planets, fleets and mineral packets. Transfers with
+// these are done when the player makes them and don't need settling
+func (t *cargoTransferer) byHandTransferIsFinal(player *Player, holder byHandHolder) bool {
+	switch holder.Type {
 	case MapObjectTypePlanet:
-		planet := t.game.getPlanet(target.TargetNum)
+		planet := t.game.getPlanet(holder.Num)
 		return planet != nil && planet.OwnedBy(player.Num)
 	case MapObjectTypeFleet, MapObjectTypeMineralPacket:
-		return target.TargetPlayerNum == player.Num
+		return holder.PlayerNum == player.Num
 	}
 	return false
 }
 
-// getByHandBucket gets everything a player owns at a settlement's location that can hold cargo.
-// Fleets that transferred with the target come first
+// ownedCargoHolder gets one of a player's own fleets, planets or packets, if it still exists
+func (t *cargoTransferer) ownedCargoHolder(player *Player, holder byHandHolder) CargoHolder {
+	switch holder.Type {
+	case MapObjectTypeFleet:
+		if fleet := t.game.getFleet(player.Num, holder.Num); fleet != nil && !fleet.Delete {
+			return fleet
+		}
+	case MapObjectTypePlanet:
+		if planet := t.game.getPlanet(holder.Num); planet != nil && planet.OwnedBy(player.Num) {
+			return planet
+		}
+	case MapObjectTypeMineralPacket:
+		if packet := t.game.getMineralPacket(player.Num, holder.Num); packet != nil && !packet.Delete {
+			return packet
+		}
+	}
+	return nil
+}
+
+// ownedCargo gets the cargo in one of a player's own fleets, planets or packets
+func (t *cargoTransferer) ownedCargo(player *Player, holder byHandHolder) Cargo {
+	if ch := t.ownedCargoHolder(player, holder); ch != nil {
+		return ch.GetCargo()
+	}
+	return Cargo{}
+}
+
+// byHandFleet gets the fleet that holds what a fleet transferred by hand. A fleet that merged into another
+// fleet (or split away entirely) gave everything to it, so follow it there
+func (t *cargoTransferer) byHandFleet(location *byHandLocation, num int) *Fleet {
+	player := location.player
+	for range location.transfers {
+		if fleet := t.game.getFleet(player.Num, num); fleet != nil && !fleet.Delete {
+			return fleet
+		}
+		next := None
+		for _, transfer := range location.transfers {
+			if transfer.SourceFleetNum == num && transfer.TargetType == MapObjectTypeFleet && transfer.TargetPlayerNum == player.Num {
+				next = transfer.TargetNum
+			}
+		}
+		if next == None {
+			return nil
+		}
+		num = next
+	}
+	return nil
+}
+
+// getByHandBucket gets the fleets that transferred with a settlement's target, and the player's planet
 func (t *cargoTransferer) getByHandBucket(s *byHandSettlement) byHandBucket {
 	bucket := byHandBucket{}
 	for _, num := range s.fleetNums {
-		if fleet := t.game.getFleet(s.player.Num, num); fleet != nil && !fleet.Delete && fleet.Position == s.position {
+		if fleet := t.byHandFleet(s.location, num); fleet != nil && fleet.Position == s.position && !slices.Contains(bucket.fleets, fleet) {
 			bucket.fleets = append(bucket.fleets, fleet)
 		}
 	}
 
-	others := []*Fleet{}
 	for _, mo := range t.game.getMapObjectsAtPosition(s.position) {
-		switch mo := mo.(type) {
-		case *Fleet:
-			if mo.PlayerNum == s.player.Num && !mo.Delete && !mo.Starbase && !slices.Contains(bucket.fleets, mo) {
-				others = append(others, mo)
-			}
-		case *Planet:
-			if mo.OwnedBy(s.player.Num) {
-				bucket.planet = mo
-			}
+		if planet, ok := mo.(*Planet); ok && planet.OwnedBy(s.player.Num) {
+			bucket.planet = planet
 		}
 	}
-	slices.SortFunc(others, func(a, b *Fleet) int { return a.Num - b.Num })
-	bucket.numTransferred = len(bucket.fleets)
-	bucket.fleets = append(bucket.fleets, others...)
 
 	return bucket
 }
@@ -325,26 +384,6 @@ func (b byHandBucket) fleet() *Fleet {
 		return b.fleets[0]
 	}
 	return nil
-}
-
-// removeFromTransferred takes cargo out of the fleets that transferred with the target, returning any
-// amount they don't have
-func (b byHandBucket) removeFromTransferred(cargoType CargoType, amount int) int {
-	return removeFromFleets(b.fleets[:b.numTransferred], cargoType, amount)
-}
-
-// removeFromOthers takes cargo out of the player's other fleets, the ones with the most first, and
-// then their planet. It returns any amount they don't have
-func (b byHandBucket) removeFromOthers(cargoType CargoType, amount int) int {
-	others := slices.Clone(b.fleets[b.numTransferred:])
-	slices.SortStableFunc(others, func(a, b *Fleet) int { return b.Cargo.GetAmount(cargoType) - a.Cargo.GetAmount(cargoType) })
-	amount = removeFromFleets(others, cargoType, amount)
-	if b.planet != nil {
-		removed := min(amount, b.planet.Cargo.GetAmount(cargoType))
-		b.planet.Cargo = b.planet.Cargo.SubtractAmount(cargoType, removed)
-		amount -= removed
-	}
-	return amount
 }
 
 // addFuel puts fuel back in the bucket's fleets, returning any amount they have no room for
@@ -364,15 +403,6 @@ func (b byHandBucket) removeFuel(amount int) {
 		fleet.Fuel -= removed
 		amount -= removed
 	}
-}
-
-func removeFromFleets(fleets []*Fleet, cargoType CargoType, amount int) int {
-	for _, fleet := range fleets {
-		removed := min(amount, fleet.Cargo.GetAmount(cargoType))
-		fleet.Cargo = fleet.Cargo.SubtractAmount(cargoType, removed)
-		amount -= removed
-	}
-	return amount
 }
 
 // add puts cargo back in the bucket's fleets, then its planet. Anything left over is jettisoned
@@ -409,11 +439,9 @@ func (t *cargoTransferer) findByHandTarget(s *byHandSettlement) (CargoHolder, bo
 	return dest, true
 }
 
-// settleByHandLoads takes the cargo a player loaded from a target. If the target is gone or has less
-// than the player loaded, the shortfall comes out of the bucket: first the fleets that loaded it, then
-// cargo the player is giving away at this location (added to deficit and taken out of the unloads),
-// then the player's other fleets and planet. unloads is the cargo the player is giving away here.
-func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, deficit *Cargo) (results []byHandResult) {
+// settleByHandLoads takes the cargo a player loaded from a target. If the target is gone or has less than
+// the player loaded, the shortfall is recorded on the location for replayByHandShortfalls
+func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement) (results []byHandResult) {
 	toLoad := s.cargo.NegativeOnly().Negative()
 	if toLoad == (Cargo{}) && s.fuel >= 0 {
 		return nil
@@ -422,7 +450,7 @@ func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, 
 	bucket := t.getByHandBucket(s)
 	fleet := bucket.fleet()
 	if fleet == nil {
-		// all the fleets that loaded this cargo are gone, so is the cargo
+		// the fleets that loaded this cargo are gone, and so is the cargo
 		t.log.Warn("no fleets left to settle by hand load",
 			slog.Int("Player", s.player.Num),
 			slog.String("Target", s.target.PrettyString()))
@@ -436,6 +464,9 @@ func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, 
 	}
 
 	dest, found := t.findByHandTarget(s)
+	if found && dest.CanLoad(fleet) {
+		s.location.available[s.holder] = dest.GetCargo()
+	}
 	for _, cargoType := range CargoTypes {
 		wanted := toLoad.GetAmount(cargoType)
 		if wanted == 0 {
@@ -452,6 +483,7 @@ func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, 
 			loaded = min(wanted, dest.GetCargo().GetAmount(cargoType))
 			dest.SetCargo(dest.GetCargo().SubtractAmount(cargoType, loaded))
 		}
+		s.location.loaded[s.holder] = s.location.loaded[s.holder].AddAmount(cargoType, loaded)
 
 		if loaded == wanted {
 			continue
@@ -464,18 +496,7 @@ func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, 
 			slog.Int("Wanted", wanted),
 			slog.Int("Loaded", loaded))
 
-		remaining := bucket.removeFromTransferred(cargoType, wanted-loaded)
-		lost := min(remaining, unloads.GetAmount(cargoType)-deficit.GetAmount(cargoType))
-		*deficit = deficit.AddAmount(cargoType, lost)
-		remaining = bucket.removeFromOthers(cargoType, remaining-lost)
-		if remaining > 0 {
-			// this should never happen. The player can't have used more than they had
-			t.log.Error("by hand load shortfall is more than the player has",
-				slog.Int("Player", s.player.Num),
-				slog.String("Target", s.target.PrettyString()),
-				slog.String("CargoType", cargoType.String()),
-				slog.Int("Remaining", remaining))
-		}
+		s.location.shortfalls[s.holder] = s.location.shortfalls[s.holder].AddAmount(cargoType, wanted-loaded)
 		results = append(results, byHandResult{fleet: fleet, target: s.target, cargoType: cargoType, transferred: loaded, wanted: wanted, status: status})
 	}
 
@@ -492,10 +513,147 @@ func (t *cargoTransferer) settleByHandLoads(s *byHandSettlement, unloads Cargo, 
 	return results
 }
 
-// settleByHandUnloads gives a target the cargo a player unloaded to it. Any deficit from loads that came
-// up short is taken out first. Anything the target can't accept goes back in the bucket.
-// Colonists unloaded on another player's planet invade it.
-func (t *cargoTransferer) settleByHandUnloads(s *byHandSettlement, deficit *Cargo) (results []byHandResult) {
+// replayByHandShortfalls handles loads that came up short at a location. Like the original game, it
+// replays the player's transfers there in order from what they started with, with each transfer limited
+// to what was actually there. Each of the player's fleets, planets and packets loses whatever it ends up
+// short compared to what the player saw, and each target is corrected to what it actually got. Cargo the
+// player gave away but didn't have is recorded on the location for settleByHandUnloads
+func (t *cargoTransferer) replayByHandShortfalls(location *byHandLocation) (results []byHandResult) {
+	player := location.player
+	for _, cargoType := range CargoTypes {
+		short := false
+		for _, shortfall := range location.shortfalls {
+			short = short || shortfall.GetAmount(cargoType) > 0
+		}
+		if !short {
+			continue
+		}
+
+		// work backwards from what the player saw to what they started with
+		cargo := map[byHandHolder]int{}
+		for holder, seen := range location.seen {
+			cargo[holder] = seen.GetAmount(cargoType)
+		}
+		for i := len(location.transfers) - 1; i >= 0; i-- {
+			transfer := location.transfers[i]
+			amount := transfer.Cargo.GetAmount(cargoType)
+			cargo[fleetHolder(player, transfer.SourceFleetNum)] += amount
+			if holder := newByHandHolder(transfer.MapObjectTarget); t.byHandTransferIsFinal(player, holder) {
+				cargo[holder] -= amount
+			}
+		}
+		for holder, amount := range cargo {
+			cargo[holder] = max(0, amount)
+		}
+
+		// targets we don't own start with what they actually had for us
+		settlements := map[byHandHolder]*byHandSettlement{}
+		start := map[byHandHolder]int{}
+		for _, s := range location.settlements {
+			settlements[s.holder] = s
+			switch {
+			case s.cargo.GetAmount(cargoType) < 0:
+				start[s.holder] = location.available[s.holder].GetAmount(cargoType)
+			case s.holder == byHandHolder{}:
+				// we can only load what we jettisoned
+			default:
+				if dest, found := t.findByHandTarget(s); found {
+					start[s.holder] = dest.GetCargo().GetAmount(cargoType)
+				}
+			}
+			cargo[s.holder] = start[s.holder]
+		}
+
+		// replay the transfers in order, limiting each one to what's there
+		for _, transfer := range location.transfers {
+			amount := transfer.Cargo.GetAmount(cargoType)
+			if amount == 0 {
+				continue
+			}
+			source := fleetHolder(player, transfer.SourceFleetNum)
+			holder := newByHandHolder(transfer.MapObjectTarget)
+
+			// given to the target, or taken from it
+			transferred := min(amount, cargo[source])
+			status := CargoTransferStatusCargo
+			if amount < 0 {
+				transferred = max(amount, -cargo[holder])
+				status = CargoTransferStatusDestCargo
+			}
+			cargo[source] -= transferred
+			cargo[holder] += transferred
+
+			if transferred == amount {
+				continue
+			}
+			// settling loads and unloads reports the shortfalls with targets we don't own
+			if s := settlements[holder]; s != nil && (s.cargo.GetAmount(cargoType) < 0) == (amount < 0) {
+				continue
+			}
+			if fleet := t.game.getFleet(player.Num, transfer.SourceFleetNum); fleet != nil && !fleet.Delete {
+				results = append(results, byHandResult{fleet: fleet, target: transfer.MapObjectTarget, cargoType: cargoType, transferred: Abs(transferred), wanted: Abs(amount), status: status})
+			}
+		}
+
+		// take away whatever each of our fleets, planets and packets came up short
+		for holder, seen := range location.seen {
+			short := seen.GetAmount(cargoType) - cargo[holder]
+			ch := t.ownedCargoHolder(player, holder)
+			if short <= 0 || ch == nil {
+				continue
+			}
+			removed := min(short, ch.GetCargo().GetAmount(cargoType))
+			ch.SetCargo(ch.GetCargo().SubtractAmount(cargoType, removed))
+			if removed < short {
+				t.log.Error("by hand shortfall is more than the player has",
+					slog.Int("Player", player.Num),
+					slog.String("Holder", fmt.Sprintf("%v", holder)),
+					slog.String("CargoType", cargoType.String()),
+					slog.Int("Short", short-removed))
+			}
+		}
+
+		// correct each target to what it actually got from us, or gave us
+		for _, s := range location.settlements {
+			got := cargo[s.holder] - start[s.holder]
+			net := s.cargo.GetAmount(cargoType)
+			if net > 0 {
+				// settleByHandUnloads gives the target what we actually had to give
+				location.lost[s.holder] = location.lost[s.holder].AddAmount(cargoType, net-max(0, got))
+				got = min(0, got)
+			} else {
+				// settleByHandLoads already took what we loaded
+				got += location.loaded[s.holder].GetAmount(cargoType)
+			}
+			if got != 0 {
+				t.correctByHandTarget(s, cargoType, got)
+			}
+		}
+	}
+	return results
+}
+
+// correctByHandTarget gives a target cargo, or takes it if amount is negative
+func (t *cargoTransferer) correctByHandTarget(s *byHandSettlement, cargoType CargoType, amount int) {
+	var dest CargoHolder
+	if s.holder == (byHandHolder{}) {
+		dest = t.game.getOrCreateSalvage(s.position, s.player.Num, Cargo{})
+	} else if found, ok := t.findByHandTarget(s); ok {
+		dest = found
+	}
+	if dest == nil {
+		return
+	}
+	dest.SetCargo(dest.GetCargo().AddAmount(cargoType, max(amount, -dest.GetCargo().GetAmount(cargoType))))
+	if salvage, ok := dest.(*Salvage); ok && salvage.Cargo == (Cargo{}) {
+		t.game.deleteSalvage(salvage)
+	}
+}
+
+// settleByHandUnloads gives a target the cargo a player unloaded to it, minus anything the player turned
+// out not to have. Anything the target can't accept goes back to the fleets that gave it. Colonists
+// unloaded on another player's planet invade it.
+func (t *cargoTransferer) settleByHandUnloads(s *byHandSettlement) (results []byHandResult) {
 	toUnload := s.cargo.PositiveOnly()
 	if toUnload == (Cargo{}) && s.fuel <= 0 {
 		return nil
@@ -522,9 +680,8 @@ func (t *cargoTransferer) settleByHandUnloads(s *byHandSettlement, deficit *Carg
 			continue
 		}
 
-		// we can't unload cargo we lost on an earlier load
-		lost := min(wanted, deficit.GetAmount(cargoType))
-		*deficit = deficit.SubtractAmount(cargoType, lost)
+		// we can't unload cargo we didn't have
+		lost := min(wanted, s.location.lost[s.holder].GetAmount(cargoType))
 		amount := wanted - lost
 
 		unloaded := 0

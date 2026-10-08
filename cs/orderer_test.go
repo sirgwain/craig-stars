@@ -562,11 +562,10 @@ func Test_orders_SplitFleet(t *testing.T) {
 	}
 
 	type want struct {
-		err            bool
-		errContains    string
-		deleteSource   bool
-		deleteDest     bool
-		cargoTransfers []ByHandCargoTransfer
+		err          bool
+		errContains  string
+		deleteSource bool
+		deleteDest   bool
 	}
 
 	tests := []struct {
@@ -876,7 +875,6 @@ func Test_orders_SplitFleet(t *testing.T) {
 				},
 				transferAmount: CargoTransferRequest{Cargo: Cargo{-5, -5, -5, -5}, Fuel: -130},
 			},
-			// transfers between our own fleets are final, so they aren't recorded
 			want: want{},
 		},
 		{
@@ -941,7 +939,6 @@ func Test_orders_SplitFleet(t *testing.T) {
 					Cargo: Cargo{Ironium: -5},
 				},
 			},
-			// transfers between our own fleets are final, so they aren't recorded
 			want: want{},
 		},
 		{
@@ -988,7 +985,6 @@ func Test_orders_SplitFleet(t *testing.T) {
 					Cargo: Cargo{Colonists: -25},
 				},
 			},
-			// transfers between our own fleets are final, so they aren't recorded
 			want: want{},
 		},
 		{
@@ -1098,8 +1094,8 @@ func Test_orders_SplitFleet(t *testing.T) {
 					assert.Equal(t, sourceFuel+destFuel, source.Fuel)
 				}
 
-				// make sure our cargo transfers match up
-				test.CompareAsJSON(t, player.CargoTransfers[source.Position.String()], tt.want.cargoTransfers)
+				// by hand transfers record the cargo that moved to the dest so shortfalls can follow it
+				assert.Equal(t, dest.Cargo.Subtract(destCargo), byHandFlow(player.CargoTransfers[source.Position.String()], source, dest))
 			}
 
 		})
@@ -1155,12 +1151,11 @@ func Test_orders_SplitAll(t *testing.T) {
 		cargoTransfers CargoTransfers
 	}
 	tests := []struct {
-		name               string
-		args               args
-		wantSourceFleet    *Fleet
-		wantNewFleets      []*Fleet
-		wantCargoTransfers CargoTransfers
-		wantErr            bool
+		name            string
+		args            args
+		wantSourceFleet *Fleet
+		wantNewFleets   []*Fleet
+		wantErr         bool
 	}{
 		{
 			name: "split a scoutx3 into three fleets",
@@ -1409,10 +1404,6 @@ func Test_orders_SplitAll(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			wantCargoTransfers: CargoTransfers{
-				// the load stays with the source fleet. Shortfalls are settled from every fleet at the location
-				"(0, 0)": []ByHandCargoTransfer{{SourceFleetNum: 1, Cargo: Cargo{Colonists: -100}}},
-			},
 		},
 	}
 	for _, tt := range tests {
@@ -1452,8 +1443,10 @@ func Test_orders_SplitAll(t *testing.T) {
 					test.CompareAsJSON(t, gotNewFleets[i], fleet)
 				}
 
-				// compare by hand cargo transfers
-				test.CompareAsJSON(t, tt.args.player.CargoTransfers, tt.wantCargoTransfers)
+				// by hand transfers record the cargo each new fleet took so shortfalls can follow it
+				for _, fleet := range gotNewFleets {
+					assert.Equal(t, fleet.Cargo, byHandFlow(tt.args.player.CargoTransfers[fleet.Position.String()], tt.args.source, fleet))
+				}
 			}
 		})
 	}
@@ -2296,4 +2289,18 @@ func Test_orders_TransferByHandSalvage(t *testing.T) {
 			}
 		})
 	}
+}
+
+// byHandFlow totals the cargo recorded moving from one fleet to another
+func byHandFlow(transfers []ByHandCargoTransfer, from, to *Fleet) Cargo {
+	flow := Cargo{}
+	for _, transfer := range transfers {
+		if transfer.SourceFleetNum == from.Num && transfer.Targeting(to.MapObject) {
+			flow = flow.Add(transfer.Cargo)
+		}
+		if transfer.SourceFleetNum == to.Num && transfer.Targeting(from.MapObject) {
+			flow = flow.Subtract(transfer.Cargo)
+		}
+	}
+	return flow
 }

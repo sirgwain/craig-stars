@@ -131,6 +131,11 @@ func (t *turnGenerator) generateTurn() error {
 	t.calculateScores()
 	t.checkDeath()
 
+	// merges and splits during the turn record by hand transfers. Next turn's by hand transfers start fresh
+	for _, player := range t.game.Players {
+		player.CargoTransfers = CargoTransfers{}
+	}
+
 	t.game.State = GameStateWaitingForPlayers
 
 	t.log.Info("generated turn")
@@ -170,37 +175,28 @@ func (t *turnGenerator) fleetInit() {
 func (t *turnGenerator) fleetByHandTransfers() {
 	cargoTransferer := newCargoTransferer(t.log, t.game)
 
-	settlements := []*byHandSettlement{}
+	locations := []*byHandLocation{}
 	for _, player := range t.game.Players {
-		settlements = append(settlements, cargoTransferer.byHandSettlements(player)...)
+		locations = append(locations, cargoTransferer.byHandLocations(player)...)
 	}
 
-	// cargo each player is giving away at a location, and how much of it they turned out not to have
-	type bucketKey struct {
-		playerNum int
-		position  Vector
-	}
-	unloads := map[bucketKey]Cargo{}
-	deficits := map[bucketKey]Cargo{}
-	for _, s := range settlements {
-		key := bucketKey{s.player.Num, s.position}
-		unloads[key] = unloads[key].Add(s.cargo.PositiveOnly())
+	for _, location := range locations {
+		for _, s := range location.settlements {
+			t.sendByHandResults(location.player, cargoTransferer.settleByHandLoads(s))
+		}
 	}
 
-	for _, s := range settlements {
-		key := bucketKey{s.player.Num, s.position}
-		deficit := deficits[key]
-		results := cargoTransferer.settleByHandLoads(s, unloads[key], &deficit)
-		deficits[key] = deficit
-		t.sendByHandResults(s.player, results)
+	// follow any cargo players didn't get from their loads to where they moved it
+	for _, location := range locations {
+		if len(location.shortfalls) > 0 {
+			t.sendByHandResults(location.player, cargoTransferer.replayByHandShortfalls(location))
+		}
 	}
 
-	for _, s := range settlements {
-		key := bucketKey{s.player.Num, s.position}
-		deficit := deficits[key]
-		results := cargoTransferer.settleByHandUnloads(s, &deficit)
-		deficits[key] = deficit
-		t.sendByHandResults(s.player, results)
+	for _, location := range locations {
+		for _, s := range location.settlements {
+			t.sendByHandResults(location.player, cargoTransferer.settleByHandUnloads(s))
+		}
 	}
 
 	// resolve any by hand invasions
