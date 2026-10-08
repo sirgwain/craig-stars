@@ -135,7 +135,7 @@ type byHandBucket struct {
 	planet *Planet
 }
 
-// byHandHolder gets the holder for a transfer's target. Jettisons are all the same target at a location
+// newByHandHolder gets the holder for a transfer's target. Jettisons are all the same target at a location
 func newByHandHolder(target MapObjectTarget) byHandHolder {
 	if target.TargetType == MapObjectTypeNone {
 		return byHandHolder{}
@@ -276,6 +276,8 @@ func (t *cargoTransferer) ownedCargo(player *Player, holder byHandHolder) Cargo 
 // fleet (or split away entirely) gave everything to it, so follow it there
 func (t *cargoTransferer) byHandFleet(location *byHandLocation, num int) *Fleet {
 	player := location.player
+	// each step follows a transfer, so this can't take more steps than there are transfers (fleet nums
+	// can be reused, which could otherwise loop)
 	for range location.transfers {
 		if fleet := t.game.getFleet(player.Num, num); fleet != nil && !fleet.Delete {
 			return fleet
@@ -339,7 +341,7 @@ func (b byHandBucket) removeFuel(amount int) {
 	}
 }
 
-// add puts cargo back in the bucket's fleets, then its planet. Anything left over is jettisoned
+// addToBucket puts cargo back in the bucket's fleets, then its planet. Anything left over is jettisoned
 func (t *cargoTransferer) addToBucket(s *byHandSettlement, b byHandBucket, cargoType CargoType, amount int) {
 	for _, fleet := range b.fleets {
 		added := min(amount, fleet.availableCargoSpace())

@@ -766,16 +766,20 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	t.Run("steal from enemy fleet", func(t *testing.T) {
 		s := twoPlayerFleetScenario(DesignStealingFreighter)
 		s.Players[0].Fleets[0].At = "Planet 2"
-		s.Planets[1].Cargo.Ironium = 50
+		// player 2 has a freighter with 50kT ironium at their planet
+		s.Players[1].Designs = append(s.Players[1].Designs, Designs(DesignTeamster)...)
+		s.Players[1].Fleets = append(s.Players[1].Fleets, ScenarioFleet{Name: "Hauler #1", Design: "Teamster", At: "Planet 2", Cargo: Cargo{Ironium: 50}})
 		u := newTestUniverse(t, s)
-		game := u.Game
-		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
-		u.TransferByHand(1, "Stealing Freighter #1", "Planet 2", Cargo{Ironium: 50})
+		hauler := u.FleetFor(2, "Hauler #1")
+		discoverer := newDiscoverer(testLogger, u.Player(1))
+		discoverer.discoverFleet(hauler, true)
+		discoverer.discoverFleetCargo(hauler)
+		u.TransferByHand(1, "Stealing Freighter #1", "Hauler #1", Cargo{Ironium: 50})
 
-		u.GenerateTurn()
+		u.turn.fleetByHandTransfers()
 
-		// should steal
-		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
-		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
+		// should steal all 50kT from player 2's freighter
+		assert.Equal(t, Cargo{}, hauler.Cargo)
+		assert.Equal(t, Cargo{Ironium: 50}, u.FleetFor(1, "Stealing Freighter #1").Cargo)
 	})
 }

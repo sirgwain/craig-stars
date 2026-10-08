@@ -56,8 +56,6 @@ func (r CargoTransferStatus) String() string {
 // cargoTransferResult is the result of a single CargoType cargo transfer to a dest
 type cargoTransferResult struct {
 	status      CargoTransferStatus // if transfer fails, this is the reason
-	fleet       *Fleet
-	dest        CargoHolder
 	cargoType   CargoType
 	transferred int
 	wanted      int
@@ -116,8 +114,6 @@ func (t *cargoTransferer) loadTask(fleet *Fleet, dest CargoHolder, task transpor
 	transferAmount, wanted, wait := t.getCargoLoadAmount(fleet, dest, task.cargoType, task.WaypointTransportTask)
 	transferred, status := t.transferCargo(fleet, -transferAmount, task.cargoType, dest)
 	return cargoTransferResult{
-		fleet:       fleet,
-		dest:        dest,
 		cargoType:   task.cargoType,
 		wanted:      -wanted,
 		transferred: transferred,
@@ -131,8 +127,6 @@ func (t *cargoTransferer) unload(fleet *Fleet, dest CargoHolder, transportTasks 
 		transferAmount, wanted := t.getCargoUnloadAmount(fleet, dest, task.cargoType, task.WaypointTransportTask)
 		transferred, status := t.transferCargo(fleet, transferAmount, task.cargoType, dest)
 		results = append(results, cargoTransferResult{
-			fleet:       fleet,
-			dest:        dest,
 			cargoType:   task.cargoType,
 			wanted:      wanted,
 			transferred: transferred,

@@ -561,7 +561,6 @@ func (t *turnGenerator) fleetLoad() {
 	// after load delete any empty salvages or packets
 	for _, salvage := range t.game.Salvages {
 		// delete this salvage if we emptied it
-		salvage.Cargo.Colonists = 0 // make sure we kill off any colonists dumped into deep space
 		if salvage.Cargo == (Cargo{}) {
 			t.game.deleteSalvage(salvage)
 
