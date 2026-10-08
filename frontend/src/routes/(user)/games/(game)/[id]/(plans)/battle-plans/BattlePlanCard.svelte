@@ -1,11 +1,6 @@
 <script lang="ts">
-	import {
-		BattleAttackWho,
-		BattleTactic,
-		BattleTarget,
-		type BattlePlan
-	} from '#lib/types/cs-proto.js';
-	import { enumToString } from '#lib/types/Enums.js';
+	import { BattleAttackWho, BattleTactic, type BattlePlan } from '#lib/types/cs-proto.js';
+	import { battleTargetToString, enumToString } from '#lib/types/Enums.js';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -39,11 +34,11 @@
 			</div>
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Primary Target</div>
-				<div>{enumToString(BattleTarget, plan.primaryTarget)}</div>
+				<div>{battleTargetToString(plan.primaryTarget)}</div>
 			</div>
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Secondary Target</div>
-				<div>{enumToString(BattleTarget, plan.secondaryTarget)}</div>
+				<div>{battleTargetToString(plan.secondaryTarget)}</div>
 			</div>
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Tactic</div>

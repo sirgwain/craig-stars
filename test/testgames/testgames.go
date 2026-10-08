@@ -16,6 +16,7 @@ var TestGames = []cs.TestScenario{
 	cs.ScenarioColonizerTest(),
 	cs.ScenarioColonizerTestAR(),
 	cs.ScenarioKitchenSink(),
+	cs.ScenarioSDMinefield(),
 	cs.ScenarioCargoTransferInvasion(),
 	cs.ScenarioCargoTransferInvasionStarbase(),
 	cs.ScenarioCargoTransferPlanetOwned(),

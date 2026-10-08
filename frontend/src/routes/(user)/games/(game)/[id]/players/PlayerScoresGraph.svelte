@@ -13,7 +13,7 @@
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
 	import PlayerScoresGraphLabels from './PlayerScoresGraphLabels.svelte';
 
-	const { game, universe } = getGameContext();
+	const { game, player, universe } = getGameContext();
 
 	type Props = {
 		type?: ValueType;
@@ -50,6 +50,9 @@
 	// get the number of turns passed, i.e. 2 for 2402
 	let turnsPassed = $derived($game.year - ($game.rules.universeGenerationRules?.startingYear ?? 0));
 
+	// other players' scores are hidden for the first few years of the game
+	let hiddenYears = $derived($game.rules.showPublicScoresAfterYears);
+
 	// get the highest value from the scores
 	let highestValue = $derived(
 		Math.max(
@@ -77,11 +80,13 @@
 				[zKey]: String(playerIntel.num),
 				playerName: name,
 				playerNum: num,
-				values: [...Array(turnsPassed).keys()].map((turn) => ({
-					[yKey]: playerScores[turn] ? playerScores[turn][type] || 0 : 0,
-					[xKey]: turn,
-					[zKey]: String(playerIntel.num)
-				}))
+				values: [...Array(turnsPassed).keys()]
+					.filter((turn) => num === $player.num || turn >= hiddenYears)
+					.map((turn) => ({
+						[yKey]: playerScores[turn] ? playerScores[turn][type] || 0 : 0,
+						[xKey]: turn,
+						[zKey]: String(playerIntel.num)
+					}))
 			};
 		})
 	);

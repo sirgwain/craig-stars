@@ -87,3 +87,27 @@ func Test_victory_checkForVictorExceedsSecondPlaceScore(t *testing.T) {
 	assert.False(t, player3.Victor)
 
 }
+
+func Test_victory_checkForVictorNoConditions(t *testing.T) {
+	s := SingleUnitScenario()
+	u := newTestUniverse(t, s)
+	game := u.Game
+
+	player := u.Player(1)
+	player.ScoreHistory = []PlayerScore{{Planets: 1}}
+
+	// a game with no victory conditions and no criteria required should never declare a victor
+	game.VictoryConditions = VictoryConditions{}
+
+	victory := newVictoryChecker(game)
+	victory.checkForVictor(player)
+	assert.False(t, player.Victor)
+	assert.False(t, game.VictorDeclared)
+
+	// conditions but no criteria required should also not declare a victor
+	game.VictoryConditions.Conditions = Bitmask(VictoryConditionOwnPlanets)
+	game.VictoryConditions.OwnPlanets = 1
+	victory.checkForVictor(player)
+	assert.False(t, player.Victor)
+	assert.False(t, game.VictorDeclared)
+}

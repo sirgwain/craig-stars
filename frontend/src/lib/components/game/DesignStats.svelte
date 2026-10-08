@@ -128,6 +128,12 @@
 				<div>{spec.mineLayingRateByMineType[MinefieldType.SPEED_BUMP]} spd/yr</div>
 			</div>
 		{/if}
+		{#if spec.mineSweep}
+			<div class="flex justify-between">
+				<div class="font-semibold mr-5">Mine Sweep</div>
+				<div>{spec.mineSweep} mines/yr</div>
+			</div>
+		{/if}
 		{#if spec.miningRate}
 			<div class="flex justify-between">
 				<div class="font-semibold mr-5">Remote Mining</div>

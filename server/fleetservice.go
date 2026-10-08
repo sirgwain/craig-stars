@@ -159,8 +159,7 @@ func (s *fleetService) RenameFleet(ctx context.Context, req *connect.Request[cra
 	}
 
 	// Update fleet name
-	fleet.BaseName = req.Msg.Name
-	fleet.Name = fmt.Sprintf("%s #%d", req.Msg.Name, fleet.Num)
+	fleet.RenameByPlayer(req.Msg.Name)
 
 	// Save the fleet
 	if err := dbWriteClient.SaveFleet(ctx, fleet); err != nil {

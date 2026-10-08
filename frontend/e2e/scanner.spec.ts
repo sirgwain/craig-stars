@@ -36,6 +36,27 @@ test('selects minefield from scanner context menu', async ({ testGamePage }) => 
 	});
 });
 
+test('shows detonate description for SD minefields', async ({ testGamePage }) => {
+	const { page, gamePage, universe } = await testGamePage('SD Minefield');
+
+	await test.step('select minefield from planet context menu', async () => {
+		await gamePage.rightClickMapObject(universe.planets[0]);
+		await gamePage.clickScannerContextButton('Humanoids Standard Minefield #1');
+	});
+
+	await test.step('show detonate description', async () => {
+		await expect(page.getByRole('checkbox', { name: 'Detonate' })).toBeVisible();
+		// tooltips show while pressed
+		await page.getByRole('button', { name: 'Show minefield detonate details' }).focus();
+		await page.keyboard.down('Enter');
+		await expect(page.getByRole('tooltip')).toContainText(
+			'ALL ships in the field (friendly or enemy) will take damage each turn'
+		);
+		await page.keyboard.up('Enter');
+		await expect(page.getByRole('tooltip')).toBeHidden();
+	});
+});
+
 test('shows mineral packet summary', async ({ testGamePage }) => {
 	const { gamePage, universe } = await testGamePage('Kitchen Sink');
 

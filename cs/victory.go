@@ -80,6 +80,11 @@ func (v *victoryChecker) checkForVictor(player *Player) error {
 	score.AchievedVictoryConditions = player.AchievedVictoryConditions
 	player.ScoreHistory[len(player.ScoreHistory)-1] = score
 
+	// a game with no victory conditions (or no required criteria) never has a victor
+	if v.game.VictoryConditions.Conditions == 0 || v.game.VictoryConditions.NumCriteriaRequired <= 0 {
+		return nil
+	}
+
 	// if we don't have a victor yet, and we have one after the required years, declare them
 	if !v.game.VictorDeclared && player.AchievedVictoryConditions.countBits() >= v.game.VictoryConditions.NumCriteriaRequired && v.game.YearsPassed() >= v.game.VictoryConditions.YearsPassed {
 		// we have a victor!

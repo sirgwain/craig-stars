@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRace_GetPlanetHabitability(t *testing.T) {
@@ -274,4 +275,15 @@ func Test_computeRaceSpec(t *testing.T) {
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
+}
+
+func TestRace_WithDefaults(t *testing.T) {
+	// an empty SpendLeftoverPointsOn defaults to surface minerals
+	race := NewRace()
+	race.SpendLeftoverPointsOn = SpendLeftoverPointsOnNone
+	assert.Equal(t, SpendLeftoverPointsOnSurfaceMinerals, race.WithDefaults().SpendLeftoverPointsOn)
+
+	// a chosen value is kept
+	race.SpendLeftoverPointsOn = SpendLeftoverPointsOnFactories
+	assert.Equal(t, SpendLeftoverPointsOnFactories, race.WithDefaults().SpendLeftoverPointsOn)
 }

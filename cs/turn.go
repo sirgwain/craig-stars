@@ -3048,6 +3048,8 @@ func (t *turnGenerator) calculateScores() {
 
 	// share score intel if show public scores is enabled, or if a victor has been found
 	if (t.game.PublicPlayerScores && t.game.Rules.ShowPublicScoresAfterYears > 0 && t.game.YearsPassed() >= t.game.Rules.ShowPublicScoresAfterYears) || t.game.VictorDeclared {
+		// other players don't see the start of each other's score history
+		hiddenYears := t.game.Rules.ShowPublicScoresAfterYears
 		for _, player := range t.game.Players {
 			discoverer := player.discoverer
 			for _, otherPlayer := range t.game.Players {
@@ -3056,7 +3058,7 @@ func (t *turnGenerator) calculateScores() {
 					// our score is stored separately
 					continue
 				}
-				discoverer.discoverPlayerScores(otherPlayer)
+				discoverer.discoverPlayerScores(otherPlayer, hiddenYears)
 			}
 		}
 	}

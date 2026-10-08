@@ -1,6 +1,7 @@
 <script lang="ts">
 	import EnumSelect from '#lib/components/EnumSelect.svelte';
 	import TextInput from '#lib/components/TextInput.svelte';
+	import { BattleTacticDescriptions, battleTargetToString } from '#lib/types/Enums.js';
 	import {
 		BattleAttackWho,
 		type BattlePlan,
@@ -37,7 +38,13 @@
 	name="secondaryTarget"
 	enumType={BattleTarget}
 	showEmpty={true}
+	typeTitle={battleTargetToString}
 	bind:value={secondaryTarget}
 />
 <EnumSelect name="tactic" enumType={BattleTactic} bind:value={tactic} />
+{#if BattleTacticDescriptions[tactic]}
+	<div class="w-full text-sm italic mb-2" data-type="tactic-description">
+		{BattleTacticDescriptions[tactic]}
+	</div>
+{/if}
 <EnumSelect name="attackWho" enumType={BattleAttackWho} bind:value={attackWho} />

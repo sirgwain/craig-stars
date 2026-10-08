@@ -35,6 +35,11 @@ export default defineConfig({
 				// Browser component tests use Vitest's HTML harness, without SvelteKit's router.
 				plugins: [tailwindcss(), svelte({ preprocess: vitePreprocess() })],
 				define: { PKG: pkg },
+				// Prebundle deps that tests reach through dynamic imports. Otherwise Vite finds them
+				// mid-run on a cold cache (like CI) and reloads the page, which breaks vi.mock.
+				optimizeDeps: {
+					include: ['@connectrpc/connect-web', '@connectrpc/connect', 'lodash-es']
+				},
 				test: {
 					name: 'client',
 					browser: {
