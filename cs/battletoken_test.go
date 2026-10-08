@@ -4,6 +4,8 @@ package cs
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_battleToken_getDistanceAway(t *testing.T) {
@@ -32,7 +34,7 @@ func Test_battleToken_getDistanceAway(t *testing.T) {
 	}
 }
 
-func Test_battleToken_willTarget(t *testing.T) {
+func Test_battleToken_isTargetOf(t *testing.T) {
 
 	type args struct {
 		target BattleTarget
@@ -56,7 +58,7 @@ func Test_battleToken_willTarget(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.args.token.isTargetOf(tt.args.target); got != tt.want {
-				t.Errorf("battle.willTarget() = %v, want %v", got, tt.want)
+				t.Errorf("battleToken.isTargetOf() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -151,4 +153,56 @@ func Test_getCargoPerShip(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Test_newBattleToken_orders verifies starting orders and starbase classification.
+func Test_newBattleToken_orders(t *testing.T) {
+	tests := []struct {
+		name                       string
+		hullType                   TechHullType
+		armed                      bool
+		wantTactic                 BattleTactic
+		wantPrimary, wantSecondary BattleTarget
+	}{
+		{"armed ships retain orders", TechHullTypeFighter, true, BattleTacticMinimizeDamageToSelf, BattleTargetFreighters, BattleTargetArmedShips},
+		{"unarmed ships retreat without a primary target", TechHullTypeFreighter, false, BattleTacticDisengage, BattleTargetNone, BattleTargetArmedShips},
+		{"starbases attack any hostile ship", TechHullTypeStarbase, true, BattleTacticMaximizeDamage, BattleTargetAny, BattleTargetAny},
+		{"orbital forts attack any hostile ship", TechHullTypeOrbitalFort, true, BattleTacticMaximizeDamage, BattleTargetAny, BattleTargetAny},
+		{"unarmed starbases have no primary target", TechHullTypeStarbase, false, BattleTacticMaximizeDamage, BattleTargetNone, BattleTargetAny},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewRulesWithSeed(1)
+			design := &ShipDesign{Hull: SmallFreighter.Name, Spec: ShipDesignSpec{HullType: tt.hullType, HasWeapons: tt.armed}}
+			token := &ShipToken{Quantity: 1, design: design}
+			plan := BattlePlan{Tactic: BattleTacticMinimizeDamageToSelf, PrimaryTarget: BattleTargetFreighters, SecondaryTarget: BattleTargetArmedShips}
+			got := newBattleToken(&r, 1, Vector{}, token, plan, testPlayer().WithNum(1))
+			assert.Equal(t, tt.wantTactic, got.Tactic)
+			assert.Equal(t, tt.wantPrimary, got.PrimaryTarget)
+			assert.Equal(t, tt.wantSecondary, got.SecondaryTarget)
+			assert.Equal(t, tt.hullType == TechHullTypeStarbase || tt.hullType == TechHullTypeOrbitalFort, got.isTargetOf(BattleTargetStarbase))
+		})
+	}
+}
+
+// testBattleToken returns a single ship with 100 armor that targets any ship and is
+// hostile toward the attack players.
+func testBattleToken(playerNum int, position Vector, tactic BattleTactic, attack ...int) *battleToken {
+	token := &battleToken{
+		BattleRecordToken: BattleRecordToken{PlayerNum: playerNum, Position: position, Tactic: tactic, PrimaryTarget: BattleTargetAny},
+		ShipToken:         &ShipToken{Quantity: 1},
+		armor:             100,
+		attackPlayers:     map[int]bool{},
+	}
+	for _, playerNum := range attack {
+		token.attackPlayers[playerNum] = true
+	}
+	return token
+}
+
+// withTestBeam arms the token with a slot holding one beam weapon.
+func (token *battleToken) withTestBeam(power, weaponRange int) *battleToken {
+	token.attributes |= battleTokenAttributeArmed
+	token.weaponSlots = append(token.weaponSlots, &battleWeaponSlot{token: token, weaponType: battleWeaponTypeBeam, power: power, beamBonus: 1, slotQuantity: 1, weaponRange: weaponRange})
+	return token
 }

@@ -136,5 +136,74 @@ var (
 		{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
 		{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
 	}}
-	DesignDeathStar = ShipDesign{Name: "Starbase", Hull: DeathStar.Name, Slots: []ShipDesignSlot{}}
+	DesignDeathStar  = ShipDesign{Name: "Starbase", Hull: DeathStar.Name, Slots: []ShipDesignSlot{}}
+	DesignBattleBeam = ShipDesign{Name: "Beam Destroyer", Hull: Destroyer.Name, Slots: []ShipDesignSlot{
+		{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 1},
+		{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 2, Quantity: 1},
+		{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 3, Quantity: 1},
+		{HullComponent: GorillaDelagator.Name, HullSlotIndex: 4, Quantity: 1},
+		{HullComponent: Crobmnium.Name, HullSlotIndex: 5, Quantity: 1},
+		{HullComponent: Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
+		{HullComponent: EnergyCapacitor.Name, HullSlotIndex: 7, Quantity: 1},
+	}}
+	DesignBattleTorpedo = ShipDesign{Name: "Torpedo Destroyer", Hull: Destroyer.Name, Slots: []ShipDesignSlot{
+		{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 1},
+		{HullComponent: DeltaTorpedo.Name, HullSlotIndex: 2, Quantity: 1},
+		{HullComponent: DeltaTorpedo.Name, HullSlotIndex: 3, Quantity: 1},
+		{HullComponent: GorillaDelagator.Name, HullSlotIndex: 4, Quantity: 1},
+		{HullComponent: Crobmnium.Name, HullSlotIndex: 5, Quantity: 1},
+		{HullComponent: Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
+		{HullComponent: BattleSuperComputer.Name, HullSlotIndex: 7, Quantity: 1},
+	}}
+	DesignBattleStarbase = ShipDesign{Name: "Battle Starbase", Hull: SpaceStation.Name, Slots: []ShipDesignSlot{
+		{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 2, Quantity: 8},
+		{HullComponent: GorillaDelagator.Name, HullSlotIndex: 3, Quantity: 8},
+		{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 4, Quantity: 8},
+		{HullComponent: GorillaDelagator.Name, HullSlotIndex: 6, Quantity: 8},
+		{HullComponent: Jammer30.Name, HullSlotIndex: 7, Quantity: 3},
+		{HullComponent: DeltaTorpedo.Name, HullSlotIndex: 8, Quantity: 8},
+		{HullComponent: BattleSuperComputer.Name, HullSlotIndex: 9, Quantity: 3},
+		{HullComponent: DeltaTorpedo.Name, HullSlotIndex: 10, Quantity: 8},
+	}}
+	DesignBattleChaff = ShipDesign{Name: "Chaff", Hull: Scout.Name, Slots: []ShipDesignSlot{
+		{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 1},
+		{HullComponent: XRayLaser.Name, HullSlotIndex: 2, Quantity: 1},
+	}}
+	DesignBattleCruiser = ShipDesign{Name: "Battle Cruiser", Hull: BattleCruiser.Name, Slots: []ShipDesignSlot{
+		{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 2},
+		{HullComponent: Overthruster.Name, HullSlotIndex: 2, Quantity: 2},
+		{HullComponent: BattleSuperComputer.Name, HullSlotIndex: 3, Quantity: 2},
+		{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 4, Quantity: 3},
+		{HullComponent: DeltaTorpedo.Name, HullSlotIndex: 5, Quantity: 3},
+		{HullComponent: Overthruster.Name, HullSlotIndex: 6, Quantity: 3},
+		{HullComponent: GorillaDelagator.Name, HullSlotIndex: 7, Quantity: 4},
+	}}
+	DesignArmoredFreighter = ShipDesign{Name: "Armored Freighter", Hull: SmallFreighter.Name, Slots: []ShipDesignSlot{
+		{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+		{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
+		{HullComponent: RhinoScanner.Name, HullSlotIndex: 3, Quantity: 1},
+	}}
+	DesignShieldedScout = ShipDesign{Name: "Shielded Scout", Hull: Scout.Name, Slots: []ShipDesignSlot{
+		{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+		{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+		{HullComponent: CompletePhaseShield.Name, HullSlotIndex: 3, Quantity: 1},
+	}}
+	DesignJammedDefender = ShipDesign{Name: "Jammed Defender", Hull: Destroyer.Name, Slots: []ShipDesignSlot{
+		{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 1},
+		{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 2, Quantity: 1},
+		{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 3, Quantity: 1},
+		{HullComponent: RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
+		{HullComponent: Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
+		{HullComponent: Jammer30.Name, HullSlotIndex: 6, Quantity: 1},
+		{HullComponent: FluxCapacitor.Name, HullSlotIndex: 7, Quantity: 1},
+	}}
+	DesignStalwartSapper = ShipDesign{Name: "Stalwart Sapper", Hull: Destroyer.Name, Slots: []ShipDesignSlot{
+		{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+		{HullComponent: PulsedSapper.Name, HullSlotIndex: 2, Quantity: 1},
+		{HullComponent: PulsedSapper.Name, HullSlotIndex: 3, Quantity: 1},
+		{HullComponent: RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
+		{HullComponent: Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
+		{HullComponent: Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
+		{HullComponent: Overthruster.Name, HullSlotIndex: 7, Quantity: 1},
+	}}
 )

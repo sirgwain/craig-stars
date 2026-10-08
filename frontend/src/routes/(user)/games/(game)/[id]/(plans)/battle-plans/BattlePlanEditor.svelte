@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CheckboxInput from '#lib/components/CheckboxInput.svelte';
 	import EnumSelect from '#lib/components/EnumSelect.svelte';
 	import TextInput from '#lib/components/TextInput.svelte';
 	import { BattleTacticDescriptions, battleTargetToString } from '#lib/types/Enums.js';
@@ -21,6 +22,7 @@
 	let secondaryTarget: BattleTarget = $state(plan.secondaryTarget);
 	let tactic: BattleTactic = $state(plan.tactic);
 	let attackWho: BattleAttackWho = $state(plan.attackWho);
+	let dumpCargo: boolean = $state(plan.dumpCargo);
 
 	// Sync local state back to plan
 	$effect(() => {
@@ -29,6 +31,7 @@
 		plan.secondaryTarget = secondaryTarget;
 		plan.tactic = tactic;
 		plan.attackWho = attackWho;
+		plan.dumpCargo = dumpCargo;
 	});
 </script>
 
@@ -48,3 +51,7 @@
 	</div>
 {/if}
 <EnumSelect name="attackWho" enumType={BattleAttackWho} bind:value={attackWho} />
+<CheckboxInput name="dumpCargo" bind:checked={dumpCargo} />
+<div class="w-full text-sm italic mb-2" data-type="dump-cargo-description">
+	Fleets jettison their mineral cargo when a battle starts. Colonists stay aboard.
+</div>

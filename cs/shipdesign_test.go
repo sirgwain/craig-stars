@@ -845,7 +845,7 @@ func TestShipDesignSpec_getJamOrComputerBonus(t *testing.T) {
 		{
 			name: "already at hardcap",
 			fields: fields{
-				prevBonus: 0.75,
+				prevBonus: 0.7125,
 				starbase:  true,
 			},
 			args: args{
@@ -866,7 +866,7 @@ func TestShipDesignSpec_getJamOrComputerBonus(t *testing.T) {
 				qty:          10,
 				fieldToCheck: TechTagTorpedoJammer,
 			},
-			want: 1.7493, // ((1-((1-0.5^10)*0.75))+1)/1
+			want: 1.7125, // jamming is capped before the starbase multiplier
 		},
 		{
 			name: "99 jammer 50s hitting ship hardcap",

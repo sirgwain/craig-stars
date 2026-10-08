@@ -2,6 +2,8 @@
 
 package cs
 
+import "fmt"
+
 // ScenarioScoutTest is shared by browser and game-logic tests.
 func ScenarioScoutTest() TestScenario {
 	return TestScenario{Name: "Scout Test",
@@ -399,6 +401,183 @@ func ScenarioBattle1() TestScenario {
 		Planets: []ScenarioPlanet{{Name: "Planet 1",
 			Owner: 1,
 			Cargo: Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500}}}}
+}
+
+// scenarioBattle puts fleets together in deep space, with separate homeworlds
+// so every player survives to view the battle report. Player 1 is human.
+func scenarioBattle(name string, designs ...ShipDesign) TestScenario {
+	s := TestScenario{Name: name}
+	for i, design := range designs {
+		player := defaultScenarioPlayer()
+		player.Name = fmt.Sprintf("Player %d", i+1)
+		player.AIControlled = i > 0
+		player.Race.PluralName = fmt.Sprintf("Player %d ships", i+1)
+		player.TechLevels = TechLevel{Energy: 26, Weapons: 26, Propulsion: 26, Construction: 26, Electronics: 26, Biotechnology: 26}
+		s.Players = append(s.Players, ScenarioPlayer{Player: &player,
+			Designs: Designs(design),
+			Fleets:  []ScenarioFleet{{Design: design.Name, Quantity: 3, Position: Vector{100, 100}}}})
+		planet := Homeworld(fmt.Sprintf("Homeworld %d", i+1), i+1)
+		planet.Position = Vector{10 + (i%5)*35, 10 + (i/5)*20}
+		s.Planets = append(s.Planets, planet)
+	}
+	return s
+}
+
+// ScenarioBattleTorpedoes exercises volley hits, misses, shield loss, and partial kills.
+func ScenarioBattleTorpedoes() TestScenario {
+	s := scenarioBattle("Battle Torpedoes", DesignBattleTorpedo, DesignBattleTorpedo)
+	// Jamming makes accuracy differ between the otherwise identical stacks.
+	s.Players[1].Designs[0].Slots[6].HullComponent = Jammer30.Name
+	return s
+}
+
+// ScenarioBattleBeams exercises shield depletion, beam attenuation, and spillover
+// between separate stacks of the same design.
+func ScenarioBattleBeams() TestScenario {
+	s := scenarioBattle("Battle Beams", DesignBattleBeam, DesignBattleBeam)
+	s.Players[0].Fleets[0].Quantity = 8
+	s.Players[1].Fleets = []ScenarioFleet{
+		{Design: DesignBattleBeam.Name, Quantity: 2, Position: Vector{100, 100}},
+		{Design: DesignBattleBeam.Name, Quantity: 2, Position: Vector{100, 100}},
+		{Design: DesignBattleBeam.Name, Quantity: 2, Position: Vector{100, 100}},
+	}
+	s.Players[1].Designs[0].Slots[6].HullComponent = BeamDeflector.Name
+	return s
+}
+
+// ScenarioBattleStarbases exercises an armed, stationary base with its range
+// bonus, jamming, and escorts against fleets ordered to attack the base first.
+func ScenarioBattleStarbases() TestScenario {
+	s := scenarioBattle("Battle Starbases", DesignBattleTorpedo, DesignBattleBeam)
+	s.Players[0].Designs = Designs(DesignBattleTorpedo, DesignBattleBeam)
+	s.Players[0].Fleets = []ScenarioFleet{
+		{Design: DesignBattleTorpedo.Name, Quantity: 12, At: "Battle Planet", BattlePlanNum: 1},
+		{Design: DesignBattleBeam.Name, Quantity: 12, At: "Battle Planet", BattlePlanNum: 1},
+	}
+	s.Players[1].Designs = Designs(DesignBattleBeam, DesignBattleStarbase)
+	s.Players[1].Fleets[0].At = "Battle Planet"
+	s.Planets = append(s.Planets, ScenarioPlanet{Name: "Battle Planet", Owner: 2,
+		Position: Vector{100, 100}, Cargo: Cargo{Colonists: 2500}, Starbase: DesignBattleStarbase.Name})
+	return s
+}
+
+// ScenarioBattleDumpCargo compares identical loaded freighters with and without
+// mineral dumping. Colonists remain aboard; dumping changes mass and speed.
+func ScenarioBattleDumpCargo() TestScenario {
+	s := scenarioBattle("Battle Dump Cargo", DesignPrivateer, DesignBattleTorpedo)
+	s.Players[0].BattlePlans = []BattlePlan{{Num: 5, Name: "Dump Cargo and Retreat",
+		PrimaryTarget: BattleTargetAny, Tactic: BattleTacticDisengage,
+		AttackWho: BattleAttackWhoEnemiesAndNeutrals, DumpCargo: true}}
+	s.Players[0].Fleets = []ScenarioFleet{
+		{Name: "Dump Cargo", Design: DesignPrivateer.Name, Quantity: 3, Position: Vector{100, 100},
+			Cargo: Cargo{Ironium: 150, Boranium: 150, Germanium: 150, Colonists: 150}, BattlePlanNum: 5},
+		{Name: "Keep Cargo", Design: DesignPrivateer.Name, Quantity: 3, Position: Vector{100, 100},
+			Cargo: Cargo{Ironium: 150, Boranium: 150, Germanium: 150, Colonists: 150}, BattlePlanNum: 4},
+	}
+	return s
+}
+
+// ScenarioBattleRunAway gives an armed ship time to fire while retreating and
+// leave the board after its retreat countdown.
+func ScenarioBattleRunAway() TestScenario {
+	s := scenarioBattle("Battle Run Away", DesignBattleTorpedo, DesignBattleTorpedo)
+	s.Players[0].Fleets[0].BattlePlanNum = 4
+	return s
+}
+
+// ScenarioBattleDisengageIfChallenged tests a fresh retreat countdown after armor
+// damage; the high shield capacity also allows shield-only hits beforehand.
+func ScenarioBattleDisengageIfChallenged() TestScenario {
+	s := scenarioBattle("Battle Disengage if Challenged", DesignBattleBeam, DesignBattleTorpedo)
+	s.Players[0].BattlePlans = []BattlePlan{{Num: 5, Name: "Disengage if Challenged",
+		PrimaryTarget: BattleTargetAny, Tactic: BattleTacticDisengageIfChallenged,
+		AttackWho: BattleAttackWhoEnemiesAndNeutrals}}
+	s.Players[0].Fleets[0].BattlePlanNum = 5
+	return s
+}
+
+// ScenarioBattle3Players exercises the triangular formation in a free-for-all.
+func ScenarioBattle3Players() TestScenario {
+	return scenarioBattle("Battle 3 Players", DesignBattleBeam, DesignBattleTorpedo, DesignBattleBeam)
+}
+
+// ScenarioBattle16Players exercises every position in the largest formation.
+func ScenarioBattle16Players() TestScenario { return scenarioBattleManyPlayers(16) }
+
+// ScenarioBattle20Players exercises reuse of formation positions above 16 players.
+func ScenarioBattle20Players() TestScenario { return scenarioBattleManyPlayers(20) }
+
+func scenarioBattleManyPlayers(count int) TestScenario {
+	designs := make([]ShipDesign, count)
+	for i := range designs {
+		designs[i] = DesignBattleBeam
+	}
+	return scenarioBattle(fmt.Sprintf("Battle %d Players", count), designs...)
+}
+
+// ScenarioBattleMissilesAndChaff exercises the one-missile-one-kill limit and
+// capital missiles against both shielded warships and unshielded chaff.
+func ScenarioBattleMissilesAndChaff() TestScenario {
+	s := scenarioBattle("Battle Missiles and Chaff", DesignJihadCruiser, DesignBattleBeam)
+	s.Players[1].Designs = Designs(DesignBattleBeam, DesignBattleChaff)
+	s.Players[1].Fleets[0].Tokens = []ScenarioShipToken{
+		{Design: DesignBattleBeam.Name, Quantity: 3},
+		{Design: DesignBattleChaff.Name, Quantity: 40},
+	}
+	s.Players[1].Fleets[0].Design = ""
+	return s
+}
+
+// ScenarioBattleShieldSappers combines shield-only weapons with ordinary beams
+// against regenerating shields (the default race has RS).
+func ScenarioBattleShieldSappers() TestScenario {
+	s := scenarioBattle("Battle Shield Sappers", DesignBattleBeam, DesignBattleBeam)
+	s.Players[0].Designs[0].Slots[1].HullComponent = PulsedSapper.Name
+	return s
+}
+
+// ScenarioBattleDamagedStacks starts with existing armor damage and unequal
+// stacks, exercising damage preservation and casualty records.
+func ScenarioBattleDamagedStacks() TestScenario {
+	s := scenarioBattle("Battle Damaged Stacks", DesignBattleBeam, DesignBattleTorpedo)
+	s.Players[0].Fleets[0].Design = ""
+	s.Players[0].Fleets[0].Tokens = []ScenarioShipToken{{Design: DesignBattleBeam.Name,
+		Quantity: 5, QuantityDamaged: 3, Damage: 100}}
+	return s
+}
+
+// ScenarioBattleAlliedSupport has an aggressor, a retaliating defender, an ally
+// with no attack orders, and an uninvolved observer at the same location.
+func ScenarioBattleAlliedSupport() TestScenario {
+	s := scenarioBattle("Battle Allied Support", DesignBattleBeam, DesignBattleTorpedo, DesignBattleBeam, DesignBattleBeam)
+	for i := range s.Players {
+		s.Players[i].Relations = make([]PlayerRelationship, len(s.Players))
+		for j := range s.Players {
+			s.Players[i].Relations[j].Relation = PlayerRelationNeutral
+		}
+		s.Players[i].Relations[i].Relation = PlayerRelationFriend
+		s.Players[i].BattlePlans = []BattlePlan{{Num: 0, Name: "Enemies Only",
+			PrimaryTarget: BattleTargetArmedShips, SecondaryTarget: BattleTargetAny,
+			Tactic: BattleTacticMaximizeDamageRatio, AttackWho: BattleAttackWhoEnemies}}
+	}
+	s.Players[0].Relations[1].Relation = PlayerRelationEnemy
+	s.Players[2].Relations[0].Relation = PlayerRelationFriend
+	return s
+}
+
+// ScenarioBattleMixedFleet pits two battle cruisers against one fleet mixing
+// freighters, shielded scouts, jammed beam destroyers, and shield sappers.
+func ScenarioBattleMixedFleet() TestScenario {
+	s := scenarioBattle("Battle Mixed Fleet", DesignBattleCruiser, DesignArmoredFreighter)
+	s.Players[0].Fleets[0].Quantity = 2
+	s.Players[1].Designs = Designs(DesignArmoredFreighter, DesignShieldedScout, DesignJammedDefender, DesignStalwartSapper)
+	s.Players[1].Fleets = []ScenarioFleet{{Name: "Mixed Fleet", Position: Vector{100, 100}, Tokens: []ScenarioShipToken{
+		{Design: DesignArmoredFreighter.Name, Quantity: 5},
+		{Design: DesignShieldedScout.Name, Quantity: 2},
+		{Design: DesignJammedDefender.Name, Quantity: 3},
+		{Design: DesignStalwartSapper.Name, Quantity: 4},
+	}}}
+	return s
 }
 
 // ScenarioProductionStarbases is shared by browser and game-logic tests.

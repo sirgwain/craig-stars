@@ -2103,9 +2103,11 @@ func (t *turnGenerator) fleetBattle() {
 
 		battler := newBattler(t.log, &t.game.Rules, battleNum, playersAtPosition, fleets, planet)
 
-		if battler.findTargets() {
+		if battler.hasHostility() {
 			// someone wants to fight, run the battle!
 			record := battler.runBattle()
+			fleetsAtPosition := fleets
+			fleets = record.fleets
 
 			// first discover each other and the planet
 			for _, player := range playersAtPosition {
@@ -2124,11 +2126,8 @@ func (t *turnGenerator) fleetBattle() {
 
 			var highestTechLevel TechLevel
 			tokens := make([]ShipToken, len(record.DestroyedTokens)) // needed for component trading function call
-			destroyedCost := Cost{}
 			salvageOwner := 1
 			for i, token := range record.DestroyedTokens {
-				// figure out how much salvage this generates
-				destroyedCost = destroyedCost.Add(MultiplyCost(token.design.Spec.Cost, token.Quantity))
 				// TODO: who owns this salvage if there are destroyed ships from different players?
 				salvageOwner = token.PlayerNum
 
@@ -2139,7 +2138,7 @@ func (t *turnGenerator) fleetBattle() {
 				tokens[i].design = token.design
 			}
 
-			salvageMinerals := MultiplyCost(destroyedCost, t.game.Rules.SalvageFromBattleFactor).ToMineral()
+			salvageMinerals := record.salvageMinerals
 
 			// every player should discover all designs in a battle as if they were penscanned.
 			designsToDiscover := map[playerObject]*ShipDesign{}
@@ -2175,7 +2174,7 @@ func (t *turnGenerator) fleetBattle() {
 					}
 
 					// for any fleets targeting this dead fleet, update their target to the planet (or none)
-					for _, otherFleet := range fleets {
+					for _, otherFleet := range fleetsAtPosition {
 						wp0 := &otherFleet.Waypoints[0]
 						if wp0.TargetPlayerNum == fleet.PlayerNum && wp0.TargetNum == fleet.Num {
 							wp0.clearTarget()
@@ -2233,6 +2232,7 @@ func (t *turnGenerator) fleetBattle() {
 				}
 			}
 
+			salvageMinerals = salvageMinerals.Add(record.dumpedMinerals)
 			if salvageMinerals.Total() > 0 {
 				if planet == nil {
 					t.game.getOrCreateSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())

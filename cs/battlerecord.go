@@ -8,6 +8,9 @@ import (
 
 // BattleRecord is a recording of a single battle.
 type BattleRecord struct {
+	fleets          []*Fleet
+	salvageMinerals Mineral
+	dumpedMinerals  Mineral
 	Num             int                          `json:"num"`
 	PlanetNum       int                          `json:"planetNum,omitempty"`
 	Position        Vector                       `json:"position"`
@@ -149,11 +152,7 @@ func (b *BattleRecord) recordNewRound() {
 
 // Record a move
 func (b *BattleRecord) recordMove(round int, token *battleToken, from, to Vector) BattleRecordTokenAction {
-	targetNum := 0
-	if token.moveTarget != nil {
-		targetNum = token.moveTarget.Num
-	}
-	action := BattleRecordTokenAction{Type: TokenActionMove, Round: round, TokenNum: token.Num, From: from, To: to, TargetNum: targetNum}
+	action := BattleRecordTokenAction{Type: TokenActionMove, Round: round, TokenNum: token.Num, From: from, To: to}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
