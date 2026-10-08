@@ -543,3 +543,239 @@ func Test_turn_fleetByHandTransfersRandom(t *testing.T) {
 		})
 	}
 }
+
+func Test_turn_fleetByHandUnloads(t *testing.T) {
+
+	t.Run("jettison", func(t *testing.T) {
+		u := newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{
+				{
+					Designs: Designs(DesignTeamster),
+					Fleets:  []ScenarioFleet{{Design: "Teamster", Position: Vector{10, 10}, Cargo: Cargo{Ironium: 50}}},
+				},
+			},
+			Planets: []ScenarioPlanet{Homeworld("Planet 1", 1)},
+		})
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "", Cargo{Ironium: -50})
+
+		u.GenerateTurn()
+
+		assert.Equal(t, 1, len(game.Salvages))
+		assert.Equal(t, Vector{10, 10}, game.Salvages[0].Position)
+		assert.Equal(t, Cargo{Ironium: 40}, game.Salvages[0].Cargo)
+		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
+	})
+
+	t.Run("unload on our planet", func(t *testing.T) {
+		u := newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{
+				{
+					Designs: Designs(DesignTeamster),
+					Fleets:  []ScenarioFleet{{Design: "Teamster", At: "Planet 1", Quantity: 2, Cargo: Cargo{Ironium: 50}}},
+				},
+			},
+			Planets: []ScenarioPlanet{{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 2500}}},
+		})
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Planet 1", Cargo{Ironium: -50})
+
+		u.GenerateTurn()
+
+		assert.Equal(t, Cargo{Ironium: 50}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[0].Cargo)
+		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
+	})
+
+	t.Run("unload on unowned planet", func(t *testing.T) {
+		u := newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{
+				{
+					Designs: Designs(DesignTeamster),
+					Fleets:  []ScenarioFleet{{Design: "Teamster", At: "Planet 2", Quantity: 2, Cargo: Cargo{Ironium: 50}}},
+				},
+			},
+			Planets: []ScenarioPlanet{Homeworld("Planet 1", 1), {Name: "Planet 2", Position: Vector{10, 10}}},
+		})
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Planet 2", Cargo{Ironium: -50})
+
+		u.GenerateTurn()
+
+		assert.Equal(t, Cargo{Ironium: 50}, game.Planets[1].Cargo)
+		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
+	})
+	t.Run("invade enemy planet", func(t *testing.T) {
+		u := newTestUniverse(t, TestScenario{
+			Players: []ScenarioPlayer{
+				{
+					Designs: Designs(DesignTeamster),
+					Fleets:  []ScenarioFleet{{Design: "Teamster", At: "Planet 2", Quantity: 20, Cargo: Cargo{Colonists: 5000}}},
+				},
+				AIPlayer("Player 2"),
+			},
+			Planets: []ScenarioPlanet{
+				{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 2500}},
+				{Name: "Planet 2", Owner: 2, Position: Vector{100, 0}, Cargo: Cargo{Colonists: 2500}},
+			},
+		})
+		game := u.Game
+		player := u.Player(1)
+		u.TransferByHand(1, "Teamster #1", "Planet 2", Cargo{Colonists: -5000})
+
+		u.GenerateTurn()
+
+		assert.Equal(t, player.Num, game.Planets[1].PlayerNum)
+		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
+		assert.True(t, slices.ContainsFunc(player.Messages, func(pm PlayerMessage) bool { return pm.Type == PlayerMessageFleetInvadedPlanet }))
+		assert.True(t, slices.ContainsFunc(game.Players[1].Messages, func(pm PlayerMessage) bool { return pm.Type == PlayerMessagePlanetInvaded }))
+	})
+}
+
+func Test_turn_fleetByHandLoads(t *testing.T) {
+
+	t.Run("jettison load from another fleet's jettison", func(t *testing.T) {
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets = append(s.Players[0].Fleets, s.Players[0].Fleets[0])
+		s.Players[0].Fleets[0].Position = Vector{10, 10}
+		s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 50}
+		s.Players[0].Fleets[1].Position = Vector{10, 10}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "", Cargo{Ironium: -50})
+		u.TransferByHand(1, "Teamster #2", "", Cargo{Ironium: 10})
+
+		u.GenerateTurn()
+
+		// should end up with a salvage from the jettison, but fleet2 also gets some cargo it grabbed
+		assert.Equal(t, 1, len(game.Salvages))
+		assert.Equal(t, Vector{10, 10}, game.Salvages[0].Position)
+		assert.Equal(t, Cargo{Ironium: 30}, game.Salvages[0].Cargo)
+		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
+		assert.Equal(t, Cargo{Ironium: 10}, game.Fleets[1].Cargo)
+	})
+
+	t.Run("load from our planet", func(t *testing.T) {
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].At = "Planet 1"
+		s.Planets[0].Cargo.Ironium = 50
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Planet 1", Cargo{Ironium: 50})
+
+		u.GenerateTurn()
+
+		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[0].Cargo)
+		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
+	})
+
+	t.Run("load from owned mineral packet", func(t *testing.T) {
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].Position = Vector{50, 0}
+		s.Players[0].MineralPackets = []ScenarioMineralPacket{{Name: "Packet", To: "Planet 1", Position: Vector{50, 0}, WarpSpeed: 5, SafeWarpSpeed: 5, Cargo: Cargo{Ironium: 100}}}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Packet", Cargo{Ironium: 50})
+
+		u.GenerateTurn()
+
+		// mineral packet should have 50 left, fleet should have 50
+		assert.Equal(t, Cargo{Ironium: 50}, game.MineralPackets[0].Cargo)
+		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
+	})
+
+	t.Run("load from enemy mineral packet", func(t *testing.T) {
+		s := twoPlayerFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].Position = Vector{50, 0}
+		s.Players[1].MineralPackets = []ScenarioMineralPacket{{Name: "Packet", To: "Planet 1", Position: Vector{50, 0}, WarpSpeed: 5, SafeWarpSpeed: 5, Cargo: Cargo{Ironium: 100}}}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		newDiscoverer(testLogger, u.Player(1)).discoverMineralPacket(&game.Rules, game.MineralPackets[0], u.Player(2), u.Planet("Planet 1"))
+		u.TransferByHand(1, "Teamster #1", "Packet", Cargo{Ironium: 50})
+
+		u.GenerateTurn()
+
+		// mineral packet should have 50 left, fleet should have 50
+		assert.Equal(t, Cargo{Ironium: 50}, game.MineralPackets[0].Cargo)
+		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
+	})
+
+	t.Run("load from salvage", func(t *testing.T) {
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].Position = Vector{50, 0}
+		s.Players[0].Salvages = []Salvage{{MapObject: MapObject{Position: Vector{50, 0}}, Cargo: Cargo{Ironium: 100}}}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		newDiscoverer(testLogger, u.Player(1)).discoverSalvage(game.Salvages[0])
+		u.TransferByHand(1, "Teamster #1", "Salvage #1", Cargo{Ironium: 50})
+
+		u.GenerateTurn()
+
+		// mineral packet should have 40 left (after decay), fleet should have 50
+		assert.Equal(t, Cargo{Ironium: 40}, game.Salvages[0].Cargo)
+		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
+	})
+
+	t.Run("steal from enemy planet", func(t *testing.T) {
+		s := twoPlayerFleetScenario(DesignStealingFreighter)
+		s.Players[0].Fleets[0].At = "Planet 2"
+		s.Planets[1].Cargo.Ironium = 50
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
+		u.TransferByHand(1, "Stealing Freighter #1", "Planet 2", Cargo{Ironium: 50})
+
+		u.GenerateTurn()
+
+		// should steal
+		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
+		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
+	})
+
+	t.Run("fail load from enemy planet", func(t *testing.T) {
+		s := twoPlayerFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].At = "Planet 2"
+		s.Planets[1].Cargo.Ironium = 50
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
+		u.TransferByHand(1, "Teamster #1", "Planet 2", Cargo{Ironium: 50})
+		player := u.Player(1)
+
+		u.GenerateTurn()
+
+		// should fail to steal
+		assert.Equal(t, Cargo{Ironium: 50}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
+		assert.Equal(t, Cargo{Ironium: 0}, game.Fleets[0].Cargo)
+		assert.True(t, slices.ContainsFunc(player.Messages, func(pm PlayerMessage) bool { return pm.Type == PlayerMessageFleetByHandTransferIncomplete }))
+	})
+
+	t.Run("load from our fleet", func(t *testing.T) {
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets = append(s.Players[0].Fleets, s.Players[0].Fleets[0])
+		s.Players[0].Fleets[1].Cargo = Cargo{Ironium: 50}
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.TransferByHand(1, "Teamster #1", "Teamster #2", Cargo{Ironium: 50})
+
+		u.GenerateTurn()
+
+		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
+		assert.Equal(t, Cargo{Ironium: 0}, game.Fleets[1].Cargo)
+	})
+
+	t.Run("steal from enemy fleet", func(t *testing.T) {
+		s := twoPlayerFleetScenario(DesignStealingFreighter)
+		s.Players[0].Fleets[0].At = "Planet 2"
+		s.Planets[1].Cargo.Ironium = 50
+		u := newTestUniverse(t, s)
+		game := u.Game
+		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
+		u.TransferByHand(1, "Stealing Freighter #1", "Planet 2", Cargo{Ironium: 50})
+
+		u.GenerateTurn()
+
+		// should steal
+		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
+		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
+	})
+}
