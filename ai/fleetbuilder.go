@@ -2,6 +2,7 @@ package ai
 
 import (
 	"fmt"
+	"math"
 	"slices"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -17,12 +18,27 @@ type fleetShip struct {
 	quantity int
 }
 
-// make a clone of this fleet makeup so we modify it
-func (f fleet) clone() fleet {
-	c := f
-	c.ships = make([]fleetShip, len(f.ships))
-	copy(c.ships, f.ships)
-	return c
+func (f fleet) requiredShips() map[cs.ShipDesignPurpose]int {
+	required := make(map[cs.ShipDesignPurpose]int, len(f.ships))
+	for _, ship := range f.ships {
+		if ship.quantity > 0 {
+			required[ship.purpose] += ship.quantity
+		}
+	}
+	return required
+}
+
+// countCompleteFleets counts whole fleets, combining designs with the same purpose.
+func (f fleet) countCompleteFleets(ships map[cs.ShipDesignPurpose]int) int {
+	required := f.requiredShips()
+	if len(required) == 0 {
+		return 0
+	}
+	count := math.MaxInt
+	for purpose, quantity := range required {
+		count = min(count, ships[purpose]/quantity)
+	}
+	return count
 }
 
 // merge idle fleets matching the purposes we require into a single fleet
@@ -106,7 +122,7 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 		}
 
 		// rename this fleet based on our purpose
-		fleet.Rename(ai.fleetName(fleet, f.purpose))
+		fleet.Rename(ai.fleetName(f.purpose))
 
 		return fleet, remainingFleets, nil
 	}
@@ -117,33 +133,21 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 // get any fleets matching this fleetmakeup
 func (f *fleet) getFleetsMatchingMakeup(ai *aiPlayer, fleets []*cs.Fleet) []*cs.Fleet {
 	matchingFleets := []*cs.Fleet{}
-	required := make(map[cs.ShipDesignPurpose]int, len(f.ships))
-	for _, ship := range f.ships {
-		current := required[ship.purpose]
-		required[ship.purpose] = current + ship.quantity
-	}
 
 	for _, fleet := range fleets {
 		if fleet.GetTag(cs.TagPurpose) != string(f.purpose) {
 			continue
 		}
 
-		matches := 0
+		ships := make(map[cs.ShipDesignPurpose]int, len(fleet.Tokens))
 		for _, token := range fleet.Tokens {
 			design := ai.GetDesign(token.DesignNum)
 			if design != nil {
-				// if we need dthis design, add it to our fleets to merge
-				if requiredQuantity, found := required[design.Purpose]; found {
-					required[design.Purpose] = requiredQuantity - token.Quantity
-					if required[design.Purpose] <= 0 {
-						matches++
-					}
-				}
+				ships[design.Purpose] += token.Quantity
 			}
 		}
 
-		// if we match all ships in the fleet
-		if matches == len(f.ships) {
+		if f.countCompleteFleets(ships) > 0 {
 			matchingFleets = append(matchingFleets, fleet)
 		}
 	}

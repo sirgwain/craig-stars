@@ -9,92 +9,133 @@ import (
 )
 
 func (ai *aiPlayer) produce() error {
+	type shipBuild struct {
+		design   *cs.ShipDesign
+		quantity int
+	}
 
-	// check for builds of whole fleets
+	// Allocate ship production for each requested fleet purpose.
 	for fleetPurpose, quantity := range ai.requests.fleetBuilds {
 		if quantity <= 0 {
 			continue
 		}
 
+		fleetMakeup := ai.fleetsByPurpose[fleetPurpose]
+		if len(fleetMakeup.requiredShips()) == 0 {
+			continue
+		}
+
+		// Managers already account for complete idle fleets. Count only the
+		// additional fleets supplied by pending production against this demand.
 		for _, planet := range ai.Planets {
-			fleetMakeup := ai.fleetsByPurpose[fleetPurpose].clone()
+			idle, available := ai.fleetBuildShipCounts(planet, fleetMakeup)
+			quantity -= fleetMakeup.countCompleteFleets(available) - fleetMakeup.countCompleteFleets(idle)
+		}
 
-			// make sure this planet is ready to build this type of fleet
-			if !ai.isPlanetReadyToBuildFleet(planet, fleetMakeup.purpose) {
-				continue
-			}
+		// Use shipyards with existing orders first, then consider other shipyards.
+		for _, hasQueuedFleet := range []bool{true, false} {
+			for _, planet := range ai.Planets {
+				if quantity <= 0 {
+					break
+				}
+				if ai.isFleetInQueue(planet, fleetPurpose) != hasQueuedFleet || !ai.isPlanetReadyToBuildFleet(planet, fleetPurpose) {
+					continue
+				}
 
-			for shipIndex, ship := range fleetMakeup.ships {
-
-				idleShips := ai.getIdleShipCount(planet, fleetPurpose, ship.purpose)
-				if idleShips > 0 {
-					quantityNeeded := ship.quantity - idleShips
-					if quantityNeeded > 0 {
-						// queue it on this planet
-						fleetMakeup.ships[shipIndex].quantity = quantityNeeded
-					} else {
-						fleetMakeup.ships[shipIndex].quantity = 0
+				// Find the ships needed for one more fleet using local idle ships and orders.
+				_, available := ai.fleetBuildShipCounts(planet, fleetMakeup)
+				fleetsAtPlanet := fleetMakeup.countCompleteFleets(available)
+				required := fleetMakeup.requiredShips()
+				builds := make([]shipBuild, 0, len(fleetMakeup.ships))
+				canBuild := true
+				for _, ship := range fleetMakeup.ships {
+					shipQuantity, found := required[ship.purpose]
+					if !found {
+						continue
 					}
-				}
-			}
+					// Handle each ship purpose once, including duplicate recipe entries.
+					delete(required, ship.purpose)
+					needed := (fleetsAtPlanet+1)*shipQuantity - available[ship.purpose]
+					if needed <= 0 {
+						continue
+					}
 
-			for _, ship := range fleetMakeup.ships {
-				if ship.quantity <= 0 {
+					// Check every missing design before adding any orders at this shipyard.
+					design, err := ai.designShip(ai.config.namesByPurpose[ship.purpose], ship.purpose, fleetPurpose)
+					if err != nil {
+						return fmt.Errorf("unable to design ship %v: %w", ship.purpose, err)
+					}
+					if design == nil || !planet.CanBuild(design.Spec.Mass) {
+						canBuild = false
+						break
+					}
+					builds = append(builds, shipBuild{design, needed})
+				}
+				if !canBuild {
 					continue
 				}
 
-				// design and upgrade this ship
-				design, err := ai.designShip(ai.config.namesByPurpose[ship.purpose], ship.purpose, fleetMakeup.purpose)
-				if err != nil {
-					return fmt.Errorf("unable to design ship %v: %w", ship.purpose, err)
-				}
-				if design == nil {
-					ai.log.Debug("unable to design ship", slog.String("purpose", string(ship.purpose)))
-					continue
-				}
-
-				if !planet.CanBuild(design.Spec.Mass) {
-					continue
-				}
-
-				if !ai.isShipInQueue(planet, fleetMakeup.purpose, ship.purpose, ship.quantity) {
+				// Queue the missing ships together so they can assemble at this planet.
+				for _, build := range builds {
 					ai.log.Debug("adding ship to queue",
-						slog.String("FleetPurpose", string(fleetMakeup.purpose)),
-						slog.String("Purpose", string(ship.purpose)),
+						slog.String("FleetPurpose", string(fleetPurpose)),
+						slog.String("Purpose", string(build.design.Purpose)),
 						slog.Int("PlayerNum", ai.Num),
-						slog.Int("quantity", ship.quantity),
-						slog.String("design", design.Name),
+						slog.Int("quantity", build.quantity),
+						slog.String("design", build.design.Name),
 						slog.String("planet", planet.Name))
-
-					ai.addShipToTopOfQueue(planet, fleetMakeup.purpose, design, ship.quantity)
-					if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
-						return err
-					}
+					ai.addShipToTopOfQueue(planet, fleetPurpose, build.design, build.quantity)
 				}
+				if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
+					return err
+				}
+				// This shipyard now supplies one of the requested fleets.
+				quantity--
 			}
 		}
 	}
 
-	// build scanners and starbases on each planet, where applicable
+	// Add planetary infrastructure independently of fleet requests.
 	for _, planet := range ai.Planets {
 
+		// Add a missing scanner if it can be built within the configured time.
 		if !planet.Scanner && !ai.isItemInQueue(planet, cs.QueueItemTypePlanetaryScanner) {
-			yearsToBuild, err := ai.getYearsToBuild(planet, cs.QueueItemTypePlanetaryScanner, 1)
+			yearsToBuild, err := ai.getYearsToBuild(planet)
 			if err != nil {
 				return err
 			}
 			if yearsToBuild <= ai.config.minYearsToBuildScanner {
-				ai.addItemToTopOfQueue(planet, cs.QueueItemTypePlanetaryScanner, 1)
+				ai.addItemToTopOfQueue(planet, 1)
 			}
 		}
 
-		// see if we should build a starbase or upgrade an existing one
+		// Build or upgrade the starbase according to development and threats.
 		if err := ai.buildOrUpgradeStarbase(planet); err != nil {
 			return err
 		}
 
 	}
 	return nil
+}
+
+// fleetBuildShipCounts includes all design versions and queue rows assigned to
+// this fleet purpose. Ships at different planets cannot form the same fleet.
+func (ai *aiPlayer) fleetBuildShipCounts(planet *cs.Planet, makeup fleet) (idle, available map[cs.ShipDesignPurpose]int) {
+	idle = make(map[cs.ShipDesignPurpose]int, len(makeup.ships))
+	available = make(map[cs.ShipDesignPurpose]int, len(makeup.ships))
+	for purpose := range makeup.requiredShips() {
+		idle[purpose] = ai.getIdleShipCount(planet, makeup.purpose, purpose)
+		available[purpose] = idle[purpose]
+	}
+	for _, item := range planet.ProductionQueue {
+		if item.Type != cs.QueueItemTypeShipToken || item.GetTag(cs.TagPurpose) != string(makeup.purpose) {
+			continue
+		}
+		if design := ai.GetDesign(item.DesignNum); design != nil {
+			available[design.Purpose] += item.Quantity
+		}
+	}
+	return idle, available
 }
 
 // add a new ship build request
@@ -290,7 +331,7 @@ func (ai *aiPlayer) upgradeStarbase(planet *cs.Planet, timeToWait int) error {
 }
 
 // add a normal production queue item to the top of the planet queue
-func (ai *aiPlayer) addItemToTopOfQueue(planet *cs.Planet, t cs.QueueItemType, quantity int) {
+func (ai *aiPlayer) addItemToTopOfQueue(planet *cs.Planet, quantity int) {
 	item := cs.ProductionQueueItem{Type: cs.QueueItemTypePlanetaryScanner, Quantity: quantity}
 	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
 }
@@ -316,7 +357,7 @@ func (ai *aiPlayer) addStarbaseToTopOfQueue(planet *cs.Planet, design *cs.ShipDe
 }
 
 // get the years to build a certain number of items
-func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet, t cs.QueueItemType, quantity int) (int, error) {
+func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet) (int, error) {
 	yearlyAvailableToSpend := cs.NewCostFromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
 	costCalculator := cs.NewCostCalculator()
 	completionEstimator := cs.NewCompletionEstimator()
