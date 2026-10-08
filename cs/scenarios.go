@@ -51,6 +51,20 @@ func ScenarioColonizerTestAR() TestScenario {
 				Cargo:    Cargo{}}}}
 }
 
+// ScenarioSDMinefield is shared by browser and game-logic tests.
+// An SD player with a standard minefield it can detonate.
+func ScenarioSDMinefield() TestScenario {
+	return TestScenario{Name: "SD Minefield",
+		Players: []ScenarioPlayer{{Player: NewPlayer(1, NewRace().WithPRT(SD)),
+			Minefields: []Minefield{
+				{
+					MinefieldType: MinefieldTypeStandard,
+					NumMines:      1000,
+				},
+			}}},
+		Planets: []ScenarioPlanet{Homeworld("Planet 1", 1)}}
+}
+
 // ScenarioKitchenSink is shared by browser and game-logic tests.
 func ScenarioKitchenSink() TestScenario {
 	return TestScenario{Name: "Kitchen Sink",

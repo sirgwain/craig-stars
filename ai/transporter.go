@@ -98,17 +98,17 @@ func (ai *aiPlayer) transportColonists() error {
 		if planet != nil {
 
 			// if our transport is out in space or already has cargo, don't try and load more
-			if fleet.OrbitingPlanetNum != cs.None || fleet.Cargo.Total() == 0 {
+			if fleet.OrbitingPlanetNum != cs.None && fleet.Cargo.Total() == 0 {
 				// make sure the planet we're orbiting still has enough pop to feed
 				orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
 				if orbiting != nil {
 					// don't load more than 25% of the target planet
 					// it will grow slower after 25%
-					colonistsToLoad := min(int(float64(planet.Spec.MaxPopulation)*ai.config.colonistTransportDensity), fleet.Spec.CargoCapacity)
+					// MaxPopulation is in colonists, cargo is in kT (100 colonists per kT)
+					colonistsToLoad := min(int(float64(planet.Spec.MaxPopulation)*ai.config.colonistTransportDensity)/100, fleet.Spec.CargoCapacity)
 
 					// load colonists but only if taking these colonists doesn't reduce our pop too much
 					// take into account how much we're going to grow
-					orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
 					popNextYear := orbiting.PopNextYear()
 					newDensity := float64(popNextYear-colonistsToLoad*100) / float64(orbiting.Spec.MaxPopulation)
 					if newDensity < ai.config.colonistTransportDensity {

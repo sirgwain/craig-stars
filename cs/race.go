@@ -1313,3 +1313,12 @@ func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (leftoverPoints 
 	points := Clamp(0, race.ComputeRacePoints(startingPoints), 50)
 	return points, race.SpendLeftoverPointsOn
 }
+
+// WithDefaults fills in defaults for fields a client left empty, like a race created
+// through the API without choosing what to spend leftover points on.
+func (race *Race) WithDefaults() *Race {
+	if race.SpendLeftoverPointsOn == SpendLeftoverPointsOnNone {
+		race.SpendLeftoverPointsOn = SpendLeftoverPointsOnSurfaceMinerals
+	}
+	return race
+}

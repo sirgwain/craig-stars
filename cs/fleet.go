@@ -378,6 +378,13 @@ func (f *Fleet) Rename(name string) {
 	f.Name = fmt.Sprintf("%s #%d", f.BaseName, f.Num)
 }
 
+// RenameByPlayer sets a player chosen name for the fleet. Unlike Rename, the fleet number
+// is not added to the name.
+func (f *Fleet) RenameByPlayer(name string) {
+	f.BaseName = name
+	f.Name = name
+}
+
 func NewPlanetWaypoint(position Vector, num int, name string, warpSpeed int) Waypoint {
 	return Waypoint{
 		Position: position,

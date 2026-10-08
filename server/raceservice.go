@@ -64,7 +64,7 @@ func (s *raceService) CreateRace(ctx context.Context, req *connect.Request[craig
 	user := contextUserSession(ctx)
 
 	// Convert proto race to CS race
-	race := converter.C.ConvertRaceP(req.Msg.Race)
+	race := converter.C.ConvertRaceP(req.Msg.Race).WithDefaults()
 	race.UserID = user.ID
 
 	if err := dbWriteClient.SaveRace(ctx, race); err != nil {
@@ -84,7 +84,7 @@ func (s *raceService) UpdateRace(ctx context.Context, req *connect.Request[craig
 	user := contextUserSession(ctx)
 
 	// Convert proto race to CS race
-	race := converter.C.ConvertRaceP(req.Msg.Race)
+	race := converter.C.ConvertRaceP(req.Msg.Race).WithDefaults()
 
 	// Load existing race for validation
 	existingRace, err := dbClient.GetRace(ctx, race.ID)

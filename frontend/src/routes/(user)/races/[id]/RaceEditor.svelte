@@ -17,6 +17,11 @@
 	};
 
 	let { race = $bindable() }: Props = $props();
+
+	// races saved without a choice spend leftover points on surface minerals
+	if (race.spendLeftoverPointsOn === SpendLeftoverPointsOn.UNSPECIFIED) {
+		race.spendLeftoverPointsOn = SpendLeftoverPointsOn.SURFACE_MINERALS;
+	}
 </script>
 
 <TextInput name="name" bind:value={race.name} />

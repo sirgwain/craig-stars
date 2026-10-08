@@ -55,6 +55,6 @@
 		bind:value={settings.startMode}
 		typeTitle={(t) => GameStartModeFullNames[t]}
 		showEmpty={true}
-		tooltip="Setting mode to Max will create a game with maxed tech levels, minerals, etc."
+		tooltip="Accelerated BBS Play gives homeworlds 25% more surface minerals, extra starting population based on growth rate, and slightly higher mineral concentrations. Max Start creates a game with maxed tech levels, minerals, etc."
 	/>
 </div>

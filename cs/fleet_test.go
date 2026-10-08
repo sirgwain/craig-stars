@@ -2631,3 +2631,18 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 		})
 	}
 }
+
+func TestFleet_RenameByPlayer(t *testing.T) {
+	fleet := testLongRangeScout(NewPlayer(1, NewRace().WithSpec(&rules))).withNum(5)
+	assert.Equal(t, "Long Range Scout #5", fleet.Name)
+
+	// player renames don't include the fleet number
+	fleet.RenameByPlayer("Scouts")
+	assert.Equal(t, "Scouts", fleet.Name)
+	assert.Equal(t, "Scouts", fleet.BaseName)
+	assert.Equal(t, 5, fleet.Num)
+
+	// system renames still include the fleet number
+	fleet.Rename("Scouts")
+	assert.Equal(t, "Scouts #5", fleet.Name)
+}

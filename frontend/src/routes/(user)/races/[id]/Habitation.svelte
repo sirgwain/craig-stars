@@ -53,6 +53,12 @@
 		habHigh = clamp((habHigh ?? 0) - 1, habLow + width, 100);
 	};
 
+	// toggling immunity resets the hab range to the default 20 to 80
+	const onImmuneChanged = () => {
+		habLow = 20;
+		habHigh = 80;
+	};
+
 	function onValueChanged(low: number, high: number) {
 		habLow = low;
 		habHigh = high;
@@ -92,7 +98,9 @@
 			</div>
 			<div class="grow ml-2">
 				<label
-					><input type="checkbox" bind:checked={immune} /> Immune to {habTypeString(habType)}</label
+					><input type="checkbox" bind:checked={immune} onchange={onImmuneChanged} /> Immune to {habTypeString(
+						habType
+					)}</label
 				>
 			</div>
 			<div>

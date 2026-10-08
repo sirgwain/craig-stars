@@ -403,3 +403,21 @@ test('game race page', async ({ newGamePage }) => {
 	await page.getByRole('link', { name: 'Race' }).click();
 	await page.waitForURL(`/games/${id}/race`);
 });
+
+test('battle plan editor describes the selected tactic', async ({ testGamePage }) => {
+	const { page, gameId } = await testGamePage('Kitchen Sink');
+	await expect(page.locator('[data-type="game-link"]').first()).toBeVisible();
+
+	await page.goto(`/games/${gameId}/battle-plans/create`);
+	const description = page.locator('[data-type="tactic-description"]');
+
+	await page.getByLabel('Tactic').selectOption({ label: 'Disengage If Challenged' });
+	await expect(description).toHaveText(
+		'Ships will fight until they take damage, then try to leave the battle like Disengage.'
+	);
+
+	await page.getByLabel('Tactic').selectOption({ label: 'Maximize Damage' });
+	await expect(description).toHaveText(
+		'Ships will move to where they do the most damage, regardless of the damage they take.'
+	);
+});
