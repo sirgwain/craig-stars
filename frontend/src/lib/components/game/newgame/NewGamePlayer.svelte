@@ -35,6 +35,9 @@
 					{/if}
 					{#if player.type === NewGamePlayerType.AI}
 						<AiPlayer bind:player />
+					{:else if player.type === NewGamePlayerType.HOST}
+						<!-- multiple host players make a hot seat game -->
+						<HostPlayer bind:player />
 					{/if}
 				</div>
 				<div class="my-auto mx-1">

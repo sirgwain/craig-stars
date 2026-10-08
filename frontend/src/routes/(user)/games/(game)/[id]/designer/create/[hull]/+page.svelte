@@ -10,7 +10,7 @@
 	import { clone, create } from '@bufbuild/protobuf';
 	import { onMount } from 'svelte';
 
-	const { game, universe, player, createDesign } = getGameContext();
+	const { game, universe, player, createDesign, readOnly } = getGameContext();
 	let hullName = page.params.hull;
 
 	let hull = $derived($techs.getHull(hullName || ''));
@@ -66,7 +66,9 @@
 	{/snippet}
 	{#snippet end()}
 		<div class="flex justify-end mb-1">
-			<button class="btn btn-success mx-1" type="submit" onclick={save}>Save</button>
+			{#if !$readOnly}
+				<button class="btn btn-success mx-1" type="submit" onclick={save}>Save</button>
+			{/if}
 		</div>
 	{/snippet}
 </Breadcrumb>

@@ -16,7 +16,7 @@
 	import type { ConnectError } from '@connectrpc/connect';
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
 
-	const { game, player, createBattlePlan } = getGameContext();
+	const { game, player, createBattlePlan, readOnly } = getGameContext();
 
 	let plan: BattlePlan = $state(
 		create(BattlePlanSchema, {
@@ -61,7 +61,9 @@
 		{/snippet}
 		{#snippet end()}
 			<div class="flex justify-end mb-1">
-				<button class="btn btn-success mx-1" type="submit">Save</button>
+				{#if !$readOnly}
+					<button class="btn btn-success mx-1" type="submit">Save</button>
+				{/if}
 			</div>
 		{/snippet}
 	</Breadcrumb>

@@ -66,6 +66,7 @@ import {
 	shipDesignClient,
 	transportPlanClient
 } from './connect';
+import { setReadOnly } from './asPlayerInterceptor';
 import { FullGame } from './FullGame';
 import { rollover } from './Math';
 import { Universe } from './Universe';
@@ -81,6 +82,10 @@ export type GameContext = {
 	player: Readable<CommandedPlayer>;
 	universe: Readable<Universe>;
 	settings: Writable<PlayerSettings>;
+	// true when viewing the game without making changes, i.e. viewing a submitted turn
+	readOnly: Writable<boolean>;
+	// true when a hot seat user needs to choose which of their players to play
+	choosingPlayer: Writable<boolean>;
 	messageNum: Writable<number>;
 	commandedPlanet: Readable<CommandedPlanet | undefined>;
 	commandedFleet: Readable<CommandedFleet | undefined>;
@@ -196,6 +201,8 @@ export async function createGameContext(
 
 	const defaultSettings = loadSettingsOrDefault(gameId, p.num);
 	const settings = writable(defaultSettings);
+	const readOnly = writable(false);
+	const choosingPlayer = writable(false);
 
 	const commandedPlanet = writable<CommandedPlanet | undefined>();
 	const commandedFleet = writable<CommandedFleet | undefined>();
@@ -220,6 +227,11 @@ export async function createGameContext(
 		await cs.wasmService.setDesigns({ designs: u.designs });
 		await cs.wasmService.setIntels({ intels: u.intels });
 
+		// settings are per player, reload them if we switched players (hot seat or admin view)
+		if (p.num !== get(player).num) {
+			settings.set(loadSettingsOrDefault(gameId, p.num));
+		}
+
 		game.set(fg);
 		await updatePlayer(p);
 		universe.set(u);
@@ -239,6 +251,9 @@ export async function createGameContext(
 	function setFullyLoaded(value: boolean) {
 		fullyLoaded.update(() => value);
 	}
+
+	// tell the server we are read only so it rejects changes
+	unsubscribers.push(readOnly.subscribe(setReadOnly));
 
 	// make sure updates to settings save to localStorage
 	unsubscribers.push(
@@ -1301,6 +1316,8 @@ export async function createGameContext(
 		player,
 		universe,
 		settings,
+		readOnly,
+		choosingPlayer,
 		messageNum,
 		commandedPlanet,
 		commandedFleet,

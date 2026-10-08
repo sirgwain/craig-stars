@@ -5,17 +5,31 @@
 	import { GameState } from '#lib/types/cs-proto.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { me } from '#lib/services/Stores.js';
+	import { getUserPlayers } from '#lib/types/HotSeat.js';
 	import { ArrowUpTray, Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 
-	const { game, player } = getGameContext();
+	const { game, player, readOnly, choosingPlayer } = getGameContext();
 
 	type Props = {
 		onSubmitTurn?: () => void;
 	};
 
 	let { onSubmitTurn }: Props = $props();
+
+	// admins can view the game as any player, hot seat users can switch between their players
+	let switchablePlayers = $derived(
+		$game.state === GameState.SETUP
+			? []
+			: $me.isAdmin()
+				? $game.players
+				: getUserPlayers($game.players, $me.id)
+	);
+	// players can only edit when they haven't submitted their turn, but can view the game read-only
+	let canEdit = $derived(!$player.submittedTurn && !$readOnly && !$choosingPlayer);
+	let canView = $derived((!$player.submittedTurn || $readOnly) && !$choosingPlayer);
+	let viewingOtherPlayer = $derived($player.num > 0 && $player.userId !== $me.id);
 
 	const updateTitle = () => (document.title = `${$game.name} - ${$game.year}`);
 
@@ -38,14 +52,24 @@
 		</div>
 	</div>
 	<div class="flex-initial">
-		{#if page.url.pathname === `/games/${$game.id}` && !$player.submittedTurn && $game.state === GameState.WAITING_FOR_PLAYERS}
+		{#if $readOnly}
+			<span class="badge badge-warning mx-1" title="Changes are disabled"
+				>{viewingOtherPlayer ? `Viewing as ${$player.name}` : 'Viewing'} (read-only)</span
+			>
+			{#if !viewingOtherPlayer}
+				<button type="button" class="btn btn-ghost btn-sm" onclick={() => readOnly.set(false)}
+					>Done</button
+				>
+			{/if}
+		{/if}
+		{#if page.url.pathname === `/games/${$game.id}` && canEdit && $game.state === GameState.WAITING_FOR_PLAYERS}
 			<button type="button" onclick={onSubmitTurn} class="btn btn-primary" title="submit turn">
 				<span class="hidden md:inline-block mr-1">Submit Turn</span>
 				<Icon src={ArrowUpTray} size="16" />
 			</button>
 		{/if}
 
-		{#if !$player.submittedTurn}
+		{#if canView}
 			<div class="hidden md:inline-block">
 				<div class="dropdown">
 					<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -105,7 +129,7 @@
 			>
 				<div class="flex flex-row justify-between">
 					<ul class="mt-11">
-						{#if !$player.submittedTurn}
+						{#if canView}
 							<li class="md:hidden menu-title">
 								<span>Commands</span>
 							</li>
@@ -146,6 +170,23 @@
 						</li>
 
 						<li><a href="/settings" class="justify-between">Settings</a></li>
+
+						{#if switchablePlayers.length > 1}
+							<li><div class="divider"></div></li>
+							<li class="menu-title"><span>{$me.isAdmin() ? 'View As' : 'Play As'}</span></li>
+							{#each switchablePlayers as p (p.num)}
+								<li>
+									<a
+										href={`/games/${$game.id}?asPlayer=${p.num}`}
+										class:active={p.num === $player.num}
+									>
+										<span class="w-3 h-3 rounded-full inline-block" style:background-color={p.color}
+										></span>
+										{p.name}
+									</a>
+								</li>
+							{/each}
+						{/if}
 
 						{#if $me.isAdmin()}
 							<li><div class="divider"></div></li>

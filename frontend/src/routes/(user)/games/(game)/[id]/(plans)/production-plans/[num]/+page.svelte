@@ -9,7 +9,7 @@
 	import type { ConnectError } from '@connectrpc/connect';
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
 
-	const { game, player, universe, updateProductionPlan } = getGameContext();
+	const { game, player, universe, updateProductionPlan, readOnly } = getGameContext();
 	let num = parseInt(page.params.num || '0');
 
 	let plan: ProductionPlan | undefined = $derived(
@@ -46,7 +46,9 @@
 		{/snippet}
 		{#snippet end()}
 			<div class="flex justify-end mb-1">
-				<button class="btn btn-success mx-1" type="submit">Save</button>
+				{#if !$readOnly}
+					<button class="btn btn-success mx-1" type="submit">Save</button>
+				{/if}
 			</div>
 		{/snippet}
 	</Breadcrumb>

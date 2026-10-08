@@ -42,3 +42,46 @@ func TestGame_GenerateHash(t *testing.T) {
 		})
 	}
 }
+
+func TestGameWithPlayers_IsSinglePlayer(t *testing.T) {
+	tests := []struct {
+		name    string
+		players []GamePlayer
+		want    bool
+	}{
+		{"host vs ai", []GamePlayer{{UserID: 1}, {AIControlled: true}}, true},
+		{"hot seat", []GamePlayer{{UserID: 1}, {UserID: 1}, {AIControlled: true}}, true},
+		{"two users", []GamePlayer{{UserID: 1}, {UserID: 2}}, false},
+		{"hot seat with open slot", []GamePlayer{{UserID: 1}, {UserID: 1}, {}}, false},
+		{"two open slots", []GamePlayer{{}, {}}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := &GameWithPlayers{Players: tt.players}
+			if got := g.IsSinglePlayer(); got != tt.want {
+				t.Errorf("IsSinglePlayer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGameSettings_IsSinglePlayer(t *testing.T) {
+	tests := []struct {
+		name    string
+		players []NewGamePlayer
+		want    bool
+	}{
+		{"host vs ai", []NewGamePlayer{{Type: NewGamePlayerTypeHost}, {Type: NewGamePlayerTypeAI}}, true},
+		{"hot seat", []NewGamePlayer{{Type: NewGamePlayerTypeHost}, {Type: NewGamePlayerTypeHost}}, true},
+		{"host and open", []NewGamePlayer{{Type: NewGamePlayerTypeHost}, {Type: NewGamePlayerTypeOpen}}, false},
+		{"host and guest", []NewGamePlayer{{Type: NewGamePlayerTypeHost}, {Type: NewGamePlayerTypeGuest}}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			settings := &GameSettings{Players: tt.players}
+			if got := settings.IsSinglePlayer(); got != tt.want {
+				t.Errorf("IsSinglePlayer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

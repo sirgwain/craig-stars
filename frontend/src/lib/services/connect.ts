@@ -16,13 +16,14 @@ import { TechService } from '#lib/types/cs-proto.js';
 import { UserService } from '#lib/types/cs-proto.js';
 import { createClient } from '@connectrpc/connect';
 import { createConnectTransport } from '@connectrpc/connect-web';
+import { asPlayerInterceptor } from './asPlayerInterceptor';
 import { retryInterceptor } from './retryInterceptor';
 import { versionInterceptor } from './versionInterceptor';
 
 // hit our grpc endpoint
 const transport = createConnectTransport({
 	baseUrl: '/api/grpc',
-	interceptors: [retryInterceptor, versionInterceptor]
+	interceptors: [retryInterceptor, versionInterceptor, asPlayerInterceptor]
 	// useBinaryFormat: true
 });
 

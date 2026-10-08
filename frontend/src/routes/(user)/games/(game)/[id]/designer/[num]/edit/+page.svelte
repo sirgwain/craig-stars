@@ -9,7 +9,7 @@
 	import { techs } from '#lib/services/Stores.js';
 	import type { ConnectError } from '@connectrpc/connect';
 
-	const { game, universe, updateDesign } = getGameContext();
+	const { game, universe, updateDesign, readOnly } = getGameContext();
 	let num = parseInt(page.params.num || '0');
 
 	let design: ShipDesign | undefined = $state($universe.getMyDesign(num));
@@ -42,7 +42,9 @@
 		{/snippet}
 		{#snippet end()}
 			<div class="flex justify-end mb-1">
-				<button class="btn btn-success mx-1" type="submit" onclick={save}>Save</button>
+				{#if !$readOnly}
+					<button class="btn btn-success mx-1" type="submit" onclick={save}>Save</button>
+				{/if}
 			</div>
 		{/snippet}
 	</Breadcrumb>
