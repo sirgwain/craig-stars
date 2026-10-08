@@ -42,6 +42,28 @@ func Test_gameRunner_HostGame(t *testing.T) {
 	assert.Greater(t, len(fullGame.Players), 0)
 }
 
+func Test_gameRunner_HostGame_HotSeat(t *testing.T) {
+	gr := createTestGameRunner(t.Context())
+
+	fullGame, err := gr.HostGame(1, cs.NewGameSettings().
+		WithHost(cs.Humanoids()).
+		WithHost(cs.Humanoids()).
+		WithAIPlayer(cs.AIDifficultyNormal, 0))
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	// the host controls both players, so the universe is generated right away
+	assert.Greater(t, len(fullGame.Planets), 0)
+	if assert.Len(t, fullGame.Players, 3) {
+		assert.Equal(t, int64(1), fullGame.Players[0].UserID)
+		assert.Equal(t, int64(1), fullGame.Players[1].UserID)
+		// hot seat players are named by race, with duplicate names disambiguated
+		assert.Equal(t, "Humanoids", fullGame.Players[0].Name)
+		assert.Equal(t, "Humanoids 2", fullGame.Players[1].Name)
+	}
+}
+
 func Test_gameRunner_GenerateTurns(t *testing.T) {
 	ctx := context.Background()
 	dbConn := db.NewConn()

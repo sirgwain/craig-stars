@@ -14,7 +14,7 @@
 	import type { ConnectError } from '@connectrpc/connect';
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 
-	const { game, player, createTransportPlan } = getGameContext();
+	const { game, player, createTransportPlan, readOnly } = getGameContext();
 
 	let plan: TransportPlan = $state(
 		create(TransportPlanSchema, {
@@ -73,7 +73,9 @@
 		{/snippet}
 		{#snippet end()}
 			<div class="flex justify-end mb-1">
-				<button class="btn btn-success mx-1" type="submit">Save</button>
+				{#if !$readOnly}
+					<button class="btn btn-success mx-1" type="submit">Save</button>
+				{/if}
 			</div>
 		{/snippet}
 	</Breadcrumb>

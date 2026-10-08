@@ -6,7 +6,7 @@
 	import type { ShipDesign } from '#lib/types/cs-proto.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
 
-	const { game, player, universe, deleteDesign } = getGameContext();
+	const { game, player, universe, deleteDesign, readOnly } = getGameContext();
 
 	// filterable designs
 	let search = $state('');
@@ -33,11 +33,13 @@
 		<div class="flex justify-end mb-1">
 			<div class="flex flex-row justify-between gap-2 m-2">
 				<TableSearchInput bind:value={search} />
-				<div>
-					<a class="cs-link btn btn-sm" href={`/games/${$game.id}/designer/create`}
-						><span class="hidden sm:block">Create</span><span class="sm:hidden">+</span></a
-					>
-				</div>
+				{#if !$readOnly}
+					<div>
+						<a class="cs-link btn btn-sm" href={`/games/${$game.id}/designer/create`}
+							><span class="hidden sm:block">Create</span><span class="sm:hidden">+</span></a
+						>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/snippet}
@@ -47,6 +49,7 @@
 	{#each filteredDesigns.filter((d) => d.playerNum === $player.num && !d.spec?.starbase) as design (design.num)}
 		<DesignCard
 			{design}
+			readOnly={$readOnly}
 			href={`/games/${$game.id}/designer/${design.num}`}
 			copyhref={`/games/${$game.id}/designer/create/${design.hull}?copy=${design.num}`}
 			onDelete={async (design) => {
@@ -61,6 +64,7 @@
 	{#each filteredDesigns.filter((d) => d.playerNum === $player.num && d.spec?.starbase) as design (design.num)}
 		<DesignCard
 			{design}
+			readOnly={$readOnly}
 			href={`/games/${$game.id}/designer/${design.num}`}
 			copyhref={`/games/${$game.id}/designer/create/${design.hull}?copy=${design.num}`}
 			onDelete={async (design) => {

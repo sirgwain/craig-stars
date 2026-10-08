@@ -9,7 +9,7 @@
 	import type { ConnectError } from '@connectrpc/connect';
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 
-	const { game, player, updateTransportPlan } = getGameContext();
+	const { game, player, updateTransportPlan, readOnly } = getGameContext();
 	let num = parseInt(page.params.num || '0');
 
 	let plan: TransportPlan | undefined = $derived(
@@ -46,7 +46,9 @@
 		{/snippet}
 		{#snippet end()}
 			<div class="flex justify-end mb-1">
-				<button class="btn btn-success mx-1" type="submit">Save</button>
+				{#if !$readOnly}
+					<button class="btn btn-success mx-1" type="submit">Save</button>
+				{/if}
 			</div>
 		{/snippet}
 	</Breadcrumb>

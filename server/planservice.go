@@ -28,10 +28,10 @@ type battlePlanService struct {
 // GetBattlePlan returns a single battle plan for the current player by num.
 func (s *battlePlanService) GetBattlePlan(ctx context.Context, req *connect.Request[craig_starsv1.GetBattlePlanRequest]) (*connect.Response[craig_starsv1.GetBattlePlanResponse], error) {
 	c := contextDb(ctx)
-	user := contextUserSession(ctx)
 	game := contextGame(ctx)
+	gamePlayer := contextGamePlayer(ctx)
 
-	player, err := c.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{UserID: user.ID})
+	player, err := c.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -227,10 +227,10 @@ type productionPlanService struct{}
 // GetProductionPlan returns a single production plan by num.
 func (s *productionPlanService) GetProductionPlan(ctx context.Context, req *connect.Request[craig_starsv1.GetProductionPlanRequest]) (*connect.Response[craig_starsv1.GetProductionPlanResponse], error) {
 	c := contextDb(ctx)
-	user := contextUserSession(ctx)
 	game := contextGame(ctx)
+	gamePlayer := contextGamePlayer(ctx)
 
-	player, err := c.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{UserID: user.ID})
+	player, err := c.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -380,10 +380,10 @@ type transportPlanService struct{}
 // GetTransportPlan returns a single transport plan by num.
 func (s *transportPlanService) GetTransportPlan(ctx context.Context, req *connect.Request[craig_starsv1.GetTransportPlanRequest]) (*connect.Response[craig_starsv1.GetTransportPlanResponse], error) {
 	c := contextDb(ctx)
-	user := contextUserSession(ctx)
 	game := contextGame(ctx)
+	gamePlayer := contextGamePlayer(ctx)
 
-	player, err := c.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{UserID: user.ID})
+	player, err := c.GetLightPlayerForGame(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

@@ -4,7 +4,7 @@
 	import Design from '#lib/components/game/design/Design.svelte';
 	import { getGameContext } from '#lib/services/GameContext.js';
 
-	const { game, universe } = getGameContext();
+	const { game, universe, readOnly } = getGameContext();
 	let num = parseInt(page.params.num || '0');
 
 	let design = $derived($universe.getMyDesign(num));
@@ -15,7 +15,7 @@
 		{#snippet crumbs()}
 			<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
 			<li>{design?.name}</li>
-			{#if !design.spec?.numInstances}
+			{#if !design.spec?.numInstances && !$readOnly}
 				<li><a class="cs-link" href={`/games/${$game.id}/designer/${design.num}/edit`}>Edit</a></li>
 			{/if}
 		{/snippet}

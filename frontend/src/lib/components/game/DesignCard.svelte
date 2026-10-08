@@ -14,9 +14,11 @@
 		href: string;
 		copyhref: string;
 		onDelete?: (design: ShipDesign) => Promise<void>;
+		// hide the delete/copy/edit actions
+		readOnly?: boolean;
 	};
 
-	let { design, href, copyhref, onDelete }: Props = $props();
+	let { design, href, copyhref, onDelete, readOnly = false }: Props = $props();
 
 	async function deleteDesign(design: ShipDesign) {
 		if (confirm(`Are you sure you want to delete ${design.name}?`)) {
@@ -74,7 +76,7 @@
 				{/if}
 			</div>
 			<div class="flex flex-row join">
-				{#if !design.cannotDelete}
+				{#if !design.cannotDelete && !readOnly}
 					<button
 						class="btn btn-outline btn-secondary joint-item"
 						onclick={() => deleteDesign(design)}
@@ -82,7 +84,7 @@
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				{/if}
-				{#if design.originalPlayerNum == None && !design.mysteryTrader}
+				{#if design.originalPlayerNum == None && !design.mysteryTrader && !readOnly}
 					<a class="btn btn-outline btn-secondary joint-item" href={copyhref}>Copy</a>
 					<!-- cannotDelete = true is for designs that are reserved for the system -->
 					{#if !design.spec?.numInstances && !design.cannotDelete}

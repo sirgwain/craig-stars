@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { me } from '#lib/services/Stores.js';
+	import { isHotSeat } from '#lib/types/HotSeat.js';
 	import { onDestroy, onMount } from 'svelte';
 	import GameStatus from '../GameStatus.svelte';
 	import { playerClient } from '#lib/services/connect.js';
@@ -12,7 +13,9 @@
 		loadStatus,
 		startPollingStatus,
 		stopPollingStatus,
-		updateGame
+		updateGame,
+		readOnly,
+		choosingPlayer
 	} = getGameContext();
 
 	async function onForceGenerate() {
@@ -41,7 +44,10 @@
 	onDestroy(stopPollingStatus);
 </script>
 
-<GameStatus title="Waiting for players to play" game={$game.toGameWithPlayers()}>
+<GameStatus
+	title={$choosingPlayer ? 'Choose a player to play' : 'Waiting for players to play'}
+	game={$game.toGameWithPlayers()}
+>
 	<form>
 		<div class="gap-2 mt-2">
 			{#if $me.id == $game.hostId}
@@ -49,8 +55,17 @@
 					>Force Generate Turn</button
 				>
 			{/if}
-			<button onclick={onUnsubmitTurn} type="button" class="btn btn-secondary">Unsubmit Turn</button
-			>
+			{#if !$choosingPlayer}
+				<!-- hot seat games unsubmit each player from the player list -->
+				{#if !isHotSeat($game.players, $me.id)}
+					<button onclick={onUnsubmitTurn} type="button" class="btn btn-secondary"
+						>Unsubmit Turn</button
+					>
+				{/if}
+				<button onclick={() => readOnly.set(true)} type="button" class="btn btn-secondary"
+					>View Turn (read-only)</button
+				>
+			{/if}
 		</div>
 	</form>
 </GameStatus>

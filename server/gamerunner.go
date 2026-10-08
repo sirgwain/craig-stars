@@ -59,7 +59,7 @@ type GameRunner interface {
 	AddAIPlayer(game *cs.GameWithPlayers) (*cs.Player, error)
 	DeletePlayerSlot(gameID int64, playerNum int) error
 	StartGame(game *cs.Game) error
-	SubmitTurn(gameID int64, userID int64) error
+	SubmitTurn(gameID int64, playerNum int) error
 	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
 	GenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
 }
@@ -125,6 +125,13 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		game.NumPlayers = len(settings.Players)
 		players := make([]*cs.Player, 0, len(settings.Players))
 		guestNumber := 1
+		numHostPlayers := 0
+		hostPlayerNames := map[string]bool{}
+		for _, playerSetting := range settings.Players {
+			if playerSetting.Type == cs.NewGamePlayerTypeHost {
+				numHostPlayers++
+			}
+		}
 		aiPlayerNumber := 0
 		cheaterAIPlayerNumber := 0
 
@@ -137,6 +144,14 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				player.GameID = game.ID
 				player.Num = i + 1
 				player.Name = user.Username
+				if numHostPlayers > 1 {
+					// hot seat games have multiple players for the host, name them by race
+					player.Name = playerSetting.Race.PluralName
+					if hostPlayerNames[player.Name] {
+						player.Name = fmt.Sprintf("%s %d", player.Name, player.Num)
+					}
+					hostPlayerNames[player.Name] = true
+				}
 				player.Color = playerSetting.Color
 				player.DefaultHullSet = playerSetting.DefaultHullSet
 				player.Ready = true
@@ -789,15 +804,15 @@ func (gr *gameRunner) StartGame(game *cs.Game) error {
 }
 
 // submit a turn for a player
-func (gr *gameRunner) SubmitTurn(gameID int64, userID int64) error {
+func (gr *gameRunner) SubmitTurn(gameID int64, playerNum int) error {
 	client := gr.dbConn.NewReadWriteClient()
-	player, err := client.GetLightPlayerForGame(gr.ctx, gameID, db.GetPlayerParams{UserID: userID})
+	player, err := client.GetLightPlayerForGame(gr.ctx, gameID, db.GetPlayerParams{PlayerNum: playerNum})
 	if err != nil {
-		return fmt.Errorf("find player for user %d, game %d: %w", userID, gameID, err)
+		return fmt.Errorf("find player %d, game %d: %w", playerNum, gameID, err)
 	}
 
 	if player == nil {
-		return fmt.Errorf("player for user %d, game %d not found", userID, gameID)
+		return fmt.Errorf("player %d, game %d not found", playerNum, gameID)
 	}
 
 	if err := client.SubmitPlayerTurn(gr.ctx, gameID, player.Num, true); err != nil {

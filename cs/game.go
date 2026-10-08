@@ -96,13 +96,13 @@ type GameWithPlayers struct {
 
 // return true if this is a single player game
 func (g *GameWithPlayers) IsSinglePlayer() bool {
-	nonAiPlayers := 0
+	humanUserIDs := make([]int64, 0, len(g.Players))
 	for _, p := range g.Players {
 		if !p.AIControlled {
-			nonAiPlayers++
+			humanUserIDs = append(humanUserIDs, p.UserID)
 		}
 	}
-	return nonAiPlayers <= 1 // all ai players is basically a single player game. :)
+	return isSinglePlayer(humanUserIDs)
 }
 
 // A game with players and a universe, used in universe and turn generation
@@ -115,13 +115,28 @@ type FullGame struct {
 
 // return true if this is a single player game
 func (g *FullGame) IsSinglePlayer() bool {
-	nonAiPlayers := 0
+	humanUserIDs := make([]int64, 0, len(g.Players))
 	for _, p := range g.Players {
 		if !p.AIControlled {
-			nonAiPlayers++
+			humanUserIDs = append(humanUserIDs, p.UserID)
 		}
 	}
-	return nonAiPlayers <= 1 // all ai players is basically a single player game. :)
+	return isSinglePlayer(humanUserIDs)
+}
+
+// isSinglePlayer returns true if at most one user controls the non-ai players in a game.
+// A hot seat game where one user controls multiple players counts as single player.
+func isSinglePlayer(humanUserIDs []int64) bool {
+	users := map[int64]bool{}
+	unclaimedSlots := 0
+	for _, userID := range humanUserIDs {
+		if userID == 0 {
+			unclaimedSlots++
+		} else {
+			users[userID] = true
+		}
+	}
+	return len(users)+unclaimedSlots <= 1 // all ai players is basically a single player game. :)
 }
 
 type Size string
@@ -289,10 +304,19 @@ func (settings *GameSettings) WithGameStartMode(startMode GameStartMode) *GameSe
 
 func (settings *GameSettings) IsSinglePlayer() bool {
 	numHumanPlayers := 0
+	hasHost := false
 	for _, player := range settings.Players {
-		if player.Type != NewGamePlayerTypeAI {
+		switch player.Type {
+		case NewGamePlayerTypeAI:
+		case NewGamePlayerTypeHost:
+			// the host can control multiple players in a hot seat game
+			hasHost = true
+		default:
 			numHumanPlayers++
 		}
+	}
+	if hasHost {
+		numHumanPlayers++
 	}
 	return numHumanPlayers <= 1
 }

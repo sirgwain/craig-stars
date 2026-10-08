@@ -6,7 +6,7 @@
 	import type { ConnectError } from '@connectrpc/connect';
 	import BattlePlanCard from './BattlePlanCard.svelte';
 
-	const { game, player, deleteBattlePlan } = getGameContext();
+	const { game, player, deleteBattlePlan, readOnly } = getGameContext();
 
 	async function deletePlan(plan: BattlePlan) {
 		try {
@@ -26,7 +26,9 @@
 
 	{#snippet end()}
 		<div class="flex justify-end mb-1">
-			<a class="cs-link btn btn-sm" href={`/games/${$game.id}/battle-plans/create`}>Create</a>
+			{#if !$readOnly}
+				<a class="cs-link btn btn-sm" href={`/games/${$game.id}/battle-plans/create`}>Create</a>
+			{/if}
 		</div>
 	{/snippet}
 </Breadcrumb>
@@ -37,7 +39,7 @@
 			<BattlePlanCard
 				{plan}
 				href={`/games/${$game.id}/battle-plans/${plan.num}`}
-				showDelete={plan.num !== 0}
+				showDelete={plan.num !== 0 && !$readOnly}
 				onDelete={() => deletePlan(plan)}
 			/>
 		{/each}

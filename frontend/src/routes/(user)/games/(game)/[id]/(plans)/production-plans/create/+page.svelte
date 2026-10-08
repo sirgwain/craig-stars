@@ -10,7 +10,7 @@
 	import type { ConnectError } from '@connectrpc/connect';
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
 
-	const { game, player, universe, createProductionPlan } = getGameContext();
+	const { game, player, universe, createProductionPlan, readOnly } = getGameContext();
 
 	let plan: ProductionPlan = $state(
 		create(ProductionPlanSchema, {
@@ -53,7 +53,9 @@
 		{/snippet}
 		{#snippet end()}
 			<div class="flex justify-end mb-1">
-				<button class="btn btn-success mx-1" type="submit">Save</button>
+				{#if !$readOnly}
+					<button class="btn btn-success mx-1" type="submit">Save</button>
+				{/if}
 			</div>
 		{/snippet}
 	</Breadcrumb>
