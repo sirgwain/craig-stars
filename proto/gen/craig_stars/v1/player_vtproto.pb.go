@@ -487,6 +487,11 @@ func (m *ByHandCargoTransfer) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.Fuel != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.Fuel))
+		i--
+		dAtA[i] = 0x40
+	}
 	if m.Cargo != nil {
 		size, err := m.Cargo.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -1594,6 +1599,9 @@ func (m *ByHandCargoTransfer) SizeVT() (n int) {
 	if m.Cargo != nil {
 		l = m.Cargo.SizeVT()
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.Fuel != 0 {
+		n += 1 + protohelpers.SizeOfVarint(uint64(m.Fuel))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -3290,6 +3298,25 @@ func (m *ByHandCargoTransfer) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fuel", wireType)
+			}
+			m.Fuel = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Fuel |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

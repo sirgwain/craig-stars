@@ -435,6 +435,7 @@ type ByHandCargoTransfer struct {
 	MapObjectTarget *MapObjectTarget       `protobuf:"bytes,1,opt,name=map_object_target,json=mapObjectTarget,proto3" json:"map_object_target,omitempty"`
 	SourceFleetNum  int32                  `protobuf:"varint,6,opt,name=source_fleet_num,json=sourceFleetNum,proto3" json:"source_fleet_num,omitempty"`
 	Cargo           *Cargo                 `protobuf:"bytes,7,opt,name=cargo,proto3" json:"cargo,omitempty"`
+	Fuel            int32                  `protobuf:"varint,8,opt,name=fuel,proto3" json:"fuel,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -488,6 +489,13 @@ func (x *ByHandCargoTransfer) GetCargo() *Cargo {
 		return x.Cargo
 	}
 	return nil
+}
+
+func (x *ByHandCargoTransfer) GetFuel() int32 {
+	if x != nil {
+		return x.Fuel
+	}
+	return 0
 }
 
 type CargoTransfers struct {
@@ -1443,11 +1451,12 @@ const file_craig_stars_v1_player_proto_rawDesc = "" +
 	"\x0fmystery_traders\x18\t \x03(\v2\x1d.craig_stars.v1.MysteryTraderR\x0emysteryTraders\x123\n" +
 	"\bsalvages\x18\n" +
 	" \x03(\v2\x17.craig_stars.v1.SalvageR\bsalvages\x126\n" +
-	"\twormholes\x18\v \x03(\v2\x18.craig_stars.v1.WormholeR\twormholes\"\xb9\x01\n" +
+	"\twormholes\x18\v \x03(\v2\x18.craig_stars.v1.WormholeR\twormholes\"\xcd\x01\n" +
 	"\x13ByHandCargoTransfer\x12K\n" +
 	"\x11map_object_target\x18\x01 \x01(\v2\x1f.craig_stars.v1.MapObjectTargetR\x0fmapObjectTarget\x12(\n" +
 	"\x10source_fleet_num\x18\x06 \x01(\x05R\x0esourceFleetNum\x12+\n" +
-	"\x05cargo\x18\a \x01(\v2\x15.craig_stars.v1.CargoR\x05cargo\"S\n" +
+	"\x05cargo\x18\a \x01(\v2\x15.craig_stars.v1.CargoR\x05cargo\x12\x12\n" +
+	"\x04fuel\x18\b \x01(\x05R\x04fuel\"S\n" +
 	"\x0eCargoTransfers\x12A\n" +
 	"\ttransfers\x18\x01 \x03(\v2#.craig_stars.v1.ByHandCargoTransferR\ttransfers\"\x9d\x03\n" +
 	"\fPlayerStatus\x12\x0e\n" +

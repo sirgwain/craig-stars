@@ -208,6 +208,13 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		destName = dest.GetMapObject().Name
 	}
 
+	if transferAmount.Colonists < 0 {
+		switch dest.GetMapObject().Type {
+		case MapObjectTypeNone, MapObjectTypeSalvage:
+			return fmt.Errorf("fleet %s cannot transfer colonists to %s, they can't survive in deep space", fleet.Name, destName)
+		}
+	}
+
 	if fleet.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", fleet.Name, fleet.availableCargoSpace(), transferAmount.Total(), destName)
 	}
@@ -228,7 +235,9 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		return fmt.Errorf("fleet %s has %d fuel space available, cannot transfer %dmg from %s", fleet.Name, fleet.availableFuelSpace(), transferAmount.Fuel, destName)
 	}
 
-	if dest.GetFuelCapacity() != Infinite && Clamp(dest.GetFuelCapacity()-dest.GetFuel(), 0, dest.GetFuelCapacity()) < -transferAmount.Fuel {
+	// we don't know how much room another player's fleet has in its tanks. Fuel it can't hold comes back
+	// when the turn is generated
+	if mo := dest.GetMapObject(); mo.OwnedBy(player.Num) && dest.GetFuelCapacity() != Infinite && Clamp(dest.GetFuelCapacity()-dest.GetFuel(), 0, dest.GetFuelCapacity()) < -transferAmount.Fuel {
 		return fmt.Errorf("dest %s has %d fuel space available, cannot transfer %dmg from %s", destName, dest.GetFuelCapacity(), transferAmount.Fuel, destName)
 	}
 
@@ -246,9 +255,9 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		}
 	}
 
-	// record this call with the player
-	target := dest.GetMapObject().ToTarget()
-	player.transferByHand(fleet, target, transferAmount.Cargo.Negative())
+	// record the transfer. Transfers with our own planets, fleets and packets are done, but are kept so
+	// shortfalls can follow the cargo. Anything else is settled when the turn is generated
+	player.transferByHand(fleet, dest.GetMapObject().ToTarget(), transferAmount.Cargo.Negative(), -transferAmount.Fuel)
 
 	slog.Info("by hand transfer",
 		slog.Int64("GameID", player.GameID),
@@ -409,9 +418,9 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	if len(source.Tokens) == 0 {
 		// source is gone, no cargo transfer needed, just make sure the dest has all cargo and we're done
 		source.Delete = true
+		player.transferByHand(source, dest.MapObject.ToTarget(), source.Cargo, source.Fuel)
 		dest.Cargo = dest.Cargo.Add(source.Cargo)
 		dest.Fuel += source.Fuel
-		player.CargoTransfers.moveByHandTransfers(source, dest)
 
 		return source, dest, nil
 	}
@@ -419,21 +428,15 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	if len(dest.Tokens) == 0 {
 		// dest is gone, no cargo transfer needed, just make sure the source has all cargo and we're done
 		dest.Delete = true
+		player.transferByHand(dest, source.MapObject.ToTarget(), dest.Cargo, dest.Fuel)
 		source.Cargo = source.Cargo.Add(dest.Cargo)
 		source.Fuel += dest.Fuel
-		player.CargoTransfers.moveByHandTransfers(dest, source)
 
 		return source, dest, nil
 	}
 
 	// transfer the cargo as per the player's request
 	if err = o.TransferByHand(rules, player, source, dest, request.TransferAmount); err != nil {
-		return nil, nil, err
-	}
-
-	// split any immediate cargo transfers we did before based on capacity
-	// exclude the one we just made
-	if err := player.CargoTransfers.splitByHandTransfers(source, dest, true); err != nil {
 		return nil, nil, err
 	}
 
@@ -634,14 +637,12 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	}
 	source.Tokens = updatedTokens
 
+	// record the cargo the new fleet took so by hand transfers can follow it
+	player.transferByHand(source, fleet.MapObject.ToTarget(), fleet.Cargo, fleet.Fuel)
+
 	// update fleet specs
 	fleet.Spec = ComputeFleetSpec(rules, player, &fleet)
 	source.Spec = ComputeFleetSpec(rules, player, source)
-
-	// split any immediate cargo transfers as well
-	if err := player.CargoTransfers.splitByHandTransfers(source, &fleet, false); err != nil {
-		return nil, fmt.Errorf("unable to split immediate cargo transfers %w", err)
-	}
 
 	// update fuel usage estimates
 	source.ComputeFuelUsage(player)
@@ -692,15 +693,13 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		}
 
 		// add cargo and fuel to the dest fleet
+		player.transferByHand(mergingFleet, fleet.MapObject.ToTarget(), mergingFleet.Cargo, mergingFleet.Fuel)
 		fleet.Cargo = fleet.Cargo.Add(mergingFleet.Cargo)
 		fleet.Fuel += mergingFleet.Fuel
 
 		// mark the merging fleet for deletion
 		mergingFleet.Delete = true
 	}
-
-	// merge cargo transfers
-	player.CargoTransfers.mergeByHandTransfers(fleet, fleets)
 
 	slog.Info("merged fleet",
 		slog.Int64("GameID", player.GameID),

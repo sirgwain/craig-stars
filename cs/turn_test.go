@@ -134,242 +134,6 @@ func Test_turn_grow(t *testing.T) {
 	assert.Equal(t, 2_304_000, planet4.exactPopulation())
 }
 
-func Test_turn_fleetByHandUnloads(t *testing.T) {
-
-	t.Run("jettison", func(t *testing.T) {
-		u := newTestUniverse(t, TestScenario{
-			Players: []ScenarioPlayer{
-				{
-					Designs: Designs(DesignTeamster),
-					Fleets:  []ScenarioFleet{{Design: "Teamster", Position: Vector{10, 10}, Cargo: Cargo{Ironium: 50}}},
-				},
-			},
-			Planets: []ScenarioPlanet{Homeworld("Planet 1", 1)},
-		})
-		game := u.Game
-		u.TransferByHand(1, "Teamster #1", "", Cargo{Ironium: -50})
-
-		u.GenerateTurn()
-
-		assert.Equal(t, 1, len(game.Salvages))
-		assert.Equal(t, Vector{10, 10}, game.Salvages[0].Position)
-		assert.Equal(t, Cargo{Ironium: 40}, game.Salvages[0].Cargo)
-		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
-	})
-
-	t.Run("unload on our planet", func(t *testing.T) {
-		u := newTestUniverse(t, TestScenario{
-			Players: []ScenarioPlayer{
-				{
-					Designs: Designs(DesignTeamster),
-					Fleets:  []ScenarioFleet{{Design: "Teamster", At: "Planet 1", Quantity: 2, Cargo: Cargo{Ironium: 50}}},
-				},
-			},
-			Planets: []ScenarioPlanet{{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 2500}}},
-		})
-		game := u.Game
-		u.TransferByHand(1, "Teamster #1", "Planet 1", Cargo{Ironium: -50})
-
-		u.GenerateTurn()
-
-		assert.Equal(t, Cargo{Ironium: 50}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[0].Cargo)
-		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
-	})
-
-	t.Run("unload on unowned planet", func(t *testing.T) {
-		u := newTestUniverse(t, TestScenario{
-			Players: []ScenarioPlayer{
-				{
-					Designs: Designs(DesignTeamster),
-					Fleets:  []ScenarioFleet{{Design: "Teamster", At: "Planet 2", Quantity: 2, Cargo: Cargo{Ironium: 50}}},
-				},
-			},
-			Planets: []ScenarioPlanet{Homeworld("Planet 1", 1), {Name: "Planet 2", Position: Vector{10, 10}}},
-		})
-		game := u.Game
-		u.TransferByHand(1, "Teamster #1", "Planet 2", Cargo{Ironium: -50})
-
-		u.GenerateTurn()
-
-		assert.Equal(t, Cargo{Ironium: 50}, game.Planets[1].Cargo)
-		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
-	})
-	t.Run("invade enemy planet", func(t *testing.T) {
-		u := newTestUniverse(t, TestScenario{
-			Players: []ScenarioPlayer{
-				{
-					Designs: Designs(DesignTeamster),
-					Fleets:  []ScenarioFleet{{Design: "Teamster", At: "Planet 2", Quantity: 20, Cargo: Cargo{Colonists: 5000}}},
-				},
-				AIPlayer("Player 2"),
-			},
-			Planets: []ScenarioPlanet{
-				{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 2500}},
-				{Name: "Planet 2", Owner: 2, Position: Vector{100, 0}, Cargo: Cargo{Colonists: 2500}},
-			},
-		})
-		game := u.Game
-		player := u.Player(1)
-		u.TransferByHand(1, "Teamster #1", "Planet 2", Cargo{Colonists: -5000})
-
-		u.GenerateTurn()
-
-		assert.Equal(t, player.Num, game.Planets[1].PlayerNum)
-		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
-		assert.True(t, slices.ContainsFunc(player.Messages, func(pm PlayerMessage) bool { return pm.Type == PlayerMessageFleetInvadedPlanet }))
-		assert.True(t, slices.ContainsFunc(game.Players[1].Messages, func(pm PlayerMessage) bool { return pm.Type == PlayerMessagePlanetInvaded }))
-	})
-}
-
-func Test_turn_fleetByHandLoads(t *testing.T) {
-
-	t.Run("jettison load from another fleet's jettison", func(t *testing.T) {
-		s := singleFleetScenario(DesignTeamster)
-		s.Players[0].Fleets = append(s.Players[0].Fleets, s.Players[0].Fleets[0])
-		s.Players[0].Fleets[0].Position = Vector{10, 10}
-		s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 50}
-		s.Players[0].Fleets[1].Position = Vector{10, 10}
-		u := newTestUniverse(t, s)
-		game := u.Game
-		u.TransferByHand(1, "Teamster #1", "", Cargo{Ironium: -50})
-		u.TransferByHand(1, "Teamster #2", "", Cargo{Ironium: 10})
-
-		u.GenerateTurn()
-
-		// should end up with a salvage from the jettison, but fleet2 also gets some cargo it grabbed
-		assert.Equal(t, 1, len(game.Salvages))
-		assert.Equal(t, Vector{10, 10}, game.Salvages[0].Position)
-		assert.Equal(t, Cargo{Ironium: 30}, game.Salvages[0].Cargo)
-		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
-		assert.Equal(t, Cargo{Ironium: 10}, game.Fleets[1].Cargo)
-	})
-
-	t.Run("load from our planet", func(t *testing.T) {
-		s := singleFleetScenario(DesignTeamster)
-		s.Players[0].Fleets[0].At = "Planet 1"
-		s.Planets[0].Cargo.Ironium = 50
-		u := newTestUniverse(t, s)
-		game := u.Game
-		u.TransferByHand(1, "Teamster #1", "Planet 1", Cargo{Ironium: 50})
-
-		u.GenerateTurn()
-
-		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[0].Cargo)
-		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
-	})
-
-	t.Run("load from owned mineral packet", func(t *testing.T) {
-		s := singleFleetScenario(DesignTeamster)
-		s.Players[0].Fleets[0].Position = Vector{50, 0}
-		s.Players[0].MineralPackets = []ScenarioMineralPacket{{Name: "Packet", To: "Planet 1", Position: Vector{50, 0}, WarpSpeed: 5, SafeWarpSpeed: 5, Cargo: Cargo{Ironium: 100}}}
-		u := newTestUniverse(t, s)
-		game := u.Game
-		u.TransferByHand(1, "Teamster #1", "Packet", Cargo{Ironium: 50})
-
-		u.GenerateTurn()
-
-		// mineral packet should have 50 left, fleet should have 50
-		assert.Equal(t, Cargo{Ironium: 50}, game.MineralPackets[0].Cargo)
-		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
-	})
-
-	t.Run("load from enemy mineral packet", func(t *testing.T) {
-		s := twoPlayerFleetScenario(DesignTeamster)
-		s.Players[0].Fleets[0].Position = Vector{50, 0}
-		s.Players[1].MineralPackets = []ScenarioMineralPacket{{Name: "Packet", To: "Planet 1", Position: Vector{50, 0}, WarpSpeed: 5, SafeWarpSpeed: 5, Cargo: Cargo{Ironium: 100}}}
-		u := newTestUniverse(t, s)
-		game := u.Game
-		newDiscoverer(testLogger, u.Player(1)).discoverMineralPacket(&game.Rules, game.MineralPackets[0], u.Player(2), u.Planet("Planet 1"))
-		u.TransferByHand(1, "Teamster #1", "Packet", Cargo{Ironium: 50})
-
-		u.GenerateTurn()
-
-		// mineral packet should have 50 left, fleet should have 50
-		assert.Equal(t, Cargo{Ironium: 50}, game.MineralPackets[0].Cargo)
-		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
-	})
-
-	t.Run("load from salvage", func(t *testing.T) {
-		s := singleFleetScenario(DesignTeamster)
-		s.Players[0].Fleets[0].Position = Vector{50, 0}
-		s.Players[0].Salvages = []Salvage{{MapObject: MapObject{Position: Vector{50, 0}}, Cargo: Cargo{Ironium: 100}}}
-		u := newTestUniverse(t, s)
-		game := u.Game
-		newDiscoverer(testLogger, u.Player(1)).discoverSalvage(game.Salvages[0])
-		u.TransferByHand(1, "Teamster #1", "Salvage #1", Cargo{Ironium: 50})
-
-		u.GenerateTurn()
-
-		// mineral packet should have 40 left (after decay), fleet should have 50
-		assert.Equal(t, Cargo{Ironium: 40}, game.Salvages[0].Cargo)
-		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
-	})
-
-	t.Run("steal from enemy planet", func(t *testing.T) {
-		s := twoPlayerFleetScenario(DesignStealingFreighter)
-		s.Players[0].Fleets[0].At = "Planet 2"
-		s.Planets[1].Cargo.Ironium = 50
-		u := newTestUniverse(t, s)
-		game := u.Game
-		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
-		u.TransferByHand(1, "Stealing Freighter #1", "Planet 2", Cargo{Ironium: 50})
-
-		u.GenerateTurn()
-
-		// should steal
-		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
-		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
-	})
-
-	t.Run("fail load from enemy planet", func(t *testing.T) {
-		s := twoPlayerFleetScenario(DesignTeamster)
-		s.Players[0].Fleets[0].At = "Planet 2"
-		s.Planets[1].Cargo.Ironium = 50
-		u := newTestUniverse(t, s)
-		game := u.Game
-		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
-		u.TransferByHand(1, "Teamster #1", "Planet 2", Cargo{Ironium: 50})
-		player := u.Player(1)
-
-		u.GenerateTurn()
-
-		// should fail to steal
-		assert.Equal(t, Cargo{Ironium: 50}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
-		assert.Equal(t, Cargo{Ironium: 0}, game.Fleets[0].Cargo)
-		assert.True(t, slices.ContainsFunc(player.Messages, func(pm PlayerMessage) bool { return pm.Type == PlayerMessageFleetByHandTransferIncomplete }))
-	})
-
-	t.Run("load from our fleet", func(t *testing.T) {
-		s := singleFleetScenario(DesignTeamster)
-		s.Players[0].Fleets = append(s.Players[0].Fleets, s.Players[0].Fleets[0])
-		s.Players[0].Fleets[1].Cargo = Cargo{Ironium: 50}
-		u := newTestUniverse(t, s)
-		game := u.Game
-		u.TransferByHand(1, "Teamster #1", "Teamster #2", Cargo{Ironium: 50})
-
-		u.GenerateTurn()
-
-		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
-		assert.Equal(t, Cargo{Ironium: 0}, game.Fleets[1].Cargo)
-	})
-
-	t.Run("steal from enemy fleet", func(t *testing.T) {
-		s := twoPlayerFleetScenario(DesignStealingFreighter)
-		s.Players[0].Fleets[0].At = "Planet 2"
-		s.Planets[1].Cargo.Ironium = 50
-		u := newTestUniverse(t, s)
-		game := u.Game
-		u.Player(1).GetPlanetIntel(2).Cargo = u.Planet("Planet 2").Cargo
-		u.TransferByHand(1, "Stealing Freighter #1", "Planet 2", Cargo{Ironium: 50})
-
-		u.GenerateTurn()
-
-		// should steal
-		assert.Equal(t, Cargo{Ironium: 0}.WithPopulation(game.Planets[0].GetPopulation()), game.Planets[1].Cargo)
-		assert.Equal(t, Cargo{Ironium: 50}, game.Fleets[0].Cargo)
-	})
-}
-
 func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	s := TwoPlayerScenario()
 	s.Players[0].Player = NewPlayer(1, NewRace().WithPluralName("Attackers"))
@@ -667,15 +431,15 @@ func Test_turn_fleetMove(t *testing.T) {
 		// load and grow and wait
 		u.GenerateTurn()
 
-		// should have loaded all cargo, but waited for more to be generated
+		// should have loaded all cargo, waited, then loaded what was mined after production
 		assert.Equal(t, Vector{0, 0}, fleet.Position)
 		assert.Equal(t, Vector{0, 0}, fleet.Waypoints[0].Position)
 		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
 		assert.Equal(t, planet1.Num, fleet.Waypoints[0].TargetNum)
-		assert.Equal(t, Cargo{100, 100, 100, 0}, fleet.Cargo)
+		assert.Equal(t, Cargo{330, 330, 340, 0}, fleet.Cargo)
 		assert.Equal(t, 2, len(fleet.Waypoints))
 
-		// we should load the rest and move
+		// our hold is full, so we move
 		u.GenerateTurn()
 
 		// should have loaded all cargo, and moved to planet2 to dump
@@ -2170,4 +1934,60 @@ func Test_turn_productionQueueMessages(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_turn_fleetUnloadColonistsOnPlanetThatDiedThisTurn(t *testing.T) {
+	newUniverse := func(owner int) *testUniverse {
+		s := TwoPlayerScenario()
+		s.Players[1].Player = AIPlayer("Player 2").Player
+		s.Players[0].Fleets[0].At = "Planet 2"
+		s.Players[0].Fleets[0].Cargo = Cargo{Colonists: 10}
+		s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{
+			To:             "Planet 2",
+			Task:           WaypointTaskTransport,
+			TransportTasks: WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionUnloadAll}},
+		}}
+		s.Planets[1].Owner = owner
+		return newTestUniverse(t, s)
+	}
+
+	t.Run("take over a planet whose population died this turn", func(t *testing.T) {
+		u := newUniverse(2)
+		planet, fleet := u.Planet("Planet 2"), u.FleetFor(1, "Long Range Scout #1")
+		u.turn.planetInit()
+		// bombed out before we unload
+		planet.emptyPlanet()
+
+		u.turn.fleetUnload()
+
+		assert.Equal(t, 1, planet.PlayerNum)
+		assert.Equal(t, 1000, planet.GetPopulation())
+		assert.Equal(t, 0, fleet.Cargo.Colonists)
+		assert.Len(t, u.Messages(2, PlayerMessagePlanetInvaded), 1)
+	})
+
+	t.Run("retake our own planet that died this turn", func(t *testing.T) {
+		u := newUniverse(1)
+		planet := u.Planet("Planet 2")
+		u.turn.planetInit()
+		planet.emptyPlanet()
+
+		u.turn.fleetUnload()
+
+		assert.Equal(t, 1, planet.PlayerNum)
+		assert.Equal(t, 1000, planet.GetPopulation())
+	})
+
+	t.Run("planets empty at the start of the turn can't be taken", func(t *testing.T) {
+		u := newUniverse(2)
+		planet, fleet := u.Planet("Planet 2"), u.FleetFor(1, "Long Range Scout #1")
+		planet.emptyPlanet()
+		u.turn.planetInit()
+
+		u.turn.fleetUnload()
+
+		assert.False(t, planet.Owned())
+		assert.Equal(t, 10, fleet.Cargo.Colonists)
+		assert.Len(t, u.Messages(1, PlayerMessageFleetTransportInvalid), 1)
+	})
 }

@@ -900,8 +900,8 @@ func (p *Player) getByHandTransfer(target MapObjectTarget) Cargo {
 }
 
 // transferByHand transfers cargo to a target
-func (p *Player) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Cargo) {
-	if cargo == (Cargo{}) {
+func (p *Player) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Cargo, fuel int) {
+	if cargo == (Cargo{}) && fuel == 0 {
 		// don't create empty by hand transfers
 		return
 	}
@@ -909,7 +909,7 @@ func (p *Player) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Carg
 		p.CargoTransfers = CargoTransfers{}
 	}
 
-	p.CargoTransfers.transferByHand(fleet, target, cargo)
+	p.CargoTransfers.transferByHand(fleet, target, cargo, fuel)
 }
 
 // validate this battle plan

@@ -562,10 +562,11 @@ func Test_orders_SplitFleet(t *testing.T) {
 	}
 
 	type want struct {
-		err            bool
-		errContains    string
-		deleteSource   bool
-		deleteDest     bool
+		err          bool
+		errContains  string
+		deleteSource bool
+		deleteDest   bool
+		// the by hand transfers the split records, so shortfalls can follow the cargo
 		cargoTransfers []ByHandCargoTransfer
 	}
 
@@ -876,15 +877,9 @@ func Test_orders_SplitFleet(t *testing.T) {
 				},
 				transferAmount: CargoTransferRequest{Cargo: Cargo{-5, -5, -5, -5}, Fuel: -130},
 			},
-			want: want{
-				cargoTransfers: []ByHandCargoTransfer{
-					{
-						SourceFleetNum:  1,
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Small Freighter #2", TargetNum: 2, TargetPlayerNum: 1},
-						Cargo:           Cargo{5, 5, 5, 5},
-					},
-				},
-			},
+			want: want{cargoTransfers: []ByHandCargoTransfer{
+				{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Small Freighter #2", TargetNum: 2, TargetPlayerNum: 1}, Cargo: Cargo{5, 5, 5, 5}, Fuel: 130},
+			}},
 		},
 		{
 			name: "split mixed fleet of 2 scouts <-> 2 freighters into one of each",
@@ -948,15 +943,9 @@ func Test_orders_SplitFleet(t *testing.T) {
 					Cargo: Cargo{Ironium: -5},
 				},
 			},
-			want: want{
-				cargoTransfers: []ByHandCargoTransfer{
-					{
-						SourceFleetNum:  1,
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Fleet #2", TargetNum: 2, TargetPlayerNum: 1},
-						Cargo:           Cargo{Ironium: 5},
-					},
-				},
-			},
+			want: want{cargoTransfers: []ByHandCargoTransfer{
+				{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Fleet #2", TargetNum: 2, TargetPlayerNum: 1}, Cargo: Cargo{Ironium: 5}, Fuel: 170},
+			}},
 		},
 		{
 			name: "split colony ship off of full fleet",
@@ -1002,36 +991,33 @@ func Test_orders_SplitFleet(t *testing.T) {
 					Cargo: Cargo{Colonists: -25},
 				},
 			},
-			want: want{
-				cargoTransfers: []ByHandCargoTransfer{
-					{
-						SourceFleetNum:  1,
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Fleet #2", TargetNum: 2, TargetPlayerNum: 1},
-						Cargo:           Cargo{Colonists: 25},
-					},
-				},
-			},
+			want: want{cargoTransfers: []ByHandCargoTransfer{
+				{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Fleet #2", TargetNum: 2, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 25}, Fuel: 200},
+			}},
 		},
 		{
 			name: "delete source",
 			args: args{
-				source: testLongRangeScoutWithQuantity(player, 1).withNum(1),
-				dest:   testLongRangeScoutWithQuantity(player, 1).withNum(2),
+				source: testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 10, Germanium: 5}),
+				dest:   testSmallFreighter(player).withNum(2).withCargo(Cargo{Boranium: 7}),
 				destTokens: []ShipToken{
 					{
 						Quantity:  2,
 						DesignNum: 1,
 					},
 				},
-				transferAmount: CargoTransferRequest{Fuel: -300},
+				transferAmount: CargoTransferRequest{Fuel: -130},
 			},
-			want: want{deleteSource: true},
+			// the source gives everything it has to the dest
+			want: want{deleteSource: true, cargoTransfers: []ByHandCargoTransfer{
+				{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Small Freighter #2", TargetNum: 2, TargetPlayerNum: 1}, Cargo: Cargo{Ironium: 10, Germanium: 5}, Fuel: 130},
+			}},
 		},
 		{
 			name: "delete dest",
 			args: args{
-				source: testLongRangeScoutWithQuantity(player, 1).withNum(1),
-				dest:   testLongRangeScoutWithQuantity(player, 1).withNum(2),
+				source: testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 10, Germanium: 5}),
+				dest:   testSmallFreighter(player).withNum(2).withCargo(Cargo{Boranium: 7}),
 				sourceTokens: []ShipToken{
 					{
 						Quantity:  2,
@@ -1039,7 +1025,10 @@ func Test_orders_SplitFleet(t *testing.T) {
 					},
 				},
 			},
-			want: want{deleteDest: true},
+			// the dest gives everything it has to the source
+			want: want{deleteDest: true, cargoTransfers: []ByHandCargoTransfer{
+				{SourceFleetNum: 2, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Small Freighter #1", TargetNum: 1, TargetPlayerNum: 1}, Cargo: Cargo{Boranium: 7}, Fuel: 130},
+			}},
 		},
 	}
 	for _, tt := range tests {
@@ -1119,8 +1108,17 @@ func Test_orders_SplitFleet(t *testing.T) {
 					assert.Equal(t, sourceFuel+destFuel, source.Fuel)
 				}
 
-				// make sure our cargo transfers match up
-				test.CompareAsJSON(t, player.CargoTransfers[source.Position.String()], tt.want.cargoTransfers)
+				// by hand transfers record the cargo that moved between the fleets so shortfalls can follow it
+				transfers := player.CargoTransfers[source.Position.String()]
+				test.CompareAsJSON(t, transfers, tt.want.cargoTransfers)
+				switch {
+				case tt.want.deleteSource:
+					assert.Equal(t, sourceCargo, byHandFlow(transfers, source, dest))
+				case tt.want.deleteDest:
+					assert.Equal(t, destCargo, byHandFlow(transfers, dest, source))
+				default:
+					assert.Equal(t, dest.Cargo.Subtract(destCargo), byHandFlow(transfers, source, dest))
+				}
 			}
 
 		})
@@ -1176,12 +1174,13 @@ func Test_orders_SplitAll(t *testing.T) {
 		cargoTransfers CargoTransfers
 	}
 	tests := []struct {
-		name               string
-		args               args
-		wantSourceFleet    *Fleet
-		wantNewFleets      []*Fleet
+		name            string
+		args            args
+		wantSourceFleet *Fleet
+		wantNewFleets   []*Fleet
+		wantErr         bool
+		// the by hand transfers after the split, so shortfalls can follow the cargo
 		wantCargoTransfers CargoTransfers
-		wantErr            bool
 	}{
 		{
 			name: "split a scoutx3 into three fleets",
@@ -1431,18 +1430,19 @@ func Test_orders_SplitAll(t *testing.T) {
 			},
 			wantErr: false,
 			wantCargoTransfers: CargoTransfers{
-				// should split by hands into 10 separate loads
 				"(0, 0)": []ByHandCargoTransfer{
-					{SourceFleetNum: 1, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 10, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 9, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 8, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 7, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 6, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 5, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 4, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 3, Cargo: Cargo{Colonists: -10}},
-					{SourceFleetNum: 2, Cargo: Cargo{Colonists: -10}},
+					// the earlier load stays as it was
+					{SourceFleetNum: 1, Cargo: Cargo{Colonists: -100}},
+					// each new fleet takes its share of the colonists
+					{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Spore Cloud #2", TargetNum: 2, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 10}},
+					{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Spore Cloud #3", TargetNum: 3, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 10}},
+					{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Spore Cloud #4", TargetNum: 4, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 10}},
+					{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Spore Cloud #5", TargetNum: 5, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 10}},
+					{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Spore Cloud #6", TargetNum: 6, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 10}},
+					{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Spore Cloud #7", TargetNum: 7, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 10}},
+					{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Spore Cloud #8", TargetNum: 8, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 10}},
+					{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Spore Cloud #9", TargetNum: 9, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 10}},
+					{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Spore Cloud #10", TargetNum: 10, TargetPlayerNum: 1}, Cargo: Cargo{Colonists: 10}},
 				},
 			},
 		},
@@ -1484,8 +1484,11 @@ func Test_orders_SplitAll(t *testing.T) {
 					test.CompareAsJSON(t, gotNewFleets[i], fleet)
 				}
 
-				// compare by hand cargo transfers
+				// by hand transfers record the cargo each new fleet took so shortfalls can follow it
 				test.CompareAsJSON(t, tt.args.player.CargoTransfers, tt.wantCargoTransfers)
+				for _, fleet := range gotNewFleets {
+					assert.Equal(t, fleet.Cargo, byHandFlow(tt.args.player.CargoTransfers[fleet.Position.String()], tt.args.source, fleet))
+				}
 			}
 		})
 	}
@@ -2328,4 +2331,18 @@ func Test_orders_TransferByHandSalvage(t *testing.T) {
 			}
 		})
 	}
+}
+
+// byHandFlow totals the cargo recorded moving from one fleet to another
+func byHandFlow(transfers []ByHandCargoTransfer, from, to *Fleet) Cargo {
+	flow := Cargo{}
+	for _, transfer := range transfers {
+		if transfer.SourceFleetNum == from.Num && transfer.Targeting(to.MapObject) {
+			flow = flow.Add(transfer.Cargo)
+		}
+		if transfer.SourceFleetNum == to.Num && transfer.Targeting(from.MapObject) {
+			flow = flow.Subtract(transfer.Cargo)
+		}
+	}
+	return flow
 }

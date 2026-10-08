@@ -648,10 +648,10 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 		}))
 }
 
-func (m *messageClient) fleetByHandTransferIncomplete(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int, wanted int, status CargoTransferStatus) {
+func (m *messageClient) fleetByHandTransferIncomplete(player *Player, fleet *Fleet, target MapObjectTarget, cargoType CargoType, transferAmount int, wanted int, status CargoTransferStatus) {
 	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetByHandTransferIncomplete, fleet).
 		withSpec(PlayerMessageSpec{
-			MapObjectTarget: dest.GetMapObject().ToTarget(),
+			MapObjectTarget: target,
 			CargoTransfer:   &PlayerMessageSpecCargoTransfer{CargoType: cargoType, Transfered: transferAmount, Wanted: wanted, Status: status}}))
 }
 

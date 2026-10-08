@@ -3,305 +3,12 @@
 package cs
 
 import (
-	"reflect"
 	"testing"
 
 	"log/slog"
 
-	"github.com/sirgwain/craig-stars/test"
+	"github.com/stretchr/testify/assert"
 )
-
-func TestCargoTransfers_splitFleetCargoTransfers(t *testing.T) {
-	type args struct {
-		source        *Fleet
-		dest          *Fleet
-		excludeLatest bool
-	}
-	tests := []struct {
-		name           string
-		cargoTransfers CargoTransfers
-		args           args
-		want           []ByHandCargoTransfer
-		wantErr        bool
-	}{
-		{
-			name: "simple split",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{
-						SourceFleetNum: 1,
-						Cargo:          Cargo{Ironium: 2},
-					},
-				},
-			},
-			args: args{
-				source: &Fleet{MapObject: MapObject{Num: 1}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 1}}},
-				dest:   &Fleet{MapObject: MapObject{Num: 2}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 1}}},
-			},
-			want: []ByHandCargoTransfer{
-				{
-					SourceFleetNum: 1,
-					Cargo:          Cargo{Ironium: 1},
-				},
-				{
-					SourceFleetNum: 2,
-					Cargo:          Cargo{Ironium: 1},
-				},
-			},
-		},
-		{
-			name: "split exclude latest",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{
-						SourceFleetNum: 1,
-						Cargo:          Cargo{Ironium: 2},
-					},
-					{
-						SourceFleetNum: 1,
-						Cargo:          Cargo{Boranium: 2},
-					},
-				},
-			},
-			args: args{
-				source:        &Fleet{MapObject: MapObject{Num: 1}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 1}}},
-				dest:          &Fleet{MapObject: MapObject{Num: 2}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 1}}},
-				excludeLatest: true,
-			},
-			want: []ByHandCargoTransfer{
-				{
-					SourceFleetNum: 1,
-					Cargo:          Cargo{Ironium: 1},
-				},
-				{
-					SourceFleetNum: 2,
-					Cargo:          Cargo{Ironium: 1},
-				},
-				{
-					SourceFleetNum: 1,
-					Cargo:          Cargo{Boranium: 2},
-				},
-			},
-		},
-		{
-			name: "split no cargo in dest",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{
-						SourceFleetNum: 1,
-						Cargo:          Cargo{Ironium: 2},
-					},
-				},
-			},
-			args: args{
-				source: &Fleet{MapObject: MapObject{Num: 1}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 2}}},
-				dest:   &Fleet{MapObject: MapObject{Num: 2}},
-			},
-			want: []ByHandCargoTransfer{
-				{
-					SourceFleetNum: 1,
-					Cargo:          Cargo{Ironium: 2},
-				},
-			},
-		},
-		{
-			name: "delete source",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{
-						SourceFleetNum: 1,
-						Cargo:          Cargo{Ironium: 2},
-					},
-				},
-			},
-			args: args{
-				source: &Fleet{MapObject: MapObject{Num: 1, Delete: true}},
-				dest:   &Fleet{MapObject: MapObject{Num: 2}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 2}}},
-			},
-			want: []ByHandCargoTransfer{
-				{
-					SourceFleetNum: 2,
-					Cargo:          Cargo{Ironium: 2},
-				},
-			},
-		},
-		{
-			name: "delete dest",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{
-						SourceFleetNum: 1,
-						Cargo:          Cargo{Ironium: 2},
-					},
-				},
-			},
-			args: args{
-				source: &Fleet{MapObject: MapObject{Num: 1}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 2}}},
-				dest:   &Fleet{MapObject: MapObject{Num: 2, Delete: true}},
-			},
-			want: []ByHandCargoTransfer{
-				{
-					SourceFleetNum: 1,
-					Cargo:          Cargo{Ironium: 2},
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cargoTransfers.splitByHandTransfers(tt.args.source, tt.args.dest, tt.args.excludeLatest); (err != nil) != tt.wantErr {
-				t.Errorf("CargoTransfers.splitFleetCargoTransfers() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			got := tt.cargoTransfers.getTransfers(tt.args.source.Position)
-			test.CompareAsJSON(t, got, tt.want)
-		})
-	}
-}
-
-func TestCargoTransfers_mergeFleetCargoTransfers(t *testing.T) {
-	type args struct {
-		fleet         *Fleet
-		mergingFleets []*Fleet
-	}
-	tests := []struct {
-		name           string
-		cargoTransfers CargoTransfers
-		args           args
-		want           []ByHandCargoTransfer
-	}{
-		{
-			name: "simple merge",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{
-						SourceFleetNum: 1,
-						Cargo:          Cargo{Ironium: 1},
-					},
-					{
-						SourceFleetNum: 2,
-						Cargo:          Cargo{Ironium: 1},
-					},
-				},
-			},
-			args: args{
-				fleet:         &Fleet{MapObject: MapObject{Num: 1}},
-				mergingFleets: []*Fleet{{MapObject: MapObject{Num: 2}}},
-			},
-			want: []ByHandCargoTransfer{
-				{
-					SourceFleetNum: 1,
-					Cargo:          Cargo{Ironium: 2}, // should merge ironium in
-				},
-			},
-		},
-		{
-			name: "merge with different targets",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{
-						SourceFleetNum:  1,
-						Cargo:           Cargo{Ironium: 1},
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					},
-					{
-						SourceFleetNum: 2,
-						Cargo:          Cargo{Ironium: 1},
-					},
-					{
-						SourceFleetNum:  1,
-						Cargo:           Cargo{Ironium: 1},
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 1, TargetPlayerNum: 2},
-					},
-				},
-			},
-			args: args{
-				fleet:         &Fleet{MapObject: MapObject{Num: 1}},
-				mergingFleets: []*Fleet{{MapObject: MapObject{Num: 2}}},
-			},
-			want: []ByHandCargoTransfer{
-				{
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Ironium: 1},
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-				},
-				{
-					SourceFleetNum: 1,
-					Cargo:          Cargo{Ironium: 1},
-				},
-				{
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Ironium: 1},
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 1, TargetPlayerNum: 2},
-				},
-			},
-		},
-		{
-			name: "merge with different fleets",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{
-						SourceFleetNum: 1,
-						Cargo:          Cargo{Ironium: 1},
-					},
-					{
-						SourceFleetNum: 2,
-						Cargo:          Cargo{Ironium: 1},
-					},
-					{
-						SourceFleetNum: 3,
-						Cargo:          Cargo{Ironium: 1},
-					},
-				},
-			},
-			args: args{
-				fleet:         &Fleet{MapObject: MapObject{Num: 1}},
-				mergingFleets: []*Fleet{{MapObject: MapObject{Num: 2}}},
-			},
-			want: []ByHandCargoTransfer{
-				{
-					SourceFleetNum: 1,
-					Cargo:          Cargo{Ironium: 2},
-				},
-				{
-					SourceFleetNum: 3,
-					Cargo:          Cargo{Ironium: 1},
-				},
-			},
-		},
-		{
-			name: "merge with fleet to fleet transfer",
-			cargoTransfers: CargoTransfers{
-				Vector{}.String(): []ByHandCargoTransfer{
-					{
-						SourceFleetNum: 1,
-						Cargo:          Cargo{Ironium: 1},
-						// transfer to fleet 2
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 2, TargetPlayerNum: 1},
-					},
-					{
-						SourceFleetNum: 2,
-						Cargo:          Cargo{Ironium: 1},
-						// transfer to fleet 1
-						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 1, TargetPlayerNum: 1},
-					},
-				},
-			},
-			args: args{
-				fleet:         &Fleet{MapObject: MapObject{Type: MapObjectTypeFleet, PlayerNum: 1, Num: 1}},
-				mergingFleets: []*Fleet{{MapObject: MapObject{Type: MapObjectTypeFleet, PlayerNum: 1, Num: 2}}},
-			},
-			want: []ByHandCargoTransfer{},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.cargoTransfers.mergeByHandTransfers(tt.args.fleet, tt.args.mergingFleets)
-			got := tt.cargoTransfers.getTransfers(tt.args.fleet.Position)
-			test.CompareAsJSON(t, got, tt.want)
-		})
-	}
-}
 
 func TestCargoTransferer_getCargoLoadAmount(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
@@ -483,7 +190,6 @@ func TestCargoTransferer_getCargoUnloadAmount(t *testing.T) {
 		args               args
 		wantTransferAmount int
 		wantWantToTransfer int
-		wantWaitAtWaypoint bool
 	}{
 		{
 			name:               "unload 1kt ironium",
@@ -588,15 +294,12 @@ func TestCargoTransferer_getCargoUnloadAmount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			cargoTransferer := newCargoTransferer(slog.Default(), &FullGame{})
-			gotTransferAmount, gotWantToTransfer, gotWaitAtWaypoint := cargoTransferer.getCargoUnloadAmount(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.task)
+			gotTransferAmount, gotWantToTransfer := cargoTransferer.getCargoUnloadAmount(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.task)
 			if gotTransferAmount != tt.wantTransferAmount {
 				t.Errorf("cargoTransfer.getCargoUnloadAmount() gotTransferAmount = %v, want %v", gotTransferAmount, tt.wantTransferAmount)
 			}
 			if gotWantToTransfer != tt.wantWantToTransfer {
 				t.Errorf("cargoTransfer.getCargoUnloadAmount() gotWantToTransfer = %v, want %v", gotWantToTransfer, tt.wantWantToTransfer)
-			}
-			if gotWaitAtWaypoint != tt.wantWaitAtWaypoint {
-				t.Errorf("cargoTransfer.getCargoUnloadAmount() gotWaitAtWaypoint = %v, want %v", gotWaitAtWaypoint, tt.wantWaitAtWaypoint)
 			}
 		})
 	}
@@ -684,375 +387,159 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 	}
 }
 
-func Test_cargoTransferer_loadByHands(t *testing.T) {
-	player := NewPlayer(0, NewRace().WithSpec(&rules)).WithNum(1)
-
-	type fields struct {
-		fleets  []*Fleet
-		targets []CargoHolder
-	}
-	tests := []struct {
-		name            string
-		fields          fields
-		transfers       []ByHandCargoTransfer
-		want            []cargoTransferResult
-		wantSourceCargo []Cargo
-		wantTargetCargo []Cargo
-	}{
-		{
-			name: "load 10kT ironium from a planet",
-			fields: fields{
-				fleets:  []*Fleet{testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 10})},
-				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 20})},
-			},
-			transfers: []ByHandCargoTransfer{
-				{
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Ironium: -10},
-				},
-			},
-			want: []cargoTransferResult{
-				{
-					cargoType:   Ironium,
-					transferred: -10,
-					wanted:      -10,
-				},
-			},
-			wantSourceCargo: []Cargo{
-				{Ironium: 10}, // the fleet cargo should stay the same, it just transfers for real this time
-			},
-			wantTargetCargo: []Cargo{
-				{Ironium: 10}, // should end up with 10 ironium left on the planet
-			},
-		},
-		{
-			name: "load 20kT ironium from a planet after another fleet unloads 10kT",
-			fields: fields{
-				fleets: []*Fleet{
-					testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 20}),
-					testSmallFreighter(player).withNum(2).withCargo(Cargo{Ironium: 0}),
-				},
-				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 20})},
-			},
-			transfers: []ByHandCargoTransfer{
-				{
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					SourceFleetNum:  2,
-					Cargo:           Cargo{Ironium: 10}, // some other fleet dumps 10kT onto the planet by hand
-				},
-				{
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Ironium: -20}, // our fleet loads 20kT (10kT from the other fleet's dump, 10kT from the planet)
-				},
-			},
-			want: []cargoTransferResult{
-				{
-					cargoType:   Ironium,
-					transferred: -10,
-					wanted:      -10,
-				},
-			},
-			wantSourceCargo: []Cargo{
-				{Ironium: 20},
-				{Ironium: 0},
-			},
-			wantTargetCargo: []Cargo{
-				{Ironium: 10}, // should end up with 10 ironium left on the planet
-			},
-		},
-		{
-			name: "load 10kT ironium from a planet but someone else got it first",
-			fields: fields{
-				fleets:  []*Fleet{testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 10})},
-				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 0})},
-			},
-			transfers: []ByHandCargoTransfer{
-				{
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Ironium: -10},
-				},
-			},
-			want: []cargoTransferResult{
-				{
-					cargoType:   Ironium,
-					transferred: 0,
-					wanted:      -10,
-				},
-			},
-			wantSourceCargo: []Cargo{
-				{Ironium: 0}, // someone else got the cargo, we end up with nothing instead of 10
-			},
-			wantTargetCargo: []Cargo{
-				{Ironium: 0}, // planet cargo stays the same
-			},
-		},
-		{
-			name: "missing target during by-hand load should not leave source fleet mutated",
-			fields: fields{
-				fleets: []*Fleet{
-					testSmallFreighter(player).withNum(1).withCargo(Cargo{Colonists: 25}),
-				},
-				targets: nil,
-			},
-			transfers: []ByHandCargoTransfer{
-				{
-					// This transfer references a missing fleet
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 2, TargetPlayerNum: player.Num},
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Colonists: -25},
-				},
-			},
-			wantSourceCargo: []Cargo{
-				// source fleet must remain unchanged when target is missing.
-				{Colonists: 25},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			game := &FullGame{
-				Game:      &Game{},
-				Universe:  &Universe{log: testLogger},
-				TechStore: &StaticTechStore,
-				Players:   []*Player{player},
-			}
-
-			game.Fleets = tt.fields.fleets
-			for _, target := range tt.fields.targets {
-				switch t := target.(type) {
-				case *Planet:
-					game.Planets = append(game.Planets, t)
-				case *Salvage:
-					game.Salvages = append(game.Salvages, t)
-				case *MineralPacket:
-					game.MineralPackets = append(game.MineralPackets, t)
-				case *Fleet:
-					game.Fleets = append(game.Fleets, t)
-				}
-			}
-
-			if err := game.Universe.buildMaps(game.Players); err != nil {
-				t.Error(err)
-				return
-			}
-
-			tr := newCargoTransferer(testLogger, game)
-			got := tr.loadByHands(player, tt.transfers)
-			// these are passed in as args, don't compare them
-			for i := range got {
-				tt.want[i].fleet = nil
-				got[i].fleet = nil
-				tt.want[i].dest = nil
-				got[i].dest = nil
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("cargoTransferer.loadByHands() = %v, want %v", got, tt.want)
-			}
-
-			for i, dest := range tt.fields.targets {
-				if dest.GetCargo() != tt.wantTargetCargo[i] {
-					t.Errorf("cargoTransferer.loadByHands() got dest cargo = %v, want %v", dest.GetCargo(), tt.wantTargetCargo[i])
-				}
-			}
-			for i, fleet := range tt.fields.fleets {
-				if fleet.Cargo != tt.wantSourceCargo[i] {
-					t.Errorf("cargoTransferer.loadByHands() got source cargo = %v, want %v", fleet.Cargo, tt.wantSourceCargo[i])
-				}
-			}
-		})
-	}
+func newTestCargoTransferer(players ...*Player) cargoTransferer {
+	return newCargoTransferer(testLogger, &FullGame{Game: NewGame(), Universe: &Universe{}, Players: players})
 }
 
-func Test_cargoTransferer_unloadByHands(t *testing.T) {
-	player := NewPlayer(0, NewRace().WithSpec(&rules)).WithNum(1)
-
-	type fields struct {
-		fleets  []*Fleet
-		targets []CargoHolder
+func TestCargoTransferer_waypointTransfers(t *testing.T) {
+	player1 := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+	player2 := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2)
+	planet := func(cargo Cargo) *Planet {
+		p := NewPlanet().WithCargo(cargo)
+		p.PlayerNum = player1.Num
+		return p
 	}
-	tests := []struct {
-		name            string
-		fields          fields
-		transfers       []ByHandCargoTransfer
-		want            []cargoTransferResult
-		wantSourceCargo []Cargo
-		wantTargetCargo []Cargo
-	}{
-		{
-			name: "unload 10kT ironium to a planet",
-			fields: fields{
-				// the fleet has "0" ironium because it already did the transfer on the front end
-				fleets:  []*Fleet{testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 0})},
-				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 10})},
-			},
-			transfers: []ByHandCargoTransfer{
-				{
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Ironium: 10}, // unload 10kT ironium
-				},
-			},
-			want: []cargoTransferResult{
-				{
-					cargoType:   Ironium,
-					transferred: 10,
-					wanted:      10,
-				},
-			},
-			wantSourceCargo: []Cargo{
-				{Ironium: 0}, // the fleet cargo should stay the same, it just transfers for real this time
-			},
-			wantTargetCargo: []Cargo{
-				{Ironium: 20}, // should end up with 20 ironium total on the planet
-			},
-		},
-		{
-			name: "unload 10kT ironium, another fleet unloads 10kT germ, loads 10kT ironium",
-			fields: fields{
-				fleets: []*Fleet{
-					testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 0}),
-					testSmallFreighter(player).withNum(2).withCargo(Cargo{Ironium: 0}),
-				},
-				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{})},
-			},
-			transfers: []ByHandCargoTransfer{
-				{
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					SourceFleetNum:  2,
-					Cargo:           Cargo{Ironium: 10}, // dump 10kT onto the planet by hand
-				},
-				{
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Ironium: -10, Germanium: 10}, // load 10kT ironium, dump 10kT Germanium
-				},
-			},
-			want: []cargoTransferResult{
-				{
-					cargoType:   Germanium,
-					transferred: 10,
-					wanted:      10,
-				},
-			},
-			wantSourceCargo: []Cargo{
-				{Ironium: 0},
-				{Ironium: 0},
-			},
-			wantTargetCargo: []Cargo{
-				{Ironium: 0, Germanium: 10}, // should end up with 0 ironium, 10 germ
-			},
-		},
-		{
-			name: "unload 50kT ironium, another fleet loads 10kT, should end up with 40kT unloaded",
-			fields: fields{
-				fleets: []*Fleet{
-					testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 0}),
-					testSmallFreighter(player).withNum(2).withCargo(Cargo{Ironium: 10}),
-				},
-				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{})},
-			},
-			transfers: []ByHandCargoTransfer{
-				{
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Ironium: 50}, // dump 50kT onto the salvage
-				},
-				{
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
-					SourceFleetNum:  2,
-					Cargo:           Cargo{Ironium: -10}, // load 10kT ironium
-				},
-			},
-			want: []cargoTransferResult{
-				{
-					cargoType:   Ironium,
-					transferred: 40,
-					wanted:      40,
-				},
-			},
-			wantSourceCargo: []Cargo{
-				{Ironium: 0},
-				{Ironium: 10},
-			},
-			wantTargetCargo: []Cargo{
-				{Ironium: 40}, // should end up with 40 ironium
-			},
-		},
-		{
-			name: "missing target during by-hand unload should not leave source fleet mutated",
-			fields: fields{
-				fleets: []*Fleet{
-					testSmallFreighter(player).withNum(1).withCargo(Cargo{Colonists: 0}),
-				},
-				targets: nil,
-			},
-			transfers: []ByHandCargoTransfer{
-				{
-					// This transfer references a missing fleet
-					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 2, TargetPlayerNum: player.Num},
-					SourceFleetNum:  1,
-					Cargo:           Cargo{Colonists: 25},
-				},
-			},
-			wantSourceCargo: []Cargo{
-				// source fleet must remain unchanged when target is missing.
-				{Colonists: 0},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			game := &FullGame{
-				Game:      &Game{},
-				Universe:  &Universe{log: testLogger},
-				TechStore: &StaticTechStore,
-				Players:   []*Player{player},
-			}
 
-			game.Fleets = tt.fields.fleets
+	t.Run("fuel moves between fleets", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withFuel(100)
+		dest := testSmallFreighter(player1).withFuel(0)
 
-			for _, target := range tt.fields.targets {
-				switch t := target.(type) {
-				case *Planet:
-					game.Planets = append(game.Planets, t)
-				case *Salvage:
-					game.Salvages = append(game.Salvages, t)
-				case *MineralPacket:
-					game.MineralPackets = append(game.MineralPackets, t)
-				case *Fleet:
-					game.Fleets = append(game.Fleets, t)
-				}
-			}
+		results := tr.unload(fleet, dest, WaypointTransportTasks{Fuel: WaypointTransportTask{Action: TransportActionUnloadAmount, Amount: 30}})
+		assert.Equal(t, CargoTransferStatusNone, results[0].status)
+		assert.Equal(t, 70, fleet.Fuel)
+		assert.Equal(t, 30, dest.Fuel)
 
-			if err := game.Universe.buildMaps(game.Players); err != nil {
-				t.Error(err)
-				return
-			}
+		results, _ = tr.load(fleet, dest, WaypointTransportTasks{Fuel: WaypointTransportTask{Action: TransportActionLoadAmount, Amount: 10}})
+		assert.Equal(t, CargoTransferStatusNone, results[0].status)
+		assert.Equal(t, 80, fleet.Fuel)
+		assert.Equal(t, 20, dest.Fuel)
+	})
 
-			tr := newCargoTransferer(testLogger, game)
-			got := tr.unloadByHands(player, tt.transfers)
-			// these are passed in as args, don't compare them
-			for i := range got {
-				tt.want[i].fleet = nil
-				got[i].fleet = nil
-				tt.want[i].dest = nil
-				got[i].dest = nil
-			}
-			test.CompareAsJSON(t, got, tt.want)
+	t.Run("fuel doesn't go to planets", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withFuel(100)
+		results := tr.unload(fleet, planet(Cargo{}), WaypointTransportTasks{Fuel: WaypointTransportTask{Action: TransportActionUnloadAll}})
+		assert.Equal(t, 0, results[0].transferred)
+		assert.Equal(t, 100, fleet.Fuel)
+	})
 
-			for i, dest := range tt.fields.targets {
-				if dest.GetCargo() != tt.wantTargetCargo[i] {
-					t.Errorf("cargoTransferer.unloadByHands() got dest cargo = %v, want %v", dest.GetCargo(), tt.wantTargetCargo[i])
-				}
-			}
-			for i, fleet := range tt.fields.fleets {
-				if fleet.Cargo != tt.wantSourceCargo[i] {
-					t.Errorf("cargoTransferer.unloadByHands() got source cargo = %v, want %v", fleet.Cargo, tt.wantSourceCargo[i])
-				}
-			}
+	t.Run("cargo loads in a fixed order", func(t *testing.T) {
+		for i := 0; i < 20; i++ {
+			tr := newTestCargoTransferer(player1, player2)
+			fleet := testSmallFreighter(player1)
+			tr.load(fleet, planet(Cargo{Ironium: 1000, Germanium: 1000}), WaypointTransportTasks{
+				Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
+				Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
+			})
+			assert.Equal(t, Cargo{Ironium: fleet.Spec.CargoCapacity}, fleet.Cargo)
+		}
+	})
+
+	t.Run("set amount to unloads what the dest has room for", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Ironium: 100})
+		dest := testSmallFreighter(player1)
+		dest.Cargo = Cargo{Germanium: dest.Spec.CargoCapacity - 10}
+		results := tr.unload(fleet, dest, WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 0}})
+		assert.Equal(t, CargoTransferStatusNone, results[0].status)
+		assert.Equal(t, Cargo{Ironium: 90}, fleet.Cargo)
+	})
+
+	t.Run("set amount to waits for the dest, not for room", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Germanium: 100})
+		_, wait := tr.load(fleet, planet(Cargo{Ironium: 1000}), WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 50}})
+		assert.False(t, wait)
+		assert.Equal(t, fleet.Spec.CargoCapacity, fleet.Cargo.Total())
+
+		fleet = testSmallFreighter(player1)
+		_, wait = tr.load(fleet, planet(Cargo{Ironium: 10}), WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 50}})
+		assert.True(t, wait)
+	})
+
+	t.Run("wait for percent leaves when the hold is full", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1)
+		// ironium can't reach 80%, but germanium fills the rest of the hold
+		_, wait := tr.load(fleet, planet(Cargo{Ironium: 10, Germanium: 1000}), WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 80},
+			Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
 		})
-	}
+		assert.False(t, wait)
+
+		fleet = testSmallFreighter(player1)
+		_, wait = tr.load(fleet, planet(Cargo{Ironium: 10}), WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 80}})
+		assert.True(t, wait)
+	})
+
+	t.Run("dunnage waits for other loads", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1)
+		_, wait := tr.load(fleet, planet(Cargo{Ironium: 10, Germanium: 1000}), WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 50},
+			Germanium: WaypointTransportTask{Action: TransportActionLoadDunnage},
+		})
+		assert.True(t, wait)
+		assert.Equal(t, Cargo{Ironium: 10}, fleet.Cargo)
+
+		fleet = testSmallFreighter(player1)
+		_, wait = tr.load(fleet, planet(Cargo{Ironium: 1000, Germanium: 1000}), WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 50},
+			Germanium: WaypointTransportTask{Action: TransportActionLoadDunnage},
+		})
+		assert.False(t, wait)
+		assert.Equal(t, fleet.Spec.CargoCapacity, fleet.Cargo.Total())
+		assert.Equal(t, fleet.Spec.CargoCapacity/2, fleet.Cargo.Ironium)
+	})
+
+	t.Run("no colonists to another player's fleet", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Colonists: 10})
+		dest := testSmallFreighter(player2)
+		results := tr.unload(fleet, dest, WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionUnloadAll}})
+		assert.Equal(t, CargoTransferStatusOwned, results[0].status)
+		assert.Equal(t, Cargo{Colonists: 10}, fleet.Cargo)
+		assert.Equal(t, Cargo{}, dest.Cargo)
+	})
+
+	t.Run("colonists stay aboard in deep space", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Colonists: 10, Ironium: 10})
+		salvage := newSalvage(Vector{}, 1, player1.Num, Cargo{})
+		results := tr.unload(fleet, salvage, WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
+			Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
+		})
+		assert.Equal(t, CargoTransferStatusDeepSpace, results[1].status)
+		assert.Equal(t, Cargo{Colonists: 10}, fleet.Cargo)
+		assert.Equal(t, Cargo{Ironium: 10}, salvage.Cargo)
+	})
+
+	t.Run("enemies don't accept cargo", func(t *testing.T) {
+		enemy := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).
+			WithRelations([]PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}})
+		tr := newTestCargoTransferer(player1, enemy)
+		fleet := testSmallFreighter(player1).withCargo(Cargo{Ironium: 10})
+		dest := testSmallFreighter(enemy)
+		results := tr.unload(fleet, dest, WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionUnloadAll}})
+		assert.Equal(t, CargoTransferStatusOwned, results[0].status)
+		assert.Equal(t, Cargo{Ironium: 10}, fleet.Cargo)
+	})
+
+	t.Run("thieves can't take colonists or fuel", func(t *testing.T) {
+		tr := newTestCargoTransferer(player1, player2)
+		thief := testSmallFreighter(player1).withFuel(0)
+		thief.Spec.CanStealFleetCargo = true
+		victim := testSmallFreighter(player2).withCargo(Cargo{Ironium: 10, Colonists: 10})
+		results, _ := tr.load(thief, victim, WaypointTransportTasks{
+			Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
+			Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
+			Fuel:      WaypointTransportTask{Action: TransportActionLoadAll},
+		})
+		assert.Equal(t, Cargo{Ironium: 10}, thief.Cargo)
+		assert.Equal(t, 0, thief.Fuel)
+		assert.Equal(t, CargoTransferStatusOwned, results[1].status)
+		assert.Equal(t, CargoTransferStatusOwned, results[2].status)
+	})
 }
