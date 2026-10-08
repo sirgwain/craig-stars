@@ -11,7 +11,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// byHandScenario has player 1's freighters, player 2's freighter and a salvage, all at player 1's planet
+// byHandScenario has player 1's freighters, player 2's freighter and a salvage, all at player 1's planet.
+// Everything starts at the same location:
+//
+//	Planet 1 (player 1)      500kT ironium, boranium and germanium
+//	Teamster #1 (player 1)   50kT ironium, 20kT boranium   (420kT hold, 900mg fuel, full)
+//	Teamster #2 (player 1)   empty                         (420kT hold, 900mg fuel, full)
+//	Teamster #3 (player 1)   70kT germanium                (420kT hold, 900mg fuel, full)
+//	Hauler #1 (player 2)     empty                         (210kT hold, 450mg fuel, full)
+//	Salvage #1               100kT ironium, boranium and germanium
+//
+// In u.TransferByHand, positive cargo is loaded into the fleet and negative cargo is unloaded from it.
+// Transfers with player 1's own planet and fleets happen right away. Transfers with the salvage and
+// player 2's fleet only change player 1's intel until fleetByHandTransfers settles them.
 func byHandScenario() TestScenario {
 	second := AIPlayer("Player 2")
 	second.Designs = Designs(DesignTeamster)
@@ -65,14 +77,18 @@ func byHandIncompleteMessages(player *Player) []PlayerMessage {
 func Test_turn_fleetByHandTransfers(t *testing.T) {
 	t.Run("transfers between our own objects aren't replayed", func(t *testing.T) {
 		u := newByHandTestUniverse(t)
+		// Teamster #2 loads 100kT ironium from the planet (planet 500 -> 400), takes Teamster #1's 50kT
+		// (Teamster #1 50 -> 0), then unloads all 150kT back to the planet (planet 400 -> 550)
 		u.TransferByHand(1, "Teamster #2", "Planet 1", Cargo{Ironium: 100})
 		u.TransferByHand(1, "Teamster #2", "Teamster #1", Cargo{Ironium: 50})
 		u.TransferByHand(1, "Teamster #2", "Planet 1", Cargo{Ironium: -150})
 
+		// these all happened already, so there's nothing to settle
 		assert.Empty(t, u.Player(1).CargoTransfers)
 
 		u.turn.fleetByHandTransfers()
 
+		// settling leaves everything as the player left it
 		assert.Equal(t, Cargo{Boranium: 20}, u.FleetFor(1, "Teamster #1").Cargo)
 		assert.Equal(t, Cargo{}, u.FleetFor(1, "Teamster #2").Cargo)
 		assert.Equal(t, 550, u.Planet("Planet 1").Cargo.Ironium)
@@ -80,18 +96,21 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 
 	t.Run("another player loaded the salvage first", func(t *testing.T) {
 		u := newByHandTestUniverse(t)
-		// player 2 loads 60kT, player 1 loads all 100kT, then moves it to another fleet
+		// both players see 100kT ironium in the salvage. Player 2 loads 60kT. Player 1 loads all 100kT into
+		// Teamster #2, then moves it to Teamster #3 (70kT germanium -> 70kT germanium, 100kT ironium).
+		// Together they took 160kT from a salvage that has 100kT
 		u.TransferByHand(2, "Hauler #1", "Salvage #1", Cargo{Ironium: 60})
 		u.TransferByHand(1, "Teamster #2", "Salvage #1", Cargo{Ironium: 100})
 		u.TransferByHand(1, "Teamster #2", "Teamster #3", Cargo{Ironium: -100})
 
 		u.turn.fleetByHandTransfers()
 
-		// player 1 settles first and gets everything it took
+		// player 1 settles first and gets all 100kT, so nothing changes for them
 		assert.Equal(t, Cargo{Germanium: 70, Ironium: 100}, u.FleetFor(1, "Teamster #3").Cargo)
 		assert.Empty(t, byHandIncompleteMessages(u.Player(1)))
 
-		// player 2 only gets what's left. It doesn't make any
+		// the salvage is empty when player 2 settles. The Hauler gets nothing and player 2 gets a message
+		// saying 0 of the 60kT loaded
 		assert.Equal(t, Cargo{}, u.FleetFor(2, "Hauler #1").Cargo)
 		assert.Equal(t, 0, u.Game.Salvages[0].Cargo.Ironium)
 		messages := byHandIncompleteMessages(u.Player(2))
@@ -102,15 +121,18 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 
 	t.Run("shortfall comes out of the fleet we moved the cargo to", func(t *testing.T) {
 		u := newByHandTestUniverse(t)
-		// player 1 sees 100kT and loads it all, then moves it to another fleet
+		// player 1 sees 100kT ironium in the salvage and loads it all into Teamster #2, then moves it to
+		// Teamster #3 (70kT germanium -> 70kT germanium, 100kT ironium). Teamster #2 is empty again
 		u.TransferByHand(1, "Teamster #2", "Salvage #1", Cargo{Ironium: 100})
 		u.TransferByHand(1, "Teamster #2", "Teamster #3", Cargo{Ironium: -100})
-		// someone else took 40kT before player 1's load is settled
+		// someone else took 40kT before player 1's load is settled. The salvage has 60kT
 		u.Game.Salvages[0].Cargo.Ironium = 60
 
 		u.turn.fleetByHandTransfers()
 
-		// no cargo is created
+		// player 1 only gets 60kT. The 40kT shortfall can't come from Teamster #2 (it's empty), so it comes
+		// from the fleet holding the most ironium: Teamster #3 (100kT -> 60kT). Teamster #1's 50kT is left
+		// alone. The old code created the missing 40kT out of nothing
 		assert.Equal(t, Cargo{}, u.FleetFor(1, "Teamster #2").Cargo)
 		assert.Equal(t, Cargo{Germanium: 70, Ironium: 60}, u.FleetFor(1, "Teamster #3").Cargo)
 		assert.Equal(t, 0, u.Game.Salvages[0].Cargo.Ironium)
@@ -122,27 +144,35 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 
 	t.Run("shortfall reduces cargo we gave away", func(t *testing.T) {
 		u := newByHandTestUniverse(t)
-		// player 1 loads 100kT from the salvage and gives it all to player 2
+		// player 1 loads 100kT ironium from the salvage into Teamster #2 and gives all 100kT to player 2's
+		// Hauler. Teamster #2 is empty again
 		u.TransferByHand(1, "Teamster #2", "Salvage #1", Cargo{Ironium: 100})
 		u.TransferByHand(1, "Teamster #2", "Hauler #1", Cargo{Ironium: -100})
+		// someone else took 40kT before player 1's load is settled. The salvage has 60kT
 		u.Game.Salvages[0].Cargo.Ironium = 60
 
 		u.turn.fleetByHandTransfers()
 
+		// player 1 only got 60kT, so they can only give 60kT. The 40kT shortfall comes out of the gift to the
+		// Hauler instead of Teamster #1's 50kT ironium
 		assert.Equal(t, Cargo{}, u.FleetFor(1, "Teamster #2").Cargo)
 		assert.Equal(t, Cargo{Ironium: 60}, u.FleetFor(2, "Hauler #1").Cargo)
+		// one message for the short load, one for the short gift
 		assert.Len(t, byHandIncompleteMessages(u.Player(1)), 2)
 	})
 
 	t.Run("cargo a target can't hold comes back", func(t *testing.T) {
 		u := newByHandTestUniverse(t)
+		// Teamster #1 gives all 50kT of its ironium to player 2's Hauler (Teamster #1 -> 20kT boranium)
 		u.TransferByHand(1, "Teamster #1", "Hauler #1", Cargo{Ironium: -50})
-		// player 2 filled their freighter before player 1's unload is settled
+		// player 2 loaded 190kT germanium into the Hauler before player 1's gift is settled. The Hauler holds
+		// 210kT, so it only has room for 20kT
 		hauler := u.FleetFor(2, "Hauler #1")
 		hauler.Cargo = Cargo{Germanium: hauler.Spec.CargoCapacity - 20}
 
 		u.turn.fleetByHandTransfers()
 
+		// the Hauler takes 20kT and the other 30kT goes back to Teamster #1 (30kT ironium, 20kT boranium)
 		assert.Equal(t, Cargo{Germanium: hauler.Spec.CargoCapacity - 20, Ironium: 20}, hauler.Cargo)
 		assert.Equal(t, Cargo{Ironium: 30, Boranium: 20}, u.FleetFor(1, "Teamster #1").Cargo)
 		messages := byHandIncompleteMessages(u.Player(1))
@@ -153,11 +183,14 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 
 	t.Run("cargo for a fleet that's gone comes back", func(t *testing.T) {
 		u := newByHandTestUniverse(t)
+		// Teamster #1 gives all 50kT of its ironium to player 2's Hauler (Teamster #1 -> 20kT boranium)
 		u.TransferByHand(1, "Teamster #1", "Hauler #1", Cargo{Ironium: -50})
+		// the Hauler is gone (merged or scrapped) before the gift is settled
 		u.FleetFor(2, "Hauler #1").Delete = true
 
 		u.turn.fleetByHandTransfers()
 
+		// all 50kT goes back to Teamster #1
 		assert.Equal(t, Cargo{Ironium: 50, Boranium: 20}, u.FleetFor(1, "Teamster #1").Cargo)
 		assert.Len(t, byHandIncompleteMessages(u.Player(1)), 1)
 	})
@@ -169,6 +202,8 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 		hauler.Fuel = 0
 		player.GetFleetIntel(hauler.PlayerNum, hauler.Num).Fuel = 0
 		startFuel := fleet.Fuel
+		// Teamster #1 (900mg) gives 50mg to the Hauler, which starts with an empty 450mg tank.
+		// Teamster #1 drops to 850mg right away. The Hauler gets the fuel when it's settled
 		if err := NewOrderer().TransferByHand(&u.Game.Rules, player, fleet, player.GetFleetIntel(hauler.PlayerNum, hauler.Num), CargoTransferRequest{Fuel: -50}); err != nil {
 			t.Fatal(err)
 		}
@@ -187,14 +222,16 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 		hauler.Fuel = 0
 		player.GetFleetIntel(hauler.PlayerNum, hauler.Num).Fuel = 0
 		startFuel := fleet.Fuel
+		// Teamster #1 (900mg) gives 50mg to the Hauler (Teamster #1 -> 850mg)
 		if err := NewOrderer().TransferByHand(&u.Game.Rules, player, fleet, player.GetFleetIntel(hauler.PlayerNum, hauler.Num), CargoTransferRequest{Fuel: -50}); err != nil {
 			t.Fatal(err)
 		}
-		// player 2 filled their tank before player 1's fuel is delivered
+		// player 2 refueled the Hauler to 430mg of 450mg before the gift is settled, so it only has room for 20mg
 		hauler.Fuel = hauler.Spec.FuelCapacity - 20
 
 		u.turn.fleetByHandTransfers()
 
+		// the Hauler fills up with 20mg and the other 30mg goes back to Teamster #1 (850mg -> 880mg)
 		assert.Equal(t, startFuel-20, fleet.Fuel)
 		assert.Equal(t, hauler.Spec.FuelCapacity, hauler.Fuel)
 		messages := byHandIncompleteMessages(player)
@@ -208,7 +245,8 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 		player := u.Player(1)
 		fleet, hauler := u.FleetFor(1, "Teamster #1"), u.FleetFor(2, "Hauler #1")
 		orderer := NewOrderer()
-		// can't take fuel from another player
+		// these are all rejected when the player makes them, so nothing is recorded to settle.
+		// can't take fuel from another player's fleet, even with an empty tank
 		assert.Error(t, orderer.TransferByHand(&u.Game.Rules, player, u.FleetFor(1, "Teamster #2").withFuel(0), player.GetFleetIntel(hauler.PlayerNum, hauler.Num), CargoTransferRequest{Fuel: 10}))
 		// can't jettison fuel or give it to a planet
 		assert.Error(t, orderer.TransferByHand(&u.Game.Rules, player, fleet, nil, CargoTransferRequest{Fuel: -10}))
@@ -221,6 +259,8 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 		player := u.Player(1)
 		fleet := u.FleetFor(1, "Teamster #1").withCargo(Cargo{Colonists: 10})
 		orderer := NewOrderer()
+		// Teamster #1 has 10kT of colonists. Jettisoning them or putting them in the salvage is rejected, and
+		// they stay aboard
 		assert.Error(t, orderer.TransferByHand(&u.Game.Rules, player, fleet, nil, CargoTransferRequest{Cargo: Cargo{Colonists: -10}}))
 		assert.Error(t, orderer.TransferByHand(&u.Game.Rules, player, fleet, player.GetSalvageIntel(u.Game.Salvages[0].Num), CargoTransferRequest{Cargo: Cargo{Colonists: -10}}))
 		assert.Equal(t, Cargo{Colonists: 10}, fleet.Cargo)
@@ -231,13 +271,15 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 		u := newByHandTestUniverse(t)
 		player := u.Player(1)
 		fleet := u.FleetFor(1, "Teamster #1")
-		// orders reject this now, but transfers recorded before that still settle
+		// orders reject this now, but a game in progress could have a jettison of 10kT of colonists from
+		// Teamster #1 recorded before that. Teamster #1 already lost the colonists when it was made
 		player.CargoTransfers = CargoTransfers{fleet.Position.String(): []ByHandCargoTransfer{
 			{SourceFleetNum: fleet.Num, MapObjectTarget: MapObjectTarget{TargetPosition: fleet.Position}, Cargo: Cargo{Colonists: 10}},
 		}}
 
 		u.turn.fleetByHandTransfers()
 
+		// the colonists go back to Teamster #1 instead of dying in a salvage
 		assert.Equal(t, 10, fleet.Cargo.Colonists)
 		messages := byHandIncompleteMessages(player)
 		if assert.Len(t, messages, 1) {
@@ -248,15 +290,19 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 	t.Run("transfers follow merged fleets", func(t *testing.T) {
 		u := newByHandTestUniverse(t)
 		player := u.Player(1)
+		// Teamster #2 loads 100kT ironium from the salvage, then merges into Teamster #3
+		// (Teamster #3 -> 70kT germanium, 100kT ironium). The salvage load now belongs to Teamster #3
 		u.TransferByHand(1, "Teamster #2", "Salvage #1", Cargo{Ironium: 100})
 		fleet2, fleet3 := u.FleetFor(1, "Teamster #2"), u.FleetFor(1, "Teamster #3")
 		if _, err := NewOrderer().Merge(&u.Game.Rules, player, []*Fleet{fleet3, fleet2}); err != nil {
 			t.Fatal(err)
 		}
+		// someone else took 30kT before the load is settled. The salvage has 70kT
 		u.Game.Salvages[0].Cargo.Ironium = 70
 
 		u.turn.fleetByHandTransfers()
 
+		// the 30kT shortfall comes out of Teamster #3 (100kT -> 70kT), and the message is about Teamster #3
 		assert.Equal(t, Cargo{Germanium: 70, Ironium: 70}, fleet3.Cargo)
 		messages := byHandIncompleteMessages(player)
 		if assert.Len(t, messages, 1) {
@@ -265,7 +311,7 @@ func Test_turn_fleetByHandTransfers(t *testing.T) {
 	})
 }
 
-// cargo totals everything that holds minerals at the by hand scenario's location
+// byHandFuel totals the fuel in every fleet
 func byHandFuel(u *testUniverse) int {
 	total := 0
 	for _, fleet := range u.Game.Fleets {
@@ -276,6 +322,7 @@ func byHandFuel(u *testUniverse) int {
 	return total
 }
 
+// byHandMinerals totals the minerals in everything that holds them at the by hand scenario's location
 func byHandMinerals(u *testUniverse) Cargo {
 	total := Cargo{}
 	for _, fleet := range u.Game.Fleets {
