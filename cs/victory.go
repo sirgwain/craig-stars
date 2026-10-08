@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"math"
 	"sort"
 )
 
@@ -31,9 +32,7 @@ const (
 	VictoryConditionHighestScoreAfterYears
 )
 
-// checks if the player has achieved victoryChecker in this game.
-// TODO: make this return the victoryChecker conditions achieved, and check it against the game settings
-// in the caller.
+// Evaluate achieved conditions and qualifying winners for the current scores.
 type victoryChecker struct {
 	game *FullGame
 }
@@ -50,26 +49,20 @@ func (v *victoryChecker) checkForVictor(player *Player) error {
 	player.AchievedVictoryConditions = VictoryConditionNone
 
 	score := player.ScoreHistory[len(player.ScoreHistory)-1]
+	if v.game.YearsPassed() < v.game.Rules.ShowPublicScoresAfterYears {
+		// Clear premature saved flags without evaluating any victory conditions.
+		score.AchievedVictoryConditions = VictoryConditionNone
+		player.ScoreHistory[len(player.ScoreHistory)-1] = score
+		return nil
+	}
 
-	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionOwnPlanets) > 0 {
-		v.checkOwnPlanets(player, score)
-	}
-	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionAttainTechLevels) > 0 {
-		v.checkAttainTechLevels(player)
-	}
-	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionExceedsScore) > 0 {
-		v.checkExceedScore(player, score)
-	}
-	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionExceedsSecondPlaceScore) > 0 {
+	v.checkOwnPlanets(player, score)
+	v.checkAttainTechLevels(player)
+	v.checkExceedScore(player, score)
+	v.checkProductionCapacity(player, score)
+	v.checkOwnCapitalShips(player, score)
+	if len(v.game.Players) > 1 {
 		v.checkExceedSecondPlaceScore(player, score)
-	}
-	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionProductionCapacity) > 0 {
-		v.checkProductionCapacity(player)
-	}
-	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionOwnCapitalShips) > 0 {
-		v.checkOwnCapitalShips(player, score)
-	}
-	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionHighestScoreAfterYears) > 0 {
 		v.checkHighestScore(player, score)
 	}
 
@@ -85,11 +78,12 @@ func (v *victoryChecker) checkForVictor(player *Player) error {
 		return nil
 	}
 
-	// if we don't have a victor yet, and we have one after the required years, declare them
-	if !v.game.VictorDeclared && player.AchievedVictoryConditions.countBits() >= v.game.VictoryConditions.NumCriteriaRequired && v.game.YearsPassed() >= v.game.VictoryConditions.YearsPassed {
-		// we have a victor!
+	required := min(v.game.VictoryConditions.NumCriteriaRequired, v.game.VictoryConditions.Conditions.countBits())
+	achieved := player.AchievedVictoryConditions & v.game.VictoryConditions.Conditions
+	alive := score.Planets+score.UnarmedShips+score.EscortShips+score.CapitalShips > 0
+	if !v.game.VictorDeclared && len(v.game.Players) > 1 && alive && required > 0 && achieved.countBits() >= required && v.game.YearsPassed() >= v.game.VictoryConditions.YearsPassed {
+		// The caller declares all qualifying players together after checking everyone.
 		player.Victor = true
-		v.game.VictorDeclared = true
 	}
 
 	return nil
@@ -97,7 +91,7 @@ func (v *victoryChecker) checkForVictor(player *Player) error {
 
 func (v *victoryChecker) checkOwnPlanets(player *Player, score PlayerScore) {
 	// i.e. if we own more than 60% of the planets, we have this victory condition
-	if float64(score.Planets) >= float64(len(v.game.Planets))*(float64(v.game.VictoryConditions.OwnPlanets)/100) {
+	if float64(score.Planets) >= math.Round(float64(len(v.game.Planets))*float64(v.game.VictoryConditions.OwnPlanets)/100) {
 		player.AchievedVictoryConditions |= Bitmask(VictoryConditionOwnPlanets)
 	}
 }
@@ -115,7 +109,7 @@ func (v *victoryChecker) checkAttainTechLevels(player *Player) {
 }
 
 func (v *victoryChecker) checkExceedScore(player *Player, score PlayerScore) {
-	if score.Score > v.game.VictoryConditions.ExceedsScore {
+	if score.Score >= v.game.VictoryConditions.ExceedsScore {
 		player.AchievedVictoryConditions |= Bitmask(VictoryConditionExceedsScore)
 	}
 }
@@ -130,22 +124,15 @@ func (v *victoryChecker) checkExceedSecondPlaceScore(player *Player, score Playe
 			return scores[i] > scores[j]
 		})
 
-		// if my score is 150 and the second place score is 100, my score is 150% of their score
-		percentSecondPlace := int(float64(score.Score) / float64(scores[1]) * 100)
-		if percentSecondPlace >= 100+v.game.VictoryConditions.ExceedsSecondPlaceScore {
+		threshold := int(float64(scores[1]) * (100 + float64(v.game.VictoryConditions.ExceedsSecondPlaceScore)) / 100)
+		if score.Score == scores[0] && score.Score >= threshold {
 			player.AchievedVictoryConditions |= Bitmask(VictoryConditionExceedsSecondPlaceScore)
 		}
 	}
 }
 
-func (v *victoryChecker) checkProductionCapacity(player *Player) {
-	productionCapacity := 0
-	for _, planet := range v.game.Planets {
-		if planet.PlayerNum == player.Num {
-			productionCapacity += planet.Spec.ResourcesPerYear
-		}
-	}
-	if productionCapacity >= v.game.VictoryConditions.ProductionCapacity*1000 {
+func (v *victoryChecker) checkProductionCapacity(player *Player, score PlayerScore) {
+	if score.Resources >= v.game.VictoryConditions.ProductionCapacity*1000 {
 		player.AchievedVictoryConditions |= Bitmask(VictoryConditionProductionCapacity)
 	}
 }
@@ -157,16 +144,13 @@ func (v *victoryChecker) checkOwnCapitalShips(player *Player, score PlayerScore)
 }
 
 func (v *victoryChecker) checkHighestScore(player *Player, score PlayerScore) {
-	if v.game.YearsPassed() >= v.game.VictoryConditions.HighestScoreAfterYears {
-		sortedScores := make([]int, len(v.game.Players))
-		for i := range v.game.Players {
-			sortedScores[i] = score.Score
-		}
-		sort.Slice(sortedScores, func(i, j int) bool {
-			return sortedScores[i] > sortedScores[j]
-		})
-		if score.Score == sortedScores[0] {
-			player.AchievedVictoryConditions |= Bitmask(VictoryConditionHighestScoreAfterYears)
+	if v.game.YearsPassed() < v.game.VictoryConditions.HighestScoreAfterYears {
+		return
+	}
+	for _, other := range v.game.Players {
+		if other.Num != player.Num && other.GetScore().Score >= score.Score {
+			return
 		}
 	}
+	player.AchievedVictoryConditions |= Bitmask(VictoryConditionHighestScoreAfterYears)
 }

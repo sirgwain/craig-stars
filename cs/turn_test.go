@@ -1991,3 +1991,218 @@ func Test_turn_fleetUnloadColonistsOnPlanetThatDiedThisTurn(t *testing.T) {
 		assert.Len(t, u.Messages(1, PlayerMessageFleetTransportInvalid), 1)
 	})
 }
+
+func Test_turn_calculatePlayerScore(t *testing.T) {
+	const noStarbase = -2
+	planet := func(owner, population, resources, dock int) *Planet {
+		return &Planet{MapObject: MapObject{PlayerNum: owner}, Cargo: Cargo{Colonists: population / 100},
+			Spec: PlanetSpec{ResourcesPerYear: resources, PlanetStarbaseSpec: PlanetStarbaseSpec{HasStarbase: dock != noStarbase, DockCapacity: dock}}}
+	}
+	fleet := func(owner, power, quantity int, deleted bool) *Fleet {
+		return &Fleet{MapObject: MapObject{PlayerNum: owner, Delete: deleted},
+			Tokens: []ShipToken{{Quantity: quantity, design: &ShipDesign{Spec: ShipDesignSpec{PowerRating: power}}}}}
+	}
+	planets := func(count int) []*Planet {
+		result := make([]*Planet, count)
+		for i := range result {
+			result[i] = planet(1, 0, 0, noStarbase)
+		}
+		return result
+	}
+	tests := []struct {
+		name    string
+		planets []*Planet
+		fleets  []*Fleet
+		tech    TechLevel
+		want    PlayerScore
+	}{
+		{name: "empty", want: PlayerScore{}},
+		{name: "no phantom ship points", planets: planets(10), want: PlayerScore{Planets: 10}},
+		{name: "population below 100k", planets: []*Planet{planet(1, 100, 0, noStarbase)}, want: PlayerScore{Planets: 1, Score: 1}},
+		{name: "population at 100k", planets: []*Planet{planet(1, 100000, 0, noStarbase)}, want: PlayerScore{Planets: 1, Score: 1}},
+		{name: "population above 100k", planets: []*Planet{planet(1, 100100, 0, noStarbase)}, want: PlayerScore{Planets: 1, Score: 2}},
+		{name: "population at cap", planets: []*Planet{planet(1, 600000, 0, noStarbase)}, want: PlayerScore{Planets: 1, Score: 6}},
+		{name: "population over cap", planets: []*Planet{planet(1, 900000, 0, noStarbase)}, want: PlayerScore{Planets: 1, Score: 6}},
+		{name: "resource remainder", planets: []*Planet{planet(1, 0, 59, noStarbase)}, want: PlayerScore{Planets: 1, Resources: 59, Score: 1}},
+		{name: "resources summed before division", planets: []*Planet{planet(1, 0, 15, noStarbase), planet(1, 0, 15, noStarbase)}, want: PlayerScore{Planets: 2, Resources: 30, Score: 1}},
+		{name: "negative resources", planets: []*Planet{planet(1, 0, -30, noStarbase)}, want: PlayerScore{Planets: 1}},
+		{name: "orbital fort", planets: []*Planet{planet(1, 0, 0, 0)}, want: PlayerScore{Planets: 1}},
+		{name: "space dock", planets: []*Planet{planet(1, 0, 0, 200)}, want: PlayerScore{Planets: 1, Starbases: 1, Score: 3}},
+		{name: "unlimited dock", planets: []*Planet{planet(1, 0, 0, UnlimitedSpaceDock)}, want: PlayerScore{Planets: 1, Starbases: 1, Score: 3}},
+		{name: "odd unarmed count", planets: planets(10), fleets: []*Fleet{fleet(1, 0, 3, false)}, want: PlayerScore{Planets: 10, UnarmedShips: 3, Score: 1}},
+		{name: "unarmed planet cap", planets: planets(10), fleets: []*Fleet{fleet(1, 0, 20, false)}, want: PlayerScore{Planets: 10, UnarmedShips: 20, Score: 5}},
+		{name: "escorts below cap", planets: planets(10), fleets: []*Fleet{fleet(1, 1, 6, false)}, want: PlayerScore{Planets: 10, EscortShips: 6, Score: 12}},
+		{name: "escorts over cap", planets: planets(10), fleets: []*Fleet{fleet(1, 1999, 20, false)}, want: PlayerScore{Planets: 10, EscortShips: 20, Score: 20}},
+		{name: "capital threshold", planets: planets(10), fleets: []*Fleet{fleet(1, 2000, 1, false)}, want: PlayerScore{Planets: 10, CapitalShips: 1, Score: 7}},
+		{name: "capital formula", planets: planets(30), fleets: []*Fleet{fleet(1, 3000, 20, false)}, want: PlayerScore{Planets: 30, CapitalShips: 20, Score: 96}},
+		{name: "ships without planets", fleets: []*Fleet{fleet(1, 2000, 20, false)}, want: PlayerScore{CapitalShips: 20}},
+		{name: "foreign assets ignored", planets: []*Planet{planet(2, 600000, 300, 200)}, fleets: []*Fleet{fleet(2, 2000, 20, false)}, want: PlayerScore{}},
+		{name: "deleted fleets ignored", fleets: []*Fleet{fleet(1, 2000, 20, true)}, want: PlayerScore{}},
+		{name: "eliminated technology ignored", tech: TechLevel{Energy: 26}, want: PlayerScore{}},
+		{name: "technology level 3", planets: planets(1), tech: TechLevel{Energy: 3}, want: PlayerScore{Planets: 1, TechLevels: 3, Score: 3}},
+		{name: "technology level 4", planets: planets(1), tech: TechLevel{Energy: 4}, want: PlayerScore{Planets: 1, TechLevels: 4, Score: 5}},
+		{name: "technology level 6", planets: planets(1), tech: TechLevel{Energy: 6}, want: PlayerScore{Planets: 1, TechLevels: 6, Score: 9}},
+		{name: "technology level 7", planets: planets(1), tech: TechLevel{Energy: 7}, want: PlayerScore{Planets: 1, TechLevels: 7, Score: 12}},
+		{name: "technology level 9", planets: planets(1), tech: TechLevel{Energy: 9}, want: PlayerScore{Planets: 1, TechLevels: 9, Score: 18}},
+		{name: "technology level 10", planets: planets(1), tech: TechLevel{Energy: 10}, want: PlayerScore{Planets: 1, TechLevels: 10, Score: 22}},
+		{name: "all technology fields", planets: planets(1), tech: TechLevel{Energy: 1, Weapons: 2, Propulsion: 3, Construction: 4, Electronics: 7, Biotechnology: 10}, want: PlayerScore{Planets: 1, TechLevels: 27, Score: 45}},
+		{name: "combined score", planets: []*Planet{planet(1, 100100, 30, 200), planet(1, 700000, 59, 0)}, fleets: []*Fleet{fleet(1, 0, 4, false), fleet(1, 1999, 3, false), fleet(1, 2000, 2, false)}, tech: TechLevel{Energy: 4}, want: PlayerScore{Planets: 2, Starbases: 1, UnarmedShips: 4, EscortShips: 3, CapitalShips: 2, TechLevels: 4, Resources: 89, Score: 31}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			game := &FullGame{Universe: &Universe{Planets: tt.planets, Fleets: tt.fleets}}
+			turn := turnGenerator{game: game}
+			player := &Player{Num: 1, TechLevels: tt.tech}
+			assert.Equal(t, tt.want, turn.calculatePlayerScore(player))
+		})
+	}
+}
+
+func Test_turn_calculatePlayerScorePopulationSnapshot(t *testing.T) {
+	for _, tt := range []struct {
+		name                 string
+		owner, colonists     int
+		wantPopulationPoints int
+	}{
+		{name: "loading", owner: 1, colonists: 1, wantPopulationPoints: 3},
+		{name: "unloading", owner: 1, colonists: 6000, wantPopulationPoints: 3},
+		{name: "changed owner", owner: 2, colonists: 1, wantPopulationPoints: 1},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{{}, {}}, Planets: []ScenarioPlanet{{Name: "Colony", Owner: 1, Cargo: Cargo{Colonists: 2500}}}})
+			planet := u.Planet("Colony")
+			before := u.turn.calculatePlayerScore(u.Player(1))
+			u.Run((*turnGenerator).captureScorePopulations)
+			planet.PlayerNum, planet.Cargo.Colonists = tt.owner, tt.colonists
+			u.Recompute()
+			player := u.Player(tt.owner)
+			score := u.turn.calculatePlayerScore(player)
+			if tt.owner == 1 {
+				assert.Equal(t, before, score)
+			} else {
+				assert.Equal(t, planet.Spec.ResourcesPerYear, score.Resources)
+				assert.Equal(t, tt.wantPopulationPoints+score.Resources/30+18, score.Score)
+			}
+			assert.Equal(t, tt.colonists, planet.Cargo.Colonists)
+		})
+	}
+}
+
+func Test_turn_calculateScores(t *testing.T) {
+	tests := []struct {
+		name                string
+		resources, previous []int
+		conditions          VictoryConditions
+		year                int
+		wantRanks           []int
+		wantVictors         []bool
+	}{
+		{name: "current turn comparisons", resources: []int{5970, 8970}, previous: []int{50, 50}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionExceedsSecondPlaceScore), ExceedsSecondPlaceScore: 100, NumCriteriaRequired: 1, YearsPassed: 50}, year: 2481, wantRanks: []int{2, 1}, wantVictors: []bool{false, false}},
+		{name: "before victory evaluation starts", resources: []int{6000, 9000}, previous: []int{50, 50}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionExceedsScore), ExceedsScore: 200, NumCriteriaRequired: 1}, year: 2419, wantRanks: []int{2, 1}, wantVictors: []bool{false, false}},
+		{name: "victory evaluation starts", resources: []int{6000, 9000}, previous: []int{50, 50}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionExceedsScore), ExceedsScore: 200, NumCriteriaRequired: 1}, year: 2420, wantRanks: []int{2, 1}, wantVictors: []bool{true, true}},
+		{name: "highest scorer", resources: []int{6000, 9000, 1500}, previous: []int{500, 50, 10}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionHighestScoreAfterYears), HighestScoreAfterYears: 80, NumCriteriaRequired: 1, YearsPassed: 50}, year: 2481, wantRanks: []int{2, 1, 3}, wantVictors: []bool{false, true, false}},
+		{name: "tied highest", resources: []int{3000, 3000, 1500}, previous: []int{10, 10, 10}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionHighestScoreAfterYears), HighestScoreAfterYears: 80, NumCriteriaRequired: 1}, year: 2481, wantRanks: []int{1, 1, 3}, wantVictors: []bool{false, false, false}},
+		{name: "simultaneous winners", resources: []int{6000, 9000}, previous: []int{50, 50}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionExceedsScore), ExceedsScore: 200, NumCriteriaRequired: 1}, year: 2481, wantRanks: []int{2, 1}, wantVictors: []bool{true, true}},
+		{name: "minimum year", resources: []int{6000, 9000}, previous: []int{50, 50}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionExceedsScore), ExceedsScore: 200, NumCriteriaRequired: 1, YearsPassed: 50}, year: 2449, wantRanks: []int{2, 1}, wantVictors: []bool{false, false}},
+		{name: "disabled conditions do not count", resources: []int{6000, 9000}, previous: []int{50, 50}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionExceedsScore), ExceedsScore: 1000, NumCriteriaRequired: 1}, year: 2481, wantRanks: []int{2, 1}, wantVictors: []bool{false, false}},
+		{name: "no enabled criteria", resources: []int{6000, 9000}, previous: []int{50, 50}, conditions: VictoryConditions{NumCriteriaRequired: 1}, year: 2481, wantRanks: []int{2, 1}, wantVictors: []bool{false, false}},
+		{name: "zero required", resources: []int{6000, 9000}, previous: []int{50, 50}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionExceedsScore), ExceedsScore: 200}, year: 2481, wantRanks: []int{2, 1}, wantVictors: []bool{false, false}},
+		{name: "clamp required criteria", resources: []int{6000, 9000}, previous: []int{50, 50}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionExceedsScore), ExceedsScore: 200, NumCriteriaRequired: 2}, year: 2481, wantRanks: []int{2, 1}, wantVictors: []bool{true, true}},
+		{name: "single player", resources: []int{9000}, previous: []int{50}, conditions: VictoryConditions{Conditions: Bitmask(VictoryConditionHighestScoreAfterYears), HighestScoreAfterYears: 80, NumCriteriaRequired: 1}, year: 2481, wantRanks: []int{1}, wantVictors: []bool{false}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := TestScenario{}
+			for range tt.resources {
+				s.Players = append(s.Players, ScenarioPlayer{})
+			}
+			u := newTestUniverse(t, s)
+			u.Game.Year, u.Game.VictoryConditions = tt.year, tt.conditions
+			for i, resources := range tt.resources {
+				player := u.Player(i + 1)
+				player.TechLevels = TechLevel{}
+				player.ScoreHistory = []PlayerScore{{Score: tt.previous[i]}}
+				u.Game.Planets = append(u.Game.Planets, &Planet{MapObject: MapObject{PlayerNum: i + 1}, Spec: PlanetSpec{ResourcesPerYear: resources}})
+			}
+			u.Run((*turnGenerator).calculateScores)
+			anyVictor := false
+			wantMessages := 0
+			for _, victor := range tt.wantVictors {
+				if victor {
+					wantMessages++
+				}
+			}
+			for i, player := range u.Game.Players {
+				assert.Len(t, player.ScoreHistory, 2)
+				assert.Equal(t, PlayerScore{Score: tt.previous[i]}, player.ScoreHistory[0])
+				assert.Equal(t, tt.wantRanks[i], player.GetScore().Rank)
+				assert.Equal(t, tt.wantVictors[i], player.Victor)
+				if u.Game.YearsPassed() < u.Game.Rules.ShowPublicScoresAfterYears {
+					assert.Zero(t, player.AchievedVictoryConditions)
+					assert.Zero(t, player.GetScore().AchievedVictoryConditions)
+				}
+				anyVictor = anyVictor || player.Victor
+				victoryMessages := 0
+				for _, message := range player.Messages {
+					if message.Type == PlayerMessagePlayerVictor {
+						victoryMessages++
+					}
+				}
+				assert.Equal(t, wantMessages, victoryMessages)
+			}
+			assert.Equal(t, anyVictor, u.Game.VictorDeclared)
+			if anyVictor {
+				for _, player := range u.Game.Players {
+					player.Messages = nil
+				}
+				u.Run((*turnGenerator).checkVictory)
+				for _, player := range u.Game.Players {
+					assert.Empty(t, player.Messages)
+				}
+			}
+		})
+	}
+}
+
+func Test_turn_checkVictoryLastSurvivor(t *testing.T) {
+	u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{{}, {}}, Planets: []ScenarioPlanet{{Name: "Colony", Owner: 2, Cargo: Cargo{Colonists: 1000}}}})
+	u.Game.Year = 2401
+	u.Run((*turnGenerator).calculateScores)
+	assert.False(t, u.Player(1).Victor)
+	assert.False(t, u.Player(2).Victor)
+	assert.False(t, u.Game.VictorDeclared)
+	for _, player := range u.Game.Players {
+		assert.Zero(t, player.AchievedVictoryConditions)
+		assert.Zero(t, player.GetScore().AchievedVictoryConditions)
+		assert.Empty(t, player.Messages)
+	}
+
+	u.Game.Year = u.Game.Rules.StartingYear + u.Game.Rules.ShowPublicScoresAfterYears
+	u.Run((*turnGenerator).calculateScores)
+	assert.False(t, u.Player(1).Victor)
+	assert.True(t, u.Player(2).Victor)
+	assert.True(t, u.Game.VictorDeclared)
+}
+
+func Test_turn_scoreAfterWaypointOneLoading(t *testing.T) {
+	generate := func(load bool) *testUniverse {
+		s := singleFleetScenario(DesignTeamster)
+		s.Players[0].Fleets[0].Quantity = 2
+		s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Planet 1", Warp: 5}, {To: "Planet 1", Warp: 5}}
+		if load {
+			wp := &s.Players[0].Fleets[0].Waypoints[1]
+			wp.Task = WaypointTaskTransport
+			wp.TransportTasks = WaypointTransportTasks{Colonists: WaypointTransportTask{Action: TransportActionLoadAll}}
+		}
+		u := newTestUniverse(t, s)
+		u.GenerateTurn()
+		return u
+	}
+	plain, loaded := generate(false), generate(true)
+	assert.Greater(t, loaded.Fleet("Teamster #1").Cargo.Colonists, 0)
+	assert.Less(t, loaded.Planet("Planet 1").Cargo.Colonists, plain.Planet("Planet 1").Cargo.Colonists)
+	assert.Equal(t, plain.Player(1).GetScore(), loaded.Player(1).GetScore())
+	loaded.Player(1).ResearchAmount = 0
+	loaded.GenerateTurn()
+	assert.Less(t, loaded.Player(1).GetScore().Resources, plain.Player(1).GetScore().Resources)
+}

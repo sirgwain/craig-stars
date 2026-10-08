@@ -10,11 +10,16 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// When all players submit their turns, the turnGenerator generator is used to generate a new turnGenerator
-// This follows the Stars! order of events: https://wiki.starsautohost.org/wiki/Order_of_Events
+// Generate a turn after all players submit their orders.
 type turnGenerator struct {
-	game *FullGame
-	log  *slog.Logger
+	game             *FullGame
+	log              *slog.Logger
+	scorePopulations map[*Planet]planetScorePopulation
+}
+
+type planetScorePopulation struct {
+	playerNum int
+	colonists int
 }
 
 func newTurnGenerator(game *FullGame) turnGenerator {
@@ -23,7 +28,7 @@ func newTurnGenerator(game *FullGame) turnGenerator {
 		slog.String("GameName", game.Name),
 		slog.Int("Year", game.Year+1), // log for next turn
 	)
-	t := turnGenerator{game, turnLogger}
+	t := turnGenerator{game: game, log: turnLogger}
 
 	t.game.Universe.setLogger(turnLogger)
 	t.game.Universe.buildMaps(game.Players)
@@ -89,6 +94,7 @@ func (t *turnGenerator) generateTurn() error {
 	t.randomCometStrike()
 	t.randomMineralDeposit()
 	t.randomPlanetaryChange()
+	t.captureScorePopulations()
 	t.fleetBattle()
 	t.fleetBomb()
 	if err := t.mysteryTraderMeet(); err != nil {
@@ -2924,6 +2930,14 @@ func (t *turnGenerator) scan() error {
 	return nil
 }
 
+// Preserve population after production and growth for this year's scores.
+func (t *turnGenerator) captureScorePopulations() {
+	t.scorePopulations = make(map[*Planet]planetScorePopulation, len(t.game.Planets))
+	for _, planet := range t.game.Planets {
+		t.scorePopulations[planet] = planetScorePopulation{planet.PlayerNum, planet.Cargo.Colonists}
+	}
+}
+
 // Here's how empires score:
 // Planets:  From 1 to 6 points, scoring 1 point for each 100,000 colonists
 // Starbases: 3 points each (doesn't include Orbital Forts)
@@ -2940,83 +2954,78 @@ func (t *turnGenerator) scan() error {
 //
 // Resources: 1 point for every 30 resources
 
-// Calculate the score for this year for each player.
-func (t *turnGenerator) calculateScores() {
-	scores := make([]PlayerScore, len(t.game.Players))
-
-	// Sum up planets
+func (t *turnGenerator) calculatePlayerScore(player *Player) PlayerScore {
+	score := PlayerScore{}
 	for _, planet := range t.game.Planets {
-		if planet.Owned() {
-			score := &scores[planet.PlayerNum-1]
-			score.Planets++
-			if planet.Spec.HasStarbase {
-				score.Starbases++
-			}
-			// Planets: From 1 to 6 points, scoring 1 point for each 100,000 colonists
-			score.Score += int(min(float64(planet.GetPopulation()/100000), 6))
-			score.Resources += max(0, planet.Spec.ResourcesPerYear)
-		}
-	}
-
-	// Calculate ship counts
-	for _, fleet := range t.game.Fleets {
-		if fleet.Delete {
+		if planet.PlayerNum != player.Num {
 			continue
 		}
-
-		score := &scores[fleet.PlayerNum-1]
+		score.Planets++
+		if planet.Spec.HasStarbase && planet.Spec.DockCapacity != 0 {
+			score.Starbases++
+		}
+		population, resources := planet.GetPopulation(), planet.Spec.ResourcesPerYear
+		if saved, ok := t.scorePopulations[planet]; ok && saved.playerNum == player.Num {
+			// Cargo orders after production must not lower this year's population or resource score.
+			copy := *planet
+			copy.Cargo.Colonists = saved.colonists
+			population = copy.GetPopulation()
+			resources = ComputePlanetSpec(&t.game.Rules, player, &copy).ResourcesPerYear
+		}
+		score.Score += min((population+99999)/100000, 6)
+		score.Resources += max(0, resources)
+	}
+	for _, fleet := range t.game.Fleets {
+		if fleet.Delete || fleet.PlayerNum != player.Num {
+			continue
+		}
 		for _, token := range fleet.Tokens {
-			powerRating := token.design.Spec.PowerRating
-			if powerRating <= 0 {
+			switch power := token.design.Spec.PowerRating; {
+			case power <= 0:
 				score.UnarmedShips += token.Quantity
-			} else if powerRating < 1999 {
+			case power < 2000:
 				score.EscortShips += token.Quantity
-			} else {
+			default:
 				score.CapitalShips += token.Quantity
 			}
 		}
 	}
-
-	for _, player := range t.game.Players {
-		score := &scores[player.Num-1]
-
-		// Calculate tech levels
+	if score.Planets+score.UnarmedShips+score.EscortShips+score.CapitalShips > 0 {
 		for _, field := range TechFields {
-			achievedLevel := player.TechLevels.Get(field)
-			score.TechLevels += achievedLevel
-			for level := 0; level <= achievedLevel; level++ {
-				switch {
-				case level >= 1 && level <= 3:
-					score.Score += 1
-				case level >= 4 && level <= 6:
-					score.Score += 2
-				case level >= 7 && level <= 9:
-					score.Score += 3
-				case level >= 10:
-					score.Score += 4
-				}
+			level := player.TechLevels.Get(field)
+			score.TechLevels += level
+			switch {
+			case level < 4:
+				score.Score += level
+			case level < 7:
+				score.Score += level*2 - 3
+			case level < 10:
+				score.Score += level*3 - 9
+			default:
+				score.Score += level*4 - 18
 			}
 		}
+	}
 
-		// Calculate additional score components
-		// Resources: 1 point for every 30 resources
-		score.Score += score.Resources / 30
-		// Starbases: 3 points each (doesn't include Orbital Forts)
-		score.Score += score.Starbases * 3
-		// Unarmed Ships: You receive 1/2 point for each unarmed ship (up to the number of planets you own).
-		score.Score += int(min(float64(score.UnarmedShips)*0.5+5, float64(score.Planets)))
-		// Escort Ships: You receive 2 points for each Escort ship (up to the number of planets you own).
-		score.Score += int(min(float64(score.EscortShips)*2, float64(score.Planets)))
-		// Capital Ships (8 * #_capital_ships * #_planets) /( #_capital_ships + #_planets)
-		if score.CapitalShips+score.Planets > 0 {
-			score.Score += int((8 * score.CapitalShips * score.Planets) / (score.CapitalShips + score.Planets))
-		}
+	// Calculate additional score components
+	// Resources: 1 point for every 30 resources
+	score.Score += score.Resources / 30
+	// Starbases: 3 points each (doesn't include Orbital Forts)
+	score.Score += score.Starbases * 3
+	// Unarmed Ships: You receive 1/2 point for each unarmed ship (up to the number of planets you own).
+	score.Score += min(score.UnarmedShips, score.Planets) / 2
+	// Escort Ships: You receive 2 points for each Escort ship (up to the number of planets you own).
+	score.Score += min(score.EscortShips, score.Planets) * 2
+	// Capital Ships (8 * #_capital_ships * #_planets) /( #_capital_ships + #_planets)
+	if score.CapitalShips > 0 {
+		score.Score += 8 * score.CapitalShips * score.Planets / (score.CapitalShips + score.Planets)
+	}
+	return score
+}
 
-		// add this to the player's score history
-		player.ScoreHistory = append(player.ScoreHistory, *score)
-
-		// check for victory/death for this player
-		t.checkVictory(player)
+func (t *turnGenerator) calculateScores() {
+	for _, player := range t.game.Players {
+		player.ScoreHistory = append(player.ScoreHistory, t.calculatePlayerScore(player))
 	}
 
 	// sort players by score, highest to lowest
@@ -3031,7 +3040,7 @@ func (t *turnGenerator) calculateScores() {
 	for i, player := range scoreSortedPlayers {
 		if i > 0 {
 			if scoreSortedPlayers[i-1].GetScore().Score != player.GetScore().Score {
-				rank++
+				rank = i + 1
 			}
 		}
 
@@ -3040,6 +3049,8 @@ func (t *turnGenerator) calculateScores() {
 			score.Rank = rank
 		}
 	}
+
+	t.checkVictory()
 
 	// share score intel if show public scores is enabled, or if a victor has been found
 	if (t.game.PublicPlayerScores && t.game.Rules.ShowPublicScoresAfterYears > 0 && t.game.YearsPassed() >= t.game.Rules.ShowPublicScoresAfterYears) || t.game.VictorDeclared {
@@ -3070,29 +3081,35 @@ func (t *turnGenerator) checkBattleReports() {
 
 }
 
-// check if this player is victorious, and if so, notify everyone
-func (t *turnGenerator) checkVictory(player *Player) {
-	victoryChecker := newVictoryChecker(t.game)
+// Evaluate victory once all players have scores for the current year.
+func (t *turnGenerator) checkVictory() {
+	alreadyDeclared := t.game.VictorDeclared
+	checker := newVictoryChecker(t.game)
+	var survivors []*Player
 	for _, player := range t.game.Players {
-		if err := victoryChecker.checkForVictor(player); err != nil {
+		if err := checker.checkForVictor(player); err != nil {
 			t.log.Error("error while checking for victory", slog.Any("err", err))
 			return
 		}
+		score := player.GetScore()
+		if score.Planets+score.UnarmedShips+score.EscortShips+score.CapitalShips > 0 {
+			survivors = append(survivors, player)
+		}
 	}
-
-	// we don't declare a victor until some time has passed
-	if t.game.YearsPassed() >= t.game.VictoryConditions.YearsPassed && t.game.VictorDeclared {
-
-		// if we won, tell everyone about it!
-		if player.Victor {
-			t.log.Debug("you are victorious your majesty!",
-				slog.Int("Player", player.Num),
-				slog.String("PlayerName", player.Name),
-				slog.String("Race", player.Race.PluralName),
-			)
-			for _, p := range t.game.Players {
-				messager.playerVictory(p, player)
-			}
+	if alreadyDeclared || len(t.game.Players) < 2 || t.game.YearsPassed() < t.game.Rules.ShowPublicScoresAfterYears {
+		return
+	}
+	if len(survivors) == 1 {
+		survivors[0].Victor = true
+	}
+	for _, player := range t.game.Players {
+		if !player.Victor {
+			continue
+		}
+		t.game.VictorDeclared = true
+		t.log.Debug("you are victorious your majesty!", slog.Int("Player", player.Num))
+		for _, other := range t.game.Players {
+			messager.playerVictory(other, player)
 		}
 	}
 }
