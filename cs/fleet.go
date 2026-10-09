@@ -1028,74 +1028,66 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	totalDist := fleet.Position.DistanceTo(wp1.Position)
 	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
 
-	var sourceStargate, destStargate PlanetStarbaseSpec
-
-	// if we got here, both source and dest have stargates (unless we're using a jumpgate)
-	destPlanet := mapObjectGetter.getPlanet(wp1.TargetNum)
-
+	// the destination is a planet with a stargate, targeted or at the waypoint's position
+	destPlanet := fleet.stargateDestination(mapObjectGetter, wp1)
 	if destPlanet == nil || !destPlanet.Spec.HasStargate {
 		messager.fleetStargateInvalidDest(player, fleet, wp0, wp1)
 		return
 	}
 
 	destPlanetPlayer := playerGetter.getPlayer(destPlanet.PlayerNum)
-
-	if !destPlanetPlayer.IsFriend(player.Num) {
+	if destPlanetPlayer == nil || !destPlanetPlayer.IsFriend(player.Num) {
 		messager.fleetStargateInvalidDestOwner(player, fleet, wp0, wp1)
 		return
 	}
+	destStargate := destPlanet.Spec.PlanetStarbaseSpec
 
-	destStargate = destPlanet.Spec.PlanetStarbaseSpec
-
-	// jumpgate fleets don't use the source planet, only the dest
+	// we can gate from the stargate we're orbiting
 	var sourcePlanet *Planet
-	if fleet.Spec.CanJump {
-		sourceStargate = destStargate
+	sourceProblem := func() {}
+	if orbiting := mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum); orbiting == nil || !orbiting.Spec.HasStargate {
+		sourceProblem = func() { messager.fleetStargateInvalidSource(player, fleet, wp0) }
+	} else if orbitingPlayer := playerGetter.getPlayer(orbiting.PlayerNum); orbitingPlayer != nil && !orbitingPlayer.IsFriend(player.Num) {
+		sourceProblem = func() { messager.fleetStargateInvalidSourceOwner(player, fleet, wp0) }
+	} else if !player.Race.Spec.CanGateCargo && fleet.Cargo.Colonists > 0 && !orbiting.OwnedBy(player.Num) {
+		// can't gate colonists unless we're IT, and can't dump them on a world we don't own
+		sourceProblem = func() { messager.fleetStargateInvalidColonists(player, fleet, wp0, wp1) }
 	} else {
-		sourcePlanet = mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum)
-
-		if sourcePlanet == nil || !sourcePlanet.Spec.HasStargate {
-			messager.fleetStargateInvalidSource(player, fleet, wp0)
-			return
-		}
-
-		sourcePlanetPlayer := playerGetter.getPlayer(sourcePlanet.PlayerNum)
-		if sourcePlanetPlayer != nil && !sourcePlanetPlayer.IsFriend(player.Num) {
-			messager.fleetStargateInvalidSourceOwner(player, fleet, wp0)
-			return
-		}
-
-		sourceStargate = sourcePlanet.Spec.PlanetStarbaseSpec
+		sourcePlanet = orbiting
 	}
 
-	// can't gate colonists unless we're IT
-	// can't dump colonists into space or on a world we don't own
-	// ships with jump gates can gate cargo (amazing)
-	if !fleet.Spec.CanJump && !player.Race.Spec.CanGateCargo && fleet.Cargo.Colonists > 0 && (sourcePlanet == nil || !sourcePlanet.OwnedBy(player.Num)) {
-		messager.fleetStargateInvalidColonists(player, fleet, wp0, wp1)
+	// a fleet with a jumpgate only needs the dest gate, and takes its cargo with it. If we can use both,
+	// use whichever does less damage
+	useJumpgate := fleet.Spec.CanJump
+	if useJumpgate && sourcePlanet != nil && fleet.canGate(rules, totalDist, sourcePlanet.Spec.PlanetStarbaseSpec, destStargate) &&
+		(!fleet.canGate(rules, totalDist, destStargate, destStargate) ||
+			fleet.overgateDamagePercent(rules, totalDist, sourcePlanet.Spec.PlanetStarbaseSpec, destStargate) < fleet.overgateDamagePercent(rules, totalDist, destStargate, destStargate)) {
+		useJumpgate = false
+	}
+	if !useJumpgate && sourcePlanet == nil {
+		sourceProblem()
 		return
 	}
 
-	// only the source gate matters for range
-	minSafeRange := sourceStargate.SafeRange
-	minSafeHullMass := min(sourceStargate.SafeHullMass, destStargate.SafeHullMass)
+	sourceStargate := destStargate
+	if !useJumpgate {
+		sourceStargate = sourcePlanet.Spec.PlanetStarbaseSpec
+	}
 
-	// check if we are exceeding the max distance
-	if totalDist > float64(minSafeRange*rules.StargateMaxRangeFactor) {
+	// check if we are exceeding the max distance (only the source gate matters for range)
+	if totalDist > float64(sourceStargate.SafeRange*rules.StargateMaxRangeFactor) {
 		messager.fleetStargateInvalidRange(player, fleet, wp0, wp1, totalDist)
 		return
 	}
 
 	// check if any ships exceed the max mass allowed
-	for _, token := range fleet.Tokens {
-		if token.design.Spec.Mass > minSafeHullMass*rules.StargateMaxHullMassFactor {
-			messager.fleetStargateInvalidMass(player, fleet, wp0, wp1)
-			return
-		}
+	if !fleet.canGate(rules, totalDist, sourceStargate, destStargate) {
+		messager.fleetStargateInvalidMass(player, fleet, wp0, wp1)
+		return
 	}
 
 	// dump cargo if we aren't IT or using a jump gate
-	if !fleet.Spec.CanJump && fleet.Cargo.Total() > 0 && !player.Race.Spec.CanGateCargo {
+	if !useJumpgate && fleet.Cargo.Total() > 0 && !player.Race.Spec.CanGateCargo {
 		messager.fleetStargateDumpedCargo(player, fleet, wp0, wp1, fleet.Cargo)
 		if !sourcePlanet.OwnedBy(player.Num) {
 			// let our ally know we dumped cargo on their planet
@@ -1116,7 +1108,52 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 	// we survived, warp it!
 	fleet.jumpedFrom = &Vector{fleet.Position.X, fleet.Position.Y}
+	if wp1.TargetType != MapObjectTypePlanet {
+		// we gated to the planet at the waypoint's position
+		wp1.TargetType = MapObjectTypePlanet
+		wp1.TargetNum = destPlanet.Num
+		wp1.TargetName = destPlanet.Name
+		wp1.TargetPlayerNum = None
+		fleet.Waypoints[1] = wp1
+	}
 	fleet.completeMove(mapObjectGetter, player, wp0, wp1)
+}
+
+// stargateDestination returns the planet a fleet is gating to: the waypoint's target planet, or the planet
+// at the waypoint's position
+func (fleet *Fleet) stargateDestination(mapObjectGetter mapObjectGetter, wp1 Waypoint) *Planet {
+	if wp1.TargetType == MapObjectTypePlanet {
+		return mapObjectGetter.getPlanet(wp1.TargetNum)
+	}
+	for _, mo := range mapObjectGetter.getMapObjectsAtPosition(wp1.Position) {
+		if planet, ok := mo.(*Planet); ok {
+			return planet
+		}
+	}
+	return nil
+}
+
+// canGate returns true if this fleet is within the range and mass limits of a pair of stargates
+func (fleet *Fleet) canGate(rules *Rules, dist float64, source, dest PlanetStarbaseSpec) bool {
+	if dist > float64(source.SafeRange*rules.StargateMaxRangeFactor) {
+		return false
+	}
+	maxMass := min(source.SafeHullMass, dest.SafeHullMass) * rules.StargateMaxHullMassFactor
+	for _, token := range fleet.Tokens {
+		if token.design.Spec.Mass > maxMass {
+			return false
+		}
+	}
+	return true
+}
+
+// overgateDamagePercent returns the most damage any ship in this fleet takes gating between two stargates
+func (fleet *Fleet) overgateDamagePercent(rules *Rules, dist float64, source, dest PlanetStarbaseSpec) int {
+	damage := 0
+	for i := range fleet.Tokens {
+		damage = max(damage, fleet.Tokens[i].overgateDamagePercent(rules, dist, source, dest))
+	}
+	return damage
 }
 
 // if the fleet went over safe warp, explode some ships
@@ -1145,17 +1182,18 @@ func (fleet *Fleet) applyOverwarpPenalty(rules *Rules) int {
 
 // applyOvergatePenalty damages and/or vanishes ShipTokens inside overgating fleets based on distance.
 func (fleet *Fleet) applyOvergatePenalty(rules *Rules, player *Player, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetStarbaseSpec) {
-	var totalDamage, shipsLostToDamage, shipsLostToTheVoid, startingShips int
+	var totalDamage, shipsLostToDamage, shipsLostToTheVoid int
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]
-		startingShips += token.Quantity
+		damagePercent := token.overgateDamagePercent(rules, distance, sourceStargate, destStargate)
+
 		// IT players never lose ships to the void, but everyone else does
 		if player.Race.Spec.ShipsVanishInVoid {
-			shipsLostToTheVoid += token.applyOvergateVanishing(rules, distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass)
+			shipsLostToTheVoid += token.applyOvergateVanishing(rules, damagePercent)
 		}
 
-		// damage any remaining tokens if we have any left
-		tokenDamage := token.applyOvergateDamage(distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass, destStargate.SafeHullMass, rules.StargateMaxHullMassFactor)
+		// damage any remaining ships if we have any left
+		tokenDamage := token.applyOvergateDamage(damagePercent)
 		totalDamage += tokenDamage.damage
 		shipsLostToDamage += tokenDamage.shipsDestroyed
 	}

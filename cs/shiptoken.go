@@ -43,97 +43,74 @@ func (st *ShipToken) applyMineDamage(damage int) tokenDamage {
 	return tokenDamage{damage: armorDamage}
 }
 
-// Apply overgate damage (if any) to each token that overgated
-func (st *ShipToken) applyOvergateDamage(dist float64, safeRange int, safeSourceMass int, safeDestMass int, maxMassFactor int) tokenDamage {
-	if st.Quantity == 0 {
-		// no ships means nothing to damage
-		return tokenDamage{damage: 0, shipsDestroyed: 0}
+// overgateDamagePercent returns the percent of its armor a ship loses gating dist ly from a source to a dest
+// gate. Past a gate's safe range or mass, the chance of arriving unharmed drops from 100% at the safe value to
+// 0% at the gate's max (rules.StargateMaxRangeFactor or StargateMaxHullMassFactor times the safe value). Range
+// only counts for the source gate, mass counts for both.
+func (st *ShipToken) overgateDamagePercent(rules *Rules, dist float64, source, dest PlanetStarbaseSpec) int {
+	survival := 1.0
+	if source.SafeRange != InfiniteGate && dist > float64(source.SafeRange) {
+		survival *= overgateSurvival(dist, source.SafeRange, rules.StargateMaxRangeFactor)
 	}
-
-	// testing with overgating 12 scouts 479.5 ly with a 250ly gate
-	// 1st run damaged all 12 by 20% (4 damage each);
-	// subsequent runs went 40%, 60%, 80%, then 100% (destroying all ships).
-
-	rangeDamageFactor := st.getStargateRangeDamageFactor(dist, safeRange)
-	massDamageFactor := st.getStargateMassDamageFactor(safeSourceMass, safeDestMass, maxMassFactor)
-
-	// damage capped at 98% for a single overgate
-	totalDamageFactor := min(0.98, massDamageFactor+(1-massDamageFactor)*rangeDamageFactor)
-
-	// apply damage as a percentage of armor to all tokens
-	armor := st.design.Spec.Armor
-	existingDamage := st.Damage
-
-	var tokensDestroyed int
-	damagePerShip := int(math.Round(totalDamageFactor * float64(armor)))
-
-	// ships are never destroyed by overgating if they aren't already damaged
-	if existingDamage == 0 && damagePerShip >= armor {
-		damagePerShip = armor - 1
-	}
-
-	st.Damage += float64(damagePerShip)
-
-	if st.Damage >= float64(armor) {
-		// our damage exceeds our armor, destroy any previous damaged ships
-		tokensDestroyed = st.QuantityDamaged
-		st.Quantity -= st.QuantityDamaged
-	}
-
-	// apply overgate damage to any leftover tokens
-	if damagePerShip > 0 {
-		st.Damage = float64(damagePerShip)
-		st.QuantityDamaged = st.Quantity
-
-		if st.Quantity == 0 {
-			// can't damage something that isn't there
-			st.Damage = 0
+	mass := float64(st.design.Spec.Mass)
+	for _, safeMass := range []int{source.SafeHullMass, dest.SafeHullMass} {
+		if safeMass != InfiniteGate && safeMass > 0 && mass > float64(safeMass) {
+			survival *= overgateSurvival(mass, safeMass, rules.StargateMaxHullMassFactor)
 		}
 	}
-
-	return tokenDamage{damagePerShip, tokensDestroyed}
+	return int(math.Floor(100 * (1 - max(0, survival))))
 }
 
-func (t *ShipToken) getStargateRangeDamageFactor(dist float64, safeRange int) (rangeDamageFactor float64) {
-	if safeRange == InfiniteGate || safeRange >= int(dist) {
+// overgateSurvival is the chance of surviving going value past a gate's safe value, from 1 at the safe value
+// to 0 at maxFactor times it
+func overgateSurvival(value float64, safe, maxFactor int) float64 {
+	return (float64(maxFactor*safe) - value) / float64((maxFactor-1)*safe)
+}
+
+// applyOvergateDamage damages every ship in the token by damagePercent of its armor, on top of any damage it
+// already has. Damaged ships that can't take it are destroyed, but a single overgate never destroys an
+// undamaged ship unless it's 100%.
+func (st *ShipToken) applyOvergateDamage(damagePercent int) tokenDamage {
+	if st.Quantity == 0 || damagePercent <= 0 {
+		return tokenDamage{}
+	}
+
+	armor := st.design.Spec.Armor
+	if damagePercent >= 100 {
+		destroyed := st.Quantity
+		st.Quantity, st.QuantityDamaged, st.Damage = 0, 0, 0
+		return tokenDamage{damage: armor, shipsDestroyed: destroyed}
+	}
+
+	damagePerShip := min(armor-1, max(1, armor*damagePercent/100))
+
+	// damaged ships that can't take more damage are destroyed
+	destroyed := 0
+	if st.QuantityDamaged > 0 && int(st.Damage)+damagePerShip >= armor {
+		destroyed = st.QuantityDamaged
+		st.Quantity -= destroyed
+		st.QuantityDamaged, st.Damage = 0, 0
+	}
+
+	// spread the new damage and any old damage over the ships left
+	if st.Quantity > 0 {
+		stackDamage := float64(damagePerShip*st.Quantity) + st.Damage*float64(st.QuantityDamaged)
+		st.Damage = math.Floor(stackDamage / float64(st.Quantity))
+		st.QuantityDamaged = st.Quantity
+	}
+
+	return tokenDamage{damage: damagePerShip, shipsDestroyed: destroyed}
+}
+
+// applyOvergateVanishing loses ships to the void when overgating. Each ship has a chance of a third of the
+// overgate damage percent of vanishing. Returns how many ships vanished.
+func (token *ShipToken) applyOvergateVanishing(rules *Rules, damagePercent int) (shipsLost int) {
+	vanishingChance := float64(damagePercent/3) / 100
+	if vanishingChance <= 0 {
 		return 0
 	}
 
-	// Formula: (dist-safeRange)/(4*safeRange)
-	return (dist - float64(safeRange)) / (4.0 * float64(safeRange))
-}
-
-func (t *ShipToken) getStargateMassDamageFactor(safeSourceMass int, safeDestMass int, maxMassFactor int) float64 {
-	mass := t.design.Spec.Mass
-	sourceMassDamageFactor := 1.0
-	destMassDamageFactor := 1.0
-	if safeSourceMass != InfiniteGate && safeSourceMass < mass {
-		sourceMassDamageFactor = (float64(maxMassFactor)*float64(safeSourceMass) - float64(mass)) / (4.0 * float64(safeSourceMass))
-	}
-	if safeDestMass != InfiniteGate && safeDestMass < mass {
-		destMassDamageFactor *= (float64(maxMassFactor)*float64(safeDestMass) - float64(mass)) / (4.0 * float64(safeDestMass))
-	}
-
-	return 1 - (sourceMassDamageFactor * destMassDamageFactor)
-}
-
-// applyOvergateVanishing vanishes overgating ship tokens exceeding safe limits,
-// reducing token quanitity as appropriate.
-// It returns the total number of tokens vanished (origQty - newQty).
-func (token *ShipToken) applyOvergateVanishing(rules *Rules, distance float64, sourceRange, sourceMass int) (shipsLost int) {
-	rangeVanishChance := max(0, token.getOvergateRangeVanishingChance(distance, sourceRange))
-	massVanishChance := max(0, token.getOvergateMassVanishingChance(sourceMass, rules.StargateMaxHullMassFactor))
-	if rangeVanishChance == 0 && massVanishChance == 0 {
-		// neither range nor mass can harm us; return
-		return
-	}
-
-	// Combined vanishing chance formula courtesy of ekolis
-	// Both checks fire independently, so the chance of both passing is
-	// 1-(rangeFailChance*massFailChance)
-	vanishingChance := 1 - (1-rangeVanishChance)*(1-massVanishChance)
-
-	// check each token one by one to see if it kersplodes
+	// check each ship one by one to see if it kersplodes
 	for range token.Quantity {
 		if vanishingChance >= rules.random.Float64() {
 			shipsLost++
@@ -151,32 +128,4 @@ func (token *ShipToken) applyOvergateVanishing(rules *Rules, distance float64, s
 	}
 
 	return shipsLost
-}
-
-// getOvergateMassVanishingChance returns the mass-based portion of this ShipToken's
-// overgate vanishing chance.
-// Graph: https://www.desmos.com/calculator/ftqvsbkmj5
-func (t *ShipToken) getOvergateMassVanishingChance(safeSourceMass int, maxMassFactor int) (massChance float64) {
-	if safeSourceMass == InfiniteGate {
-		return 0
-	}
-	// Mass Vanishing % = 100/3*[1-(5*maxMass-mass)^2/(4*maxMass)^2], rounded down to nearest 1%.
-	// where maxMass is the maximum safe mass for the sending gate.
-	vanishingChance := 100.0 / 3 * (1 -
-		float64(PowInt(int64(maxMassFactor*safeSourceMass-t.design.Spec.Mass), 2))/
-			float64(PowInt(int64(4*safeSourceMass), 2)))
-
-	// return chance rounded down to nearest %
-	return math.Floor(vanishingChance) / 100
-}
-
-// getOvergateRangeVanishingChance returns the range-based portion of this ShipToken's
-// overgate vanishing chance.
-func (t *ShipToken) getOvergateRangeVanishingChance(dist float64, safeRange int) (rangeChance float64) {
-	// Range vanishing chance is roughly equal to 1/3 damage dealt -
-	// 60% range damage factor = 20% loss chance.
-	chance := 100 * t.getStargateRangeDamageFactor(dist, safeRange) / 3
-
-	// return chance rounded down to nearest %
-	return math.Floor(chance) / 100
 }

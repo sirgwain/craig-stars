@@ -898,6 +898,90 @@ func TestFleet_moveFleetEngineStrain(t *testing.T) {
 	}
 }
 
+func TestFleet_gateFleetChooseGate(t *testing.T) {
+	gate := func(safeRange int) PlanetSpec {
+		return PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{HasStargate: true, SafeRange: safeRange, SafeHullMass: 500, MaxRange: safeRange * 5, MaxHullMass: 2500}}
+	}
+	tests := []struct {
+		name         string
+		sourceRange  int
+		destRange    int
+		jumpgate     bool
+		dest         Waypoint
+		wantPosition Vector
+		wantCargo    Cargo // cargo left on the fleet
+		wantDamaged  bool
+	}{
+		{
+			name:        "gate to a planet by position",
+			sourceRange: 500, destRange: 500,
+			dest:         NewPositionWaypoint(Vector{100, 0}, StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+		},
+		{
+			name:        "gate to a fleet at a planet",
+			sourceRange: 500, destRange: 500,
+			dest:         NewFleetWaypoint(Vector{100, 0}, 5, 1, "Other Fleet", StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+		},
+		{
+			name:        "jumpgate is better than the planet's gate, keep cargo",
+			sourceRange: 50, destRange: 500, jumpgate: true,
+			dest:         NewPlanetWaypoint(Vector{100, 0}, 2, "planet 2", StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+			wantCargo:    Cargo{Ironium: 10},
+		},
+		{
+			name:        "planet's gate is better than the jumpgate, dump cargo",
+			sourceRange: 500, destRange: 50, jumpgate: true,
+			dest:         NewPlanetWaypoint(Vector{100, 0}, 2, "planet 2", StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+		},
+		{
+			name:        "planet's gate overgates without a jumpgate",
+			sourceRange: 50, destRange: 500,
+			dest:         NewPlanetWaypoint(Vector{100, 0}, 2, "planet 2", StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+			wantDamaged:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+			player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}}
+			sourcePlanet := NewPlanet().WithNum(1).WithPlayerNum(1)
+			sourcePlanet.Spec = gate(tt.sourceRange)
+			destPlanet := NewPlanet().WithNum(2).WithPlayerNum(1).withPosition(Vector{100, 0})
+			destPlanet.Spec = gate(tt.destRange)
+
+			fleet := testLongRangeScout(player)
+			if tt.jumpgate {
+				fleet = testGatePrivateer(player, 1)
+			}
+			fleet.withOrbitingPlanetNum(sourcePlanet.Num).
+				withCargo(Cargo{Ironium: 10}).
+				withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), tt.dest)
+			for _, token := range fleet.Tokens {
+				player.Designs = append(player.Designs, token.design)
+			}
+			universe := Universe{
+				log:          testLogger,
+				Fleets:       []*Fleet{fleet},
+				Planets:      []*Planet{sourcePlanet, destPlanet},
+				designsByNum: map[playerObject]*ShipDesign{},
+			}
+			universe.buildMaps([]*Player{player})
+
+			fleet.gateFleet(&rules, &universe, newTestPlayerGetter(player))
+
+			assert.Equal(t, tt.wantPosition, fleet.Position)
+			assert.Equal(t, destPlanet.Num, fleet.OrbitingPlanetNum)
+			assert.Equal(t, tt.wantCargo, fleet.Cargo)
+			assert.Equal(t, tt.wantDamaged, fleet.Tokens[0].Damage > 0)
+		})
+	}
+}
+
 func TestFleet_gateFleetDumpCargoOnAlly(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
 	ally := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2)
