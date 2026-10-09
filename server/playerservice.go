@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"log/slog"
 
@@ -14,18 +13,16 @@ import (
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 	"github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1/craig_starsv1connect"
-	"golang.org/x/sync/singleflight"
 )
 
 func NewPlayerServiceHandler(db DBConnection, config config.Config, discordNotifier *discordNotifier) craig_starsv1connect.PlayerServiceHandler {
-	return &playerService{db, config, discordNotifier, singleflight.Group{}}
+	return &playerService{db, config, discordNotifier}
 }
 
 type playerService struct {
 	db              DBConnection
 	config          config.Config
 	discordNotifier *discordNotifier
-	sf              singleflight.Group
 }
 
 func (s *playerService) GetPlayer(ctx context.Context, req *connect.Request[craig_starsv1.GetPlayerRequest]) (*connect.Response[craig_starsv1.GetPlayerResponse], error) {
@@ -110,17 +107,11 @@ func (s *playerService) SubmitTurn(ctx context.Context, req *connect.Request[cra
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("submit turn"))
 	}
 
-	// only allow one CheckAndGenerate to run at a time
-	// TODO: handle this differently if you ever scale out beyond one instance. :)
-	result, err, _ := s.sf.Do(strconv.FormatInt(game.ID, 10), func() (interface{}, error) {
-		gr := NewGameRunner(s.db, s.config)
-		result, err := gr.CheckAndGenerateTurn(game.ID)
-		if err != nil {
-			return nil, err
-		}
-		return result, nil
-	})
-
+	// check (and maybe generate) after our submit is committed. Don't share this call with other
+	// submitters (singleflight): a check already in flight may have read the players before our
+	// submit landed. CheckAndGenerateTurn serializes per game, so only one turn is generated.
+	gr := NewGameRunner(s.db, s.config)
+	result, err := gr.CheckAndGenerateTurn(game.ID)
 	if err != nil {
 		slog.Error("check and generate new turn", slog.Any("error", err), slog.Int64("GameID", game.ID))
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("check and generate new turn: %w", err))
