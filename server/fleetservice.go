@@ -297,10 +297,12 @@ func (s *fleetService) SplitFleet(ctx context.Context, req *connect.Request[crai
 		// It's possible the user sent a "split" request with no dest but didn't split any
 		// in this case dest will be marked for deletion but won't ever have been saved
 		// to the database, so just ignore it
-		if dest.Delete && dest.ID != 0 {
-			if err := c.DeleteFleet(ctx, dest.ID); err != nil {
-				slog.Error("delete fleet in database", slog.Any("error", err))
-				return err
+		if dest.Delete {
+			if dest.ID != 0 {
+				if err := c.DeleteFleet(ctx, dest.ID); err != nil {
+					slog.Error("delete fleet in database", slog.Any("error", err))
+					return err
+				}
 			}
 		} else {
 			dest.GameID = game.ID
