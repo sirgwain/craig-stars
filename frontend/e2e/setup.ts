@@ -350,9 +350,16 @@ export async function submitTurn(page: Page) {
 		(await playerResponse.json()) as GetPlayerResponseJson
 	);
 
-	// wait for turn submit UI flow to finish
-	await page.locator('#loading-modal').waitFor({ state: 'visible' });
-	await expect(page.locator('#loading-modal')).not.toHaveClass(/modal-open/);
+	if (!game?.game || !player || !universe) {
+		throw new Error('failed to load game, player and universe after submitting turn');
+	}
+
+	// The modal may have closed while we awaited the responses. Wait for the
+	// resulting UI state instead of requiring its transient loading state.
+	await expect(page.locator('[data-type="game-link"]').first()).toHaveText(
+		`${game.game.name} - ${game.game.year}`
+	);
+	await expect(page.locator('#loading-modal')).toBeHidden();
 
 	return { game, player, universe };
 }
