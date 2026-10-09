@@ -13,6 +13,7 @@
 	import PopulationTooltip from '#lib/components/game/tooltips/PopulationTooltip.svelte';
 	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
 	import { onTechTooltip } from '#lib/components/game/tooltips/TechTooltip.js';
+	import MineralSortableTableHeader from '#lib/components/table/MineralSortableTableHeader.svelte';
 	import SortableTableHeader from '#lib/components/table/SortableTableHeader.svelte';
 	import Table from '#lib/components/table/Table.svelte';
 	import type { TableColumn } from '#lib/components/table/Table.js';
@@ -24,7 +25,12 @@
 	import type { Planet, ShipDesign } from '#lib/types/cs-proto.js';
 	import { MapObjectTargetSchema, MapObjectType, MineralSchema } from '#lib/types/cs-proto.js';
 	import { owned, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
-	import { getGrowth, planetsSortBy } from '#lib/types/Planet.js';
+	import {
+		getGrowth,
+		planetMineralSortKeys,
+		planetsSortBy,
+		type PlanetMineralSortKey
+	} from '#lib/types/Planet.js';
 	import { emptyVector } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
 	import { Check } from '@steeze-ui/heroicons';
@@ -218,6 +224,11 @@
 		$settings.sortPlanetsKey = column.key;
 	}
 
+	function onMineralSorted(key: string, sortDescending: boolean) {
+		$settings.sortPlanetsDescending = sortDescending;
+		$settings.sortPlanetsKey = key;
+	}
+
 	function onProductionQueueDialog(planet: Planet) {
 		commandMapObject(planet);
 		showProductionQueueDialog = true;
@@ -330,12 +341,21 @@
 	>
 		{#snippet head({ column })}
 			<div>
-				<SortableTableHeader
-					{column}
-					isSorted={$settings.sortPlanetsKey === column.key}
-					sortDescending={$settings.sortPlanetsDescending}
-					{onSorted}
-				/>
+				{#if planetMineralSortKeys.includes(column.key as PlanetMineralSortKey)}
+					<MineralSortableTableHeader
+						{column}
+						sortKey={$settings.sortPlanetsKey}
+						sortDescending={$settings.sortPlanetsDescending}
+						onSorted={onMineralSorted}
+					/>
+				{:else}
+					<SortableTableHeader
+						{column}
+						isSorted={$settings.sortPlanetsKey === column.key}
+						sortDescending={$settings.sortPlanetsDescending}
+						{onSorted}
+					/>
+				{/if}
 			</div>
 		{/snippet}
 

@@ -1016,68 +1016,71 @@ func (x *MysteryTraderRules) GetTechBoon() []*MysteryTraderTechBoonRules {
 }
 
 type Rules struct {
-	state                              protoimpl.MessageState    `protogen:"open.v1"`
-	CostRules                          *CostRules                `protobuf:"bytes,1,opt,name=cost_rules,json=costRules,proto3" json:"cost_rules,omitempty"`
-	BattleRules                        *BattleRules              `protobuf:"bytes,2,opt,name=battle_rules,json=battleRules,proto3" json:"battle_rules,omitempty"`
-	UniverseGenerationRules            *UniverseGenerationRules  `protobuf:"bytes,3,opt,name=universe_generation_rules,json=universeGenerationRules,proto3" json:"universe_generation_rules,omitempty"`
-	Id                                 int64                     `protobuf:"varint,4,opt,name=id,proto3" json:"id,omitempty"`
-	CreatedAt                          *timestamppb.Timestamp    `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt                          *timestamppb.Timestamp    `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	GameId                             int64                     `protobuf:"varint,7,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
-	AcquirablePartTradeChanceBase      float64                   `protobuf:"fixed64,8,opt,name=acquirable_part_trade_chance_base,json=acquirablePartTradeChanceBase,proto3" json:"acquirable_part_trade_chance_base,omitempty"`
-	AcquirablePartTradeItemMax         int32                     `protobuf:"varint,9,opt,name=acquirable_part_trade_item_max,json=acquirablePartTradeItemMax,proto3" json:"acquirable_part_trade_item_max,omitempty"`
-	CometStatsBySize                   map[int32]*CometStats     `protobuf:"bytes,10,rep,name=comet_stats_by_size,json=cometStatsBySize,proto3" json:"comet_stats_by_size,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	FleetSafeSpeedExplosionChance      float64                   `protobuf:"fixed64,11,opt,name=fleet_safe_speed_explosion_chance,json=fleetSafeSpeedExplosionChance,proto3" json:"fleet_safe_speed_explosion_chance,omitempty"`
-	InvasionDefenseCoverageFactor      float64                   `protobuf:"fixed64,12,opt,name=invasion_defense_coverage_factor,json=invasionDefenseCoverageFactor,proto3" json:"invasion_defense_coverage_factor,omitempty"`
-	LrtSpecs                           map[uint32]*LRTSpec       `protobuf:"bytes,13,rep,name=lrt_specs,json=lrtSpecs,proto3" json:"lrt_specs,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // LRT enum/spec definition needed
-	MaxPopulation                      int32                     `protobuf:"varint,14,opt,name=max_population,json=maxPopulation,proto3" json:"max_population,omitempty"`
-	MinPopFloor                        int32                     `protobuf:"varint,15,opt,name=min_pop_floor,json=minPopFloor,proto3" json:"min_pop_floor,omitempty"`
-	MaxTechLevel                       int32                     `protobuf:"varint,16,opt,name=max_tech_level,json=maxTechLevel,proto3" json:"max_tech_level,omitempty"`
-	MinefieldCloak                     int32                     `protobuf:"varint,17,opt,name=minefield_cloak,json=minefieldCloak,proto3" json:"minefield_cloak,omitempty"`
-	MinefieldStatsByType               map[int32]*MinefieldStats `protobuf:"bytes,18,rep,name=minefield_stats_by_type,json=minefieldStatsByType,proto3" json:"minefield_stats_by_type,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // MinefieldType enum/spec definition needed
-	MineralDecayFactor                 int32                     `protobuf:"varint,19,opt,name=mineral_decay_factor,json=mineralDecayFactor,proto3" json:"mineral_decay_factor,omitempty"`
-	MinHabFloor                        int32                     `protobuf:"varint,20,opt,name=min_hab_floor,json=minHabFloor,proto3" json:"min_hab_floor,omitempty"`
-	MysteryTraderRules                 *MysteryTraderRules       `protobuf:"bytes,21,opt,name=mystery_trader_rules,json=mysteryTraderRules,proto3" json:"mystery_trader_rules,omitempty"`
-	PacketDecayRate                    map[int32]float64         `protobuf:"bytes,22,rep,name=packet_decay_rate,json=packetDecayRate,proto3" json:"packet_decay_rate,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	PacketMaxOverwarpSpeed             int32                     `protobuf:"varint,23,opt,name=packet_max_overwarp_speed,json=packetMaxOverwarpSpeed,proto3" json:"packet_max_overwarp_speed,omitempty"`
-	PacketMinDecay                     int32                     `protobuf:"varint,24,opt,name=packet_min_decay,json=packetMinDecay,proto3" json:"packet_min_decay,omitempty"`
-	PlanetMinDistance                  int32                     `protobuf:"varint,25,opt,name=planet_min_distance,json=planetMinDistance,proto3" json:"planet_min_distance,omitempty"`
-	PopulationOvercrowdDieoffRate      float64                   `protobuf:"fixed64,26,opt,name=population_overcrowd_dieoff_rate,json=populationOvercrowdDieoffRate,proto3" json:"population_overcrowd_dieoff_rate,omitempty"`
-	PopulationOvercrowdDieoffRateMax   float64                   `protobuf:"fixed64,27,opt,name=population_overcrowd_dieoff_rate_max,json=populationOvercrowdDieoffRateMax,proto3" json:"population_overcrowd_dieoff_rate_max,omitempty"`
-	PopulationOvercrowdResourcePenalty float64                   `protobuf:"fixed64,28,opt,name=population_overcrowd_resource_penalty,json=populationOvercrowdResourcePenalty,proto3" json:"population_overcrowd_resource_penalty,omitempty"`
-	PopulationOvercrowdResourceMax     float64                   `protobuf:"fixed64,29,opt,name=population_overcrowd_resource_max,json=populationOvercrowdResourceMax,proto3" json:"population_overcrowd_resource_max,omitempty"`
-	PopulationScannerError             float64                   `protobuf:"fixed64,30,opt,name=population_scanner_error,json=populationScannerError,proto3" json:"population_scanner_error,omitempty"`
-	PrtSpecs                           map[int32]*PRTSpec        `protobuf:"bytes,31,rep,name=prt_specs,json=prtSpecs,proto3" json:"prt_specs,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // Prt enum/spec definition needed
-	RaceStartingPoints                 int32                     `protobuf:"varint,32,opt,name=race_starting_points,json=raceStartingPoints,proto3" json:"race_starting_points,omitempty"`
-	RadiatingImmune                    int32                     `protobuf:"varint,33,opt,name=radiating_immune,json=radiatingImmune,proto3" json:"radiating_immune,omitempty"`
-	RandomArtifactResearchBonusRange   []int32                   `protobuf:"varint,34,rep,packed,name=random_artifact_research_bonus_range,json=randomArtifactResearchBonusRange,proto3" json:"random_artifact_research_bonus_range,omitempty"`
-	RandomCometMinYear                 int32                     `protobuf:"varint,35,opt,name=random_comet_min_year,json=randomCometMinYear,proto3" json:"random_comet_min_year,omitempty"`
-	RandomCometMinYearPlayerWorld      int32                     `protobuf:"varint,36,opt,name=random_comet_min_year_player_world,json=randomCometMinYearPlayerWorld,proto3" json:"random_comet_min_year_player_world,omitempty"`
-	RandomEventChances                 map[int32]float64         `protobuf:"bytes,37,rep,name=random_event_chances,json=randomEventChances,proto3" json:"random_event_chances,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	RandomMineralDepositBonusRange     []int32                   `protobuf:"varint,38,rep,packed,name=random_mineral_deposit_bonus_range,json=randomMineralDepositBonusRange,proto3" json:"random_mineral_deposit_bonus_range,omitempty"`
-	RemoteMiningMineOutput             int32                     `protobuf:"varint,39,opt,name=remote_mining_mine_output,json=remoteMiningMineOutput,proto3" json:"remote_mining_mine_output,omitempty"`
-	RepairRates                        map[int32]float64         `protobuf:"bytes,40,rep,name=repair_rates,json=repairRates,proto3" json:"repair_rates,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	SalvageDecayMin                    int32                     `protobuf:"varint,41,opt,name=salvage_decay_min,json=salvageDecayMin,proto3" json:"salvage_decay_min,omitempty"`
-	SalvageDecayRate                   float64                   `protobuf:"fixed64,42,opt,name=salvage_decay_rate,json=salvageDecayRate,proto3" json:"salvage_decay_rate,omitempty"`
-	SalvageFromBattleFactor            float64                   `protobuf:"fixed64,43,opt,name=salvage_from_battle_factor,json=salvageFromBattleFactor,proto3" json:"salvage_from_battle_factor,omitempty"`
-	ScrapColonizeAmount                float64                   `protobuf:"fixed64,44,opt,name=scrap_colonize_amount,json=scrapColonizeAmount,proto3" json:"scrap_colonize_amount,omitempty"`
-	ScrapMineralAmount                 float64                   `protobuf:"fixed64,45,opt,name=scrap_mineral_amount,json=scrapMineralAmount,proto3" json:"scrap_mineral_amount,omitempty"`
-	ScrapResourceAmount                float64                   `protobuf:"fixed64,46,opt,name=scrap_resource_amount,json=scrapResourceAmount,proto3" json:"scrap_resource_amount,omitempty"`
-	ShowPublicScoresAfterYears         int32                     `protobuf:"varint,47,opt,name=show_public_scores_after_years,json=showPublicScoresAfterYears,proto3" json:"show_public_scores_after_years,omitempty"`
-	SmartDefenseCoverageFactor         float64                   `protobuf:"fixed64,48,opt,name=smart_defense_coverage_factor,json=smartDefenseCoverageFactor,proto3" json:"smart_defense_coverage_factor,omitempty"`
-	StargateMaxHullMassFactor          int32                     `protobuf:"varint,49,opt,name=stargate_max_hull_mass_factor,json=stargateMaxHullMassFactor,proto3" json:"stargate_max_hull_mass_factor,omitempty"`
-	StargateMaxRangeFactor             int32                     `protobuf:"varint,50,opt,name=stargate_max_range_factor,json=stargateMaxRangeFactor,proto3" json:"stargate_max_range_factor,omitempty"`
-	TachyonCloakReduction              float64                   `protobuf:"fixed64,51,opt,name=tachyon_cloak_reduction,json=tachyonCloakReduction,proto3" json:"tachyon_cloak_reduction,omitempty"`
-	TachyonMaxCloakReduction           float64                   `protobuf:"fixed64,52,opt,name=tachyon_max_cloak_reduction,json=tachyonMaxCloakReduction,proto3" json:"tachyon_max_cloak_reduction,omitempty"`
-	TechsId                            int64                     `protobuf:"varint,53,opt,name=techs_id,json=techsId,proto3" json:"techs_id,omitempty"`
-	TechTradeChance                    float64                   `protobuf:"fixed64,54,opt,name=tech_trade_chance,json=techTradeChance,proto3" json:"tech_trade_chance,omitempty"`
-	WormholeCloak                      int32                     `protobuf:"varint,56,opt,name=wormhole_cloak,json=wormholeCloak,proto3" json:"wormhole_cloak,omitempty"`
-	WormholePairsForSize               map[int32]int32           `protobuf:"bytes,57,rep,name=wormhole_pairs_for_size,json=wormholePairsForSize,proto3" json:"wormhole_pairs_for_size,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`            // Size enum/spec definition needed
-	WormholeStatsByStability           map[int32]*WormholeStats  `protobuf:"bytes,58,rep,name=wormhole_stats_by_stability,json=wormholeStatsByStability,proto3" json:"wormhole_stats_by_stability,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // WormholeStability enum/spec definition needed
-	MinFactories                       int32                     `protobuf:"varint,59,opt,name=min_factories,json=minFactories,proto3" json:"min_factories,omitempty"`
-	MinMines                           int32                     `protobuf:"varint,60,opt,name=min_mines,json=minMines,proto3" json:"min_mines,omitempty"`
-	unknownFields                      protoimpl.UnknownFields
-	sizeCache                          protoimpl.SizeCache
+	state                                protoimpl.MessageState    `protogen:"open.v1"`
+	CostRules                            *CostRules                `protobuf:"bytes,1,opt,name=cost_rules,json=costRules,proto3" json:"cost_rules,omitempty"`
+	BattleRules                          *BattleRules              `protobuf:"bytes,2,opt,name=battle_rules,json=battleRules,proto3" json:"battle_rules,omitempty"`
+	UniverseGenerationRules              *UniverseGenerationRules  `protobuf:"bytes,3,opt,name=universe_generation_rules,json=universeGenerationRules,proto3" json:"universe_generation_rules,omitempty"`
+	Id                                   int64                     `protobuf:"varint,4,opt,name=id,proto3" json:"id,omitempty"`
+	CreatedAt                            *timestamppb.Timestamp    `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt                            *timestamppb.Timestamp    `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	GameId                               int64                     `protobuf:"varint,7,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
+	AcquirablePartTradeChanceBase        float64                   `protobuf:"fixed64,8,opt,name=acquirable_part_trade_chance_base,json=acquirablePartTradeChanceBase,proto3" json:"acquirable_part_trade_chance_base,omitempty"`
+	AcquirablePartTradeItemMax           int32                     `protobuf:"varint,9,opt,name=acquirable_part_trade_item_max,json=acquirablePartTradeItemMax,proto3" json:"acquirable_part_trade_item_max,omitempty"`
+	CometStatsBySize                     map[int32]*CometStats     `protobuf:"bytes,10,rep,name=comet_stats_by_size,json=cometStatsBySize,proto3" json:"comet_stats_by_size,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	FleetSafeSpeedExplosionChance        float64                   `protobuf:"fixed64,11,opt,name=fleet_safe_speed_explosion_chance,json=fleetSafeSpeedExplosionChance,proto3" json:"fleet_safe_speed_explosion_chance,omitempty"`
+	InvasionDefenseCoverageFactor        float64                   `protobuf:"fixed64,12,opt,name=invasion_defense_coverage_factor,json=invasionDefenseCoverageFactor,proto3" json:"invasion_defense_coverage_factor,omitempty"`
+	LrtSpecs                             map[uint32]*LRTSpec       `protobuf:"bytes,13,rep,name=lrt_specs,json=lrtSpecs,proto3" json:"lrt_specs,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // LRT enum/spec definition needed
+	MaxPopulation                        int32                     `protobuf:"varint,14,opt,name=max_population,json=maxPopulation,proto3" json:"max_population,omitempty"`
+	MinPopFloor                          int32                     `protobuf:"varint,15,opt,name=min_pop_floor,json=minPopFloor,proto3" json:"min_pop_floor,omitempty"`
+	MaxTechLevel                         int32                     `protobuf:"varint,16,opt,name=max_tech_level,json=maxTechLevel,proto3" json:"max_tech_level,omitempty"`
+	MinefieldCloak                       int32                     `protobuf:"varint,17,opt,name=minefield_cloak,json=minefieldCloak,proto3" json:"minefield_cloak,omitempty"`
+	MinefieldStatsByType                 map[int32]*MinefieldStats `protobuf:"bytes,18,rep,name=minefield_stats_by_type,json=minefieldStatsByType,proto3" json:"minefield_stats_by_type,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // MinefieldType enum/spec definition needed
+	MineralDecayFactor                   int32                     `protobuf:"varint,19,opt,name=mineral_decay_factor,json=mineralDecayFactor,proto3" json:"mineral_decay_factor,omitempty"`
+	MinHabFloor                          int32                     `protobuf:"varint,20,opt,name=min_hab_floor,json=minHabFloor,proto3" json:"min_hab_floor,omitempty"`
+	MysteryTraderRules                   *MysteryTraderRules       `protobuf:"bytes,21,opt,name=mystery_trader_rules,json=mysteryTraderRules,proto3" json:"mystery_trader_rules,omitempty"`
+	PacketDecayRate                      map[int32]float64         `protobuf:"bytes,22,rep,name=packet_decay_rate,json=packetDecayRate,proto3" json:"packet_decay_rate,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+	PacketMaxOverwarpSpeed               int32                     `protobuf:"varint,23,opt,name=packet_max_overwarp_speed,json=packetMaxOverwarpSpeed,proto3" json:"packet_max_overwarp_speed,omitempty"`
+	PacketMinDecay                       int32                     `protobuf:"varint,24,opt,name=packet_min_decay,json=packetMinDecay,proto3" json:"packet_min_decay,omitempty"`
+	PlanetMinDistance                    int32                     `protobuf:"varint,25,opt,name=planet_min_distance,json=planetMinDistance,proto3" json:"planet_min_distance,omitempty"`
+	PopulationOvercrowdDieoffRate        float64                   `protobuf:"fixed64,26,opt,name=population_overcrowd_dieoff_rate,json=populationOvercrowdDieoffRate,proto3" json:"population_overcrowd_dieoff_rate,omitempty"`
+	PopulationOvercrowdDieoffRateMax     float64                   `protobuf:"fixed64,27,opt,name=population_overcrowd_dieoff_rate_max,json=populationOvercrowdDieoffRateMax,proto3" json:"population_overcrowd_dieoff_rate_max,omitempty"`
+	PopulationOvercrowdResourcePenalty   float64                   `protobuf:"fixed64,28,opt,name=population_overcrowd_resource_penalty,json=populationOvercrowdResourcePenalty,proto3" json:"population_overcrowd_resource_penalty,omitempty"`
+	PopulationOvercrowdResourceMax       float64                   `protobuf:"fixed64,29,opt,name=population_overcrowd_resource_max,json=populationOvercrowdResourceMax,proto3" json:"population_overcrowd_resource_max,omitempty"`
+	PopulationScannerError               float64                   `protobuf:"fixed64,30,opt,name=population_scanner_error,json=populationScannerError,proto3" json:"population_scanner_error,omitempty"`
+	PrtSpecs                             map[int32]*PRTSpec        `protobuf:"bytes,31,rep,name=prt_specs,json=prtSpecs,proto3" json:"prt_specs,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // Prt enum/spec definition needed
+	RaceStartingPoints                   int32                     `protobuf:"varint,32,opt,name=race_starting_points,json=raceStartingPoints,proto3" json:"race_starting_points,omitempty"`
+	RadiatingImmune                      int32                     `protobuf:"varint,33,opt,name=radiating_immune,json=radiatingImmune,proto3" json:"radiating_immune,omitempty"`
+	RandomArtifactResearchBonusRange     []int32                   `protobuf:"varint,34,rep,packed,name=random_artifact_research_bonus_range,json=randomArtifactResearchBonusRange,proto3" json:"random_artifact_research_bonus_range,omitempty"`
+	RandomCometMinYear                   int32                     `protobuf:"varint,35,opt,name=random_comet_min_year,json=randomCometMinYear,proto3" json:"random_comet_min_year,omitempty"`
+	RandomCometMinYearPlayerWorld        int32                     `protobuf:"varint,36,opt,name=random_comet_min_year_player_world,json=randomCometMinYearPlayerWorld,proto3" json:"random_comet_min_year_player_world,omitempty"`
+	RandomEventChances                   map[int32]float64         `protobuf:"bytes,37,rep,name=random_event_chances,json=randomEventChances,proto3" json:"random_event_chances,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+	RandomMineralDepositBonusRange       []int32                   `protobuf:"varint,38,rep,packed,name=random_mineral_deposit_bonus_range,json=randomMineralDepositBonusRange,proto3" json:"random_mineral_deposit_bonus_range,omitempty"`
+	RemoteMiningMineOutput               int32                     `protobuf:"varint,39,opt,name=remote_mining_mine_output,json=remoteMiningMineOutput,proto3" json:"remote_mining_mine_output,omitempty"`
+	RepairRates                          map[int32]float64         `protobuf:"bytes,40,rep,name=repair_rates,json=repairRates,proto3" json:"repair_rates,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+	SalvageDecayMin                      int32                     `protobuf:"varint,41,opt,name=salvage_decay_min,json=salvageDecayMin,proto3" json:"salvage_decay_min,omitempty"`
+	SalvageDecayRate                     float64                   `protobuf:"fixed64,42,opt,name=salvage_decay_rate,json=salvageDecayRate,proto3" json:"salvage_decay_rate,omitempty"`
+	SalvageFromBattleFactor              float64                   `protobuf:"fixed64,43,opt,name=salvage_from_battle_factor,json=salvageFromBattleFactor,proto3" json:"salvage_from_battle_factor,omitempty"`
+	ScrapColonizeAmount                  float64                   `protobuf:"fixed64,44,opt,name=scrap_colonize_amount,json=scrapColonizeAmount,proto3" json:"scrap_colonize_amount,omitempty"`
+	ScrapMineralAmount                   float64                   `protobuf:"fixed64,45,opt,name=scrap_mineral_amount,json=scrapMineralAmount,proto3" json:"scrap_mineral_amount,omitempty"`
+	ScrapResourceAmount                  float64                   `protobuf:"fixed64,46,opt,name=scrap_resource_amount,json=scrapResourceAmount,proto3" json:"scrap_resource_amount,omitempty"`
+	ShowPublicScoresAfterYears           int32                     `protobuf:"varint,47,opt,name=show_public_scores_after_years,json=showPublicScoresAfterYears,proto3" json:"show_public_scores_after_years,omitempty"`
+	SmartDefenseCoverageFactor           float64                   `protobuf:"fixed64,48,opt,name=smart_defense_coverage_factor,json=smartDefenseCoverageFactor,proto3" json:"smart_defense_coverage_factor,omitempty"`
+	StargateMaxHullMassFactor            int32                     `protobuf:"varint,49,opt,name=stargate_max_hull_mass_factor,json=stargateMaxHullMassFactor,proto3" json:"stargate_max_hull_mass_factor,omitempty"`
+	StargateMaxRangeFactor               int32                     `protobuf:"varint,50,opt,name=stargate_max_range_factor,json=stargateMaxRangeFactor,proto3" json:"stargate_max_range_factor,omitempty"`
+	TachyonCloakReduction                float64                   `protobuf:"fixed64,51,opt,name=tachyon_cloak_reduction,json=tachyonCloakReduction,proto3" json:"tachyon_cloak_reduction,omitempty"`
+	TachyonMaxCloakReduction             float64                   `protobuf:"fixed64,52,opt,name=tachyon_max_cloak_reduction,json=tachyonMaxCloakReduction,proto3" json:"tachyon_max_cloak_reduction,omitempty"`
+	TechsId                              int64                     `protobuf:"varint,53,opt,name=techs_id,json=techsId,proto3" json:"techs_id,omitempty"`
+	TechTradeChance                      float64                   `protobuf:"fixed64,54,opt,name=tech_trade_chance,json=techTradeChance,proto3" json:"tech_trade_chance,omitempty"`
+	WormholeCloak                        int32                     `protobuf:"varint,56,opt,name=wormhole_cloak,json=wormholeCloak,proto3" json:"wormhole_cloak,omitempty"`
+	WormholePairsForSize                 map[int32]int32           `protobuf:"bytes,57,rep,name=wormhole_pairs_for_size,json=wormholePairsForSize,proto3" json:"wormhole_pairs_for_size,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`            // Size enum/spec definition needed
+	WormholeStatsByStability             map[int32]*WormholeStats  `protobuf:"bytes,58,rep,name=wormhole_stats_by_stability,json=wormholeStatsByStability,proto3" json:"wormhole_stats_by_stability,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // WormholeStability enum/spec definition needed
+	MinFactories                         int32                     `protobuf:"varint,59,opt,name=min_factories,json=minFactories,proto3" json:"min_factories,omitempty"`
+	MinMines                             int32                     `protobuf:"varint,60,opt,name=min_mines,json=minMines,proto3" json:"min_mines,omitempty"`
+	RandomMineralDepositChanceForSize    map[int32]float64         `protobuf:"bytes,61,rep,name=random_mineral_deposit_chance_for_size,json=randomMineralDepositChanceForSize,proto3" json:"random_mineral_deposit_chance_for_size,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"` // Size enum
+	RandomMineralDepositMaxConcentration int32                     `protobuf:"varint,62,opt,name=random_mineral_deposit_max_concentration,json=randomMineralDepositMaxConcentration,proto3" json:"random_mineral_deposit_max_concentration,omitempty"`
+	RandomMineralDepositMinYear          int32                     `protobuf:"varint,63,opt,name=random_mineral_deposit_min_year,json=randomMineralDepositMinYear,proto3" json:"random_mineral_deposit_min_year,omitempty"`
+	unknownFields                        protoimpl.UnknownFields
+	sizeCache                            protoimpl.SizeCache
 }
 
 func (x *Rules) Reset() {
@@ -1523,6 +1526,27 @@ func (x *Rules) GetMinMines() int32 {
 	return 0
 }
 
+func (x *Rules) GetRandomMineralDepositChanceForSize() map[int32]float64 {
+	if x != nil {
+		return x.RandomMineralDepositChanceForSize
+	}
+	return nil
+}
+
+func (x *Rules) GetRandomMineralDepositMaxConcentration() int32 {
+	if x != nil {
+		return x.RandomMineralDepositMaxConcentration
+	}
+	return 0
+}
+
+func (x *Rules) GetRandomMineralDepositMinYear() int32 {
+	if x != nil {
+		return x.RandomMineralDepositMinYear
+	}
+	return 0
+}
+
 var File_craig_stars_v1_rules_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_rules_proto_rawDesc = "" +
@@ -1612,7 +1636,7 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	" \x01(\x05R\aminWarp\x12\x19\n" +
 	"\bmin_year\x18\v \x01(\x05R\aminYear\x12%\n" +
 	"\x0erequested_boon\x18\f \x01(\x05R\rrequestedBoon\x12G\n" +
-	"\ttech_boon\x18\r \x03(\v2*.craig_stars.v1.MysteryTraderTechBoonRulesR\btechBoon\"\xbb\"\n" +
+	"\ttech_boon\x18\r \x03(\v2*.craig_stars.v1.MysteryTraderTechBoonRulesR\btechBoon\"\xc1%\n" +
 	"\x05Rules\x128\n" +
 	"\n" +
 	"cost_rules\x18\x01 \x01(\v2\x19.craig_stars.v1.CostRulesR\tcostRules\x12>\n" +
@@ -1676,7 +1700,10 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\x17wormhole_pairs_for_size\x189 \x03(\v2/.craig_stars.v1.Rules.WormholePairsForSizeEntryR\x14wormholePairsForSize\x12r\n" +
 	"\x1bwormhole_stats_by_stability\x18: \x03(\v23.craig_stars.v1.Rules.WormholeStatsByStabilityEntryR\x18wormholeStatsByStability\x12#\n" +
 	"\rmin_factories\x18; \x01(\x05R\fminFactories\x12\x1b\n" +
-	"\tmin_mines\x18< \x01(\x05R\bminMines\x1a_\n" +
+	"\tmin_mines\x18< \x01(\x05R\bminMines\x12\x8f\x01\n" +
+	"&random_mineral_deposit_chance_for_size\x18= \x03(\v2<.craig_stars.v1.Rules.RandomMineralDepositChanceForSizeEntryR!randomMineralDepositChanceForSize\x12V\n" +
+	"(random_mineral_deposit_max_concentration\x18> \x01(\x05R$randomMineralDepositMaxConcentration\x12D\n" +
+	"\x1frandom_mineral_deposit_min_year\x18? \x01(\x05R\x1brandomMineralDepositMinYear\x1a_\n" +
 	"\x15CometStatsBySizeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x120\n" +
 	"\x05value\x18\x02 \x01(\v2\x1a.craig_stars.v1.CometStatsR\x05value:\x028\x01\x1aT\n" +
@@ -1703,7 +1730,10 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\x1aj\n" +
 	"\x1dWormholeStatsByStabilityEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x123\n" +
-	"\x05value\x18\x02 \x01(\v2\x1d.craig_stars.v1.WormholeStatsR\x05value:\x028\x01J\x04\b7\x108R\x15torpedo_splash_damage*\x7f\n" +
+	"\x05value\x18\x02 \x01(\v2\x1d.craig_stars.v1.WormholeStatsR\x05value:\x028\x01\x1aT\n" +
+	"&RandomMineralDepositChanceForSizeEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01J\x04\b7\x108R\x15torpedo_splash_damage*\x7f\n" +
 	"\tCometSize\x12\x1a\n" +
 	"\x16COMET_SIZE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10COMET_SIZE_SMALL\x10\x01\x12\x15\n" +
@@ -1740,7 +1770,7 @@ func file_craig_stars_v1_rules_proto_rawDescGZIP() []byte {
 }
 
 var file_craig_stars_v1_rules_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_craig_stars_v1_rules_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_craig_stars_v1_rules_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_craig_stars_v1_rules_proto_goTypes = []any{
 	(CometSize)(0),                              // 0: craig_stars.v1.CometSize
 	(RandomEvent)(0),                            // 1: craig_stars.v1.RandomEvent
@@ -1764,30 +1794,31 @@ var file_craig_stars_v1_rules_proto_goTypes = []any{
 	nil,                                         // 19: craig_stars.v1.Rules.RepairRatesEntry
 	nil,                                         // 20: craig_stars.v1.Rules.WormholePairsForSizeEntry
 	nil,                                         // 21: craig_stars.v1.Rules.WormholeStatsByStabilityEntry
-	(*Cost)(nil),                                // 22: craig_stars.v1.Cost
-	(*Hab)(nil),                                 // 23: craig_stars.v1.Hab
-	(*timestamppb.Timestamp)(nil),               // 24: google.protobuf.Timestamp
-	(*LRTSpec)(nil),                             // 25: craig_stars.v1.LRTSpec
-	(*MinefieldStats)(nil),                      // 26: craig_stars.v1.MinefieldStats
-	(*PRTSpec)(nil),                             // 27: craig_stars.v1.PRTSpec
-	(*WormholeStats)(nil),                       // 28: craig_stars.v1.WormholeStats
+	nil,                                         // 22: craig_stars.v1.Rules.RandomMineralDepositChanceForSizeEntry
+	(*Cost)(nil),                                // 23: craig_stars.v1.Cost
+	(*Hab)(nil),                                 // 24: craig_stars.v1.Hab
+	(*timestamppb.Timestamp)(nil),               // 25: google.protobuf.Timestamp
+	(*LRTSpec)(nil),                             // 26: craig_stars.v1.LRTSpec
+	(*MinefieldStats)(nil),                      // 27: craig_stars.v1.MinefieldStats
+	(*PRTSpec)(nil),                             // 28: craig_stars.v1.PRTSpec
+	(*WormholeStats)(nil),                       // 29: craig_stars.v1.WormholeStats
 }
 var file_craig_stars_v1_rules_proto_depIdxs = []int32{
-	22, // 0: craig_stars.v1.CostRules.defense_cost:type_name -> craig_stars.v1.Cost
-	22, // 1: craig_stars.v1.CostRules.planetary_scanner_cost:type_name -> craig_stars.v1.Cost
-	22, // 2: craig_stars.v1.CostRules.terraform_cost:type_name -> craig_stars.v1.Cost
+	23, // 0: craig_stars.v1.CostRules.defense_cost:type_name -> craig_stars.v1.Cost
+	23, // 1: craig_stars.v1.CostRules.planetary_scanner_cost:type_name -> craig_stars.v1.Cost
+	23, // 2: craig_stars.v1.CostRules.terraform_cost:type_name -> craig_stars.v1.Cost
 	3,  // 3: craig_stars.v1.BattleRules.jammer_cap:type_name -> craig_stars.v1.JammerCap
 	3,  // 4: craig_stars.v1.BattleRules.jammer_multi:type_name -> craig_stars.v1.JammerCap
-	23, // 5: craig_stars.v1.UniverseGenerationRules.hab_dropoff_range:type_name -> craig_stars.v1.Hab
+	24, // 5: craig_stars.v1.UniverseGenerationRules.hab_dropoff_range:type_name -> craig_stars.v1.Hab
 	12, // 6: craig_stars.v1.UniverseGenerationRules.race_leftover_points_per_item:type_name -> craig_stars.v1.UniverseGenerationRules.RaceLeftoverPointsPerItemEntry
 	8,  // 7: craig_stars.v1.MysteryTraderTechBoonRules.rewards:type_name -> craig_stars.v1.MysteryTraderTechBoonMineralsReward
-	22, // 8: craig_stars.v1.MysteryTraderRules.genesis_device_cost:type_name -> craig_stars.v1.Cost
+	23, // 8: craig_stars.v1.MysteryTraderRules.genesis_device_cost:type_name -> craig_stars.v1.Cost
 	9,  // 9: craig_stars.v1.MysteryTraderRules.tech_boon:type_name -> craig_stars.v1.MysteryTraderTechBoonRules
 	5,  // 10: craig_stars.v1.Rules.cost_rules:type_name -> craig_stars.v1.CostRules
 	6,  // 11: craig_stars.v1.Rules.battle_rules:type_name -> craig_stars.v1.BattleRules
 	7,  // 12: craig_stars.v1.Rules.universe_generation_rules:type_name -> craig_stars.v1.UniverseGenerationRules
-	24, // 13: craig_stars.v1.Rules.created_at:type_name -> google.protobuf.Timestamp
-	24, // 14: craig_stars.v1.Rules.updated_at:type_name -> google.protobuf.Timestamp
+	25, // 13: craig_stars.v1.Rules.created_at:type_name -> google.protobuf.Timestamp
+	25, // 14: craig_stars.v1.Rules.updated_at:type_name -> google.protobuf.Timestamp
 	13, // 15: craig_stars.v1.Rules.comet_stats_by_size:type_name -> craig_stars.v1.Rules.CometStatsBySizeEntry
 	14, // 16: craig_stars.v1.Rules.lrt_specs:type_name -> craig_stars.v1.Rules.LrtSpecsEntry
 	15, // 17: craig_stars.v1.Rules.minefield_stats_by_type:type_name -> craig_stars.v1.Rules.MinefieldStatsByTypeEntry
@@ -1798,16 +1829,17 @@ var file_craig_stars_v1_rules_proto_depIdxs = []int32{
 	19, // 22: craig_stars.v1.Rules.repair_rates:type_name -> craig_stars.v1.Rules.RepairRatesEntry
 	20, // 23: craig_stars.v1.Rules.wormhole_pairs_for_size:type_name -> craig_stars.v1.Rules.WormholePairsForSizeEntry
 	21, // 24: craig_stars.v1.Rules.wormhole_stats_by_stability:type_name -> craig_stars.v1.Rules.WormholeStatsByStabilityEntry
-	4,  // 25: craig_stars.v1.Rules.CometStatsBySizeEntry.value:type_name -> craig_stars.v1.CometStats
-	25, // 26: craig_stars.v1.Rules.LrtSpecsEntry.value:type_name -> craig_stars.v1.LRTSpec
-	26, // 27: craig_stars.v1.Rules.MinefieldStatsByTypeEntry.value:type_name -> craig_stars.v1.MinefieldStats
-	27, // 28: craig_stars.v1.Rules.PrtSpecsEntry.value:type_name -> craig_stars.v1.PRTSpec
-	28, // 29: craig_stars.v1.Rules.WormholeStatsByStabilityEntry.value:type_name -> craig_stars.v1.WormholeStats
-	30, // [30:30] is the sub-list for method output_type
-	30, // [30:30] is the sub-list for method input_type
-	30, // [30:30] is the sub-list for extension type_name
-	30, // [30:30] is the sub-list for extension extendee
-	0,  // [0:30] is the sub-list for field type_name
+	22, // 25: craig_stars.v1.Rules.random_mineral_deposit_chance_for_size:type_name -> craig_stars.v1.Rules.RandomMineralDepositChanceForSizeEntry
+	4,  // 26: craig_stars.v1.Rules.CometStatsBySizeEntry.value:type_name -> craig_stars.v1.CometStats
+	26, // 27: craig_stars.v1.Rules.LrtSpecsEntry.value:type_name -> craig_stars.v1.LRTSpec
+	27, // 28: craig_stars.v1.Rules.MinefieldStatsByTypeEntry.value:type_name -> craig_stars.v1.MinefieldStats
+	28, // 29: craig_stars.v1.Rules.PrtSpecsEntry.value:type_name -> craig_stars.v1.PRTSpec
+	29, // 30: craig_stars.v1.Rules.WormholeStatsByStabilityEntry.value:type_name -> craig_stars.v1.WormholeStats
+	31, // [31:31] is the sub-list for method output_type
+	31, // [31:31] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_rules_proto_init() }
@@ -1825,7 +1857,7 @@ func file_craig_stars_v1_rules_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_rules_proto_rawDesc), len(file_craig_stars_v1_rules_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   19,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -152,6 +152,29 @@ describe('mineral views', () => {
 		expect(draw.minerals).toEqual([0, 0, 0]);
 	});
 
+	it.each([PlanetViewState.MineralConcentration, PlanetViewState.SurfaceMinerals])(
+		"doesn't draw starbase, stargate or mass driver markers in view %s",
+		(viewState) => {
+			const { draw } = buildOne(
+				{
+					mapObject: { num: 1, playerNum: 1 },
+					spec: {
+						planetStarbaseSpec: {
+							hasStarbase: true,
+							hasStargate: true,
+							hasMassDriver: true,
+							dockCapacity: 100
+						}
+					}
+				},
+				viewState
+			);
+			expect(draw.normal?.starbase).toBeUndefined();
+			expect(draw.normal?.stargate).toBe(false);
+			expect(draw.normal?.massDriver).toBe(false);
+		}
+	);
+
 	it("doesn't graph other planets with no known minerals", () => {
 		const { draw } = buildOne(
 			{ mapObject: { num: 1, playerNum: 2 } },

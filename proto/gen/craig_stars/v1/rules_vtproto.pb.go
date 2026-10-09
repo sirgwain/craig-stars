@@ -769,6 +769,38 @@ func (m *Rules) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.RandomMineralDepositMinYear != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.RandomMineralDepositMinYear))
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0xf8
+	}
+	if m.RandomMineralDepositMaxConcentration != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.RandomMineralDepositMaxConcentration))
+		i--
+		dAtA[i] = 0x3
+		i--
+		dAtA[i] = 0xf0
+	}
+	if len(m.RandomMineralDepositChanceForSize) > 0 {
+		for k := range m.RandomMineralDepositChanceForSize {
+			v := m.RandomMineralDepositChanceForSize[k]
+			baseI := i
+			i -= 8
+			binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(v))))
+			i--
+			dAtA[i] = 0x11
+			i = protohelpers.EncodeVarint(dAtA, i, uint64(k))
+			i--
+			dAtA[i] = 0x8
+			i = protohelpers.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x3
+			i--
+			dAtA[i] = 0xea
+		}
+	}
 	if m.MinMines != 0 {
 		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.MinMines))
 		i--
@@ -1925,6 +1957,20 @@ func (m *Rules) SizeVT() (n int) {
 	}
 	if m.MinMines != 0 {
 		n += 2 + protohelpers.SizeOfVarint(uint64(m.MinMines))
+	}
+	if len(m.RandomMineralDepositChanceForSize) > 0 {
+		for k, v := range m.RandomMineralDepositChanceForSize {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + protohelpers.SizeOfVarint(uint64(k)) + 1 + 8
+			n += mapEntrySize + 2 + protohelpers.SizeOfVarint(uint64(mapEntrySize))
+		}
+	}
+	if m.RandomMineralDepositMaxConcentration != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.RandomMineralDepositMaxConcentration))
+	}
+	if m.RandomMineralDepositMinYear != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.RandomMineralDepositMinYear))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -5888,6 +5934,136 @@ func (m *Rules) UnmarshalVT(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.MinMines |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 61:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RandomMineralDepositChanceForSize", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.RandomMineralDepositChanceForSize == nil {
+				m.RandomMineralDepositChanceForSize = make(map[int32]float64)
+			}
+			var mapkey int32
+			var mapvalue float64
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protohelpers.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return protohelpers.ErrIntOverflow
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						mapkey |= int32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+				} else if fieldNum == 2 {
+					var mapvaluetemp uint64
+					if (iNdEx + 8) > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvaluetemp = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
+					iNdEx += 8
+					mapvalue = math.Float64frombits(mapvaluetemp)
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := protohelpers.Skip(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if (skippy < 0) || (iNdEx+skippy) < 0 {
+						return protohelpers.ErrInvalidLength
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.RandomMineralDepositChanceForSize[mapkey] = mapvalue
+			iNdEx = postIndex
+		case 62:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RandomMineralDepositMaxConcentration", wireType)
+			}
+			m.RandomMineralDepositMaxConcentration = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.RandomMineralDepositMaxConcentration |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 63:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RandomMineralDepositMinYear", wireType)
+			}
+			m.RandomMineralDepositMinYear = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.RandomMineralDepositMinYear |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

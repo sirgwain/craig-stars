@@ -74,12 +74,16 @@
 		document.body.classList.remove('touch-manipulation');
 	}
 
-	function onPointerUp() {
+	function stopPointerTracking() {
 		window.removeEventListener('pointerup', onPointerUp);
 		window.removeEventListener('pointermove', onPointerMove);
 		document.body.classList.remove('select-none', 'touch-none');
 		document.body.classList.add('touch-manipulation');
 		pointerDown = false;
+	}
+
+	function onPointerUp() {
+		stopPointerTracking();
 		onValueChanged?.(value);
 	}
 
@@ -104,8 +108,8 @@
 			e.preventDefault();
 		}
 		touchStarted = true;
-		pointerDown = false;
-		onPointerUp();
+		// touch takes over from the pointer events; the value is saved on touchend
+		stopPointerTracking();
 		updateValue(getXFromTouchEvent(e));
 		document.body.classList.add('select-none', 'touch-none');
 		document.body.classList.remove('touch-manipulation');
@@ -115,6 +119,7 @@
 		document.body.classList.remove('select-none', 'touch-none');
 		document.body.classList.add('touch-manipulation');
 		touchStarted = false;
+		onValueChanged?.(value);
 	}
 
 	function onTouchMove(e: TouchEvent) {
