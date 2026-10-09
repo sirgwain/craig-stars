@@ -18,6 +18,34 @@ func ScenarioScoutTest() TestScenario {
 				Cargo:    Cargo{}}}}
 }
 
+// ScenarioStargateTest has a scout headed between two planets with stargates.
+func ScenarioStargateTest() TestScenario {
+	return TestScenario{Name: "Stargate Test",
+		Players: []ScenarioPlayer{{Player: &Player{
+			Name:       "Player 1",
+			UserID:     1,
+			Race:       *NewRace(),
+			TechLevels: TechLevel{Propulsion: 5, Construction: 5},
+		},
+			Designs: Designs(DesignLongRangeScout, ShipDesign{Name: "Gate",
+				Hull:  SpaceStation.Name,
+				Slots: []ShipDesignSlot{{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1}}}),
+			Fleets: []ScenarioFleet{{Design: "Long Range Scout",
+				At:        "Planet 1",
+				Fuel:      300,
+				Waypoints: []ScenarioWaypoint{{To: "Planet 1"}, {To: "Planet 2", Warp: 5}}}}}},
+		Planets: []ScenarioPlanet{{Name: "Planet 1",
+			Owner:     1,
+			Starbase:  "Gate",
+			Cargo:     Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
+			Homeworld: true},
+			{Name: "Planet 2",
+				Owner:    1,
+				Position: Vector{X: 0, Y: 200},
+				Starbase: "Gate",
+				Cargo:    Cargo{Colonists: 1000}}}}
+}
+
 // ScenarioColonizerTest is shared by browser and game-logic tests.
 func ScenarioColonizerTest() TestScenario {
 	return TestScenario{Name: "Colonizer Test",

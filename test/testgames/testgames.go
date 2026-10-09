@@ -13,6 +13,7 @@ var TestGames = []cs.TestScenario{
 	cs.SingleUnitScenario(),
 	cs.TwoPlayerScenario(),
 	cs.ScenarioScoutTest(),
+	cs.ScenarioStargateTest(),
 	cs.ScenarioColonizerTest(),
 	cs.ScenarioColonizerTestAR(),
 	cs.ScenarioKitchenSink(),
