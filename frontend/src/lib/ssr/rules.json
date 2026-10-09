@@ -29,7 +29,7 @@
 		"beamBonusCap": 2.55,
 		"jammerCap": {
 			"ship": 0.95,
-			"starbase": 1
+			"starbase": 0.95
 		},
 		"jammerMulti": {
 			"ship": 1,
@@ -39,7 +39,8 @@
 		"movementMax": 10,
 		"movesToRunAway": 7,
 		"numBattleRounds": 16,
-		"torpedoSplashDamage": 0.125
+		"torpedoSplashDamage": 0.125,
+		"movementMassVariance": 0.14
 	},
 	"universeGenerationRules": {
 		"habDropoffRange": {
@@ -1160,7 +1161,7 @@
 	},
 	"salvageDecayMin": 10,
 	"salvageDecayRate": 0.1,
-	"salvageFromBattleFactor": 0.3,
+	"salvageFromBattleFactor": 0.3333333333333333,
 	"scrapColonizeAmount": 0.75,
 	"scrapMineralAmount": 0.333333343,
 	"showPublicScoresAfterYears": 20,

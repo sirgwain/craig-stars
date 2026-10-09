@@ -79,6 +79,7 @@ message BattleRules {
   int32 moves_to_run_away = 7;
   int32 num_battle_rounds = 8;
   double torpedo_splash_damage = 9;
+  double movement_mass_variance = 10;
 }
 
 message UniverseGenerationRules {
@@ -134,6 +135,9 @@ message MysteryTraderRules {
 // ===== Rules =====
 
 message Rules {
+  reserved 55;
+  reserved "torpedo_splash_damage";
+
   CostRules cost_rules = 1;
   BattleRules battle_rules = 2;
   UniverseGenerationRules universe_generation_rules = 3;
@@ -189,7 +193,6 @@ message Rules {
   double tachyon_max_cloak_reduction = 52;
   int64 techs_id = 53;
   double tech_trade_chance = 54;
-  double torpedo_splash_damage = 55;
   int32 wormhole_cloak = 56;
   map<int32, int32> wormhole_pairs_for_size = 57; // Size enum/spec definition needed
   map<int32, WormholeStats> wormhole_stats_by_stability = 58; // WormholeStability enum/spec definition needed

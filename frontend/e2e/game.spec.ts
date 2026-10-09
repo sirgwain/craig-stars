@@ -275,7 +275,7 @@ test('fleets report page', async ({ newGamePage }) => {
 
 	// sort
 	await page.getByRole('button', { name: 'Name' }).click();
-	await page.getByRole('button', { name: 'ID' }).click();
+	await page.getByRole('button', { name: 'ID', exact: true }).click();
 	await page.getByRole('button', { name: 'Location' }).click();
 	await page.getByRole('button', { name: 'Destination' }).click();
 	await page.getByRole('button', { name: 'ETA' }).click();
