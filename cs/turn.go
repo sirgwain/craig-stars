@@ -1205,6 +1205,12 @@ func (t *turnGenerator) fleetMoveInterrupted(fleet *Fleet, interrupted *fleetMov
 			messager.fleetMinefieldHit(minefieldPlayer, fleet, minefield, damage)
 		}
 
+		// ships destroyed by mines leave the minerals they were carrying behind as salvage
+		if damage.ShipsDestroyed > 0 {
+			lostCargo := fleet.removeLostShips(&t.game.Rules, player)
+			t.dropSalvage(fleet.Position, fleet.PlayerNum, lostCargo)
+		}
+
 		t.log.Debug("minefield damaged fleet",
 			slog.Int("Player", minefield.PlayerNum),
 			slog.String("Minefield", minefield.Name),
@@ -1222,6 +1228,25 @@ func (t *turnGenerator) fleetMoveInterrupted(fleet *Fleet, interrupted *fleetMov
 			slog.Int("Warp", fleet.Waypoints[1].WarpSpeed),
 		)
 	}
+}
+
+// dropSalvage leaves the minerals from lost cargo as salvage in space. Salvage isn't left on a planet.
+func (t *turnGenerator) dropSalvage(position Vector, playerNum int, cargo Cargo) {
+	minerals := Cargo{Ironium: cargo.Ironium, Boranium: cargo.Boranium, Germanium: cargo.Germanium}
+	if minerals.Total() <= 0 {
+		return
+	}
+	for _, mo := range t.game.getMapObjectsAtPosition(position) {
+		if _, ok := mo.(*Planet); ok {
+			return
+		}
+	}
+	salvage := t.game.getOrCreateSalvage(position, playerNum, minerals)
+	t.log.Debug("dropped salvage",
+		slog.Int("Player", playerNum),
+		slog.String("Salvage", salvage.Name),
+		slog.String("Cargo", minerals.PrettyString()),
+	)
 }
 
 // finishFleetMove updates the universe after a fleet's move, deleting it if it lost all its ships

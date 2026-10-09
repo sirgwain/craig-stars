@@ -785,25 +785,31 @@ func (f *Fleet) availableFuelSpace() int {
 }
 
 // removeLostShips removes tokens with no ships left after ships were destroyed. The lost ships take their
-// share of the fleet's cargo and fuel with them, by capacity.
-func (fleet *Fleet) removeLostShips(rules *Rules, player *Player) {
+// share of the fleet's cargo and fuel with them, by capacity. Returns the cargo the lost ships took.
+func (fleet *Fleet) removeLostShips(rules *Rules, player *Player) (lostCargo Cargo) {
 	totalShips, cargoCapacity, fuelCapacity := fleet.Spec.TotalShips, fleet.Spec.CargoCapacity, fleet.Spec.FuelCapacity
 	fleet.removeEmptyTokens()
 	if len(fleet.Tokens) == 0 {
-		return
+		lostCargo = fleet.Cargo
+		fleet.Cargo = Cargo{}
+		fleet.Fuel = 0
+		return lostCargo
 	}
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 	if fleet.Spec.TotalShips >= totalShips {
 		// no ships lost
-		return
+		return Cargo{}
 	}
 	if cargoCapacity > 0 {
-		fleet.Cargo = fleet.Cargo.Multiply(float64(fleet.Spec.CargoCapacity) / float64(cargoCapacity))
+		cargo := fleet.Cargo.Multiply(float64(fleet.Spec.CargoCapacity) / float64(cargoCapacity))
+		lostCargo = fleet.Cargo.Subtract(cargo)
+		fleet.Cargo = cargo
 	}
 	if fuelCapacity > 0 {
 		fleet.Fuel = int(float64(fleet.Fuel) * float64(fleet.Spec.FuelCapacity) / float64(fuelCapacity))
 	}
+	return lostCargo
 }
 
 // remove any empty tokens that were destroyed (by minefields, overgating, battle... it's a dangerous universe)

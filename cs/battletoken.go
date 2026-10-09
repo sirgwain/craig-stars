@@ -68,7 +68,7 @@ func newBattleToken(rules *Rules, num int, position Vector, token *ShipToken, ba
 		totalStackShields: token.Quantity * token.design.Spec.Shields,
 		torpedoJamming:    token.design.Spec.TorpedoJamming,
 		beamDefense:       token.design.Spec.BeamDefense,
-		attributes:        getBattleTokenAttributes(token.design.Spec.HullType, token.design.Spec.HasWeapons),
+		attributes:        token.battleAttributes(),
 	}
 	if !battleToken.hasWeapons() {
 		battleToken.Tactic = BattleTacticDisengage
@@ -80,16 +80,6 @@ func newBattleToken(rules *Rules, num int, position Vector, token *ShipToken, ba
 		battleToken.SecondaryTarget = BattleTargetAny
 		if !battleToken.hasWeapons() {
 			battleToken.PrimaryTarget = BattleTargetNone
-		}
-	}
-	// Target classes describe the installed equipment, with armed ships taking priority.
-	if !battleToken.hasWeapons() {
-		battleToken.attributes &^= battleTokenAttributeBomber | battleTokenAttributeFreighter
-		spec := token.design.Spec
-		if len(spec.Bombs)+len(spec.SmartBombs)+len(spec.RetroBombs) > 0 {
-			battleToken.attributes |= battleTokenAttributeBomber
-		} else if battleToken.attributes&battleTokenAttributeFuelTransport == 0 && spec.CargoCapacity > 0 {
-			battleToken.attributes |= battleTokenAttributeFreighter
 		}
 	}
 
@@ -114,6 +104,34 @@ func getCargoPerShip(fleetCargo, fleetCargoCapacity, tokenCargoCapacity int) int
 	}
 
 	return cargoMass
+}
+
+// battleAttributes returns the battle target classes this token's ships fall in
+func (token *ShipToken) battleAttributes() battleTokenAttribute {
+	spec := token.design.Spec
+	attributes := getBattleTokenAttributes(spec.HullType, spec.HasWeapons)
+
+	// Target classes describe the installed equipment, with armed ships taking priority.
+	if !spec.HasWeapons {
+		attributes &^= battleTokenAttributeBomber | battleTokenAttributeFreighter
+		if len(spec.Bombs)+len(spec.SmartBombs)+len(spec.RetroBombs) > 0 {
+			attributes |= battleTokenAttributeBomber
+		} else if attributes&battleTokenAttributeFuelTransport == 0 && spec.CargoCapacity > 0 {
+			attributes |= battleTokenAttributeFreighter
+		}
+	}
+	return attributes
+}
+
+// isTargetOf returns true if any ship in this fleet would be a target of a battle plan's target
+func (fleet *Fleet) isTargetOf(target BattleTarget) bool {
+	for i := range fleet.Tokens {
+		token := battleToken{attributes: fleet.Tokens[i].battleAttributes()}
+		if token.isTargetOf(target) {
+			return true
+		}
+	}
+	return false
 }
 
 // convert hulltype to BattleTokenAttributes
