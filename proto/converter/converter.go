@@ -149,6 +149,8 @@ var C Converter
 // goverter:extend ProtoToRepairRatesMap
 // goverter:extend SizeMapToIntMap
 // goverter:extend IntMapToSizeMap
+// goverter:extend SizeMapToFloat64Map
+// goverter:extend Float64MapToSizeMap
 // goverter:extend WormholeStabilityMapToIntMap
 // goverter:extend IntMapToWormholeStabilityMap
 // goverter:extend TechCostOffsetToIntMap

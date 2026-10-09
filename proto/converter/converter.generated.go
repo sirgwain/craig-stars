@@ -815,6 +815,9 @@ func (c *ProtoConverter) ConvertCSRules(source *cs.Rules) *v1.Rules {
 		craig_starsv1Rules.WormholeStatsByStability = WormholeStabilityMapToIntMap(c, (*source).WormholeStatsByStability)
 		craig_starsv1Rules.MinFactories = IntToInt32((*source).MinFactories)
 		craig_starsv1Rules.MinMines = IntToInt32((*source).MinMines)
+		craig_starsv1Rules.RandomMineralDepositChanceForSize = SizeMapToFloat64Map(c, (*source).RandomMineralDepositChanceForSize)
+		craig_starsv1Rules.RandomMineralDepositMaxConcentration = IntToInt32((*source).RandomMineralDepositMaxConcentration)
+		craig_starsv1Rules.RandomMineralDepositMinYear = IntToInt32((*source).RandomMineralDepositMinYear)
 		pCraig_starsv1Rules = &craig_starsv1Rules
 	}
 	return pCraig_starsv1Rules
@@ -1973,6 +1976,9 @@ func (c *ProtoConverter) ConvertRules(source *v1.Rules) *cs.Rules {
 				csRules.RandomMineralDepositBonusRange[j] = Int32ToInt((*source).RandomMineralDepositBonusRange[j])
 			}
 		}
+		csRules.RandomMineralDepositChanceForSize = Float64MapToSizeMap(c, (*source).RandomMineralDepositChanceForSize)
+		csRules.RandomMineralDepositMaxConcentration = Int32ToInt((*source).RandomMineralDepositMaxConcentration)
+		csRules.RandomMineralDepositMinYear = Int32ToInt((*source).RandomMineralDepositMinYear)
 		csRules.RemoteMiningMineOutput = Int32ToInt((*source).RemoteMiningMineOutput)
 		csRules.RepairRates = ProtoToRepairRatesMap((*source).RepairRates)
 		csRules.SalvageDecayMin = Int32ToInt((*source).SalvageDecayMin)

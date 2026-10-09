@@ -198,4 +198,7 @@ message Rules {
   map<int32, WormholeStats> wormhole_stats_by_stability = 58; // WormholeStability enum/spec definition needed
   int32 min_factories = 59;
   int32 min_mines = 60;
+  map<int32, double> random_mineral_deposit_chance_for_size = 61; // Size enum
+  int32 random_mineral_deposit_max_concentration = 62;
+  int32 random_mineral_deposit_min_year = 63;
 }

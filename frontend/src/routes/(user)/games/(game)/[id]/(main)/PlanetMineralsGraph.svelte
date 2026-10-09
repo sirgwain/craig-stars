@@ -8,6 +8,8 @@
 	import { clamp } from '#lib/services/Math.js';
 	import { showTooltip } from '#lib/services/Stores.js';
 	import type { MineralJson, Planet } from '#lib/types/cs-proto.js';
+	import { ChevronDown } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 
 	const { settings } = getGameContext();
 
@@ -17,27 +19,42 @@
 
 	let { planet }: Props = $props();
 
-	let max = $settings.mineralScale; // i.e. 0 to 5000 minerals
-	let numDivisions = 6; // gridlines show 20% online class
-	let divisions: string[] = $state(['0']);
+	// the scales players can choose for the mineral graph, like Stars!
+	const mineralScales = [100, 500, 1000, 2500, 5000, 7500, 10000, 20000, 30000];
 
-	for (let i = 1; i < numDivisions; i++) {
-		divisions[i] = (i * (max / (numDivisions - 1))).toFixed();
+	let max = $derived($settings.mineralScale); // i.e. 0 to 5000 minerals
+	let numDivisions = 6; // gridlines show 20% online class
+	let divisions: string[] = $derived(
+		Array.from({ length: numDivisions }, (_, i) => (i * (max / (numDivisions - 1))).toFixed())
+	);
+
+	function percentOfMax(amount: number | undefined): number {
+		return clamp(amount ? (amount / max) * 100 : 0, 0, 100);
 	}
 
-	let barPercent: MineralJson = $derived(
-		planet.cargo
-			? {
-					ironium: clamp(planet.cargo.ironium ? (planet.cargo.ironium / max) * 100 : 0, 0, 100),
-					boranium: clamp(planet.cargo.boranium ? (planet.cargo.boranium / max) * 100 : 0, 0, 100),
-					germanium: clamp(
-						planet.cargo.germanium ? (planet.cargo.germanium / max) * 100 : 0,
-						0,
-						100
-					)
-				}
-			: { ironium: 0, boranium: 0, germanium: 0 }
-	);
+	let barPercent: MineralJson = $derived({
+		ironium: percentOfMax(planet.cargo?.ironium),
+		boranium: percentOfMax(planet.cargo?.boranium),
+		germanium: percentOfMax(planet.cargo?.germanium)
+	});
+
+	// what the surface minerals will be next year, after mining, shown as a shaded bar
+	let nextYearMinerals = $derived({
+		ironium: (planet.cargo?.ironium ?? 0) + (planet.spec?.miningOutput?.ironium ?? 0),
+		boranium: (planet.cargo?.boranium ?? 0) + (planet.spec?.miningOutput?.boranium ?? 0),
+		germanium: (planet.cargo?.germanium ?? 0) + (planet.spec?.miningOutput?.germanium ?? 0)
+	});
+	let nextYearPercent: MineralJson = $derived({
+		ironium: percentOfMax(nextYearMinerals.ironium),
+		boranium: percentOfMax(nextYearMinerals.boranium),
+		germanium: percentOfMax(nextYearMinerals.germanium)
+	});
+
+	function setMineralScale(scale: number) {
+		$settings.mineralScale = scale;
+		// close the dropdown
+		(document.activeElement as HTMLElement | null)?.blur();
+	}
 
 	let concentrationPercent: MineralJson = $derived(
 		planet.mineralConcentration
@@ -108,7 +125,7 @@
 		<div class="text-boranium">Boranium</div>
 		<div class="text-germanium">Germanium</div>
 	</div>
-	<div class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2 pr-3">
+	<div class="grow flex flex-col justify-evenly mx-1 py-1 bg-black line gap-2">
 		<div
 			role="button"
 			tabindex={0}
@@ -120,9 +137,19 @@
 		>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.ironium?.toFixed()}%;`}
-				class="absolute ironium-concentration w-auto h-full ironium"
+				class="absolute z-10 ironium-concentration w-auto h-full ironium"
 			/>
-			<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full"></div>
+			<div
+				style={`width: ${nextYearPercent.ironium}%`}
+				class="ironium-bar h-full absolute opacity-50"
+			></div>
+			<div style={`width: ${barPercent.ironium}%`} class="ironium-bar h-full relative"></div>
+			{#if nextYearMinerals.ironium > max}
+				<span
+					class="absolute left-full top-1/2 -translate-y-1/2 ml-1 text-base-content"
+					title="Next year's Ironium exceeds the mineral scale">+</span
+				>
+			{/if}
 		</div>
 		<div
 			role="button"
@@ -135,9 +162,19 @@
 		>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.boranium?.toFixed()}%;`}
-				class="absolute boranium-concentration w-auto h-full boranium"
+				class="absolute z-10 boranium-concentration w-auto h-full boranium"
 			/>
-			<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full"></div>
+			<div
+				style={`width: ${nextYearPercent.boranium}%`}
+				class="boranium-bar h-full absolute opacity-50"
+			></div>
+			<div style={`width: ${barPercent.boranium}%`} class="boranium-bar h-full relative"></div>
+			{#if nextYearMinerals.boranium > max}
+				<span
+					class="absolute left-full top-1/2 -translate-y-1/2 ml-1 text-base-content"
+					title="Next year's Boranium exceeds the mineral scale">+</span
+				>
+			{/if}
 		</div>
 		<div
 			role="button"
@@ -150,12 +187,22 @@
 		>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.germanium?.toFixed()}%;`}
-				class="absolute germanium-concentration  h-full germanium"
+				class="absolute z-10 germanium-concentration h-full germanium"
 			/>
-			<div style={`width: ${barPercent.germanium?.toFixed()}%`} class="germanium-bar h-full"></div>
+			<div
+				style={`width: ${nextYearPercent.germanium}%`}
+				class="germanium-bar h-full absolute opacity-50"
+			></div>
+			<div style={`width: ${barPercent.germanium}%`} class="germanium-bar h-full relative"></div>
+			{#if nextYearMinerals.germanium > max}
+				<span
+					class="absolute left-full top-1/2 -translate-y-1/2 ml-1 text-base-content"
+					title="Next year's Germanium exceeds the mineral scale">+</span
+				>
+			{/if}
 		</div>
 	</div>
-	<div class="w-[3rem]"></div>
+	<div class="w-[3rem] shrink-0"></div>
 </div>
 <div class="flex flex-row">
 	<div class="text-right flex flex-col justify-evenly w-[5.5rem] pr-1">kT</div>
@@ -163,8 +210,32 @@
 		{#each divisions as division, index (index)}
 			<div>{division}</div>
 		{/each}
-		<!-- spacer -->
-		<div class="w-[3rem]"></div>
+		<div class="dropdown dropdown-end dropdown-top w-[3rem] text-right">
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+			<label
+				tabindex="0"
+				class="cursor-pointer inline-block"
+				aria-label="Mineral scale"
+				title="Mineral scale"
+				><Icon src={ChevronDown} size="16" class="hover:stroke-accent inline-block" /></label
+			>
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+			<ul
+				tabindex="0"
+				class="menu menu-sm dropdown-content p-1 shadow-sm bg-base-300 z-20"
+				data-testid="mineral-scale-menu"
+			>
+				{#each mineralScales as scale (scale)}
+					<li>
+						<button
+							type="button"
+							class:menu-active={scale === max}
+							onclick={() => setMineralScale(scale)}>{scale.toLocaleString()}kT</button
+						>
+					</li>
+				{/each}
+			</ul>
+		</div>
 	</div>
 </div>
 

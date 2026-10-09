@@ -2290,8 +2290,42 @@ func (t *turnGenerator) randomCometStrike() {
 	)
 }
 
-// TODO: Implement this
+// surveyors discover a deposit of minerals on a random planet, increasing its mineral concentration
 func (t *turnGenerator) randomMineralDeposit() {
+	rules := &t.game.Rules
+	if !t.game.RandomEvents || t.game.Year < rules.StartingYear+rules.RandomMineralDepositMinYear {
+		return
+	}
+
+	random := rules.random
+	chance := rules.RandomMineralDepositChanceForSize[t.game.Size]
+	if chance == 0 || random.Float64() > chance || len(t.game.Planets) == 0 {
+		// no deposit this year
+		return
+	}
+
+	planet := t.game.Planets[random.Intn(len(t.game.Planets))]
+	mineralType := MineralTypes[random.Intn(len(MineralTypes))]
+
+	// already concentrated minerals don't get any richer, but the surveyors still report the deposit
+	amount := 0
+	if planet.MineralConcentration.GetAmount(mineralType) < rules.RandomMineralDepositMaxConcentration {
+		bonusRange := rules.RandomMineralDepositBonusRange
+		amount = random.Intn(bonusRange[1]-bonusRange[0]) + bonusRange[0]
+		planet.MineralConcentration = planet.MineralConcentration.AddNum(mineralType, amount).Clamp(rules.MinMineralConcentration, rules.MaxMineralConcentration)
+		planet.MarkDirty()
+	}
+
+	if player := t.game.getPlayer(planet.PlayerNum); player != nil {
+		messager.planetRandomMineralDeposit(player, planet, mineralType, amount)
+	}
+
+	t.log.Debug("planet had a random mineral deposit",
+		slog.String("Planet", planet.Name),
+		slog.Int("Player", planet.PlayerNum),
+		slog.String("Mineral", mineralType.String()),
+		slog.Int("ConcentrationIncreased", amount),
+	)
 }
 
 // TODO: Implement this

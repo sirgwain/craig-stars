@@ -323,9 +323,34 @@ export function getMineralOutput(planet: Planet, numMines: number, mineOutput: n
 	});
 }
 
+// the planet report columns that can be sorted by total minerals or by a single mineral
+export const planetMineralSortKeys = ['minerals', 'miningRate', 'mineralConcentration'] as const;
+export type PlanetMineralSortKey = (typeof planetMineralSortKeys)[number];
+const mineralTypes = ['ironium', 'boranium', 'germanium'] as const;
+type MineralType = (typeof mineralTypes)[number];
+const planetMineralsForSortKey: Record<
+	PlanetMineralSortKey,
+	(planet: Planet) => Pick<Mineral, MineralType> | undefined
+> = {
+	minerals: (planet) => planet.cargo,
+	miningRate: (planet) => planet.spec?.miningOutput,
+	mineralConcentration: (planet) => planet.mineralConcentration
+};
+
 // planetsSortBy returns a sortBy function for planets by key. This is used by the planets report page
 // and sorting when cycling through Planets
 export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) | undefined {
+	// mineral columns can sort by a single mineral, i.e. minerals.ironium
+	const [mineralKey, mineralType] = key.split('.') as [string, MineralType | undefined];
+	if (
+		mineralType &&
+		mineralTypes.includes(mineralType) &&
+		planetMineralSortKeys.includes(mineralKey as PlanetMineralSortKey)
+	) {
+		const mineral = planetMineralsForSortKey[mineralKey as PlanetMineralSortKey];
+		return (a, b) => (mineral(a)?.[mineralType] ?? 0) - (mineral(b)?.[mineralType] ?? 0);
+	}
+
 	switch (key) {
 		case 'name':
 			return (a, b) => (a.mapObject?.name ?? '').localeCompare(b.mapObject?.name ?? '');

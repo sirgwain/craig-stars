@@ -265,6 +265,9 @@
 	{:else}
 		A comet has crashed into {planetName} bringing new minerals and altering the planet's environment.
 	{/if}
+{:else if message.type === PlayerMessageType.PLANET_RANDOM_MINERAL_DEPOSIT}
+	Your surveyors on {planetName} have discovered a previously unknown deposit of {message.spec
+		?.name}, significantly increasing the planet's concentration.
 {:else if message.type === PlayerMessageType.PLANET_DIED_OFF}
 	{#if $player.race.spec.livesOnStarbases}
 		All of your colonists orbiting {planetName} have died off. Your starbase has been lost and you no

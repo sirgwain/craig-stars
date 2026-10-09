@@ -314,7 +314,7 @@ export function buildPlanets(
 				}
 				break;
 			case PlanetViewState.MineralConcentration: {
-				setNormal(draw, planet, player, universe, settings, orbitingVisible, false, colors);
+				setNormal(draw, planet, player, universe, settings, orbitingVisible, false, colors, false);
 				if (explored) {
 					// 1 pixel per 5% concentration
 					const conc = planet.mineralConcentration;
@@ -325,7 +325,7 @@ export function buildPlanets(
 				break;
 			}
 			case PlanetViewState.SurfaceMinerals: {
-				setNormal(draw, planet, player, universe, settings, orbitingVisible, false, colors);
+				setNormal(draw, planet, player, universe, settings, orbitingVisible, false, colors, false);
 				// we always know our own surface minerals. Planet intel doesn't say whether minerals
 				// were discovered, so only graph other planets with minerals we know about
 				const cargo = universe.getPlanet(planet.mapObject?.num)?.cargo ?? planet.cargo;
@@ -367,7 +367,9 @@ function setNormal(
 	settings: PlayerSettings,
 	orbitingFleets: MapObjectLike[],
 	commanded: boolean,
-	colors: ScannerColors
+	colors: ScannerColors,
+	// the mineral views don't draw starbase, stargate or mass driver markers, like Stars!
+	markers = true
 ) {
 	// green for us, gray for unexplored, white for explored
 	let fill = colors.planet.unexplored;
@@ -382,7 +384,7 @@ function setNormal(
 	const radius = owned(planet) ? (commanded ? 6 : 3) : commanded ? 4 : 2;
 	const ringRadius = radius * 2.5;
 	const starbaseWidth = commanded ? 6 : 4;
-	const starbaseSpec = planet.spec?.planetStarbaseSpec;
+	const starbaseSpec = markers ? planet.spec?.planetStarbaseSpec : undefined;
 
 	let ring: NonNullable<PlanetDraw['normal']>['ring'];
 	if (orbitingFleets.length > 0) {

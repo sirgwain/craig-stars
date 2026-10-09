@@ -40,27 +40,33 @@
 </script>
 
 <div class="navbar bg-base-100 flex flex-row w-full">
-	<div class="flex-1">
-		<a class="btn btn-ghost text-xl text-primary" href="/">cs</a>
-		<div class="md:block">
+	<div class="min-w-0 flex-1">
+		<a class="btn btn-ghost shrink-0 text-xl text-primary" href="/">cs</a>
+		<div class="min-w-0 flex-1 md:flex-initial">
 			<a
 				data-type="game-link"
 				data-id={`${$game.name}`}
-				class="btn btn-ghost text-lg text-accent"
-				href={`/games/${$game.id}`}>{$game.name} - {$game.year}</a
+				class="btn btn-ghost w-full max-w-full flex-nowrap gap-1 px-2 text-lg text-accent md:w-auto"
+				title={`${$game.name} - ${$game.year}`}
+				href={`/games/${$game.id}`}
 			>
+				<span class="min-w-0 truncate">{$game.name}</span>
+				<span class="shrink-0 whitespace-nowrap">- {$game.year}</span>
+			</a>
 		</div>
 	</div>
-	<div class="flex-initial">
+	<div class="flex-initial shrink-0">
 		{#if $readOnly}
-			<span class="badge badge-warning mx-1" title="Changes are disabled"
-				>{viewingOtherPlayer ? `Viewing as ${$player.name}` : 'Viewing'} (read-only)</span
-			>
-			{#if !viewingOtherPlayer}
-				<button type="button" class="btn btn-ghost btn-sm" onclick={() => readOnly.set(false)}
-					>Done</button
+			<div class="hidden md:flex md:items-center">
+				<span class="badge badge-warning mx-1" title="Changes are disabled"
+					>{viewingOtherPlayer ? `Viewing as ${$player.name}` : 'Viewing'} (read-only)</span
 				>
-			{/if}
+				{#if !viewingOtherPlayer}
+					<button type="button" class="btn btn-ghost btn-sm" onclick={() => readOnly.set(false)}
+						>Done</button
+					>
+				{/if}
+			</div>
 		{/if}
 		{#if page.url.pathname === `/games/${$game.id}` && canEdit && $game.state === GameState.WAITING_FOR_PLAYERS}
 			<button type="button" onclick={onSubmitTurn} class="btn btn-primary" title="submit turn">
@@ -207,3 +213,21 @@
 		</div>
 	</div>
 </div>
+
+{#if $readOnly}
+	<div class="flex items-center gap-2 bg-warning/10 px-4 py-1 text-sm text-warning md:hidden">
+		<span
+			class="min-w-0 flex-1 truncate"
+			title={viewingOtherPlayer ? `Viewing as ${$player.name}` : 'Viewing'}
+			>{viewingOtherPlayer ? `Viewing as ${$player.name}` : 'Viewing'}</span
+		>
+		<span class="shrink-0 whitespace-nowrap">· Read-only</span>
+		{#if !viewingOtherPlayer}
+			<button
+				type="button"
+				class="btn btn-ghost btn-sm shrink-0"
+				onclick={() => readOnly.set(false)}>Done</button
+			>
+		{/if}
+	</div>
+{/if}

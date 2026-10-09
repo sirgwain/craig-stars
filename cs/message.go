@@ -724,6 +724,12 @@ func (m *messageClient) planetRemoteTerraform(player, planetPlayer *Player, plan
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetRemoteTerraform, planet).withSpec(spec))
 }
 
+func (m *messageClient) planetRandomMineralDeposit(player *Player, planet *Planet, mineralType MineralType, concentrationIncreased int) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetRandomMineralDeposit, planet).withSpec(
+		PlayerMessageSpec{Name: mineralType.String(), Amount: concentrationIncreased},
+	))
+}
+
 func (m *messageClient) planetHomeworld(player *Player, planet *Planet) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetHomeworld, planet))
 }

@@ -1145,11 +1145,10 @@
 	"randomCometMinYearPlayerWorld": 20,
 	"randomEventChances": {
 		"1": 0.05,
-		"2": 0.05,
 		"3": 0.05,
 		"4": 0.3333333333333333
 	},
-	"randomMineralDepositBonusRange": [20, 50],
+	"randomMineralDepositBonusRange": [5, 20],
 	"remoteMiningMineOutput": 10,
 	"repairRates": {
 		"0": 0,
@@ -1221,5 +1220,19 @@
 		}
 	},
 	"minFactories": 10,
-	"minMines": 10
+	"minMines": 10,
+	"randomMineralDepositChanceForSize": {
+		"1": 0.06666666666666667,
+		"2": 0.06666666666666667,
+		"3": 0.07142857142857142,
+		"4": 0.07142857142857142,
+		"5": 0.07692307692307693,
+		"6": 0.07692307692307693,
+		"7": 0.08333333333333333,
+		"8": 0.08333333333333333,
+		"9": 0.09090909090909091,
+		"10": 0.09090909090909091
+	},
+	"randomMineralDepositMaxConcentration": 180,
+	"randomMineralDepositMinYear": 10
 }

@@ -182,6 +182,23 @@ func IntMapToSizeMap(c Converter, source map[int32]int32) map[cs.Size]int {
 	return m
 }
 
+// random_mineral_deposit_chance_for_size
+func SizeMapToFloat64Map(c Converter, source map[cs.Size]float64) map[int32]float64 {
+	m := make(map[int32]float64, len(source))
+	for k, v := range source {
+		m[int32(CSSizeToSize(k))] = v
+	}
+	return m
+}
+
+func Float64MapToSizeMap(c Converter, source map[int32]float64) map[cs.Size]float64 {
+	m := make(map[cs.Size]float64, len(source))
+	for k, v := range source {
+		m[SizeToCSSize(craig_starsv1.Size(k))] = v
+	}
+	return m
+}
+
 // wormhole_stats_by_stability
 func WormholeStabilityMapToIntMap(c Converter, source map[cs.WormholeStability]cs.WormholeStats) map[int32]*craig_starsv1.WormholeStats {
 	m := make(map[int32]*craig_starsv1.WormholeStats, len(source))

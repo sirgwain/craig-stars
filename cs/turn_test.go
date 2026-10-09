@@ -1493,6 +1493,51 @@ func Test_turn_randomCometStrikeOwnedPlanetAR(t *testing.T) {
 	assert.Greater(t, planet.Cargo.Ironium, startingIronium)
 }
 
+func Test_turn_randomMineralDeposit(t *testing.T) {
+	tests := []struct {
+		name                     string
+		randomEvents             bool
+		yearsAfterStart          int
+		chance                   float64
+		startingConcentration    int
+		wantConcentration        int
+		wantMessage              bool
+		wantMessageConcIncreased int
+	}{
+		{name: "deposit increases concentration", randomEvents: true, yearsAfterStart: 10, chance: 0, startingConcentration: 50, wantConcentration: 62, wantMessage: true, wantMessageConcIncreased: 12},
+		{name: "concentrated minerals don't increase", randomEvents: true, yearsAfterStart: 10, chance: 0, startingConcentration: 180, wantConcentration: 180, wantMessage: true},
+		{name: "no deposits before min year", randomEvents: true, yearsAfterStart: 9, chance: 0, startingConcentration: 50, wantConcentration: 50},
+		{name: "no deposit when the roll fails", randomEvents: true, yearsAfterStart: 10, chance: .99, startingConcentration: 50, wantConcentration: 50},
+		{name: "no deposits without random events", randomEvents: false, yearsAfterStart: 10, chance: 0, startingConcentration: 50, wantConcentration: 50},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, SingleUnitScenario())
+			game, planet, player := u.Game, u.Planet("Planet 1"), u.Player(1)
+			game.RandomEvents = tt.randomEvents
+			game.Size = SizeTiny
+			game.Year = game.Rules.StartingYear + tt.yearsAfterStart
+			planet.MineralConcentration.Boranium = tt.startingConcentration
+			player.Messages = nil
+
+			// roll for a deposit, pick the first planet, boranium, and a 7 + 5 concentration bonus
+			game.Rules.random = newFloat64Random(tt.chance).addInts(0, 1, 7)
+			u.Run((*turnGenerator).randomMineralDeposit)
+
+			assert.Equal(t, tt.wantConcentration, planet.MineralConcentration.Boranium)
+			if tt.wantMessage {
+				if assert.Len(t, player.Messages, 1) {
+					assert.Equal(t, PlayerMessagePlanetRandomMineralDeposit, player.Messages[0].Type)
+					assert.Equal(t, "Boranium", player.Messages[0].Spec.Name)
+					assert.Equal(t, tt.wantMessageConcIncreased, player.Messages[0].Spec.Amount)
+				}
+			} else {
+				assert.Empty(t, player.Messages)
+			}
+		})
+	}
+}
+
 func Test_turn_fleetPatrol(t *testing.T) {
 	s := singleFleetScenario(DesignStalwartDefender)
 	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{Warp: 5, Task: WaypointTaskPatrol, PatrolRange: 50}}
