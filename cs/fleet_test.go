@@ -2369,6 +2369,34 @@ func TestFleet_GetFuelAllocated(t *testing.T) {
 	}
 }
 
+func TestFleet_AddWaypointStargate(t *testing.T) {
+	stargate := PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{HasStargate: true, SafeRange: 500, SafeHullMass: 500}}
+	newPlanet := func(num int, position Vector) *Planet {
+		planet := NewPlanet().WithNum(num).WithPlayerNum(1).withPosition(position)
+		planet.Spec = stargate
+		return planet
+	}
+	tests := []struct {
+		name         string
+		dest         WaypointDest
+		wantStargate bool
+	}{
+		{"gate to a planet", WaypointDest{MO: MapObject{Type: MapObjectTypePlanet, Num: 2, Position: Vector{100, 0}}}, true},
+		{"gate to a fleet at a planet", WaypointDest{MO: MapObject{Type: MapObjectTypeFleet, Num: 5, PlayerNum: 1, Position: Vector{100, 0}}}, true},
+		{"no gate for a fleet in space", WaypointDest{MO: MapObject{Type: MapObjectTypeFleet, Num: 5, PlayerNum: 1, Position: Vector{50, 0}}}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := testPlayer().withPlanetIntels([]*Planet{newPlanet(1, Vector{0, 0}), newPlanet(2, Vector{100, 0})})
+			fleet := testLongRangeScout(player).withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "Planet 1", 5))
+
+			fleet.AddWaypoint(player, tt.dest, 0, false)
+
+			assert.Equal(t, tt.wantStargate, fleet.Waypoints[1].WarpSpeed == StargateWarpSpeed)
+		})
+	}
+}
+
 func TestFleet_AddWaypoint(t *testing.T) {
 	player := testPlayer()
 	ifePlayer := NewPlayer(0, NewRace().WithLRT(IFE).WithSpec(&rules)).WithNum(1)

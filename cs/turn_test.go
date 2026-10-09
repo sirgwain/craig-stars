@@ -531,6 +531,11 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Len(t, game.Salvages, 1)
 		assert.Equal(t, Vector{10, 0}, game.Salvages[0].Position)
 		assert.Equal(t, Cargo{Ironium: 100, Boranium: 50}, game.Salvages[0].Cargo)
+
+		// the hit message says where, so the player can go to the salvage
+		messages := u.Messages(1, PlayerMessageFleetMinefieldHit)
+		assert.Len(t, messages, 1)
+		assert.Equal(t, Vector{10, 0}, messages[0].Spec.MinefieldDamage.Position)
 	})
 
 	t.Run("Destroyed by minefield", func(t *testing.T) {

@@ -515,6 +515,24 @@ func (p *Player) GetFleetIntel(playerNum, num int) *Fleet {
 	return nil
 }
 
+// getPlanetIntelAt returns our intel of the planet at a position, if there is one
+func (p *Player) getPlanetIntelAt(position Vector) *Planet {
+	for _, planet := range p.PlanetIntels {
+		if planet.Position == position {
+			return planet
+		}
+	}
+	return nil
+}
+
+// getWaypointPlanetIntel returns our intel of the planet a waypoint targets, or the planet at its position
+func (p *Player) getWaypointPlanetIntel(wp Waypoint) *Planet {
+	if wp.TargetType == MapObjectTypePlanet {
+		return p.GetPlanetIntel(wp.TargetNum)
+	}
+	return p.getPlanetIntelAt(wp.Position)
+}
+
 func (p *Player) GetShipDesignIntel(playerNum, num int) *ShipDesign {
 	for _, intel := range p.ShipDesignIntels {
 		if intel.PlayerNum == playerNum && intel.Num == num {

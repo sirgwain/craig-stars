@@ -1701,15 +1701,17 @@ func (f *Fleet) AddWaypoint(
 	canRemoteMine := f.CanRemoteMine(player, targetPlanet)
 
 	fuelAlreadyAllocated := f.GetFuelAllocated(player, index)
-	var orbiting *Planet
-	if selectedWaypoint.TargetType == MapObjectTypePlanet {
-		orbiting = player.GetPlanetIntel(selectedWaypoint.TargetNum)
-	}
+	orbiting := player.getWaypointPlanetIntel(*selectedWaypoint)
 
 	dist := math.Ceil(selectedWaypoint.Position.DistanceTo(position))
 
-	// determine what warp we should set for this waypoint
-	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, targetPlanet, fuelAlreadyAllocated, fastestWaypoint)
+	// determine what warp we should set for this waypoint, using the planet we're going to,
+	// even if we're targeting a fleet there
+	destPlanet := targetPlanet
+	if destPlanet == nil {
+		destPlanet = player.getPlanetIntelAt(position)
+	}
+	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, destPlanet, fuelAlreadyAllocated, fastestWaypoint)
 
 	if dest.MO.Type != MapObjectTypeNone {
 		wp := Waypoint{
@@ -1797,10 +1799,7 @@ func (f *Fleet) UpdateWaypoint(
 	// get the fuel allocated up to but not including this waypoint since we're moving it around
 	fuelAlreadyAllocated := f.GetFuelAllocated(player, waypointIndex-1)
 
-	var orbiting *Planet
-	if previousWaypoint.TargetType == MapObjectTypePlanet {
-		orbiting = player.GetPlanetIntel(previousWaypoint.TargetNum)
-	}
+	orbiting := player.getWaypointPlanetIntel(*previousWaypoint)
 
 	var targetPlanet *Planet
 	if dest.MO.Type == MapObjectTypePlanet {
@@ -1811,8 +1810,13 @@ func (f *Fleet) UpdateWaypoint(
 	canColonize := f.CanColonize(targetPlanet)
 	canRemoteMine := f.CanRemoteMine(player, targetPlanet)
 
-	// determine what warp we should set for this waypoint
-	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, targetPlanet, fuelAlreadyAllocated, fastestWaypoint)
+	// determine what warp we should set for this waypoint, using the planet we're going to,
+	// even if we're targeting a fleet there
+	destPlanet := targetPlanet
+	if destPlanet == nil {
+		destPlanet = player.getPlanetIntelAt(position)
+	}
+	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, destPlanet, fuelAlreadyAllocated, fastestWaypoint)
 
 	if dest.MO.Type != MapObjectTypeNone {
 		selectedWaypoint.Position = dest.MO.Position

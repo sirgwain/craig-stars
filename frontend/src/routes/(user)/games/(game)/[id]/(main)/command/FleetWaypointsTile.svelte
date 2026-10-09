@@ -47,11 +47,12 @@
 		}
 	});
 
+	// the planet at this waypoint, targeted or under a fleet or position we're going to
 	let waypointPlanet = $derived(
 		waypoint.mapObjectTarget?.targetType === MapObjectType.PLANET &&
 			waypoint.mapObjectTarget.targetNum
 			? $universe.getPlanet(waypoint.mapObjectTarget.targetNum)
-			: undefined
+			: waypoint.position && $universe.getPlanetAtPosition(waypoint.position)
 	);
 	let waypointPlanetFriendly = $derived(
 		waypointPlanet && $player.isFriend(waypointPlanet.mapObject?.playerNum)

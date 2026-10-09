@@ -64,9 +64,10 @@ type MinefieldStats struct {
 }
 
 type MinefieldDamage struct {
-	Damage         int  `json:"damage,omitempty"`
-	ShipsDestroyed int  `json:"shipsDestroyed,omitempty"`
-	FleetDestroyed bool `json:"fleetDestroyed,omitempty"`
+	Damage         int    `json:"damage,omitempty"`
+	ShipsDestroyed int    `json:"shipsDestroyed,omitempty"`
+	FleetDestroyed bool   `json:"fleetDestroyed,omitempty"`
+	Position       Vector `json:"position,omitempty"` // where the fleet was hit
 }
 
 // The radius of a minefield is the sqrt of its mines

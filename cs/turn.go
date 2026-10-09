@@ -1191,6 +1191,7 @@ func (t *turnGenerator) fleetMoveInterrupted(fleet *Fleet, interrupted *fleetMov
 		stats := t.game.Rules.MinefieldStatsByType[minefield.MinefieldType]
 
 		damage := minefield.damageFleet(fleet, player, stats)
+		damage.Position = fleet.Position
 		minefield.reduceMinefieldOnImpact()
 		if minefieldPlayer.Race.Spec.MinefieldsAreScanners {
 			// SD races discover the exact fleet makeup
@@ -1523,6 +1524,7 @@ func (t *turnGenerator) detonateMines() {
 		for _, fleet := range fleetsWithin {
 			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
 			damage := minefield.damageFleet(fleet, fleetPlayer, stats)
+			damage.Position = fleet.Position
 
 			if damage == (MinefieldDamage{}) {
 				// no damage, probably immune
