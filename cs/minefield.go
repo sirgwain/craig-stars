@@ -70,6 +70,10 @@ type MinefieldDamage struct {
 	Position       Vector `json:"position,omitempty"` // where the fleet was hit
 }
 
+func (dmg MinefieldDamage) noDamage() bool {
+	return dmg.Damage == 0 && dmg.ShipsDestroyed == 0 && !dmg.FleetDestroyed
+}
+
 // The radius of a minefield is the sqrt of its mines
 func (mf *Minefield) Radius() float64 {
 	return math.Sqrt(float64(mf.NumMines))

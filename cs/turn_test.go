@@ -1352,7 +1352,7 @@ func Test_turn_detonateMines(t *testing.T) {
 				Players: []ScenarioPlayer{
 					{
 						Player:     NewPlayer(1, NewRace().WithPRT(SD)),
-						Minefields: []Minefield{{MinefieldType: MinefieldTypeStandard, NumMines: 100, MinefieldOrders: MinefieldOrders{Detonate: tt.detonate}}},
+						Minefields: []Minefield{{MapObject: MapObject{Position: Vector{100, 100}}, MinefieldType: MinefieldTypeStandard, NumMines: 100, MinefieldOrders: MinefieldOrders{Detonate: tt.detonate}}},
 					},
 				},
 			}
@@ -1362,7 +1362,7 @@ func Test_turn_detonateMines(t *testing.T) {
 				fleetPlayer = 1
 			}
 			s.Players[fleetPlayer].Designs = Designs(tt.design)
-			s.Players[fleetPlayer].Fleets = []ScenarioFleet{{Design: tt.design.Name, Waypoints: []ScenarioWaypoint{{Warp: 5}}}}
+			s.Players[fleetPlayer].Fleets = []ScenarioFleet{{Design: tt.design.Name, Position: Vector{100, 100}, Waypoints: []ScenarioWaypoint{{Warp: 5}}}}
 			u := newTestUniverse(t, s)
 			fleet := u.Game.Fleets[0]
 			u.GenerateTurn()
@@ -1375,6 +1375,11 @@ func Test_turn_detonateMines(t *testing.T) {
 			assert.Equal(t, tt.want.Quantity, token.Quantity)
 			assert.Equal(t, tt.want.Damage, token.Damage)
 			assert.Equal(t, tt.want.QuantityDamaged, token.QuantityDamaged)
+
+			// undamaged fleets don't get a minefield hit message
+			for _, message := range u.Game.Players[fleetPlayer].Messages {
+				assert.NotEqual(t, PlayerMessageFleetMinefieldHit, message.Type)
+			}
 		})
 	}
 }

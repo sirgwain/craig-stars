@@ -1526,7 +1526,7 @@ func (t *turnGenerator) detonateMines() {
 			damage := minefield.damageFleet(fleet, fleetPlayer, stats)
 			damage.Position = fleet.Position
 
-			if damage == (MinefieldDamage{}) {
+			if damage.noDamage() {
 				// no damage, probably immune
 				continue
 			}
