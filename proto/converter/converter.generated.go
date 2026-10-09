@@ -3453,6 +3453,7 @@ func (c *ProtoConverter) pCraig_starsv1MinefieldDamageToPCsMinefieldDamage(sourc
 		csMinefieldDamage.Damage = Int32ToInt((*source).Damage)
 		csMinefieldDamage.ShipsDestroyed = Int32ToInt((*source).ShipsDestroyed)
 		csMinefieldDamage.FleetDestroyed = (*source).FleetDestroyed
+		csMinefieldDamage.Position = c.ConvertVector((*source).Position)
 		pCsMinefieldDamage = &csMinefieldDamage
 	}
 	return pCsMinefieldDamage
@@ -4186,6 +4187,7 @@ func (c *ProtoConverter) pCsMinefieldDamageToPCraig_starsv1MinefieldDamage(sourc
 		craig_starsv1MinefieldDamage.Damage = IntToInt32((*source).Damage)
 		craig_starsv1MinefieldDamage.ShipsDestroyed = IntToInt32((*source).ShipsDestroyed)
 		craig_starsv1MinefieldDamage.FleetDestroyed = (*source).FleetDestroyed
+		craig_starsv1MinefieldDamage.Position = CSVectorToVector((*source).Position)
 		pCraig_starsv1MinefieldDamage = &craig_starsv1MinefieldDamage
 	}
 	return pCraig_starsv1MinefieldDamage

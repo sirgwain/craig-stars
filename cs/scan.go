@@ -672,6 +672,38 @@ func (scan *playerScanner) getStarGateScanners() []scanner {
 	return scanners
 }
 
+// heaviestFleetAt returns the heaviest fleet of a player we can see at a position, preferring fleets our
+// pursuing fleet's battle plan targets, or nil if there aren't any
+func (scan *playerScanner) heaviestFleetAt(pursuer *Fleet, playerNum int, position Vector) *Fleet {
+	primaryTarget := BattleTargetNone
+	if pursuer.battlePlan != nil {
+		primaryTarget = pursuer.battlePlan.PrimaryTarget
+	}
+
+	var heaviest *Fleet
+	heaviestIsTarget := false
+	for _, intel := range scan.player.FleetIntels {
+		if intel.PlayerNum != playerNum || intel.Position != position || intel.Starbase {
+			continue
+		}
+		fleet := scan.universe.getFleet(intel.PlayerNum, intel.Num)
+		if fleet == nil || fleet.Delete {
+			continue
+		}
+		isTarget := fleet.isTargetOf(primaryTarget)
+		switch {
+		case heaviest == nil,
+			isTarget && !heaviestIsTarget,
+			isTarget == heaviestIsTarget && fleet.Spec.Mass > heaviest.Spec.Mass:
+			heaviest, heaviestIsTarget = fleet, isTarget
+		}
+	}
+	if heaviest == nil {
+		return nil
+	}
+	return scan.player.GetFleetIntel(heaviest.PlayerNum, heaviest.Num)
+}
+
 // make sure our fleets are pointing to valid targets
 func (scan *playerScanner) updateFleetTargets() {
 	for _, fleet := range scan.universe.Fleets {
@@ -719,6 +751,21 @@ func (scan *playerScanner) updateFleetTargets() {
 			switch wp.TargetType {
 			case MapObjectTypeFleet:
 				target := scan.player.GetFleetIntel(wp.TargetPlayerNum, wp.TargetNum)
+
+				// if the fleet we're pursuing is gone or jumped through a stargate or wormhole, pursue the
+				// heaviest fleet of that player where we last saw it, if there is one
+				lastSeen, lost := wp.Position, target == nil
+				if pursued := scan.universe.getFleet(wp.TargetPlayerNum, wp.TargetNum); pursued != nil && pursued.jumpedFrom != nil {
+					lastSeen, lost = *pursued.jumpedFrom, true
+				}
+				if lost {
+					if retarget := scan.heaviestFleetAt(fleet, wp.TargetPlayerNum, lastSeen); retarget != nil {
+						target = retarget
+						wp.TargetNum = retarget.Num
+						wp.TargetName = retarget.Name
+					}
+				}
+
 				if target == nil {
 					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
 					wp.TargetType = MapObjectTypeNone

@@ -44,7 +44,8 @@ type Fleet struct {
 	battlePlan        *BattlePlan
 	struckMinefield   bool
 	remoteMined       bool
-	warped            bool // made a warp move this turn, colonists can die from warp acceleration or engine radiation
+	warped            bool    // made a warp move this turn, colonists can die from warp acceleration or engine radiation
+	jumpedFrom        *Vector // where this fleet jumped through a stargate or wormhole this turn
 }
 
 type FleetOrders struct {
@@ -784,21 +785,31 @@ func (f *Fleet) availableFuelSpace() int {
 }
 
 // removeLostShips removes tokens with no ships left after ships were destroyed. The lost ships take their
-// share of the fleet's cargo and fuel with them, by capacity, like FleetTransferCargoBalance.
-func (fleet *Fleet) removeLostShips(rules *Rules, player *Player) {
-	cargoCapacity, fuelCapacity := fleet.Spec.CargoCapacity, fleet.Spec.FuelCapacity
+// share of the fleet's cargo and fuel with them, by capacity. Returns the cargo the lost ships took.
+func (fleet *Fleet) removeLostShips(rules *Rules, player *Player) (lostCargo Cargo) {
+	totalShips, cargoCapacity, fuelCapacity := fleet.Spec.TotalShips, fleet.Spec.CargoCapacity, fleet.Spec.FuelCapacity
 	fleet.removeEmptyTokens()
 	if len(fleet.Tokens) == 0 {
-		return
+		lostCargo = fleet.Cargo
+		fleet.Cargo = Cargo{}
+		fleet.Fuel = 0
+		return lostCargo
 	}
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	if fleet.Spec.TotalShips >= totalShips {
+		// no ships lost
+		return Cargo{}
+	}
 	if cargoCapacity > 0 {
-		fleet.Cargo = fleet.Cargo.Multiply(float64(fleet.Spec.CargoCapacity) / float64(cargoCapacity))
+		cargo := fleet.Cargo.Multiply(float64(fleet.Spec.CargoCapacity) / float64(cargoCapacity))
+		lostCargo = fleet.Cargo.Subtract(cargo)
+		fleet.Cargo = cargo
 	}
 	if fuelCapacity > 0 {
 		fleet.Fuel = int(float64(fleet.Fuel) * float64(fleet.Spec.FuelCapacity) / float64(fuelCapacity))
 	}
+	return lostCargo
 }
 
 // remove any empty tokens that were destroyed (by minefields, overgating, battle... it's a dangerous universe)
@@ -813,25 +824,46 @@ func (fleet *Fleet) removeEmptyTokens() {
 	fleet.Tokens = updatedTokens
 }
 
+// fleetMove is a fleet's warp move for one turn. Most fleets make it in one step. Fleets pursuing
+// other fleets make it in several, following their target (see turnGenerator.fleetMove).
+type fleetMove struct {
+	fleet         *Fleet
+	start         Vector  // position at the start of the move
+	budget        float64 // ly this fleet can move this turn, warp²
+	moved         float64 // ly moved so far this turn
+	fuelUsed      int     // fuel charged so far this turn for the distance moved
+	fuelGenerated int     // ramscoop fuel generated so far this turn
+	ranOutOfFuel  bool
+	target        *Fleet // the fleet being pursued, if any
+	done          bool
+}
+
+func newFleetMove(fleet *Fleet) *fleetMove {
+	wp1 := fleet.Waypoints[1]
+	return &fleetMove{
+		fleet:  fleet,
+		start:  fleet.Position,
+		budget: float64(wp1.WarpSpeed * wp1.WarpSpeed),
+	}
+}
+
 // move a fleet through space, check for minefields, use fuel, etc
 func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) (interrupted *fleetMoveInterrupted) {
 	player := playerGetter.getPlayer(fleet.PlayerNum)
-	wp0 := fleet.Waypoints[0]
-	wp1 := fleet.Waypoints[1]
-	totalDist := fleet.Position.DistanceTo(wp1.Position)
-	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
-
-	dist := float64(wp1.WarpSpeed * wp1.WarpSpeed)
-	// round up, if we are <1 away, i.e. the target is 81.9 ly away, warp 9 (81 ly travel) should be able to make it there
-	if dist < totalDist && totalDist-dist < 1 {
-		dist = math.Ceil(totalDist)
+	move := newFleetMove(fleet)
+	if interrupted := fleet.startMove(rules, player); interrupted != nil {
+		return interrupted
 	}
+	interrupted = fleet.moveStep(rules, mapObjectGetter, playerGetter, move, move.budget)
+	fleet.finishMove(mapObjectGetter, player, move)
+	return interrupted
+}
 
-	// make sure we end up at a whole number
-	vectorTravelled := wp1.Position.Subtract(fleet.Position).Normalized().Scale(dist)
-	dist = vectorTravelled.Length()
-	// don't overshoot
-	dist = min(totalDist, dist)
+// startMove starts a fleet's warp move for the turn. CE engines may fail, and ships going faster than
+// their engines can safely handle may explode before the fleet moves. Returns why the fleet can't move, if it can't.
+func (fleet *Fleet) startMove(rules *Rules, player *Player) *fleetMoveInterrupted {
+	wp1 := fleet.Waypoints[1]
+	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
 
 	// check for CE engine failure
 	if player.Race.Spec.EngineFailureRate > 0 &&
@@ -851,20 +883,36 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		}
 		messager.fleetExceededSafeSpeed(player, fleet, explodedShips)
 	}
+	return nil
+}
+
+// moveStep moves the fleet up to maxDist ly toward wp1, using fuel, hitting minefields and generating ramscoop fuel.
+// Fuel is charged on the total distance moved this turn, so a move made in several steps costs the same as one.
+func (fleet *Fleet) moveStep(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter, move *fleetMove, maxDist float64) (interrupted *fleetMoveInterrupted) {
+	player := playerGetter.getPlayer(fleet.PlayerNum)
+	wp1 := fleet.Waypoints[1]
+	totalDist := fleet.Position.DistanceTo(wp1.Position)
+
+	dist := maxDist
+	// round up, if we are <1 away, i.e. the target is 81.9 ly away, warp 9 (81 ly travel) should be able to make it there
+	if dist < totalDist && totalDist-dist < 1 {
+		dist = math.Ceil(totalDist)
+	}
+	// don't overshoot
+	dist = min(totalDist, dist)
 
 	// a fleet with enough fuel to reach wp1 never runs short on the way because of rounding
-	// see the fuel top-up at the end of the move
+	// see the fuel top-up at the end of the step
 	gotEnoughFuel := fleet.GetFuelCost(player, wp1.WarpSpeed, totalDist) <= fleet.Fuel
 
 	// get the cost for the fleet
-	fuelCost := fleet.GetFuelCost(player, wp1.WarpSpeed, dist)
-	ranOutOfFuel := false
+	fuelCost := fleet.GetFuelCost(player, wp1.WarpSpeed, move.moved+dist) - move.fuelUsed
 	if fuelCost > fleet.Fuel {
 		// we will run out of fuel
 		// if this distance would have cost us 10 fuel but we have 6 left, only travel 60% of the distance.
-		dist = dist * float64(fleet.Fuel) / fleet.fuelUsage(player, wp1.WarpSpeed, dist)
+		dist = dist * float64(fleet.Fuel) / (fleet.fuelUsage(player, wp1.WarpSpeed, move.moved+dist) - float64(move.fuelUsed))
 		fuelCost = fleet.Fuel
-		ranOutOfFuel = true
+		move.ranOutOfFuel = true
 	}
 
 	// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
@@ -876,12 +924,15 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	if actualDist != dist {
 		// we hit a minefield before we got where we were going, so we only pay for the distance we travelled
 		dist = actualDist
-		fuelCost = min(fleet.Fuel, fleet.GetFuelCost(player, wp1.WarpSpeed, dist))
-		ranOutOfFuel = false
+		fuelCost = min(fleet.Fuel, fleet.GetFuelCost(player, wp1.WarpSpeed, move.moved+dist)-move.fuelUsed)
+		move.ranOutOfFuel = false
 	}
+	fuelCost = max(0, fuelCost)
 	fleet.Fuel -= fuelCost
+	move.fuelUsed += fuelCost
+	move.moved += dist
 
-	if ranOutOfFuel {
+	if move.ranOutOfFuel {
 		// slow down to the fastest speed the whole fleet travels for free
 		wp1.WarpSpeed = fleet.Spec.Engine.FreeSpeed
 		fleet.Waypoints[1] = wp1
@@ -889,16 +940,12 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	}
 
 	// ramscoops don't generate fuel if we ran out of fuel or were stopped by a minefield
-	var fuelGenerated int = 0
-	if !ranOutOfFuel && hitMinefield == nil {
-		fuelGenerated = fleet.getFuelGeneration(wp1.WarpSpeed, dist)
-	}
-
-	// message the player about fuel generation
-	fuelGenerated = min(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
-	if fuelGenerated > 0 {
-		fleet.Fuel += fuelGenerated
-		messager.fleetGeneratedFuel(player, fleet, fuelGenerated)
+	if !move.ranOutOfFuel && hitMinefield == nil {
+		fuelGenerated := min(fleet.getFuelGeneration(wp1.WarpSpeed, dist), fleet.Spec.FuelCapacity-fleet.Fuel)
+		if fuelGenerated > 0 {
+			fleet.Fuel += fuelGenerated
+			move.fuelGenerated += fuelGenerated
+		}
 	}
 
 	// assuming we move at all, make sure we are no longer orbiting any planets
@@ -906,21 +953,47 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		fleet.OrbitingPlanetNum = None
 	}
 
-	if totalDist == dist {
+	if dist == totalDist {
+		fleet.Position = wp1.Position
+		return interrupted
+	}
+
+	heading := wp1.Position.Subtract(fleet.Position).Normalized()
+	fleet.Position = fleet.Position.ToFloat64().Add(heading.Scale(dist)).ToInt(true)
+
+	// top up our fuel if rounding left us short of fuel we had at the start of the step
+	if gotEnoughFuel {
+		fuelNeeded := fleet.GetFuelCost(player, wp1.WarpSpeed, fleet.Position.DistanceTo(wp1.Position))
+		if fuelNeeded > fleet.Fuel {
+			fleet.Fuel = min(fleet.Spec.FuelCapacity, fuelNeeded)
+		}
+	}
+
+	return interrupted
+}
+
+// finishMove finishes a fleet's warp move for the turn. A fleet that reached wp1 completes it, otherwise wp0
+// becomes the fleet's position in space.
+func (fleet *Fleet) finishMove(mapObjectGetter mapObjectGetter, player *Player, move *fleetMove) {
+	if move.fuelGenerated > 0 {
+		messager.fleetGeneratedFuel(player, fleet, move.fuelGenerated)
+	}
+
+	wp0 := fleet.Waypoints[0]
+	wp1 := fleet.Waypoints[1]
+	if fleet.Position == wp1.Position {
 		fleet.completeMove(mapObjectGetter, player, wp0, wp1)
 	} else {
 		// update what other people see for this fleet's speed and direction
 		fleet.WarpSpeed = wp1.WarpSpeed
 		fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
 
-		// move this fleet closer to the next waypoint
+		// we're in space, partway to the next waypoint
 		wp0.TargetType = MapObjectTypeNone
 		wp0.TargetNum = None
 		wp0.TargetPlayerNum = None
 		wp0.TargetName = ""
 		wp0.PartiallyComplete = true
-
-		fleet.Position = fleet.Position.ToFloat64().Add(fleet.Heading.Scale(dist)).ToInt(true)
 		wp0.Position = fleet.Position
 
 		if fleet.struckMinefield {
@@ -935,14 +1008,6 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		}
 
 		fleet.Waypoints[0] = wp0
-
-		// top up our fuel if rounding left us short of fuel we had at the start of the move
-		if gotEnoughFuel {
-			fuelNeeded := fleet.GetFuelCost(player, wp1.WarpSpeed, fleet.Position.DistanceTo(wp1.Position))
-			if fuelNeeded > fleet.Fuel {
-				fleet.Fuel = min(fleet.Spec.FuelCapacity, fuelNeeded)
-			}
-		}
 	}
 
 	// if we ended up at a planet, make sure we are orbiting it
@@ -953,7 +1018,6 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 			}
 		}
 	}
-	return interrupted
 }
 
 // GateFleet moves the fleet the cool way, with stargates!
@@ -964,74 +1028,66 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	totalDist := fleet.Position.DistanceTo(wp1.Position)
 	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
 
-	var sourceStargate, destStargate PlanetStarbaseSpec
-
-	// if we got here, both source and dest have stargates (unless we're using a jumpgate)
-	destPlanet := mapObjectGetter.getPlanet(wp1.TargetNum)
-
+	// the destination is a planet with a stargate, targeted or at the waypoint's position
+	destPlanet := fleet.stargateDestination(mapObjectGetter, wp1)
 	if destPlanet == nil || !destPlanet.Spec.HasStargate {
 		messager.fleetStargateInvalidDest(player, fleet, wp0, wp1)
 		return
 	}
 
 	destPlanetPlayer := playerGetter.getPlayer(destPlanet.PlayerNum)
-
-	if !destPlanetPlayer.IsFriend(player.Num) {
+	if destPlanetPlayer == nil || !destPlanetPlayer.IsFriend(player.Num) {
 		messager.fleetStargateInvalidDestOwner(player, fleet, wp0, wp1)
 		return
 	}
+	destStargate := destPlanet.Spec.PlanetStarbaseSpec
 
-	destStargate = destPlanet.Spec.PlanetStarbaseSpec
-
-	// jumpgate fleets don't use the source planet, only the dest
+	// we can gate from the stargate we're orbiting
 	var sourcePlanet *Planet
-	if fleet.Spec.CanJump {
-		sourceStargate = destStargate
+	sourceProblem := func() {}
+	if orbiting := mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum); orbiting == nil || !orbiting.Spec.HasStargate {
+		sourceProblem = func() { messager.fleetStargateInvalidSource(player, fleet, wp0) }
+	} else if orbitingPlayer := playerGetter.getPlayer(orbiting.PlayerNum); orbitingPlayer != nil && !orbitingPlayer.IsFriend(player.Num) {
+		sourceProblem = func() { messager.fleetStargateInvalidSourceOwner(player, fleet, wp0) }
+	} else if !player.Race.Spec.CanGateCargo && fleet.Cargo.Colonists > 0 && !orbiting.OwnedBy(player.Num) {
+		// can't gate colonists unless we're IT, and can't dump them on a world we don't own
+		sourceProblem = func() { messager.fleetStargateInvalidColonists(player, fleet, wp0, wp1) }
 	} else {
-		sourcePlanet = mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum)
-
-		if sourcePlanet == nil || !sourcePlanet.Spec.HasStargate {
-			messager.fleetStargateInvalidSource(player, fleet, wp0)
-			return
-		}
-
-		sourcePlanetPlayer := playerGetter.getPlayer(sourcePlanet.PlayerNum)
-		if sourcePlanetPlayer != nil && !sourcePlanetPlayer.IsFriend(player.Num) {
-			messager.fleetStargateInvalidSourceOwner(player, fleet, wp0)
-			return
-		}
-
-		sourceStargate = sourcePlanet.Spec.PlanetStarbaseSpec
+		sourcePlanet = orbiting
 	}
 
-	// can't gate colonists unless we're IT
-	// can't dump colonists into space or on a world we don't own
-	// ships with jump gates can gate cargo (amazing)
-	if !fleet.Spec.CanJump && !player.Race.Spec.CanGateCargo && fleet.Cargo.Colonists > 0 && (sourcePlanet == nil || !sourcePlanet.OwnedBy(player.Num)) {
-		messager.fleetStargateInvalidColonists(player, fleet, wp0, wp1)
+	// a fleet with a jumpgate only needs the dest gate, and takes its cargo with it. If we can use both,
+	// use whichever does less damage
+	useJumpgate := fleet.Spec.CanJump
+	if useJumpgate && sourcePlanet != nil && fleet.canGate(rules, totalDist, sourcePlanet.Spec.PlanetStarbaseSpec, destStargate) &&
+		(!fleet.canGate(rules, totalDist, destStargate, destStargate) ||
+			fleet.overgateDamagePercent(rules, totalDist, sourcePlanet.Spec.PlanetStarbaseSpec, destStargate) < fleet.overgateDamagePercent(rules, totalDist, destStargate, destStargate)) {
+		useJumpgate = false
+	}
+	if !useJumpgate && sourcePlanet == nil {
+		sourceProblem()
 		return
 	}
 
-	// only the source gate matters for range
-	minSafeRange := sourceStargate.SafeRange
-	minSafeHullMass := min(sourceStargate.SafeHullMass, destStargate.SafeHullMass)
+	sourceStargate := destStargate
+	if !useJumpgate {
+		sourceStargate = sourcePlanet.Spec.PlanetStarbaseSpec
+	}
 
-	// check if we are exceeding the max distance
-	if totalDist > float64(minSafeRange*rules.StargateMaxRangeFactor) {
+	// check if we are exceeding the max distance (only the source gate matters for range)
+	if totalDist > float64(sourceStargate.SafeRange*rules.StargateMaxRangeFactor) {
 		messager.fleetStargateInvalidRange(player, fleet, wp0, wp1, totalDist)
 		return
 	}
 
 	// check if any ships exceed the max mass allowed
-	for _, token := range fleet.Tokens {
-		if token.design.Spec.Mass > minSafeHullMass*rules.StargateMaxHullMassFactor {
-			messager.fleetStargateInvalidMass(player, fleet, wp0, wp1)
-			return
-		}
+	if !fleet.canGate(rules, totalDist, sourceStargate, destStargate) {
+		messager.fleetStargateInvalidMass(player, fleet, wp0, wp1)
+		return
 	}
 
 	// dump cargo if we aren't IT or using a jump gate
-	if !fleet.Spec.CanJump && fleet.Cargo.Total() > 0 && !player.Race.Spec.CanGateCargo {
+	if !useJumpgate && fleet.Cargo.Total() > 0 && !player.Race.Spec.CanGateCargo {
 		messager.fleetStargateDumpedCargo(player, fleet, wp0, wp1, fleet.Cargo)
 		if !sourcePlanet.OwnedBy(player.Num) {
 			// let our ally know we dumped cargo on their planet
@@ -1051,7 +1107,53 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	}
 
 	// we survived, warp it!
+	fleet.jumpedFrom = &Vector{fleet.Position.X, fleet.Position.Y}
+	if wp1.TargetType != MapObjectTypePlanet {
+		// we gated to the planet at the waypoint's position
+		wp1.TargetType = MapObjectTypePlanet
+		wp1.TargetNum = destPlanet.Num
+		wp1.TargetName = destPlanet.Name
+		wp1.TargetPlayerNum = None
+		fleet.Waypoints[1] = wp1
+	}
 	fleet.completeMove(mapObjectGetter, player, wp0, wp1)
+}
+
+// stargateDestination returns the planet a fleet is gating to: the waypoint's target planet, or the planet
+// at the waypoint's position
+func (fleet *Fleet) stargateDestination(mapObjectGetter mapObjectGetter, wp1 Waypoint) *Planet {
+	if wp1.TargetType == MapObjectTypePlanet {
+		return mapObjectGetter.getPlanet(wp1.TargetNum)
+	}
+	for _, mo := range mapObjectGetter.getMapObjectsAtPosition(wp1.Position) {
+		if planet, ok := mo.(*Planet); ok {
+			return planet
+		}
+	}
+	return nil
+}
+
+// canGate returns true if this fleet is within the range and mass limits of a pair of stargates
+func (fleet *Fleet) canGate(rules *Rules, dist float64, source, dest PlanetStarbaseSpec) bool {
+	if dist > float64(source.SafeRange*rules.StargateMaxRangeFactor) {
+		return false
+	}
+	maxMass := min(source.SafeHullMass, dest.SafeHullMass) * rules.StargateMaxHullMassFactor
+	for _, token := range fleet.Tokens {
+		if token.design.Spec.Mass > maxMass {
+			return false
+		}
+	}
+	return true
+}
+
+// overgateDamagePercent returns the most damage any ship in this fleet takes gating between two stargates
+func (fleet *Fleet) overgateDamagePercent(rules *Rules, dist float64, source, dest PlanetStarbaseSpec) int {
+	damage := 0
+	for i := range fleet.Tokens {
+		damage = max(damage, fleet.Tokens[i].overgateDamagePercent(rules, dist, source, dest))
+	}
+	return damage
 }
 
 // if the fleet went over safe warp, explode some ships
@@ -1080,17 +1182,18 @@ func (fleet *Fleet) applyOverwarpPenalty(rules *Rules) int {
 
 // applyOvergatePenalty damages and/or vanishes ShipTokens inside overgating fleets based on distance.
 func (fleet *Fleet) applyOvergatePenalty(rules *Rules, player *Player, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetStarbaseSpec) {
-	var totalDamage, shipsLostToDamage, shipsLostToTheVoid, startingShips int
+	var totalDamage, shipsLostToDamage, shipsLostToTheVoid int
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]
-		startingShips += token.Quantity
+		damagePercent := token.overgateDamagePercent(rules, distance, sourceStargate, destStargate)
+
 		// IT players never lose ships to the void, but everyone else does
 		if player.Race.Spec.ShipsVanishInVoid {
-			shipsLostToTheVoid += token.applyOvergateVanishing(rules, distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass)
+			shipsLostToTheVoid += token.applyOvergateVanishing(rules, damagePercent)
 		}
 
-		// damage any remaining tokens if we have any left
-		tokenDamage := token.applyOvergateDamage(distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass, destStargate.SafeHullMass, rules.StargateMaxHullMassFactor)
+		// damage any remaining ships if we have any left
+		tokenDamage := token.applyOvergateDamage(damagePercent)
 		totalDamage += tokenDamage.damage
 		shipsLostToDamage += tokenDamage.shipsDestroyed
 	}
@@ -1107,8 +1210,7 @@ func (fleet *Fleet) applyOvergatePenalty(rules *Rules, player *Player, distance 
 
 // Engine fuel usage calculation courtesy of m.a@stars
 // fuelUsage returns the unrounded fuel, in mg, that mass kT uses travelling dist ly at warpSpeed.
-// 1 mg of fuel moves 200kT 1 ly at a fuel usage of 100. Distances are rounded up to the next whole ly,
-// like EstFuelUse.
+// 1 mg of fuel moves 200kT 1 ly at a fuel usage of 100. Distances are rounded up to the next whole ly.
 func (engine Engine) fuelUsage(warpSpeed int, mass int, dist float64, ifeFactor float64) float64 {
 	if warpSpeed <= 0 || warpSpeed >= len(engine.FuelUsage) {
 		return 0
@@ -1139,7 +1241,7 @@ func (fleet *Fleet) GetFuelCost(player *Player, warpSpeed int, distance float64)
 	return roundUpFuel(fleet.fuelUsage(player, warpSpeed, distance))
 }
 
-// fuelUsage returns the unrounded fuel this fleet uses travelling distance at warpSpeed, like EstFuelUse.
+// fuelUsage returns the unrounded fuel this fleet uses travelling distance at warpSpeed.
 // Cargo is loaded onto the most fuel efficient ships first, up to their capacity, so it costs as little
 // fuel as possible to carry.
 func (fleet *Fleet) fuelUsage(player *Player, warpSpeed int, distance float64) float64 {
@@ -1217,14 +1319,18 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 	// find out if we arrived at a planet, either by reaching our target fleet
 	// or reaching a planet
 	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != None && wp1.TargetNum != None {
+		// we may have only reached where the target jumped through a stargate or wormhole
 		target := mapObjectGetter.getFleet(wp1.TargetPlayerNum, wp1.TargetNum)
-		fleet.OrbitingPlanetNum = target.OrbitingPlanetNum
+		if target != nil && target.Position == fleet.Position {
+			fleet.OrbitingPlanetNum = target.OrbitingPlanetNum
+		}
 	} else if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != None {
 		fleet.OrbitingPlanetNum = wp1.TargetNum
 	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != None {
 		target := mapObjectGetter.getWormhole(wp1.TargetNum)
 		dest := mapObjectGetter.getWormhole(target.DestinationNum)
 		player.discoverer.discoverWormholeLink(target, dest)
+		fleet.jumpedFrom = &Vector{target.Position.X, target.Position.Y}
 		fleet.Position = dest.Position
 		fleet.Waypoints[1] = NewPositionWaypoint(fleet.Position, fleet.Spec.Engine.IdealSpeed)
 	}
@@ -1232,7 +1338,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 	// if we wait at a waypoint while unloading, we "complete" our move but don't actually move
 	// TODO: this is weird, can we just not complete a move if we are waiting at a waypoint?
 	if !wp0.WaitAtWaypoint {
-		fleet.Waypoints = fleet.Waypoints[1:]
+		fleet.advanceWaypoints(mapObjectGetter, wp1)
 	}
 
 	// we arrived, process the current task (the previous waypoint)
@@ -1243,6 +1349,51 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 		wp1 = fleet.Waypoints[1]
 		fleet.WarpSpeed = wp1.WarpSpeed
 		fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
+	}
+}
+
+// advanceWaypoints makes the waypoint we just reached our new wp0. With repeat orders, the reached
+// waypoint goes to the end of the list so the fleet goes around again, unless it was the last waypoint,
+// the last waypoint is already there, or it was a waypoint to intercept a fleet.
+func (fleet *Fleet) advanceWaypoints(mapObjectGetter mapObjectGetter, reached Waypoint) {
+	wp0 := fleet.Waypoints[1]
+	rest := fleet.Waypoints[2:]
+
+	// we reached a fleet, our new wp0 is where we are, unless we need the fleet for our task
+	if wp0.TargetType == MapObjectTypeFleet && wp0.Task != WaypointTaskTransport && wp0.Task != WaypointTaskMergeWithFleet {
+		fleet.targetLocation(mapObjectGetter, &wp0)
+	}
+
+	waypoints := make([]Waypoint, 0, len(rest)+2)
+	waypoints = append(waypoints, wp0)
+	waypoints = append(waypoints, rest...)
+
+	if fleet.RepeatOrders && len(rest) > 0 && rest[len(rest)-1].Position != reached.Position && !reached.isIntercept() {
+		reached.processed = false
+		reached.WaitAtWaypoint = false
+		waypoints = append(waypoints, reached)
+	}
+
+	fleet.Waypoints = waypoints
+}
+
+// isIntercept is true for waypoints added to intercept a fleet while patrolling. They aren't repeated.
+func (wp *Waypoint) isIntercept() bool {
+	// repeating patrols mark their intercepts PartiallyComplete so they're never repeated
+	return wp.PartiallyComplete || (wp.Task == WaypointTaskPatrol && wp.TargetType == MapObjectTypeFleet)
+}
+
+// targetLocation points a waypoint at where this fleet is: the planet it's orbiting, or its position in space
+func (fleet *Fleet) targetLocation(mapObjectGetter mapObjectGetter, wp *Waypoint) {
+	wp.Position = fleet.Position
+	wp.clearTarget()
+	if fleet.OrbitingPlanetNum == None {
+		return
+	}
+	if planet := mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum); planet != nil {
+		wp.TargetType = MapObjectTypePlanet
+		wp.TargetNum = planet.Num
+		wp.TargetName = planet.Name
 	}
 }
 
@@ -1550,15 +1701,17 @@ func (f *Fleet) AddWaypoint(
 	canRemoteMine := f.CanRemoteMine(player, targetPlanet)
 
 	fuelAlreadyAllocated := f.GetFuelAllocated(player, index)
-	var orbiting *Planet
-	if selectedWaypoint.TargetType == MapObjectTypePlanet {
-		orbiting = player.GetPlanetIntel(selectedWaypoint.TargetNum)
-	}
+	orbiting := player.getWaypointPlanetIntel(*selectedWaypoint)
 
 	dist := math.Ceil(selectedWaypoint.Position.DistanceTo(position))
 
-	// determine what warp we should set for this waypoint
-	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, targetPlanet, fuelAlreadyAllocated, fastestWaypoint)
+	// determine what warp we should set for this waypoint, using the planet we're going to,
+	// even if we're targeting a fleet there
+	destPlanet := targetPlanet
+	if destPlanet == nil {
+		destPlanet = player.getPlanetIntelAt(position)
+	}
+	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, destPlanet, fuelAlreadyAllocated, fastestWaypoint)
 
 	if dest.MO.Type != MapObjectTypeNone {
 		wp := Waypoint{
@@ -1646,10 +1799,7 @@ func (f *Fleet) UpdateWaypoint(
 	// get the fuel allocated up to but not including this waypoint since we're moving it around
 	fuelAlreadyAllocated := f.GetFuelAllocated(player, waypointIndex-1)
 
-	var orbiting *Planet
-	if previousWaypoint.TargetType == MapObjectTypePlanet {
-		orbiting = player.GetPlanetIntel(previousWaypoint.TargetNum)
-	}
+	orbiting := player.getWaypointPlanetIntel(*previousWaypoint)
 
 	var targetPlanet *Planet
 	if dest.MO.Type == MapObjectTypePlanet {
@@ -1660,8 +1810,13 @@ func (f *Fleet) UpdateWaypoint(
 	canColonize := f.CanColonize(targetPlanet)
 	canRemoteMine := f.CanRemoteMine(player, targetPlanet)
 
-	// determine what warp we should set for this waypoint
-	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, targetPlanet, fuelAlreadyAllocated, fastestWaypoint)
+	// determine what warp we should set for this waypoint, using the planet we're going to,
+	// even if we're targeting a fleet there
+	destPlanet := targetPlanet
+	if destPlanet == nil {
+		destPlanet = player.getPlanetIntelAt(position)
+	}
+	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, destPlanet, fuelAlreadyAllocated, fastestWaypoint)
 
 	if dest.MO.Type != MapObjectTypeNone {
 		selectedWaypoint.Position = dest.MO.Position

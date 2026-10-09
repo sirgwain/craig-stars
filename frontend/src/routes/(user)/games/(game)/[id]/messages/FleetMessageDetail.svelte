@@ -215,6 +215,8 @@
 {:else if message.type === PlayerMessageType.FLEET_EXCEEDED_SAFE_SPEED}
 	<!-- Overwarp -->
 	<FleetEngineStrainMessageDetail {message} />
+{:else if message.type === PlayerMessageType.FLEET_FOLLOWED_FLEET}
+	{fleetName} has executed orders to follow a fleet and awaits further direction.
 {:else if message.type === PlayerMessageType.FLEET_ENGINE_STRAIN_DESTROYED}
 	{fleetName} was destroyed in a massive reactor accident due to unsafe operating procedures.
 {:else if message.type === PlayerMessageType.FLEET_GENERATED_FUEL}

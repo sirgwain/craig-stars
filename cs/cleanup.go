@@ -19,6 +19,7 @@ type Cleaner interface {
 	AddRandomArtifactsToPlanets(game *FullGame)
 	ResetHomeworldBaseHab(game *FullGame)
 	FixMineralConc(game *FullGame)
+	FixRepeatOrders(waypoints []Waypoint) ([]Waypoint, bool)
 }
 
 type cleanup struct {
@@ -144,4 +145,26 @@ func (c *cleanup) FixMineralConc(game *FullGame) {
 		}
 
 	}
+}
+
+// FixRepeatOrders updates repeating orders for repeat orders that work like Stars!. Fleets used to
+// repeat wp0 as well, so a fleet ordered to go from A to B looped back to A on its own. Now the fleet
+// repeats every waypoint after wp0, and a loop needs a waypoint back to A at the end, like Stars!.
+//
+// A fleet at a waypoint gets that waypoint added to the end of its orders, unless the last waypoint is
+// already there, so it keeps going around the same loop. A fleet in the middle of a move already has
+// every waypoint of its loop after wp0.
+func (c *cleanup) FixRepeatOrders(waypoints []Waypoint) ([]Waypoint, bool) {
+	if len(waypoints) < 2 {
+		return waypoints, false
+	}
+
+	wp0 := waypoints[0]
+	if wp0.PartiallyComplete || waypoints[len(waypoints)-1].Position == wp0.Position {
+		return waypoints, false
+	}
+
+	wp0.processed = false
+	wp0.WaitAtWaypoint = false
+	return append(waypoints, wp0), true
 }

@@ -367,8 +367,10 @@ type MinefieldDamage struct {
 	Damage         int32                  `protobuf:"varint,1,opt,name=damage,proto3" json:"damage,omitempty"`
 	ShipsDestroyed int32                  `protobuf:"varint,2,opt,name=ships_destroyed,json=shipsDestroyed,proto3" json:"ships_destroyed,omitempty"`
 	FleetDestroyed bool                   `protobuf:"varint,3,opt,name=fleet_destroyed,json=fleetDestroyed,proto3" json:"fleet_destroyed,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// where the fleet was hit
+	Position      *Vector `protobuf:"bytes,4,opt,name=position,proto3" json:"position,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MinefieldDamage) Reset() {
@@ -422,6 +424,13 @@ func (x *MinefieldDamage) GetFleetDestroyed() bool {
 	return false
 }
 
+func (x *MinefieldDamage) GetPosition() *Vector {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
 var File_craig_stars_v1_minefield_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_minefield_proto_rawDesc = "" +
@@ -450,11 +459,12 @@ const file_craig_stars_v1_minefield_proto_rawDesc = "" +
 	"\x11damage_per_engine\x18\x06 \x01(\x05R\x0fdamagePerEngine\x12!\n" +
 	"\fsweep_factor\x18\a \x01(\x01R\vsweepFactor\x12\x1b\n" +
 	"\tmin_decay\x18\b \x01(\x05R\bminDecay\x12!\n" +
-	"\fcan_detonate\x18\t \x01(\bR\vcanDetonate\"{\n" +
+	"\fcan_detonate\x18\t \x01(\bR\vcanDetonate\"\xaf\x01\n" +
 	"\x0fMinefieldDamage\x12\x16\n" +
 	"\x06damage\x18\x01 \x01(\x05R\x06damage\x12'\n" +
 	"\x0fships_destroyed\x18\x02 \x01(\x05R\x0eshipsDestroyed\x12'\n" +
-	"\x0ffleet_destroyed\x18\x03 \x01(\bR\x0efleetDestroyed*\x85\x01\n" +
+	"\x0ffleet_destroyed\x18\x03 \x01(\bR\x0efleetDestroyed\x122\n" +
+	"\bposition\x18\x04 \x01(\v2\x16.craig_stars.v1.VectorR\bposition*\x85\x01\n" +
 	"\rMinefieldType\x12\x1e\n" +
 	"\x1aMINEFIELD_TYPE_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17MINEFIELD_TYPE_STANDARD\x10\x01\x12\x18\n" +
@@ -485,17 +495,19 @@ var file_craig_stars_v1_minefield_proto_goTypes = []any{
 	(*MinefieldDamage)(nil), // 5: craig_stars.v1.MinefieldDamage
 	(*GameDBObject)(nil),    // 6: craig_stars.v1.GameDBObject
 	(*MapObject)(nil),       // 7: craig_stars.v1.MapObject
+	(*Vector)(nil),          // 8: craig_stars.v1.Vector
 }
 var file_craig_stars_v1_minefield_proto_depIdxs = []int32{
 	6, // 0: craig_stars.v1.Minefield.game_db_object:type_name -> craig_stars.v1.GameDBObject
 	7, // 1: craig_stars.v1.Minefield.map_object:type_name -> craig_stars.v1.MapObject
 	2, // 2: craig_stars.v1.Minefield.minefield_orders:type_name -> craig_stars.v1.MinefieldOrders
 	0, // 3: craig_stars.v1.Minefield.minefield_type:type_name -> craig_stars.v1.MinefieldType
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	8, // 4: craig_stars.v1.MinefieldDamage.position:type_name -> craig_stars.v1.Vector
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_minefield_proto_init() }

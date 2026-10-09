@@ -742,6 +742,78 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 	}
 }
 
+func TestFleet_advanceWaypoints(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+	planet := NewPlanet().WithNum(1).withPosition(Vector{10, 0})
+	planet.Name = "Planet 1"
+	a := NewPositionWaypoint(Vector{0, 0}, 5)
+	b := NewPlanetWaypoint(Vector{10, 0}, 1, "Planet 1", 5)
+	c := NewPositionWaypoint(Vector{20, 0}, 5)
+	intercept := NewFleetWaypoint(Vector{10, 0}, 2, 2, "Enemy", 5)
+	intercept.PartiallyComplete = true
+	transportFleet := NewFleetWaypoint(Vector{10, 0}, 2, 1, "Freighter", 5)
+	transportFleet.Task = WaypointTaskTransport
+	scoutFleet := NewFleetWaypoint(Vector{10, 0}, 2, 1, "Scout", 5)
+
+	type want struct {
+		positions []Vector
+		wp0Target MapObjectType
+	}
+	tests := []struct {
+		name      string
+		waypoints []Waypoint
+		repeat    bool
+		want      want
+	}{
+		{"no repeat", []Waypoint{a, b, c}, false, want{[]Vector{{10, 0}, {20, 0}}, MapObjectTypePlanet}},
+		{"repeat sends reached waypoint to the end", []Waypoint{a, b, c}, true, want{[]Vector{{10, 0}, {20, 0}, {10, 0}}, MapObjectTypePlanet}},
+		{"repeat doesn't repeat the last waypoint", []Waypoint{a, b}, true, want{[]Vector{{10, 0}}, MapObjectTypePlanet}},
+		{"repeat doesn't repeat if the last waypoint is already there", []Waypoint{a, b, c, b}, true, want{[]Vector{{10, 0}, {20, 0}, {10, 0}}, MapObjectTypePlanet}},
+		{"repeat doesn't repeat an intercept", []Waypoint{a, intercept, a}, true, want{[]Vector{{10, 0}, {0, 0}}, MapObjectTypePlanet}},
+		{"reaching a fleet makes wp0 where we are", []Waypoint{a, scoutFleet}, false, want{[]Vector{{10, 0}}, MapObjectTypePlanet}},
+		{"reaching a fleet to transport keeps the fleet", []Waypoint{a, transportFleet}, false, want{[]Vector{{10, 0}}, MapObjectTypeFleet}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fleet := testLongRangeScout(player).withWaypoints(tt.waypoints...)
+			fleet.RepeatOrders = tt.repeat
+			fleet.Position = Vector{10, 0}
+			fleet.OrbitingPlanetNum = planet.Num
+			universe := Universe{log: testLogger, Fleets: []*Fleet{fleet}, Planets: []*Planet{planet}}
+			universe.buildMaps([]*Player{player})
+
+			fleet.advanceWaypoints(&universe, tt.waypoints[1])
+
+			positions := []Vector{}
+			for _, wp := range fleet.Waypoints {
+				positions = append(positions, wp.Position)
+			}
+			assert.Equal(t, tt.want.positions, positions)
+			assert.Equal(t, tt.want.wp0Target, fleet.Waypoints[0].TargetType)
+		})
+	}
+}
+
+func TestFleet_moveStepFuel(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+	fleet := testLongRangeScout(player).
+		withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{200, 0}, 9)).
+		withFuel(300)
+	universe := Universe{log: testLogger, Fleets: []*Fleet{fleet}}
+	universe.buildMaps([]*Player{player})
+	move := newFleetMove(fleet)
+
+	// a pursuer moves 1/5 of its move each pass, 17+17+17+17+13 = 81ly
+	for _, step := range []float64{17, 17, 17, 17, 13} {
+		fleet.moveStep(&rules, &universe, newTestPlayerGetter(player), move, step)
+	}
+
+	// charged for 81ly at once, 91.125mg rounded up, not 20+20+20+20+15mg for each step
+	assert.Equal(t, Vector{81, 0}, fleet.Position)
+	assert.Equal(t, 92, move.fuelUsed)
+	assert.Equal(t, 300-92, fleet.Fuel)
+}
+
 func TestFleet_moveFleetEngineStrain(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 
@@ -822,6 +894,90 @@ func TestFleet_moveFleetEngineStrain(t *testing.T) {
 				assert.Equal(t, tt.want.messageType, player.Messages[0].Type)
 				assert.Equal(t, tt.want.explodedAmount, player.Messages[0].Spec.Amount)
 			}
+		})
+	}
+}
+
+func TestFleet_gateFleetChooseGate(t *testing.T) {
+	gate := func(safeRange int) PlanetSpec {
+		return PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{HasStargate: true, SafeRange: safeRange, SafeHullMass: 500, MaxRange: safeRange * 5, MaxHullMass: 2500}}
+	}
+	tests := []struct {
+		name         string
+		sourceRange  int
+		destRange    int
+		jumpgate     bool
+		dest         Waypoint
+		wantPosition Vector
+		wantCargo    Cargo // cargo left on the fleet
+		wantDamaged  bool
+	}{
+		{
+			name:        "gate to a planet by position",
+			sourceRange: 500, destRange: 500,
+			dest:         NewPositionWaypoint(Vector{100, 0}, StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+		},
+		{
+			name:        "gate to a fleet at a planet",
+			sourceRange: 500, destRange: 500,
+			dest:         NewFleetWaypoint(Vector{100, 0}, 5, 1, "Other Fleet", StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+		},
+		{
+			name:        "jumpgate is better than the planet's gate, keep cargo",
+			sourceRange: 50, destRange: 500, jumpgate: true,
+			dest:         NewPlanetWaypoint(Vector{100, 0}, 2, "planet 2", StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+			wantCargo:    Cargo{Ironium: 10},
+		},
+		{
+			name:        "planet's gate is better than the jumpgate, dump cargo",
+			sourceRange: 500, destRange: 50, jumpgate: true,
+			dest:         NewPlanetWaypoint(Vector{100, 0}, 2, "planet 2", StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+		},
+		{
+			name:        "planet's gate overgates without a jumpgate",
+			sourceRange: 50, destRange: 500,
+			dest:         NewPlanetWaypoint(Vector{100, 0}, 2, "planet 2", StargateWarpSpeed),
+			wantPosition: Vector{100, 0},
+			wantDamaged:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+			player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}}
+			sourcePlanet := NewPlanet().WithNum(1).WithPlayerNum(1)
+			sourcePlanet.Spec = gate(tt.sourceRange)
+			destPlanet := NewPlanet().WithNum(2).WithPlayerNum(1).withPosition(Vector{100, 0})
+			destPlanet.Spec = gate(tt.destRange)
+
+			fleet := testLongRangeScout(player)
+			if tt.jumpgate {
+				fleet = testGatePrivateer(player, 1)
+			}
+			fleet.withOrbitingPlanetNum(sourcePlanet.Num).
+				withCargo(Cargo{Ironium: 10}).
+				withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), tt.dest)
+			for _, token := range fleet.Tokens {
+				player.Designs = append(player.Designs, token.design)
+			}
+			universe := Universe{
+				log:          testLogger,
+				Fleets:       []*Fleet{fleet},
+				Planets:      []*Planet{sourcePlanet, destPlanet},
+				designsByNum: map[playerObject]*ShipDesign{},
+			}
+			universe.buildMaps([]*Player{player})
+
+			fleet.gateFleet(&rules, &universe, newTestPlayerGetter(player))
+
+			assert.Equal(t, tt.wantPosition, fleet.Position)
+			assert.Equal(t, destPlanet.Num, fleet.OrbitingPlanetNum)
+			assert.Equal(t, tt.wantCargo, fleet.Cargo)
+			assert.Equal(t, tt.wantDamaged, fleet.Tokens[0].Damage > 0)
 		})
 	}
 }
@@ -2209,6 +2365,34 @@ func TestFleet_GetFuelAllocated(t *testing.T) {
 			if got := tt.fleet.GetFuelAllocated(tt.args.player, tt.args.waypointIndex); got != tt.want {
 				t.Errorf("Fleet.GetFuelAllocated() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func TestFleet_AddWaypointStargate(t *testing.T) {
+	stargate := PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{HasStargate: true, SafeRange: 500, SafeHullMass: 500}}
+	newPlanet := func(num int, position Vector) *Planet {
+		planet := NewPlanet().WithNum(num).WithPlayerNum(1).withPosition(position)
+		planet.Spec = stargate
+		return planet
+	}
+	tests := []struct {
+		name         string
+		dest         WaypointDest
+		wantStargate bool
+	}{
+		{"gate to a planet", WaypointDest{MO: MapObject{Type: MapObjectTypePlanet, Num: 2, Position: Vector{100, 0}}}, true},
+		{"gate to a fleet at a planet", WaypointDest{MO: MapObject{Type: MapObjectTypeFleet, Num: 5, PlayerNum: 1, Position: Vector{100, 0}}}, true},
+		{"no gate for a fleet in space", WaypointDest{MO: MapObject{Type: MapObjectTypeFleet, Num: 5, PlayerNum: 1, Position: Vector{50, 0}}}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := testPlayer().withPlanetIntels([]*Planet{newPlanet(1, Vector{0, 0}), newPlanet(2, Vector{100, 0})})
+			fleet := testLongRangeScout(player).withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "Planet 1", 5))
+
+			fleet.AddWaypoint(player, tt.dest, 0, false)
+
+			assert.Equal(t, tt.wantStargate, fleet.Waypoints[1].WarpSpeed == StargateWarpSpeed)
 		})
 	}
 }

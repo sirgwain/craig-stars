@@ -4,7 +4,7 @@
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { GameDBObject, GameDBObjectJson, MapObject, MapObjectJson } from "./common_pb";
+import type { GameDBObject, GameDBObjectJson, MapObject, MapObjectJson, Vector, VectorJson } from "./common_pb";
 import { file_craig_stars_v1_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file craig_stars/v1/minefield.proto.
  */
 export const file_craig_stars_v1_minefield: GenFile = /*@__PURE__*/
-  fileDesc("Ch5jcmFpZ19zdGFycy92MS9taW5lZmllbGQucHJvdG8SDmNyYWlnX3N0YXJzLnYxIvUBCglNaW5lZmllbGQSNAoOZ2FtZV9kYl9vYmplY3QYASABKAsyHC5jcmFpZ19zdGFycy52MS5HYW1lREJPYmplY3QSLQoKbWFwX29iamVjdBgCIAEoCzIZLmNyYWlnX3N0YXJzLnYxLk1hcE9iamVjdBI5ChBtaW5lZmllbGRfb3JkZXJzGAMgASgLMh8uY3JhaWdfc3RhcnMudjEuTWluZWZpZWxkT3JkZXJzEjUKDm1pbmVmaWVsZF90eXBlGAQgASgOMh0uY3JhaWdfc3RhcnMudjEuTWluZWZpZWxkVHlwZRIRCgludW1fbWluZXMYBSABKAUiIwoPTWluZWZpZWxkT3JkZXJzEhAKCGRldG9uYXRlGAEgASgIIkkKDU1pbmVmaWVsZFNwZWMSDgoGcmFkaXVzGAEgASgBEhIKCmRlY2F5X3JhdGUYAiABKAUSFAoMY2FuX2RldG9uYXRlGAMgASgIIvEBCg5NaW5lZmllbGRTdGF0cxIfChdtaW5fZGFtYWdlX3Blcl9mbGVldF9ycxgBIAEoBRIcChRkYW1hZ2VfcGVyX2VuZ2luZV9ycxgCIAEoBRIRCgltYXhfc3BlZWQYAyABKAUSFQoNY2hhbmNlX29mX2hpdBgEIAEoARIcChRtaW5fZGFtYWdlX3Blcl9mbGVldBgFIAEoBRIZChFkYW1hZ2VfcGVyX2VuZ2luZRgGIAEoBRIUCgxzd2VlcF9mYWN0b3IYByABKAESEQoJbWluX2RlY2F5GAggASgFEhQKDGNhbl9kZXRvbmF0ZRgJIAEoCCJTCg9NaW5lZmllbGREYW1hZ2USDgoGZGFtYWdlGAEgASgFEhcKD3NoaXBzX2Rlc3Ryb3llZBgCIAEoBRIXCg9mbGVldF9kZXN0cm95ZWQYAyABKAgqhQEKDU1pbmVmaWVsZFR5cGUSHgoaTUlORUZJRUxEX1RZUEVfVU5TUEVDSUZJRUQQABIbChdNSU5FRklFTERfVFlQRV9TVEFOREFSRBABEhgKFE1JTkVGSUVMRF9UWVBFX0hFQVZZEAISHQoZTUlORUZJRUxEX1RZUEVfU1BFRURfQlVNUBADYgZwcm90bzM", [file_craig_stars_v1_common]);
+  fileDesc("Ch5jcmFpZ19zdGFycy92MS9taW5lZmllbGQucHJvdG8SDmNyYWlnX3N0YXJzLnYxIvUBCglNaW5lZmllbGQSNAoOZ2FtZV9kYl9vYmplY3QYASABKAsyHC5jcmFpZ19zdGFycy52MS5HYW1lREJPYmplY3QSLQoKbWFwX29iamVjdBgCIAEoCzIZLmNyYWlnX3N0YXJzLnYxLk1hcE9iamVjdBI5ChBtaW5lZmllbGRfb3JkZXJzGAMgASgLMh8uY3JhaWdfc3RhcnMudjEuTWluZWZpZWxkT3JkZXJzEjUKDm1pbmVmaWVsZF90eXBlGAQgASgOMh0uY3JhaWdfc3RhcnMudjEuTWluZWZpZWxkVHlwZRIRCgludW1fbWluZXMYBSABKAUiIwoPTWluZWZpZWxkT3JkZXJzEhAKCGRldG9uYXRlGAEgASgIIkkKDU1pbmVmaWVsZFNwZWMSDgoGcmFkaXVzGAEgASgBEhIKCmRlY2F5X3JhdGUYAiABKAUSFAoMY2FuX2RldG9uYXRlGAMgASgIIvEBCg5NaW5lZmllbGRTdGF0cxIfChdtaW5fZGFtYWdlX3Blcl9mbGVldF9ycxgBIAEoBRIcChRkYW1hZ2VfcGVyX2VuZ2luZV9ycxgCIAEoBRIRCgltYXhfc3BlZWQYAyABKAUSFQoNY2hhbmNlX29mX2hpdBgEIAEoARIcChRtaW5fZGFtYWdlX3Blcl9mbGVldBgFIAEoBRIZChFkYW1hZ2VfcGVyX2VuZ2luZRgGIAEoBRIUCgxzd2VlcF9mYWN0b3IYByABKAESEQoJbWluX2RlY2F5GAggASgFEhQKDGNhbl9kZXRvbmF0ZRgJIAEoCCJ9Cg9NaW5lZmllbGREYW1hZ2USDgoGZGFtYWdlGAEgASgFEhcKD3NoaXBzX2Rlc3Ryb3llZBgCIAEoBRIXCg9mbGVldF9kZXN0cm95ZWQYAyABKAgSKAoIcG9zaXRpb24YBCABKAsyFi5jcmFpZ19zdGFycy52MS5WZWN0b3IqhQEKDU1pbmVmaWVsZFR5cGUSHgoaTUlORUZJRUxEX1RZUEVfVU5TUEVDSUZJRUQQABIbChdNSU5FRklFTERfVFlQRV9TVEFOREFSRBABEhgKFE1JTkVGSUVMRF9UWVBFX0hFQVZZEAISHQoZTUlORUZJRUxEX1RZUEVfU1BFRURfQlVNUBADYgZwcm90bzM", [file_craig_stars_v1_common]);
 
 /**
  * @generated from message craig_stars.v1.Minefield
@@ -280,6 +280,13 @@ export type MinefieldDamage = Message<"craig_stars.v1.MinefieldDamage"> & {
    * @generated from field: bool fleet_destroyed = 3;
    */
   fleetDestroyed: boolean;
+
+  /**
+   * where the fleet was hit
+   *
+   * @generated from field: craig_stars.v1.Vector position = 4;
+   */
+  position?: Vector | undefined;
 };
 
 /**
@@ -300,6 +307,13 @@ export type MinefieldDamageJson = {
    * @generated from field: bool fleet_destroyed = 3;
    */
   fleetDestroyed?: boolean;
+
+  /**
+   * where the fleet was hit
+   *
+   * @generated from field: craig_stars.v1.Vector position = 4;
+   */
+  position?: VectorJson;
 };
 
 /**

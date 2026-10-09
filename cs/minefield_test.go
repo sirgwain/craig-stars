@@ -52,7 +52,7 @@ func TestMinefield_reduceMinefieldOnImpact(t *testing.T) {
 		{"remove min", 20, 10},
 		{"remove 5% from small field", 500, 475},
 		{"remove 50 from medium field", 5000, 4950},
-		{"remove 5% from big field", 10_000, 9500},
+		{"remove 1% from big field", 10_000, 9900},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -68,69 +68,109 @@ func TestMinefield_reduceMinefieldOnImpact(t *testing.T) {
 	}
 }
 
-func Test_checkForMinefieldCollision_Hit(t *testing.T) {
-	// make a new fleet at -15x, and move it through the field
-	fleetPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	fleet := testLongRangeScout(fleetPlayer)
-	fleet.Position = Vector{-15, 0}
-
-	radius := 10
-	minefieldPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
-	minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{})
-
-	u := &Universe{
-		Minefields: []*Minefield{minefield},
+func Test_checkForMinefieldCollision(t *testing.T) {
+	misses := func(n int) []float64 {
+		rolls := make([]float64, n)
+		for i := range rolls {
+			rolls[i] = .99
+		}
+		return rolls
 	}
-
-	// make the speed minefield allow speed 5, 25% hit chance per warp
-	// we'll go warp 9 to guarantee a hit
-	rules := NewRulesWithSeed(0)
-	stats := MinefieldStats{
-		MaxSpeed:    5,
-		ChanceOfHit: .25,
-		// leave damage stuff the same as a standard minefield
-		MinDamagePerFleetRS: 600,
-		DamagePerEngineRS:   125,
-		MinDamagePerFleet:   500,
-		DamagePerEngine:     100,
+	type field struct {
+		position Vector
+		radius   int
 	}
-	rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
-
-	// send the fleet at warp 9, straight through the minefield
-	dest := NewPositionWaypoint(Vector{20, 0}, 9)
-	dist := float64(dest.WarpSpeed * dest.WarpSpeed)
-
-	minefieldHit, actualDist := checkForMinefieldCollision(&rules, newTestPlayerGetter(fleetPlayer, minefieldPlayer), u, fleet, dest, dist)
-
-	// we should come to a dead stop, ship destroyed
-	assert.Equal(t, 5.0, actualDist)
-	assert.Equal(t, minefield, minefieldHit)
-
-}
-
-func Test_checkForMinefieldCollision_Miss(t *testing.T) {
-	// make a new fleet at -15x, and move it through the field
-	fleetPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	fleet := testLongRangeScout(fleetPlayer)
-	fleet.Position = Vector{-5, 0}
-
-	radius := 10
-	minefieldPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
-	minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{})
-
-	u := &Universe{
-		Minefields: []*Minefield{minefield},
+	tests := []struct {
+		name     string
+		position Vector
+		dest     Vector
+		warp     int
+		fields   []field
+		rolls    []float64 // rolls after these always hit
+		wantHit  int       // index of the field hit, or -1
+		wantDist float64
+	}{
+		{
+			name:     "hit where the fleet enters the field",
+			position: Vector{-15, 0}, dest: Vector{100, 0}, warp: 9,
+			fields:  []field{{Vector{0, 0}, 10}},
+			wantHit: 0, wantDist: 5,
+		},
+		{
+			name:     "roll once per ly in the field",
+			position: Vector{-15, 0}, dest: Vector{100, 0}, warp: 9,
+			fields:  []field{{Vector{0, 0}, 10}},
+			rolls:   misses(10),
+			wantHit: 0, wantDist: 15,
+		},
+		{
+			name:     "roll for the whole path through the field, not its radius",
+			position: Vector{-15, 0}, dest: Vector{100, 0}, warp: 9,
+			fields:  []field{{Vector{0, 0}, 10}},
+			rolls:   misses(19),
+			wantHit: 0, wantDist: 24,
+		},
+		{
+			name:     "overlapping fields are rolled for once",
+			position: Vector{-15, 0}, dest: Vector{100, 0}, warp: 9,
+			fields:  []field{{Vector{0, 0}, 10}, {Vector{5, 0}, 10}},
+			rolls:   misses(25), // 25ly from -10 to 15
+			wantHit: -1, wantDist: 81,
+		},
+		{
+			name:     "fields are checked in path order",
+			position: Vector{-15, 0}, dest: Vector{100, 0}, warp: 9,
+			fields:  []field{{Vector{50, 0}, 5}, {Vector{0, 0}, 5}},
+			wantHit: 1, wantDist: 10,
+		},
+		{
+			name:     "safe at warp 4",
+			position: Vector{-5, 0}, dest: Vector{20, 0}, warp: 4,
+			fields:  []field{{Vector{0, 0}, 10}},
+			wantHit: -1, wantDist: 16,
+		},
+		{
+			// warp 9, but the fleet only goes 16ly, so it's checked at warp 4
+			name:     "slow arrival through a field is safe",
+			position: Vector{-5, 0}, dest: Vector{12, 0}, warp: 9,
+			fields:  []field{{Vector{0, 0}, 10}},
+			wantHit: -1, wantDist: 17,
+		},
+		{
+			name:     "last ly before arriving isn't checked",
+			position: Vector{-15, 0}, dest: Vector{6, 0}, warp: 9,
+			fields:  []field{{Vector{8, 0}, 3}},
+			wantHit: -1, wantDist: 21,
+		},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fleetPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
+			minefieldPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
+			fleet := testLongRangeScout(fleetPlayer)
+			fleet.Position = tt.position
 
-	// send the fleet at warp 4, straight through the minefield, should be safe at warp 4
-	dest := NewPositionWaypoint(Vector{20, 0}, 4)
-	dist := float64(dest.WarpSpeed * dest.WarpSpeed)
+			minefields := []*Minefield{}
+			for i, f := range tt.fields {
+				minefields = append(minefields, newMinefield(minefieldPlayer, MinefieldTypeStandard, f.radius*f.radius, i+1, f.position))
+			}
+			u := &Universe{Minefields: minefields}
 
-	minefieldHit, actualDist := checkForMinefieldCollision(&rules, newTestPlayerGetter(fleetPlayer, minefieldPlayer), u, fleet, dest, dist)
+			rules := NewRulesWithSeed(0)
+			rules.random = newFloat64Random(tt.rolls...)
+			dest := NewPositionWaypoint(tt.dest, tt.warp)
+			dist := min(float64(tt.warp*tt.warp), tt.position.DistanceTo(tt.dest))
 
-	// we should come to a dead stop, ship destroyed
-	assert.Nil(t, minefieldHit)
-	assert.Equal(t, 16.0, actualDist)
+			minefieldHit, actualDist := checkForMinefieldCollision(&rules, newTestPlayerGetter(fleetPlayer, minefieldPlayer), u, fleet, dest, dist)
+
+			if tt.wantHit == -1 {
+				assert.Nil(t, minefieldHit)
+			} else {
+				assert.Equal(t, minefields[tt.wantHit], minefieldHit)
+			}
+			assert.Equal(t, tt.wantDist, actualDist)
+		})
+	}
 }
 
 func TestMinefield_moveTowardsMineLayer(t *testing.T) {
@@ -218,7 +258,7 @@ func TestMinefield_damageFleet(t *testing.T) {
 			name:     "damage stalwart defender",
 			detonate: false,
 			args:     args{testStalwartDefenderWithQuantity(fleetPlayer, 10), fleetPlayer, rules.MinefieldStatsByType[MinefieldTypeStandard]},
-			want:     MinefieldDamage{Damage: 1000, ShipsDestroyed: 3, FleetDestroyed: false},
+			want:     MinefieldDamage{Damage: 1000, ShipsDestroyed: 0, FleetDestroyed: false}, // spread over all 10 ships
 		},
 	}
 	for _, tt := range tests {

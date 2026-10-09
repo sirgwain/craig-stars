@@ -183,7 +183,7 @@ type builtShip struct {
 	tags Tags
 }
 
-// productionStatus is the outcome of building one queue item (mdProdStat in the original)
+// productionStatus is the outcome of building one queue item
 type productionStatus int
 
 const (
@@ -210,7 +210,7 @@ type buildItemResult struct {
 
 // produce all items in the production queue
 //
-// This follows Produce() in the original. Each item is built in order until we run out of resources.
+// Each item is built in order until we run out of resources.
 // Concrete items are removed from the queue when complete, auto items stay in the queue.
 // Auto alchemy in front of another item converts resources to minerals as needed to build that item.
 // Auto alchemy at the end of the queue converts all leftover resources into minerals.
@@ -365,8 +365,6 @@ func (p *producer) maxBuildable(itemType QueueItemType) int {
 
 // buildItem builds up to quantity of an item, spending from available.
 // If alchemy is true, resources are converted to minerals whenever minerals block progress.
-//
-// This follows CBuildProdItem() in the original
 func (p *producer) buildItem(item ProductionQueueItem, cost Cost, quantity int, available *Cost, alchemy bool) (buildItemResult, error) {
 	result := buildItemResult{}
 	auto := item.Type.IsAuto()

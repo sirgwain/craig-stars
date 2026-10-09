@@ -45,4 +45,6 @@ message MinefieldDamage {
   int32 damage = 1;
   int32 ships_destroyed = 2;
   bool fleet_destroyed = 3;
+  // where the fleet was hit
+  Vector position = 4;
 }

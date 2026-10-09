@@ -372,6 +372,15 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		}
 	}
 
+	getPlanetAtPosition(position: Position): Planet | undefined {
+		const mo = this.getMapObjectsByPosition(position)?.find(
+			(mo) => mo.mapObject?.type === MapObjectType.PLANET
+		);
+		if (mo) {
+			return mo as Planet;
+		}
+	}
+
 	getSalvage(num: number | undefined): Salvage | undefined {
 		return this.salvages.find((s) => s.mapObject?.num === num);
 	}

@@ -384,6 +384,15 @@ export async function createGameContext(
 				goto(`/games/${gameId}`);
 				return;
 			}
+			// a fleet destroyed by mines leaves salvage where it was hit
+			const hitPosition = message.spec?.minefieldDamage?.position;
+			const salvage = hitPosition ? universe.getSalvageAtPosition(hitPosition) : undefined;
+			if (salvage) {
+				selectMapObject(salvage);
+				zoomToMapObject(salvage);
+				goto(`/games/${gameId}`);
+				return;
+			}
 			if (mf) {
 				selectMapObject(mf);
 				zoomToMapObject(mf);
