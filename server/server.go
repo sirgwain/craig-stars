@@ -306,7 +306,6 @@ func Start(config configpkg.Config) error {
 	grpc.Handle(craig_starsv1connect.NewPlanetServiceHandler(NewPlanetServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewFleetServiceHandler(NewFleetServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
 	grpc.Handle(craig_starsv1connect.NewMinefieldServiceHandler(NewMinefieldServiceHandler(dbConn), connect.WithInterceptors(gameInterceptors...)))
-	grpc.Handle(craig_starsv1connect.NewBattleServiceHandler(NewBattleServiceHandler(), connect.WithInterceptors(userInterceptors...)))
 
 	// Mount the grpc calls to /api/grpc
 	r.Group(func(r chi.Router) {

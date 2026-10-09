@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_getBeamDamageAtDistance(t *testing.T) {
@@ -21,9 +22,9 @@ func Test_getBeamDamageAtDistance(t *testing.T) {
 		args args
 		want int
 	}{
-		{"1 laser, 0 range", args{damage: 10, weaponRange: 1, dist: 0}, 10},
-		{"1 laser, 1 range", args{damage: 10, weaponRange: 1, dist: 1}, 9},
-		{"2 colloidal phasers, 3 range", args{damage: 52, weaponRange: 3, dist: 3}, 47}, // real Stars! is 48...
+		{"1 laser, 0 range", args{damage: 10, weaponRange: 1, dist: 0, beamDefense: 1}, 10},
+		{"1 laser, 1 range", args{damage: 10, weaponRange: 1, dist: 1, beamDefense: 1}, 9},
+		{"2 colloidal phasers, 3 range", args{damage: 52, weaponRange: 3, dist: 3, beamDefense: 1}, 47}, // real Stars! is 48...
 		{"1 laser, 0 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 0, beamDefense: .9}, 9},
 		{"1 laser, 1 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 1, beamDefense: .9}, 8},
 	}
@@ -87,7 +88,7 @@ func Test_battleWeaponSlot_getAttractiveness(t *testing.T) {
 				armor:   1,
 				shields: 1,
 			},
-			want: 1,
+			want: 2.0 / 3.0,
 		},
 		{
 			name:   "torpedo, more shields than armor",
@@ -107,7 +108,7 @@ func Test_battleWeaponSlot_getAttractiveness(t *testing.T) {
 				armor:   2,
 				shields: 1,
 			},
-			want: .3,
+			want: .325,
 		},
 		{
 			name:   "torpedo, attractiveness 1",
@@ -117,7 +118,7 @@ func Test_battleWeaponSlot_getAttractiveness(t *testing.T) {
 				armor:   1,
 				shields: 1,
 			},
-			want: .45,
+			want: .51,
 		},
 	}
 	for _, tt := range tests {
@@ -129,9 +130,11 @@ func Test_battleWeaponSlot_getAttractiveness(t *testing.T) {
 				capitalShipMissile: tt.fields.capitalShipMissile,
 			}
 			target := &battleToken{
+				ShipToken:      &ShipToken{Quantity: 1},
 				cost:           tt.args.cost,
 				armor:          tt.args.armor,
 				shields:        tt.args.shields,
+				stackShields:   tt.args.shields,
 				beamDefense:    tt.args.beamDefense,
 				torpedoJamming: tt.args.torpedoJamming,
 			}
@@ -171,57 +174,6 @@ func Test_battleWeaponSlot_getAccuracy(t *testing.T) {
 			}
 			if got := weapon.getAccuracy(tt.args.torpedoJamming); got != tt.want {
 				t.Errorf("battleWeaponSlot.getAccuracy() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_battleWeaponSlot_getDamage(t *testing.T) {
-	type fields struct {
-		weaponType  battleWeaponType
-		weaponRange int
-		power       int
-	}
-	type args struct {
-		dist        int
-		beamDefense float64
-		beamDropoff float64
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   int
-	}{
-		{"torpedo, base damage", fields{weaponType: battleWeaponTypeTorpedo, power: 10}, args{}, 10},
-		{
-			name:   "laser, 0 range",
-			fields: fields{weaponType: battleWeaponTypeBeam, weaponRange: 1, power: 10},
-			args:   args{dist: 0, beamDropoff: .1},
-			want:   10,
-		},
-		{
-			name:   "laser, 1 range",
-			fields: fields{weaponType: battleWeaponTypeBeam, weaponRange: 1, power: 10},
-			args:   args{dist: 1, beamDropoff: .1},
-			want:   9,
-		},
-		{
-			name:   "ColloidalPhaser, 3 range",
-			fields: fields{weaponType: battleWeaponTypeBeam, weaponRange: 3, power: 26},
-			args:   args{dist: 3, beamDropoff: .1},
-			want:   24,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			weapon := &battleWeaponSlot{
-				weaponType:  tt.fields.weaponType,
-				weaponRange: tt.fields.weaponRange,
-				power:       tt.fields.power,
-			}
-			if got := weapon.getDamage(tt.args.dist, tt.args.beamDefense, tt.args.beamDropoff); got != tt.want {
-				t.Errorf("battleWeaponSlot.getDamage() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -426,7 +378,9 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 	}
 }
 
-func Test_battleWeaponSlot_getEstimatedTorpedoDamageToTarget(t *testing.T) {
+// Test_battleWeaponSlot_getTorpedoVolleyDamage_expectedHits verifies volley damage
+// when hits and misses are split by average accuracy.
+func Test_battleWeaponSlot_getTorpedoVolleyDamage_expectedHits(t *testing.T) {
 	type fields struct {
 		shipQuantity int
 		slotQuantity int
@@ -555,14 +509,19 @@ func Test_battleWeaponSlot_getEstimatedTorpedoDamageToTarget(t *testing.T) {
 				torpedoJamming: tt.args.torpedoJamming,
 			}
 
-			if got := weapon.getEstimatedTorpedoDamageToTarget(target); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("battleWeaponSlot.getTargetBeamDamage() = \n%#v\nwant: \n%#v", got, tt.want)
+			count := float64(tt.fields.slotQuantity * tt.fields.shipQuantity)
+			hits := count * weapon.getAccuracy(target.torpedoJamming)
+			result := weapon.getTorpedoVolleyDamage(target, hits, count-hits, int(count), rules.TorpedoSplashDamage)
+			got := battleWeaponDamage{shieldDamage: result.shieldDamage, armorDamage: result.armorDamage}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("battleWeaponSlot.getTorpedoVolleyDamage() = \n%#v\nwant: \n%#v", got, tt.want)
 			}
 		})
 	}
 }
 
-func Test_battleWeaponSlot_getTorpedoDamageToTarget(t *testing.T) {
+// Test_battleWeaponSlot_getTorpedoVolleyDamage_singleHit verifies a volley of one torpedo that hits.
+func Test_battleWeaponSlot_getTorpedoVolleyDamage_singleHit(t *testing.T) {
 	type args struct {
 		weaponPower          int
 		armor                int
@@ -648,8 +607,128 @@ func Test_battleWeaponSlot_getTorpedoDamageToTarget(t *testing.T) {
 				armor:        tt.args.armor,
 				stackShields: tt.args.shields,
 			}
-			if got := weapon.getTorpedoDamageToTarget(target); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("battleWeaponSlot.getTargetBeamDamage() = \n%#v\nwant: \n%#v", got, tt.want)
+			if got := weapon.getTorpedoVolleyDamage(target, 1, 0, 1, rules.TorpedoSplashDamage); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("battleWeaponSlot.getTorpedoVolleyDamage() = \n%#v\nwant: \n%#v", got, tt.want)
+			}
+		})
+	}
+}
+
+// Test_battleWeaponSlot_getAttractiveness_remainingDefenses verifies target ranking from remaining defenses and deflectors.
+func Test_battleWeaponSlot_getAttractiveness_remainingDefenses(t *testing.T) {
+	tests := []struct {
+		name    string
+		shields int
+		damage  float64
+		sapper  bool
+		defense float64
+		want    float64
+	}{
+		{"remaining armor raises attractiveness", 0, 50, false, 1, 100.0 / 51},
+		{"remaining shields affect attractiveness", 10, 0, false, 1, 100.0 / 111},
+		{"deflectors lower attractiveness", 0, 0, false, .5, 50.0 / 101},
+		{"sapper ranks shield defense only", 10, 0, true, 1, 10},
+		{"sapper cannot target an empty shield", 0, 0, true, 1, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			target := &battleToken{ShipToken: &ShipToken{Quantity: 1, Damage: tt.damage, QuantityDamaged: 1}, armor: 100, stackShields: tt.shields, cost: Cost{Resources: 100}, beamDefense: tt.defense}
+			weapon := &battleWeaponSlot{damagesShieldsOnly: tt.sapper}
+			if got := weapon.getAttractiveness(target); !test.WithinTolerance(got, tt.want, .001) {
+				t.Errorf("battleWeaponSlot.getAttractiveness() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// Test_getBattleArmorDamage verifies fractional armor damage and the volley kill limit.
+func Test_getBattleArmorDamage(t *testing.T) {
+	tests := []struct {
+		name                     string
+		damage, existing         float64
+		damaged, quantity, limit int
+		want                     battleWeaponDamage
+	}{
+		{name: "leftover damage does at least one point", damage: 1, existing: 99.5, damaged: 1, quantity: 2, limit: 2, want: battleWeaponDamage{armorDamage: 1, numDestroyed: 1, damage: 1, quantityDamaged: 1}},
+		{name: "kill limit discards excess without harming survivors", damage: 200, quantity: 3, limit: 1, want: battleWeaponDamage{armorDamage: 100, numDestroyed: 1}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			target := &battleToken{ShipToken: &ShipToken{Quantity: tt.quantity, Damage: tt.existing, QuantityDamaged: tt.damaged}, armor: 100}
+			assert.Equal(t, tt.want, getBattleArmorDamage(target, tt.damage, tt.limit))
+		})
+	}
+}
+
+// Test_battleWeaponSlot_getAccuracy_bounds verifies accuracy limits after computers and jamming.
+func Test_battleWeaponSlot_getAccuracy_bounds(t *testing.T) {
+	tests := []struct {
+		name                       string
+		base, bonus, jamming, want float64
+	}{
+		{"zero base remains zero", 0, 1, 0, 0},
+		{"positive accuracy has a minimum", .01, 0, .95, .01},
+		{"accuracy cannot exceed one", .5, 2, 0, 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			weapon := &battleWeaponSlot{accuracy: tt.base, torpedoBonus: tt.bonus}
+			if got := weapon.getAccuracy(tt.jamming); !test.WithinTolerance(got, tt.want, .001) {
+				t.Errorf("battleWeaponSlot.getAccuracy() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// Test_battleWeaponSlot_beamSpillover verifies that each target applies its own range attenuation and deflectors.
+func Test_battleWeaponSlot_beamSpillover(t *testing.T) {
+	tests := []struct {
+		name                  string
+		baseRange, rangeBonus int
+		firstDefense          float64
+		wantDamage            float64
+	}{
+		{"each target applies its own deflectors", 1, 0, .5, 34},
+		{"starbase bonus does not dilute range attenuation", 1, 1, 1, 64},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewRulesWithSeed(1)
+			attacker := &battleToken{ShipToken: &ShipToken{Quantity: 1}}
+			first := &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{1, 0}}, ShipToken: &ShipToken{Quantity: 1}, armor: 30, beamDefense: tt.firstDefense}
+			if tt.rangeBonus > 0 {
+				first.Position = Vector{2, 0}
+			}
+			second := &battleToken{ShipToken: &ShipToken{Quantity: 1}, armor: 1000}
+			weapon := &battleWeaponSlot{token: attacker, power: 100, slotQuantity: 1, beamBonus: 1, weaponRange: tt.baseRange + tt.rangeBonus, rangeBonus: tt.rangeBonus}
+			b := &battle{rules: &r, round: 1, record: newBattleRecord(1, None, Vector{}, nil)}
+			b.record.recordNewRound()
+			b.fireBeamWeapon(weapon, []*battleToken{first, second})
+			assert.Equal(t, 0, first.Quantity)
+			if !test.WithinTolerance(second.Damage, tt.wantDamage, .001) {
+				t.Errorf("second target damage = %v, want %v", second.Damage, tt.wantDamage)
+			}
+		})
+	}
+}
+
+// Test_roundBattleArmorDamage verifies that stored ship damage rounds up to 1/500th of armor.
+func Test_roundBattleArmorDamage(t *testing.T) {
+	tests := []struct {
+		name          string
+		damage, armor float64
+		want          float64
+	}{
+		{"damage below 0.2% rounds up to 0.2%", 1, 1000, 2},
+		{"damage below one point rounds up to one point", .01, 100, 1},
+		{"damage on a step is unchanged", 4, 1000, 4},
+		{"damage between steps rounds up", 340, 350, 340.2},
+		{"surviving ships keep at least one step of armor", 99.99, 100, 99.8},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := roundBattleArmorDamage(tt.damage, tt.armor); !test.WithinTolerance(got, tt.want, 1e-6) {
+				t.Errorf("roundBattleArmorDamage() = %v, want %v", got, tt.want)
 			}
 		})
 	}

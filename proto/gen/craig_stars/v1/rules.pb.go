@@ -468,18 +468,19 @@ func (x *CostRules) GetTechBaseCost() []int32 {
 }
 
 type BattleRules struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	BeamRangeDropoff    float64                `protobuf:"fixed64,1,opt,name=beam_range_dropoff,json=beamRangeDropoff,proto3" json:"beam_range_dropoff,omitempty"`
-	BeamBonusCap        float64                `protobuf:"fixed64,2,opt,name=beam_bonus_cap,json=beamBonusCap,proto3" json:"beam_bonus_cap,omitempty"`
-	JammerCap           *JammerCap             `protobuf:"bytes,3,opt,name=jammer_cap,json=jammerCap,proto3" json:"jammer_cap,omitempty"`
-	JammerMulti         *JammerCap             `protobuf:"bytes,4,opt,name=jammer_multi,json=jammerMulti,proto3" json:"jammer_multi,omitempty"`
-	MovementMin         int32                  `protobuf:"varint,5,opt,name=movement_min,json=movementMin,proto3" json:"movement_min,omitempty"`
-	MovementMax         int32                  `protobuf:"varint,6,opt,name=movement_max,json=movementMax,proto3" json:"movement_max,omitempty"`
-	MovesToRunAway      int32                  `protobuf:"varint,7,opt,name=moves_to_run_away,json=movesToRunAway,proto3" json:"moves_to_run_away,omitempty"`
-	NumBattleRounds     int32                  `protobuf:"varint,8,opt,name=num_battle_rounds,json=numBattleRounds,proto3" json:"num_battle_rounds,omitempty"`
-	TorpedoSplashDamage float64                `protobuf:"fixed64,9,opt,name=torpedo_splash_damage,json=torpedoSplashDamage,proto3" json:"torpedo_splash_damage,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	BeamRangeDropoff     float64                `protobuf:"fixed64,1,opt,name=beam_range_dropoff,json=beamRangeDropoff,proto3" json:"beam_range_dropoff,omitempty"`
+	BeamBonusCap         float64                `protobuf:"fixed64,2,opt,name=beam_bonus_cap,json=beamBonusCap,proto3" json:"beam_bonus_cap,omitempty"`
+	JammerCap            *JammerCap             `protobuf:"bytes,3,opt,name=jammer_cap,json=jammerCap,proto3" json:"jammer_cap,omitempty"`
+	JammerMulti          *JammerCap             `protobuf:"bytes,4,opt,name=jammer_multi,json=jammerMulti,proto3" json:"jammer_multi,omitempty"`
+	MovementMin          int32                  `protobuf:"varint,5,opt,name=movement_min,json=movementMin,proto3" json:"movement_min,omitempty"`
+	MovementMax          int32                  `protobuf:"varint,6,opt,name=movement_max,json=movementMax,proto3" json:"movement_max,omitempty"`
+	MovesToRunAway       int32                  `protobuf:"varint,7,opt,name=moves_to_run_away,json=movesToRunAway,proto3" json:"moves_to_run_away,omitempty"`
+	NumBattleRounds      int32                  `protobuf:"varint,8,opt,name=num_battle_rounds,json=numBattleRounds,proto3" json:"num_battle_rounds,omitempty"`
+	TorpedoSplashDamage  float64                `protobuf:"fixed64,9,opt,name=torpedo_splash_damage,json=torpedoSplashDamage,proto3" json:"torpedo_splash_damage,omitempty"`
+	MovementMassVariance float64                `protobuf:"fixed64,10,opt,name=movement_mass_variance,json=movementMassVariance,proto3" json:"movement_mass_variance,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *BattleRules) Reset() {
@@ -571,6 +572,13 @@ func (x *BattleRules) GetNumBattleRounds() int32 {
 func (x *BattleRules) GetTorpedoSplashDamage() float64 {
 	if x != nil {
 		return x.TorpedoSplashDamage
+	}
+	return 0
+}
+
+func (x *BattleRules) GetMovementMassVariance() float64 {
+	if x != nil {
+		return x.MovementMassVariance
 	}
 	return 0
 }
@@ -1063,7 +1071,6 @@ type Rules struct {
 	TachyonMaxCloakReduction           float64                   `protobuf:"fixed64,52,opt,name=tachyon_max_cloak_reduction,json=tachyonMaxCloakReduction,proto3" json:"tachyon_max_cloak_reduction,omitempty"`
 	TechsId                            int64                     `protobuf:"varint,53,opt,name=techs_id,json=techsId,proto3" json:"techs_id,omitempty"`
 	TechTradeChance                    float64                   `protobuf:"fixed64,54,opt,name=tech_trade_chance,json=techTradeChance,proto3" json:"tech_trade_chance,omitempty"`
-	TorpedoSplashDamage                float64                   `protobuf:"fixed64,55,opt,name=torpedo_splash_damage,json=torpedoSplashDamage,proto3" json:"torpedo_splash_damage,omitempty"`
 	WormholeCloak                      int32                     `protobuf:"varint,56,opt,name=wormhole_cloak,json=wormholeCloak,proto3" json:"wormhole_cloak,omitempty"`
 	WormholePairsForSize               map[int32]int32           `protobuf:"bytes,57,rep,name=wormhole_pairs_for_size,json=wormholePairsForSize,proto3" json:"wormhole_pairs_for_size,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`            // Size enum/spec definition needed
 	WormholeStatsByStability           map[int32]*WormholeStats  `protobuf:"bytes,58,rep,name=wormhole_stats_by_stability,json=wormholeStatsByStability,proto3" json:"wormhole_stats_by_stability,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // WormholeStability enum/spec definition needed
@@ -1481,13 +1488,6 @@ func (x *Rules) GetTechTradeChance() float64 {
 	return 0
 }
 
-func (x *Rules) GetTorpedoSplashDamage() float64 {
-	if x != nil {
-		return x.TorpedoSplashDamage
-	}
-	return 0
-}
-
 func (x *Rules) GetWormholeCloak() int32 {
 	if x != nil {
 		return x.WormholeCloak
@@ -1553,7 +1553,7 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"!starbase_component_cost_reduction\x18\x05 \x01(\x01R\x1estarbaseComponentCostReduction\x12=\n" +
 	"\x1bstarbase_hull_refund_factor\x18\x06 \x01(\x01R\x18starbaseHullRefundFactor\x12;\n" +
 	"\x0eterraform_cost\x18\a \x01(\v2\x14.craig_stars.v1.CostR\rterraformCost\x12$\n" +
-	"\x0etech_base_cost\x18\b \x03(\x05R\ftechBaseCost\"\xaa\x03\n" +
+	"\x0etech_base_cost\x18\b \x03(\x05R\ftechBaseCost\"\xe0\x03\n" +
 	"\vBattleRules\x12,\n" +
 	"\x12beam_range_dropoff\x18\x01 \x01(\x01R\x10beamRangeDropoff\x12$\n" +
 	"\x0ebeam_bonus_cap\x18\x02 \x01(\x01R\fbeamBonusCap\x128\n" +
@@ -1564,7 +1564,9 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\fmovement_max\x18\x06 \x01(\x05R\vmovementMax\x12)\n" +
 	"\x11moves_to_run_away\x18\a \x01(\x05R\x0emovesToRunAway\x12*\n" +
 	"\x11num_battle_rounds\x18\b \x01(\x05R\x0fnumBattleRounds\x122\n" +
-	"\x15torpedo_splash_damage\x18\t \x01(\x01R\x13torpedoSplashDamage\"\x9f\n" +
+	"\x15torpedo_splash_damage\x18\t \x01(\x01R\x13torpedoSplashDamage\x124\n" +
+	"\x16movement_mass_variance\x18\n" +
+	" \x01(\x01R\x14movementMassVariance\"\x9f\n" +
 	"\n" +
 	"\x17UniverseGenerationRules\x12?\n" +
 	"\x11hab_dropoff_range\x18\x01 \x01(\v2\x13.craig_stars.v1.HabR\x0fhabDropoffRange\x12a\n" +
@@ -1610,7 +1612,7 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	" \x01(\x05R\aminWarp\x12\x19\n" +
 	"\bmin_year\x18\v \x01(\x05R\aminYear\x12%\n" +
 	"\x0erequested_boon\x18\f \x01(\x05R\rrequestedBoon\x12G\n" +
-	"\ttech_boon\x18\r \x03(\v2*.craig_stars.v1.MysteryTraderTechBoonRulesR\btechBoon\"\xd2\"\n" +
+	"\ttech_boon\x18\r \x03(\v2*.craig_stars.v1.MysteryTraderTechBoonRulesR\btechBoon\"\xbb\"\n" +
 	"\x05Rules\x128\n" +
 	"\n" +
 	"cost_rules\x18\x01 \x01(\v2\x19.craig_stars.v1.CostRulesR\tcostRules\x12>\n" +
@@ -1669,8 +1671,7 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\x17tachyon_cloak_reduction\x183 \x01(\x01R\x15tachyonCloakReduction\x12=\n" +
 	"\x1btachyon_max_cloak_reduction\x184 \x01(\x01R\x18tachyonMaxCloakReduction\x12\x19\n" +
 	"\btechs_id\x185 \x01(\x03R\atechsId\x12*\n" +
-	"\x11tech_trade_chance\x186 \x01(\x01R\x0ftechTradeChance\x122\n" +
-	"\x15torpedo_splash_damage\x187 \x01(\x01R\x13torpedoSplashDamage\x12%\n" +
+	"\x11tech_trade_chance\x186 \x01(\x01R\x0ftechTradeChance\x12%\n" +
 	"\x0ewormhole_cloak\x188 \x01(\x05R\rwormholeCloak\x12f\n" +
 	"\x17wormhole_pairs_for_size\x189 \x03(\v2/.craig_stars.v1.Rules.WormholePairsForSizeEntryR\x14wormholePairsForSize\x12r\n" +
 	"\x1bwormhole_stats_by_stability\x18: \x03(\v23.craig_stars.v1.Rules.WormholeStatsByStabilityEntryR\x18wormholeStatsByStability\x12#\n" +
@@ -1702,7 +1703,7 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\x1aj\n" +
 	"\x1dWormholeStatsByStabilityEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x123\n" +
-	"\x05value\x18\x02 \x01(\v2\x1d.craig_stars.v1.WormholeStatsR\x05value:\x028\x01*\x7f\n" +
+	"\x05value\x18\x02 \x01(\v2\x1d.craig_stars.v1.WormholeStatsR\x05value:\x028\x01J\x04\b7\x108R\x15torpedo_splash_damage*\x7f\n" +
 	"\tCometSize\x12\x1a\n" +
 	"\x16COMET_SIZE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10COMET_SIZE_SMALL\x10\x01\x12\x15\n" +

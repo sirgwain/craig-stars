@@ -66,7 +66,6 @@ type Rules struct {
 	TachyonMaxCloakReduction           float64                             `json:"tachyonMaxCloakReduction"`
 	TechsID                            int64                               `json:"techsId,omitempty"`
 	TechTradeChance                    float64                             `json:"techTradeChance"`
-	TorpedoSplashDamage                float64                             `json:"torpedoSplashDamage"`
 	WormholeCloak                      int                                 `json:"wormholeCloak"`
 	WormholePairsForSize               map[Size]int                        `json:"wormholePairsForSize"`
 	WormholeStatsByStability           map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
@@ -121,15 +120,16 @@ func (jc JammerCap) Get(starbase bool) float64 {
 }
 
 type BattleRules struct {
-	BeamRangeDropoff    float64   `json:"beamRangeDropoff"`
-	BeamBonusCap        float64   `json:"beamBonusCap"`
-	JammerCap           JammerCap `json:"jammerCap"`
-	JammerMulti         JammerCap `json:"jammerMulti"`
-	MovementMin         int       `json:"movementMin"`
-	MovementMax         int       `json:"movementMax"`
-	MovesToRunAway      int       `json:"movesToRunAway"`
-	NumBattleRounds     int       `json:"numBattleRounds"`
-	TorpedoSplashDamage float64   `json:"torpedoSplashDamage"`
+	BeamRangeDropoff     float64   `json:"beamRangeDropoff"`
+	BeamBonusCap         float64   `json:"beamBonusCap"`
+	JammerCap            JammerCap `json:"jammerCap"`
+	JammerMulti          JammerCap `json:"jammerMulti"`
+	MovementMin          int       `json:"movementMin"`
+	MovementMax          int       `json:"movementMax"`
+	MovementMassVariance float64   `json:"movementMassVariance"`
+	MovesToRunAway       int       `json:"movesToRunAway"`
+	NumBattleRounds      int       `json:"numBattleRounds"`
+	TorpedoSplashDamage  float64   `json:"torpedoSplashDamage"`
 }
 
 type RandomEvent string
@@ -296,18 +296,19 @@ func NewRulesWithSeed(seed int64) Rules {
 			BeamRangeDropoff: 0.1,  // 10% pro-rated damage penalty
 			BeamBonusCap:     2.55, // 2.55x damage max from beam capacitors
 			JammerCap: JammerCap{
-				Starbase: 1,    // starbases have no explicit jamming hardcap, but an innate 0.75x jamming multi
+				Starbase: 0.95, // apply the jamming cap before the starbase multiplier
 				Ship:     0.95, // ships hardcap at 95% jamming
 			},
 			JammerMulti: JammerCap{
 				Starbase: 0.75, // starbases have innate 0.75x jamming multipler by default
 				Ship:     1,    // ships have no innate jamming multipler
 			},
-			MovementMin:         2, // movement is 2 to 10
-			MovementMax:         10,
-			MovesToRunAway:      7,
-			NumBattleRounds:     16,
-			TorpedoSplashDamage: 0.125,
+			MovementMin:          2, // movement is 2 to 10
+			MovementMax:          10,
+			MovementMassVariance: 0.14, // movement order uses each token's mass ±14%, rerolled every round
+			MovesToRunAway:       7,
+			NumBattleRounds:      16,
+			TorpedoSplashDamage:  0.125,
 		},
 		UniverseGenerationRules: UniverseGenerationRules{
 			BorderInset: 20,
@@ -613,7 +614,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		ScrapMineralAmount:         0.333333343,
 		ScrapResourceAmount:        0.0,
 		ScrapColonizeAmount:        0.75,
-		SalvageFromBattleFactor:    .3,
+		SalvageFromBattleFactor:    1.0 / 3.0,
 		PacketDecayRate: map[int]float64{
 			1: 0.1,
 			2: 0.25,

@@ -1,6 +1,5 @@
 export * from '#lib/protogen/craig_stars/v1/adminservice_pb.js';
 export * from '#lib/protogen/craig_stars/v1/battle_pb.js';
-export * from '#lib/protogen/craig_stars/v1/battleservice_pb.js';
 export * from '#lib/protogen/craig_stars/v1/common_pb.js';
 export * from '#lib/protogen/craig_stars/v1/fleet_pb.js';
 export * from '#lib/protogen/craig_stars/v1/fleetservice_pb.js';

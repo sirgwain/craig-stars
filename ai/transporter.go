@@ -167,9 +167,3 @@ func (ai *aiPlayer) transportColonists() error {
 
 	return nil
 }
-
-// TODO: implement this
-func (ai *aiPlayer) loadColonistsAndTarget(fleet *cs.Fleet, planet *cs.Planet) error {
-
-	return nil
-}

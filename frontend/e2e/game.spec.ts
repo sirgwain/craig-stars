@@ -117,7 +117,13 @@ test('battle plans page', async ({ newGamePage }) => {
 	await page.getByLabel('Secondary Target').selectOption('Starbase');
 	await page.getByLabel('Tactic DisengageDisengage If').selectOption('Disengage');
 	await page.getByLabel('Attack Who EnemiesEnemies And').selectOption('Everyone');
+	await page.getByLabel('Dump Cargo').check();
 	await page.getByRole('button', { name: 'Save' }).click();
+	await page.getByRole('link', { name: 'Battle Plans' }).click();
+
+	// dump cargo is saved with the plan
+	await page.getByRole('link', { name: name }).click();
+	await expect(page.getByLabel('Dump Cargo')).toBeChecked();
 	await page.getByRole('link', { name: 'Battle Plans' }).click();
 
 	// delete the plan we just created
@@ -269,7 +275,7 @@ test('fleets report page', async ({ newGamePage }) => {
 
 	// sort
 	await page.getByRole('button', { name: 'Name' }).click();
-	await page.getByRole('button', { name: 'ID' }).click();
+	await page.getByRole('button', { name: 'ID', exact: true }).click();
 	await page.getByRole('button', { name: 'Location' }).click();
 	await page.getByRole('button', { name: 'Destination' }).click();
 	await page.getByRole('button', { name: 'ETA' }).click();

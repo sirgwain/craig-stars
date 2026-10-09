@@ -24,9 +24,11 @@ type TestScenario struct {
 
 // ScenarioPlayer defaults to a humanoid with tech 3 in every field.
 // Relations, when present, contain one entry per player, including this player.
+// BattlePlans replace default plans with matching numbers or add new plans.
 type ScenarioPlayer struct {
 	Player         *Player                 `json:"player,omitempty"`
 	Relations      []PlayerRelationship    `json:"relations,omitempty"`
+	BattlePlans    []BattlePlan            `json:"battlePlans,omitempty"`
 	Designs        []ShipDesign            `json:"designs,omitempty"`
 	Fleets         []ScenarioFleet         `json:"fleets,omitempty"`
 	Salvages       []Salvage               `json:"salvages,omitempty"`
@@ -146,6 +148,26 @@ func BuildScenario(scenario TestScenario) *FullGame {
 	ug := NewUniverseGenerator(b.game.Game, b.game.Players)
 	if err := ug.GenerateWithUniverse(b.game.Universe); err != nil {
 		panic(fmt.Errorf("scenario %q: %w", scenario.Name, err))
+	}
+	// The finalizer creates default plans. Apply scenario overrides afterwards,
+	// then rebuild maps so fleets reference the overridden plans.
+	customPlans := false
+	for index, sp := range scenario.Players {
+		player := b.game.Players[index]
+		for _, plan := range sp.BattlePlans {
+			customPlans = true
+			i := slices.IndexFunc(player.BattlePlans, func(p BattlePlan) bool { return p.Num == plan.Num })
+			if i < 0 {
+				player.BattlePlans = append(player.BattlePlans, plan)
+			} else {
+				player.BattlePlans[i] = plan
+			}
+		}
+	}
+	if customPlans {
+		if err := b.game.buildMaps(b.game.Players); err != nil {
+			panic(fmt.Errorf("scenario %q: %w", scenario.Name, err))
+		}
 	}
 
 	b.fillFuel()
@@ -503,6 +525,11 @@ var scenarioColors = []string{
 	"#FF1493",
 	"#D2691E",
 	"#F0FFF0",
+	"#FFD700",
+	"#00BFFF",
+	"#A0522D",
+	"#FF69B4",
+	"#808080",
 }
 
 func defaultScenarioPlayer() Player {
@@ -541,7 +568,7 @@ func newScenarioGame(name string) *FullGame {
 
 func addScenarioPlayer(game *FullGame, player *Player) *Player {
 	player.Num = len(game.Players) + 1
-	player.Color = scenarioColors[player.Num-1]
+	player.Color = scenarioColors[(player.Num-1)%len(scenarioColors)]
 
 	if player.Name == "" {
 		player.Name = fmt.Sprintf("Player #%d", player.Num)

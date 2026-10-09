@@ -38,12 +38,6 @@ type requests struct {
 	fleetBuilds map[cs.FleetPurpose]int
 }
 
-type fleetBuildRequest struct {
-	count    int
-	fleet    fleet
-	priority int
-}
-
 type playerConfig struct {
 	colonizerPopulationDensity       float64
 	colonistTransportDensity         float64
@@ -623,19 +617,6 @@ func (ai *aiPlayer) isFleetInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpo
 	for _, item := range planet.ProductionQueue {
 		if item.GetTag(cs.TagPurpose) == string(fleetPurpose) {
 			return true
-		}
-	}
-	return false
-}
-
-// check if a shipdesign with the given purpose is in the queue
-func (ai *aiPlayer) isShipInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpose, purpose cs.ShipDesignPurpose, quantity int) bool {
-	for _, item := range planet.ProductionQueue {
-		if item.Type == cs.QueueItemTypeShipToken && item.GetTag(cs.TagPurpose) == string(fleetPurpose) {
-			design := ai.GetDesign(item.DesignNum)
-			if design != nil && design.Purpose == purpose && item.Quantity >= quantity {
-				return true
-			}
 		}
 	}
 	return false

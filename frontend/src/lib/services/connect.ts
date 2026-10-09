@@ -1,5 +1,4 @@
 import { AdminService } from '#lib/types/cs-proto.js';
-import { BattleService } from '#lib/types/cs-proto.js';
 import { FleetService } from '#lib/types/cs-proto.js';
 import { GameService } from '#lib/types/cs-proto.js';
 import { MinefieldService } from '#lib/types/cs-proto.js';
@@ -28,7 +27,6 @@ const transport = createConnectTransport({
 });
 
 export const adminClient = createClient(AdminService, transport);
-export const battleClient = createClient(BattleService, transport);
 export const battlePlanClient = createClient(BattlePlanService, transport);
 export const fleetClient = createClient(FleetService, transport);
 export const gameClient = createClient(GameService, transport);

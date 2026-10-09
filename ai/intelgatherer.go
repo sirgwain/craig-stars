@@ -43,16 +43,20 @@ func (ai *aiPlayer) gatherIntel() {
 func (ai *aiPlayer) findPlanetTargets(position cs.Vector, heading cs.VectorFloat64, planets []*cs.Planet) []*cs.Planet {
 
 	targets := []*cs.Planet{}
-	// y = mx + b
-	// slope is the heading
-	m := heading.Y / heading.X
-	b := float64(position.Y) - (m * float64(position.X))
+	length := heading.Length()
+	if length == 0 {
+		return targets
+	}
 
 	for _, planet := range planets {
-		// if the equation is true, and the planet is further along the line, we have a hit
-		if int(math.Round(float64(planet.Position.Y))) == int(math.Round(m*float64(planet.Position.X)+b)) &&
-			((heading.X > 0 && planet.Position.X > position.X) || (heading.X < 0 && planet.Position.X < position.X)) &&
-			((heading.Y > 0 && planet.Position.Y > position.Y) || (heading.Y < 0 && planet.Position.Y < position.Y)) {
+		offset := planet.Position.Subtract(position).ToFloat64()
+		if offset.Dot(heading) <= 0 {
+			continue
+		}
+		// Allow half a map unit for rounding, measured perpendicular to the
+		// heading so the tolerance is the same for every direction.
+		distance := math.Abs(offset.X*heading.Y-offset.Y*heading.X) / length
+		if distance <= 0.5 {
 			targets = append(targets, planet)
 		}
 	}

@@ -2,7 +2,6 @@
 </script>
 
 <ul>
-	<li><a class="cs-link" href="/tests/battle">battle</a></li>
 	<li><a class="cs-link" href="/tests/cargobar">cargobar</a></li>
 	<li><a class="cs-link" href="/tests/cargotransferdialog">cargotransferdialog</a></li>
 	<li><a class="cs-link" href="/tests/icons">icons</a></li>

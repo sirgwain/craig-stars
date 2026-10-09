@@ -48,6 +48,10 @@
 				<div class="text-right font-semibold mr-2 w-28">Attack Who</div>
 				<div>{enumToString(BattleAttackWho, plan.attackWho)}</div>
 			</div>
+			<div class="flex flex-row">
+				<div class="text-right font-semibold mr-2 w-28">Dump Cargo</div>
+				<div>{plan.dumpCargo ? 'Yes' : 'No'}</div>
+			</div>
 		</div>
 		{#if showDelete}
 			<div class="card-actions justify-start">

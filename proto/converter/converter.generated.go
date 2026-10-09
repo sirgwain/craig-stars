@@ -810,7 +810,6 @@ func (c *ProtoConverter) ConvertCSRules(source *cs.Rules) *v1.Rules {
 		craig_starsv1Rules.TachyonMaxCloakReduction = (*source).TachyonMaxCloakReduction
 		craig_starsv1Rules.TechsId = (*source).TechsID
 		craig_starsv1Rules.TechTradeChance = (*source).TechTradeChance
-		craig_starsv1Rules.TorpedoSplashDamage = (*source).TorpedoSplashDamage
 		craig_starsv1Rules.WormholeCloak = IntToInt32((*source).WormholeCloak)
 		craig_starsv1Rules.WormholePairsForSize = SizeMapToIntMap(c, (*source).WormholePairsForSize)
 		craig_starsv1Rules.WormholeStatsByStability = WormholeStabilityMapToIntMap(c, (*source).WormholeStatsByStability)
@@ -1990,7 +1989,6 @@ func (c *ProtoConverter) ConvertRules(source *v1.Rules) *cs.Rules {
 		csRules.TachyonMaxCloakReduction = (*source).TachyonMaxCloakReduction
 		csRules.TechsID = (*source).TechsId
 		csRules.TechTradeChance = (*source).TechTradeChance
-		csRules.TorpedoSplashDamage = (*source).TorpedoSplashDamage
 		csRules.WormholeCloak = Int32ToInt((*source).WormholeCloak)
 		csRules.WormholePairsForSize = IntMapToSizeMap(c, (*source).WormholePairsForSize)
 		csRules.WormholeStatsByStability = IntMapToWormholeStabilityMap(c, (*source).WormholeStatsByStability)
@@ -2503,6 +2501,7 @@ func (c *ProtoConverter) csBattleRulesToPCraig_starsv1BattleRules(source cs.Batt
 	craig_starsv1BattleRules.MovesToRunAway = IntToInt32(source.MovesToRunAway)
 	craig_starsv1BattleRules.NumBattleRounds = IntToInt32(source.NumBattleRounds)
 	craig_starsv1BattleRules.TorpedoSplashDamage = source.TorpedoSplashDamage
+	craig_starsv1BattleRules.MovementMassVariance = source.MovementMassVariance
 	return &craig_starsv1BattleRules
 }
 func (c *ProtoConverter) csBombToPCraig_starsv1Bomb(source cs.Bomb) *v1.Bomb {
@@ -3282,6 +3281,7 @@ func (c *ProtoConverter) pCraig_starsv1BattleRulesToCsBattleRules(source *v1.Bat
 		csBattleRules.JammerMulti = c.pCraig_starsv1JammerCapToCsJammerCap((*source).JammerMulti)
 		csBattleRules.MovementMin = Int32ToInt((*source).MovementMin)
 		csBattleRules.MovementMax = Int32ToInt((*source).MovementMax)
+		csBattleRules.MovementMassVariance = (*source).MovementMassVariance
 		csBattleRules.MovesToRunAway = Int32ToInt((*source).MovesToRunAway)
 		csBattleRules.NumBattleRounds = Int32ToInt((*source).NumBattleRounds)
 		csBattleRules.TorpedoSplashDamage = (*source).TorpedoSplashDamage

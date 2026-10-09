@@ -293,6 +293,12 @@ func (m *BattleRules) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.MovementMassVariance != 0 {
+		i -= 8
+		binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.MovementMassVariance))))
+		i--
+		dAtA[i] = 0x51
+	}
 	if m.TorpedoSplashDamage != 0 {
 		i -= 8
 		binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.TorpedoSplashDamage))))
@@ -822,14 +828,6 @@ func (m *Rules) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		dAtA[i] = 0x3
 		i--
 		dAtA[i] = 0xc0
-	}
-	if m.TorpedoSplashDamage != 0 {
-		i -= 8
-		binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.TorpedoSplashDamage))))
-		i--
-		dAtA[i] = 0x3
-		i--
-		dAtA[i] = 0xb9
 	}
 	if m.TechTradeChance != 0 {
 		i -= 8
@@ -1489,6 +1487,9 @@ func (m *BattleRules) SizeVT() (n int) {
 	if m.TorpedoSplashDamage != 0 {
 		n += 9
 	}
+	if m.MovementMassVariance != 0 {
+		n += 9
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -1893,9 +1894,6 @@ func (m *Rules) SizeVT() (n int) {
 		n += 2 + protohelpers.SizeOfVarint(uint64(m.TechsId))
 	}
 	if m.TechTradeChance != 0 {
-		n += 10
-	}
-	if m.TorpedoSplashDamage != 0 {
 		n += 10
 	}
 	if m.WormholeCloak != 0 {
@@ -2762,6 +2760,17 @@ func (m *BattleRules) UnmarshalVT(dAtA []byte) error {
 			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
 			iNdEx += 8
 			m.TorpedoSplashDamage = float64(math.Float64frombits(v))
+		case 10:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MovementMassVariance", wireType)
+			}
+			var v uint64
+			if (iNdEx + 8) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
+			iNdEx += 8
+			m.MovementMassVariance = float64(math.Float64frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])
@@ -5612,17 +5621,6 @@ func (m *Rules) UnmarshalVT(dAtA []byte) error {
 			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
 			iNdEx += 8
 			m.TechTradeChance = float64(math.Float64frombits(v))
-		case 55:
-			if wireType != 1 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TorpedoSplashDamage", wireType)
-			}
-			var v uint64
-			if (iNdEx + 8) > l {
-				return io.ErrUnexpectedEOF
-			}
-			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
-			iNdEx += 8
-			m.TorpedoSplashDamage = float64(math.Float64frombits(v))
 		case 56:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field WormholeCloak", wireType)

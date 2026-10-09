@@ -5,7 +5,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-func (ai *aiPlayer) fleetName(fleet *cs.Fleet, purpose cs.FleetPurpose) string {
+func (ai *aiPlayer) fleetName(purpose cs.FleetPurpose) string {
 
 	// TODO: do some cool names
 	return strings.StartCase(string(purpose))
