@@ -1385,6 +1385,111 @@ func Test_turn_detonateMines(t *testing.T) {
 	}
 }
 
+func Test_turn_detonateMinesCargoCapacity(t *testing.T) {
+	tests := []struct {
+		name         string
+		destroyAll   bool
+		wantShips    int
+		wantFraction float64
+	}{
+		{"one freighter destroyed", false, 1, 0.5},
+		{"both freighters destroyed", true, 0, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			damaged, undamaged := DesignTeamster, DesignTeamster
+			damaged.Name, undamaged.Name = "Damaged freighter", "Undamaged freighter"
+			u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
+				{
+					Player: NewPlayer(1, NewRace().WithPRT(SD)),
+					Minefields: []Minefield{{MinefieldType: MinefieldTypeStandard, NumMines: 100,
+						MinefieldOrders: MinefieldOrders{Detonate: true}}},
+				},
+				{
+					Designs: Designs(damaged, undamaged),
+					Fleets: []ScenarioFleet{{Name: "Freighters", Tokens: []ScenarioShipToken{
+						{Design: damaged.Name, Quantity: 1}, {Design: undamaged.Name, Quantity: 1},
+					}}},
+				},
+			}})
+			fleet := u.Fleet("Freighters")
+			capacity, fuelCapacity := fleet.Spec.CargoCapacity, fleet.Spec.FuelCapacity
+			fleet.Cargo = Cargo{Ironium: capacity - 20, Colonists: 20}
+			fleet.Fuel = fuelCapacity
+			cargo := fleet.Cargo
+			fleet.Tokens[0].Damage = float64(fleet.Tokens[0].design.Spec.Armor - 1)
+			fleet.Tokens[0].QuantityDamaged = 1
+			if tt.destroyAll {
+				fleet.Tokens[1].Damage = float64(fleet.Tokens[1].design.Spec.Armor - 1)
+				fleet.Tokens[1].QuantityDamaged = 1
+			}
+			stats := u.Game.Rules.MinefieldStatsByType[MinefieldTypeStandard]
+			stats.MinDamagePerFleet, stats.MinDamagePerFleetRS = 0, 0
+			stats.DamagePerEngine, stats.DamagePerEngineRS = 50, 50
+			u.Game.Rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
+
+			u.Run((*turnGenerator).detonateMines)
+
+			assert.Equal(t, tt.destroyAll, fleet.Delete)
+			assert.Len(t, fleet.Tokens, tt.wantShips)
+			assert.Equal(t, int(float64(capacity)*tt.wantFraction), fleet.Spec.CargoCapacity)
+			assert.Equal(t, cargo.Multiply(tt.wantFraction), fleet.Cargo)
+			assert.Equal(t, int(float64(fuelCapacity)*tt.wantFraction), fleet.Fuel)
+			require.Len(t, u.Game.Salvages, 1)
+			lostCargo := cargo.Subtract(fleet.Cargo)
+			assert.Equal(t, Cargo{Ironium: lostCargo.Ironium}, u.Game.Salvages[0].Cargo)
+		})
+	}
+}
+
+func Test_turn_fleetTransportLocation(t *testing.T) {
+	tests := []struct {
+		name         string
+		position     Vector
+		load         bool
+		wantTransfer int
+	}{
+		{"unload at same location", Vector{}, false, 5},
+		{"unload at different location", Vector{100, 0}, false, 0},
+		{"load at same location", Vector{}, true, -5},
+		{"load at different location", Vector{100, 0}, true, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{{
+				Designs: Designs(DesignTeamster),
+				Fleets: []ScenarioFleet{
+					{Name: "Source", Design: DesignTeamster.Name},
+					{Name: "Destination", Design: DesignTeamster.Name, Position: tt.position},
+				},
+			}}})
+			source, dest := u.Fleet("Source"), u.Fleet("Destination")
+			source.Cargo, dest.Cargo = Cargo{Ironium: 10}, Cargo{Ironium: 10}
+			source.Fuel, dest.Fuel = 10, 10
+			wp := &source.Waypoints[0]
+			wp.Task = WaypointTaskTransport
+			wp.TargetType, wp.TargetNum, wp.TargetPlayerNum = MapObjectTypeFleet, dest.Num, dest.PlayerNum
+			action := TransportActionUnloadAmount
+			if tt.load {
+				action = TransportActionLoadAmount
+			}
+			wp.TransportTasks.Ironium = WaypointTransportTask{Action: action, Amount: 5}
+			wp.TransportTasks.Fuel = WaypointTransportTask{Action: action, Amount: 5}
+			u.Run((*turnGenerator).fleetUnload)
+			u.Run((*turnGenerator).fleetLoad)
+			assert.Equal(t, 10-tt.wantTransfer, source.Cargo.Ironium)
+			assert.Equal(t, 10+tt.wantTransfer, dest.Cargo.Ironium)
+			assert.Equal(t, 10-tt.wantTransfer, source.Fuel)
+			assert.Equal(t, 10+tt.wantTransfer, dest.Fuel)
+			if tt.wantTransfer == 0 {
+				// the player is told, and the fleet gives up on the task
+				assert.Len(t, u.Messages(1, PlayerMessageFleetTargetLost), 1)
+				assert.Equal(t, WaypointTaskNone, wp.Task)
+			}
+		})
+	}
+}
+
 func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 	s := SingleUnitScenario()
 	s.Players = append(s.Players, ScenarioPlayer{

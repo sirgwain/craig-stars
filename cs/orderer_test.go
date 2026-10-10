@@ -4,11 +4,13 @@ package cs
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_orders_splitFleetTokens(t *testing.T) {
@@ -522,6 +524,50 @@ func Test_orders_splitFleetTokens(t *testing.T) {
 	}
 }
 
+func Test_orders_SplitFleetCapacity(t *testing.T) {
+	// two freighters holding 420kT and 800mg split into one ship each, with 210kT and 450mg of capacity
+	tests := []struct {
+		name     string
+		transfer CargoTransferRequest
+		wantErr  string
+	}{
+		{"nothing moved", CargoTransferRequest{}, "cargo capacity"},
+		{"rounded cargo leaves source over capacity", CargoTransferRequest{Cargo: Cargo{Ironium: -104, Boranium: -105}, Fuel: -400}, "cargo capacity"},
+		{"fuel leaves source over capacity", CargoTransferRequest{Cargo: Cargo{Ironium: -105, Boranium: -105}}, "fuel capacity"},
+		{"more than the source has", CargoTransferRequest{Cargo: Cargo{Ironium: -210, Germanium: -1}, Fuel: -400}, "does not have enough"},
+		{"balanced", CargoTransferRequest{Cargo: Cargo{Ironium: -105, Boranium: -105}, Fuel: -400}, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{{
+				Designs: Designs(DesignTeamster),
+				Fleets:  []ScenarioFleet{{Name: "Source", Design: DesignTeamster.Name, Quantity: 2}},
+			}}})
+			source := u.Fleet("Source")
+			source.Cargo, source.Fuel = Cargo{Ironium: 209, Boranium: 211}, 800
+			sourceTokens, destTokens := slices.Clone(source.Tokens), slices.Clone(source.Tokens)
+			sourceTokens[0].Quantity, destTokens[0].Quantity = 1, 1
+
+			gotSource, gotDest, err := NewOrderer().SplitFleet(&u.Game.Rules, u.Player(1), u.Game.Fleets, SplitFleetRequest{
+				Source: source, SourceTokens: sourceTokens, DestTokens: destTokens, TransferAmount: tt.transfer,
+			})
+
+			if tt.wantErr != "" {
+				assert.ErrorContains(t, err, tt.wantErr)
+				// a rejected split leaves the source alone
+				assert.Equal(t, 2, source.Tokens[0].Quantity)
+				assert.Equal(t, Cargo{Ironium: 209, Boranium: 211}, source.Cargo)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, Cargo{Ironium: 104, Boranium: 106}, gotSource.Cargo)
+			assert.Equal(t, Cargo{Ironium: 105, Boranium: 105}, gotDest.Cargo)
+			assert.Equal(t, 400, gotSource.Fuel)
+			assert.Equal(t, 400, gotDest.Fuel)
+		})
+	}
+}
+
 func Test_orders_SplitFleet(t *testing.T) {
 	player := NewPlayer(0, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
 	scoutDesign := NewShipDesign(player.Num, 1).
@@ -642,7 +688,11 @@ func Test_orders_SplitFleet(t *testing.T) {
 						DesignNum: 1,
 					},
 				},
+				transferAmount: CargoTransferRequest{Fuel: -scoutDesign.Spec.FuelCapacity},
 			},
+			want: want{cargoTransfers: []ByHandCargoTransfer{
+				{SourceFleetNum: 1, MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Long Range Scout #2", TargetNum: 2, TargetPlayerNum: 1}, Fuel: scoutDesign.Spec.FuelCapacity},
+			}},
 		},
 		{
 			name: "split damaged 2 scout fleet into two fleets",
@@ -662,7 +712,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						// one of these scouts has 10 damage
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, QuantityDamaged: 1, Damage: 10},
 					},
-					Fuel: scoutDesign.Spec.FuelCapacity * 2,
+					Fuel: scoutDesign.Spec.FuelCapacity,
 				},
 				dest: nil,
 				sourceTokens: []ShipToken{
@@ -700,7 +750,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						// one of these scouts has 10 damage
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, QuantityDamaged: 2, Damage: 10},
 					},
-					Fuel: scoutDesign.Spec.FuelCapacity * 2,
+					Fuel: scoutDesign.Spec.FuelCapacity,
 				},
 				dest: nil,
 				sourceTokens: []ShipToken{
@@ -740,7 +790,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						// one of these scouts has 10 damage
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 3, QuantityDamaged: 2, Damage: 10},
 					},
-					Fuel: scoutDesign.Spec.FuelCapacity * 3,
+					Fuel: scoutDesign.Spec.FuelCapacity,
 				},
 				dest: nil,
 				// keep one of the damaged tokens in the old fleet
@@ -781,7 +831,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						// one of these scouts has 10 damage
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 3, QuantityDamaged: 2, Damage: 10},
 					},
-					Fuel: scoutDesign.Spec.FuelCapacity * 3,
+					Fuel: scoutDesign.Spec.FuelCapacity,
 				},
 				dest: nil,
 				// pretend like our source fleet is undamaged (cheater!, or more likely a UI bug...)
@@ -821,7 +871,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						// one of these scouts has 10 damage
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, QuantityDamaged: 1, Damage: 10},
 					},
-					Fuel: scoutDesign.Spec.FuelCapacity * 3,
+					Fuel: scoutDesign.Spec.FuelCapacity,
 				},
 				dest: &Fleet{
 					MapObject: MapObject{
@@ -838,7 +888,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						// one of these scouts has 5 damage
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, QuantityDamaged: 1, Damage: 5},
 					},
-					Fuel: scoutDesign.Spec.FuelCapacity * 3,
+					Fuel: scoutDesign.Spec.FuelCapacity,
 				},
 				// move the 10 dmg scout to the 5dmg scout fleet
 				sourceTokens: []ShipToken{

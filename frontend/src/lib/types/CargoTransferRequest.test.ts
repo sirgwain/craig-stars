@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { totalCargo } from './Cargo';
 import {
 	clampCargoTransfer,
 	clampFuelTransfer,
@@ -55,6 +56,27 @@ describe('clampFuelTransfer', () => {
 });
 
 describe('suggestCargoTransfer', () => {
+	it.each([
+		{
+			name: 'rounding with both holds full',
+			src: { ironium: 209, boranium: 211 },
+			srcCapacity: 210,
+			dest: {},
+			destCapacity: 210
+		},
+		{
+			name: 'destination loses cargo space during a split',
+			src: { ironium: 209, boranium: 211 },
+			srcCapacity: 630,
+			dest: { ironium: 209, boranium: 211 },
+			destCapacity: 210
+		}
+	])('fits both holds: $name', ({ src, srcCapacity, dest, destCapacity }) => {
+		const transfer = suggestCargoTransfer(src, srcCapacity, dest, destCapacity);
+		expect(totalCargo(src) + totalCargo(transfer)).toBeLessThanOrEqual(srcCapacity);
+		expect(totalCargo(dest) - totalCargo(transfer)).toBeLessThanOrEqual(destCapacity);
+	});
+
 	it('suggests per-lane deltas to balance by capacity', () => {
 		// equal capacities: src has 200 iron, dest has 0 iron => suggest move 100 to dest => delta -100
 		expect(
@@ -102,6 +124,23 @@ describe('suggestCargoTransfer', () => {
 });
 
 describe('clampCargoTransfer', () => {
+	it.each([
+		{
+			name: 'source needs to give more cargo',
+			src: { ironium: 209, boranium: 211 },
+			dest: {}
+		},
+		{
+			name: 'destination needs to give more cargo',
+			src: {},
+			dest: { ironium: 209, boranium: 211 }
+		}
+	])('corrects an overloaded hold after splitting: $name', ({ src, dest }) => {
+		const transfer = clampCargoTransfer({}, src, 210, dest, 210);
+		expect(totalCargo(src) + totalCargo(transfer)).toEqual(210);
+		expect(totalCargo(dest) - totalCargo(transfer)).toEqual(210);
+	});
+
 	it('clamps per-component and total capacity', () => {
 		const src = { ironium: 200, boranium: 0, germanium: 0, colonists: 0 };
 		const dest = { ironium: 10, boranium: 0, germanium: 0, colonists: 0 };

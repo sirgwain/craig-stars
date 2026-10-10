@@ -804,6 +804,7 @@ func (fleet *Fleet) removeLostShips(rules *Rules, player *Player) (lostCargo Car
 		lostCargo = fleet.Cargo
 		fleet.Cargo = Cargo{}
 		fleet.Fuel = 0
+		fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 		return lostCargo
 	}
 

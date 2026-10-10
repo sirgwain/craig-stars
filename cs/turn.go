@@ -613,6 +613,16 @@ func (t *turnGenerator) fleetUnload() {
 				)
 			}
 
+			if dest.Deleted() || dest.GetMapObject().Position != fleet.Position {
+				// the target isn't here to transfer with. Tell the player and give up, unless these orders repeat
+				messager.fleetTargetLost(player, fleet, wp.TargetName, wp.TargetType)
+				if !fleet.RepeatOrders {
+					wp.Task = WaypointTaskNone
+					wp.TransportTasks = WaypointTransportTasks{}
+				}
+				continue
+			}
+
 			results := cargoTransferer.unload(fleet, dest, wp.TransportTasks)
 			t.sendTransportResults(player, fleet, dest, results)
 			if planet, ok := dest.(*Planet); ok {
@@ -637,7 +647,7 @@ func (t *turnGenerator) fleetLoad() {
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
 			dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
-			if !ok || dest.Deleted() {
+			if !ok || dest.Deleted() || dest.GetMapObject().Position != fleet.Position {
 				// can't load from space
 				continue
 			}
@@ -1623,8 +1633,10 @@ func (t *turnGenerator) detonateMines() {
 				messager.fleetMinefieldHit(minefieldPlayer, fleet, minefield, damage)
 			}
 
-			// clear out any destroyed tokens
-			fleet.removeEmptyTokens()
+			if damage.ShipsDestroyed > 0 {
+				lostCargo := fleet.removeLostShips(&t.game.Rules, fleetPlayer)
+				t.dropSalvage(fleet.Position, fleet.PlayerNum, lostCargo)
+			}
 
 			t.log.Debug("minefield detonation damaged fleet",
 				slog.Int("Player", minefield.PlayerNum),
