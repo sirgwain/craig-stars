@@ -43,6 +43,7 @@ type Fleet struct {
 	Spec              FleetSpec     `json:"spec"`
 	battlePlan        *BattlePlan
 	struckMinefield   bool
+	noHeal            bool // gated, fought or took mine damage this turn
 	remoteMined       bool
 	warped            bool    // made a warp move this turn, colonists can die from warp acceleration or engine radiation
 	jumpedFrom        *Vector // where this fleet jumped through a stargate or wormhole this turn
@@ -431,6 +432,16 @@ func NewPositionWaypoint(position Vector, warpSpeed int) Waypoint {
 			TargetPlayerNum: None,
 		},
 	}
+}
+
+// targetingMysteryTrader is true if this fleet arrived at the trader (wp0) or is still headed for it (wp1)
+func (fleet *Fleet) targetingMysteryTrader(mt *MysteryTrader) bool {
+	for i := 0; i < min(2, len(fleet.Waypoints)); i++ {
+		if wp := fleet.Waypoints[i]; wp.TargetType == MapObjectTypeMysteryTrader && wp.TargetNum == mt.Num {
+			return true
+		}
+	}
+	return false
 }
 
 func (wp *Waypoint) clearTarget() {
@@ -1106,6 +1117,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		return
 	}
 
+	fleet.noHeal = true
 	// we survived, warp it!
 	fleet.jumpedFrom = &Vector{fleet.Position.X, fleet.Position.Y}
 	if wp1.TargetType != MapObjectTypePlanet {
@@ -1488,20 +1500,17 @@ func (fleet *Fleet) repairFleet(log *slog.Logger, rules *Rules, player *Player, 
 		}
 	}
 
-	if !needsRepair {
+	if !needsRepair || fleet.noHeal {
 		return
 	}
 
 	var rate RepairRate
 	switch {
-	case len(fleet.Waypoints) > 1:
+	case fleet.warped || fleet.PreviousPosition != nil && *fleet.PreviousPosition != fleet.Position:
 		rate = RepairRateMoving
 	case orbiting == nil:
 		// we're standing still, but not at a planet
 		rate = RepairRateStopped
-	case fleet.Spec.Bomber && player.IsEnemy(orbiting.PlayerNum):
-		// no repairs while bombing
-		rate = RepairRateNone
 	case orbiting.OwnedBy(player.Num):
 		// Confirmed - boosted repairs only occur on _your_ planets (not allies')
 		rate = RepairRateOrbitingOwnPlanet
@@ -1514,26 +1523,23 @@ func (fleet *Fleet) repairFleet(log *slog.Logger, rules *Rules, player *Player, 
 		return
 	}
 
-	// apply any bonuses for this fleet
-	// TODO: Should this apply to _all_ fleets at the given location?
-	// We could probably pre-screen fleets at the same location for global
-	// repair bonus the first time around and recycle that value for subsequent ones
-	repairRate += fleet.Spec.RepairBonus
-
-	if rate == RepairRateOrbitingOwnPlanet && orbiting.Starbase != nil && !orbiting.Starbase.Delete {
-		// apply any bonuses from orbiting our own starbase (if present)
+	// A starbase at our own planet adds its hull's repair bonus. The boost is lost
+	// if the starbase was destroyed this turn (Delete) or fought in a battle this
+	// turn (noHeal).
+	if rate == RepairRateOrbitingOwnPlanet && orbiting.Starbase != nil && !orbiting.Starbase.Delete && !orbiting.Starbase.noHeal {
 		repairRate += orbiting.Starbase.Spec.RepairBonus
 	}
 
+	repairRate = repairRate*player.Race.Spec.RepairFactor + fleet.Spec.RepairBonus
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]
 
-		// IS races double repair
+		// IS races double the base rate, before adding tanker bonuses
 		// repair some percentage of armor
 		// 100dp armor@3% repair over a planet means
 		// it repairs 3dp per turn. All damaged tokens repair
 		// at the same rate
-		repairAmount := max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
+		repairAmount := max(1, int(float64(token.design.Spec.Armor)*repairRate))
 
 		// Remove damage from this fleet by its armor * repairRate
 		token.Damage = math.Floor(max(0, token.Damage-float64(repairAmount)))
@@ -1554,6 +1560,9 @@ func (fleet *Fleet) repairFleet(log *slog.Logger, rules *Rules, player *Player, 
 
 // Repair a starbase
 func (fleet *Fleet) repairStarbase(log *slog.Logger, rules *Rules, player *Player) {
+	if fleet.noHeal {
+		return
+	}
 	repairRate := rules.RepairRates[RepairRateStarbase]
 	token := &fleet.Tokens[0]
 
@@ -1562,6 +1571,9 @@ func (fleet *Fleet) repairStarbase(log *slog.Logger, rules *Rules, player *Playe
 
 	// Remove damage from this fleet by its armor * repairRate
 	token.Damage = math.Floor(max(0, fleet.Tokens[0].Damage-float64(repairAmount)))
+	if token.Damage == 0 {
+		token.QuantityDamaged = 0
+	}
 
 	log.Debug("starbase repaired",
 		slog.Int("Player", fleet.PlayerNum),

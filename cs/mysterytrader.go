@@ -175,12 +175,10 @@ type MysteryTraderReward struct {
 // create a new mysterytrader object
 func newMysteryTrader(position Vector, num int, warpSpeed int, destination Vector, requestedBoon int, reward MysteryTraderRewardType) *MysteryTrader {
 	return &MysteryTrader{
-		MapObject: MapObject{
-			Type:     MapObjectTypeMysteryTrader,
-			Position: position,
-			Num:      num,
-			Name:     fmt.Sprintf("Mystery Trader #%d", num),
-		},
+		Type:            MapObjectTypeMysteryTrader,
+		Position:        position,
+		Num:             num,
+		Name:            fmt.Sprintf("Mystery Trader #%d", num),
 		WarpSpeed:       warpSpeed,
 		Destination:     destination,
 		Heading:         (destination.Subtract(position)).Normalized(),
@@ -438,7 +436,7 @@ func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Pl
 		rewardType := mt.RewardType
 
 		if rewardType == MysteryTraderRewardResearch && player.TechLevels.LowestLevel() == rules.MaxTechLevel {
-			if rules.random.Intn(rules.MysteryTraderRules.ChanceMaxTechGetsPart) > 0 {
+			if rules.random.Intn(rules.MysteryTraderRules.ChanceMaxTechGetsPart) == 0 {
 				// player gets nothing :O
 				return MysteryTraderReward{}
 			}
@@ -488,32 +486,38 @@ func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Pl
 	return MysteryTraderReward{}
 }
 
-// getTechLevelReward returns MysteryTraderReward awarding tech levels for a player
+// getTechLevelReward grants research to a player and returns the tech levels they gained.
+// Each grant favors a random field but sometimes goes to the lowest field. The trader doubles
+// any research already spent on the field and adds the cost of its next level.
 func (mt *MysteryTrader) getTechLevelReward(rules *Rules, player *Player, gift int) MysteryTraderReward {
 	numLevels := player.TechLevels.Total()
-	levels := TechLevel{}
-
-	for _, techLevelReward := range rules.MysteryTraderRules.TechBoon {
-		if numLevels <= techLevelReward.TechLevels {
-			// player tech level count is below threshold for this reward, grant some random levels
-			for i, reward := range techLevelReward.Rewards {
-				if gift <= reward.MineralsGiven || i == len(techLevelReward.Rewards)-1 {
-					// minerals given is below this threshold, give this number of levels
-					for i := 0; i < reward.Reward; i++ {
-						availableFields := levels.LearnableTechFields(rules)
-						field := availableFields[rules.random.Intn(len(availableFields))]
-						levels.Set(field, levels.Get(field)+1)
-					}
-					break
+	grants := 0
+	for row, boon := range rules.MysteryTraderRules.TechBoon {
+		if numLevels <= boon.TechLevels || row == len(rules.MysteryTraderRules.TechBoon)-1 {
+			for _, reward := range boon.Rewards {
+				if gift >= reward.MineralsGiven {
+					grants = reward.Reward
 				}
 			}
 			break
 		}
 	}
-	return MysteryTraderReward{
-		Type:       MysteryTraderRewardResearch,
-		TechLevels: levels,
+
+	before := player.TechLevels
+	for range grants {
+		if len(player.TechLevels.LearnableTechFields(rules)) == 0 {
+			break
+		}
+		field := player.TechLevels.Lowest()
+		if rules.random.Intn(4) < 3 {
+			candidate := TechFields[rules.random.Intn(len(TechFields))]
+			if player.TechLevels.Get(candidate) < rules.MaxTechLevel {
+				field = candidate
+			}
+		}
+		addFieldResearch(rules, player, field, nextLevelCost(rules, player, field)+player.TechLevelsSpent.Get(field))
 	}
+	return MysteryTraderReward{Type: MysteryTraderRewardResearch, TechLevels: player.TechLevels.Subtract(before)}
 }
 
 // get a random lifeboat design the player will be given

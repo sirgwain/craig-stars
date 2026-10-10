@@ -62,7 +62,7 @@ func TestMineralPacket_completeMoveEmptyPlanet(t *testing.T) {
 	packet := newMineralPacket(player, 1, 5, 5, Cargo{300, 0, 0, 0}, Vector{}, planet.Num)
 
 	packet.movePacket(&rules, player, planet, nil)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100})
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 33})
 	assert.True(t, packet.Delete)
 }
 
@@ -74,7 +74,7 @@ func TestMineralPacket_completeMoveUncaught(t *testing.T) {
 
 	// 7500 colonists killed by 480kT undefended
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 160, Colonists: 9250})
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 53, Colonists: 9250})
 	assert.True(t, packet.Delete)
 
 }
@@ -86,7 +86,7 @@ func TestMineralPacket_completeMoveUncaughtAR(t *testing.T) {
 	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
 
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 33, Colonists: 100})
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 11, Colonists: 100})
 	assert.True(t, packet.Delete)
 
 }
@@ -170,7 +170,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 				planetPop:         1000000,
 				mass:              Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
 			},
-			MineralPacketDamage{Killed: 4700},
+			MineralPacketDamage{Killed: 4000},
 		},
 		{
 			"1 yr away; vanishing packet",
@@ -213,7 +213,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 				planetPop:         1000000,
 				mass:              Cargo{Germanium: 75},
 			},
-			MineralPacketDamage{Killed: 25200, DefensesDestroyed: 1},
+			MineralPacketDamage{Killed: 25000, DefensesDestroyed: 1},
 		},
 		{
 			"3 lvls overwarp + 3.25 yr travel (70 dmg)",
@@ -293,8 +293,8 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 			args{
 				planetHab: Hab{1, 1, 1},
 				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
-				mass:      Cargo{300, 0, 0, 0},        // terraform grav up to three times
-				random:    newFloat64Random(0, .3, 0), // 1st check terraforms, second doesn't, third does
+				mass:      Cargo{300, 0, 0, 0},              // terraform grav up to three times
+				random:    newFloat64Random(0, 1, .3, 0, 1), // 1st check terraforms, second doesn't, third does
 			},
 			Hab{3, 1, 1},
 		},
@@ -304,8 +304,8 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 			args{
 				planetHab: Hab{1, 1, 1},
 				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
-				mass:      Cargo{50, 50, 50, 0},                // half a check
-				random:    newFloat64Random(0.125, .126, .125), // lower than 0.25/2; first terraforms, second doesn't, third does
+				mass:      Cargo{50, 50, 50, 0},                      // half a check
+				random:    newFloat64Random(0.124, 1, .126, .124, 1), // lower than 0.25/2; first terraforms, second doesn't, third does
 			},
 			Hab{2, 1, 2},
 		},
@@ -329,6 +329,7 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 			player := NewPlayer(1, NewRace().WithSpec(&rulesCopy).WithPRT(PP)).withSpec(&rulesCopy)
 			player.Spec.Terraform[TerraformHabTypeAll] = tt.args.Terraform
 			player.Race.Spec.PacketTerraformChance = tt.fields.terraformChance
+			player.Race.Spec.PacketPermaformChance = 0
 			player.Race.Spec.HabCenter = Hab{50, 50, 50}
 
 			planet := NewPlanet()
@@ -336,7 +337,7 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 			planet.BaseHab = planet.Hab
 
 			packet := newMineralPacket(player, 1, 5, 5, tt.args.mass, Vector{0, 0}, 1)
-			packet.checkTerraform(&rulesCopy, player, planet, 1)
+			packet.checkTerraform(&rulesCopy, player, planet, 1000)
 
 			if got := planet.Hab; got != tt.want {
 				t.Errorf("MineralPacket.checkTerraform() = %v, want %v;", got, tt.want)
@@ -344,4 +345,77 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 		})
 	}
 
+}
+
+func TestMineralPacket_completeMoveRecovery(t *testing.T) {
+	tests := []struct {
+		name                    string
+		prt                     PRT
+		driver, warp, recovered int
+	}{
+		{"partial catch", JoaT, 5, 10, 333},
+		{"no receiver recovers one ninth", JoaT, 0, 10, 111},
+		{"full catch", JoaT, 10, 10, 1000},
+		{"IT catches half at nominal speed", IT, 10, 10, 555},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewRulesWithSeed(0)
+			receiver := NewPlayer(1, NewRace().WithPRT(tt.prt).WithSpec(&r)).withSpec(&r)
+			sender := NewPlayer(2, NewRace().WithSpec(&r)).withSpec(&r)
+			planet := NewPlanet().WithNum(1).WithPlayerNum(1).WithPopulation(2_000_000)
+			planet.Spec.HasMassDriver = tt.driver > 0
+			planet.Spec.SafePacketSpeed = tt.driver
+			packet := newMineralPacket(sender, 1, tt.warp, tt.warp, Cargo{Ironium: 1000}, Vector{}, 1)
+
+			packet.completeMove(&r, sender, planet, receiver)
+			assert.Equal(t, tt.recovered, planet.Cargo.Ironium)
+		})
+	}
+}
+
+func TestMineralPacket_checkTerraformPermanent(t *testing.T) {
+	r := NewRulesWithSeed(0)
+	sender := NewPlayer(1, NewRace().WithPRT(PP).withImmuneGrav(true).WithSpec(&r)).withSpec(&r)
+	sender.Spec.Terraform[TerraformHabTypeAll] = &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll}
+	planet := NewPlanet().WithNum(1)
+	planet.BaseHab, planet.Hab = Hab{20, 40, 40}, Hab{20, 40, 40}
+	packet := newMineralPacket(sender, 1, 10, 10, Cargo{200, 100, 0, 0}, Vector{}, 1)
+
+	// grav: two terraform rolls, one permanent. temp: one terraform roll, one permanent
+	r.random = newFloat64Random(0, 0, 0, 1, 0, 0)
+	packet.checkTerraform(&r, sender, planet, 1000)
+
+	// immune grav moves away from the center, and its two temporary rolls only count once
+	assert.Equal(t, Hab{19, 41, 40}, planet.BaseHab)
+	assert.Equal(t, Hab{19, 41, 40}, planet.Hab)
+	assert.Equal(t, planet.Hab.Subtract(planet.BaseHab), planet.TerraformedAmount)
+}
+
+func TestMineralPacket_movePacketArrivalDecay(t *testing.T) {
+	tests := []struct {
+		name         string
+		cargo        Cargo
+		delivered    int
+		packetDecays bool
+	}{
+		// 3 warp overspeed is 50% decay per year, 9ly at warp 6 is a quarter year
+		{"decays for the partial year", Cargo{Ironium: 10240}, 8960, false},
+		{"decays to nothing before impact", Cargo{Ironium: 5}, 0, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewRulesWithSeed(0)
+			player := NewPlayer(1, NewRace().WithSpec(&r)).withSpec(&r)
+			planet := NewPlanet().WithNum(1).WithPlayerNum(1).withPosition(Vector{9, 0})
+			planet.Spec.HasMassDriver = true
+			planet.Spec.SafePacketSpeed = 6
+			packet := newMineralPacket(player, 1, 6, 3, tt.cargo, Vector{}, 1)
+
+			packet.movePacket(&r, player, planet, player)
+			assert.True(t, packet.Delete)
+			assert.Equal(t, tt.delivered, planet.Cargo.Ironium)
+			assert.Equal(t, tt.packetDecays, len(player.Messages) == 0)
+		})
+	}
 }

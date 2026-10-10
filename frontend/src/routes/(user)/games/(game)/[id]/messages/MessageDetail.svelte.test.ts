@@ -201,6 +201,7 @@ describe('structured fleet messages', () => {
 describe('structured planet messages', () => {
 	it.each([
 		[Type.PLANET_COLONIZED, 'now in control of Earth'],
+		[Type.PLANET_COLONIZE_CONTESTED, "100-way race to colonize Earth. Nobody's colonists survived"],
 		[Type.PLANET_INVADE_INVALID_EMPTY, 'the planet is uninhabited'],
 		[Type.PLANET_INVADE_INVALID_STARBASE, 'the planet is protected by a starbase'],
 		[Type.PLANET_PACKET_LANDED, '100kT of minerals has arrived at Earth'],
@@ -243,7 +244,8 @@ describe('structured planet messages', () => {
 		Type.PLANET_BUILT_TERRAFORM,
 		Type.PLANET_PERMAFORM,
 		Type.PLANET_PACKET_TERRAFORM,
-		Type.PLANET_PACKET_PERMAFORM
+		Type.PLANET_PACKET_PERMAFORM,
+		Type.PLANET_CLIMATE_CHANGE
 	]) {
 		it.each([
 			[TerraformHabType.GRAV, 0, '0.12g'],

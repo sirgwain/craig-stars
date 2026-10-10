@@ -952,6 +952,10 @@ func PlayerMessageTypeToCSPlayerMessageType(m craig_starsv1.PlayerMessageType) c
 		return cs.PlayerMessagePlanetRemoteTerraform
 	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_FOLLOWED_FLEET:
 		return cs.PlayerMessageFleetFollowedFleet
+	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_CLIMATE_CHANGE:
+		return cs.PlayerMessagePlanetClimateChange
+	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED:
+		return cs.PlayerMessagePlanetColonizeContested
 	default:
 		return cs.PlayerMessageType(0)
 	}
@@ -1209,6 +1213,10 @@ func CSPlayerMessageTypeToPlayerMessageType(m cs.PlayerMessageType) craig_starsv
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_REMOTE_TERRAFORM
 	case cs.PlayerMessageFleetFollowedFleet:
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_FOLLOWED_FLEET
+	case cs.PlayerMessagePlanetClimateChange:
+		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_CLIMATE_CHANGE
+	case cs.PlayerMessagePlanetColonizeContested:
+		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED
 	default:
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_UNSPECIFIED
 	}

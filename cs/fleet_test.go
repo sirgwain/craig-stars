@@ -8,6 +8,7 @@ import (
 
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // create a new small freighter (with cargo pod) fleet for testing
@@ -2829,4 +2830,62 @@ func TestFleet_RenameByPlayer(t *testing.T) {
 	// system renames still include the fleet number
 	fleet.Rename("Scouts")
 	assert.Equal(t, "Scouts #5", fleet.Name)
+}
+
+func TestFleet_repairFleetRates(t *testing.T) {
+	tests := []struct {
+		name          string
+		prt           PRT
+		moved, noHeal bool
+		tanker        float64
+		want          float64
+	}{
+		{"moved this turn", JoaT, true, false, 0, 49},
+		{"stationary in space", JoaT, false, false, 0, 48},
+		{"no healing after gating, battle or mines", JoaT, false, true, 0, 50},
+		{"IS doubles the base rate, not the tanker bonus", IS, false, false, .05, 41},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewRulesWithSeed(0)
+			p := NewPlayer(1, NewRace().WithPRT(tt.prt).WithSpec(&r)).withSpec(&r)
+			design := &ShipDesign{Spec: ShipDesignSpec{Armor: 100}}
+			f := &Fleet{Tokens: []ShipToken{{design: design, Quantity: 1, QuantityDamaged: 1, Damage: 50}}, warped: tt.moved, noHeal: tt.noHeal}
+			f.Spec.RepairBonus = tt.tanker
+
+			f.repairFleet(testLogger, &r, p, nil)
+			assert.Equal(t, tt.want, f.Tokens[0].Damage)
+		})
+	}
+}
+
+func Test_turn_noHealAfterGateAndMines(t *testing.T) {
+	t.Run("gating prevents repair", func(t *testing.T) {
+		s := ScenarioStargateTest()
+		s.Players[0].Fleets[0].Waypoints[1].Warp = StargateWarpSpeed
+		u := newTestUniverse(t, s)
+		f := u.Game.Fleets[0]
+		f.Tokens[0].Damage = 10
+		f.Tokens[0].QuantityDamaged = 1
+
+		u.GenerateTurn()
+
+		assert.Equal(t, u.Planet("Planet 2").Position, f.Position)
+		assert.Equal(t, float64(10), f.Tokens[0].Damage)
+	})
+	t.Run("mine damage prevents repair, even after a merge", func(t *testing.T) {
+		s := SingleUnitScenario()
+		s.Players[0].Fleets = append(s.Players[0].Fleets, s.Players[0].Fleets[0])
+		u := newTestUniverse(t, s)
+		f := u.Game.Fleets[0]
+		m := Minefield{}
+		m.damageFleet(f, u.Player(1), MinefieldStats{DamagePerEngine: 1})
+
+		merged, err := NewOrderer().Merge(&u.Game.Rules, u.Player(1), []*Fleet{u.Game.Fleets[1], f})
+		require.NoError(t, err)
+		before := merged.Tokens[0].Damage
+		merged.repairFleet(testLogger, &u.Game.Rules, u.Player(1), u.Planet("Planet 1"))
+		assert.Greater(t, before, float64(0))
+		assert.Equal(t, before, merged.Tokens[0].Damage)
+	})
 }

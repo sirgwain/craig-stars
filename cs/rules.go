@@ -241,114 +241,108 @@ func NewRulesWithSeed(seed int64) Rules {
 	// struct field definitions for editor syntax highlighting
 	// (also just more comments never hurts)
 	return Rules{
-		random: random,
-		CostRules: CostRules{
-			FactoryCostGermanium: 4,
-			DefenseCost: Cost{
-				Ironium:   5,
-				Boranium:  5,
-				Germanium: 5,
-				Resources: 15,
-			},
-			MineralAlchemyCost: 100,
-			PlanetaryScannerCost: Cost{
-				Ironium:   10,
-				Boranium:  10,
-				Germanium: 70,
-				Resources: 100,
-			},
-			StarbaseComponentCostReduction: 0.5, // 50% discount on non-orbital components
-			StarbaseHullRefundFactor:       0.5, // 50% of the old base's hull cost goes towards the new base
-			TechBaseCost: []int{
-				0,
-				50,
-				80,
-				130,
-				210,
-				340,
-				550,
-				890,
-				1440,
-				2330,
-				3770,
-				6100,
-				9870,
-				13850,
-				18040,
-				22440,
-				27050,
-				31870,
-				36900,
-				42140,
-				47590,
-				53250,
-				59120,
-				65200,
-				71490,
-				77990,
-				84700,
-			},
-			TerraformCost: Cost{
-				Ironium:   0,
-				Boranium:  0,
-				Germanium: 0,
-				Resources: 100,
-			},
+		random:               random,
+		FactoryCostGermanium: 4,
+		DefenseCost: Cost{
+			Ironium:   5,
+			Boranium:  5,
+			Germanium: 5,
+			Resources: 15,
 		},
-		BattleRules: BattleRules{
-			BeamRangeDropoff: 0.1,  // 10% pro-rated damage penalty
-			BeamBonusCap:     2.55, // 2.55x damage max from beam capacitors
-			JammerCap: JammerCap{
-				Starbase: 0.95, // apply the jamming cap before the starbase multiplier
-				Ship:     0.95, // ships hardcap at 95% jamming
-			},
-			JammerMulti: JammerCap{
-				Starbase: 0.75, // starbases have innate 0.75x jamming multipler by default
-				Ship:     1,    // ships have no innate jamming multipler
-			},
-			MovementMin:          2, // movement is 2 to 10
-			MovementMax:          10,
-			MovementMassVariance: 0.14, // movement order uses each token's mass ±14%, rerolled every round
-			MovesToRunAway:       7,
-			NumBattleRounds:      16,
-			TorpedoSplashDamage:  0.125,
+		MineralAlchemyCost: 100,
+		PlanetaryScannerCost: Cost{
+			Ironium:   10,
+			Boranium:  10,
+			Germanium: 70,
+			Resources: 100,
 		},
-		UniverseGenerationRules: UniverseGenerationRules{
-			BorderInset: 20,
-			// The first 9 Grav/Temp hab values from either edge (1-9 & 91-99) are linearly less likely to generate.
-			// More specifically, a hab value N clicks away from MinHab/MaxHab with dropoff range of H
-			// becomes (N+1/H+1)x as likely as a normal mid-value hab
-			// Ex: 6 temp is 5 clicks away from min (1) and is thus 6/10x as likely to generate;
-			// 99 temp is 1 click away from max (100) and is thus 1/10x as likely.
-			HabDropoffRange: Hab{
-				Grav: 9,
-				Temp: 9,
-				Rad:  0,
-			},
-			HighRadMineralConcentrationBonusThreshold: 90,
-			MinPlanetSpacing:                   12,
-			MinHomeworldMineralConcentration:   30,
-			MinExtraPlanetMineralConcentration: 30,
-			MinMineralConcentration:            1,
-			MaxMineralConcentration:            200,
-			MinHab:                             1,
-			MaxHab:                             99,
-			MinStartingMineralConcentration:    1,
-			MaxStartingMineralConcentration:    121,
-			LimitMineralConcentration:          30,
-			MaxStartingMineralSurface:          1000,
-			MinStartingMineralSurface:          300,
-			SqLyPerPlanet:                      5000, // base numplanets is area / 5000
-			RaceLeftoverPointsPerItem: map[SpendLeftoverPointsOn]int{
-				SpendLeftoverPointsOnMines:                 2,
-				SpendLeftoverPointsOnFactories:             5,
-				SpendLeftoverPointsOnDefenses:              10,
-				SpendLeftoverPointsOnMineralConcentrations: 2,  // Due to some high level source code chicanery
-				SpendLeftoverPointsOnSurfaceMinerals:       10, // special case; denotes kT/point
-			},
-			StartingYear:              2400,
-			WormholeMinPlanetDistance: 30,
+		StarbaseComponentCostReduction: 0.5, // 50% discount on non-orbital components
+		StarbaseHullRefundFactor:       0.5, // 50% of the old base's hull cost goes towards the new base
+		TechBaseCost: []int{
+			0,
+			50,
+			80,
+			130,
+			210,
+			340,
+			550,
+			890,
+			1440,
+			2330,
+			3770,
+			6100,
+			9870,
+			13850,
+			18040,
+			22440,
+			27050,
+			31870,
+			36900,
+			42140,
+			47590,
+			53250,
+			59120,
+			65200,
+			71490,
+			77990,
+			84700,
 		},
+		TerraformCost: Cost{
+			Ironium:   0,
+			Boranium:  0,
+			Germanium: 0,
+			Resources: 100,
+		},
+		BeamRangeDropoff: 0.1,  // 10% pro-rated damage penalty
+		BeamBonusCap:     2.55, // 2.55x damage max from beam capacitors
+		JammerCap: JammerCap{
+			Starbase: 0.95, // apply the jamming cap before the starbase multiplier
+			Ship:     0.95, // ships hardcap at 95% jamming
+		},
+		JammerMulti: JammerCap{
+			Starbase: 0.75, // starbases have innate 0.75x jamming multipler by default
+			Ship:     1,    // ships have no innate jamming multipler
+		},
+		MovementMin:          2, // movement is 2 to 10
+		MovementMax:          10,
+		MovementMassVariance: 0.14, // movement order uses each token's mass ±14%, rerolled every round
+		MovesToRunAway:       7,
+		NumBattleRounds:      16,
+		TorpedoSplashDamage:  0.125,
+		BorderInset:          20,
+		// The first 9 Grav/Temp hab values from either edge (1-9 & 91-99) are linearly less likely to generate.
+		// More specifically, a hab value N clicks away from MinHab/MaxHab with dropoff range of H
+		// becomes (N+1/H+1)x as likely as a normal mid-value hab
+		// Ex: 6 temp is 5 clicks away from min (1) and is thus 6/10x as likely to generate;
+		// 99 temp is 1 click away from max (100) and is thus 1/10x as likely.
+		HabDropoffRange: Hab{
+			Grav: 9,
+			Temp: 9,
+			Rad:  0,
+		},
+		HighRadMineralConcentrationBonusThreshold: 90,
+		MinPlanetSpacing:                   12,
+		MinHomeworldMineralConcentration:   30,
+		MinExtraPlanetMineralConcentration: 30,
+		MinMineralConcentration:            1,
+		MaxMineralConcentration:            200,
+		MinHab:                             1,
+		MaxHab:                             99,
+		MinStartingMineralConcentration:    1,
+		MaxStartingMineralConcentration:    121,
+		LimitMineralConcentration:          30,
+		MaxStartingMineralSurface:          1000,
+		MinStartingMineralSurface:          300,
+		SqLyPerPlanet:                      5000, // base numplanets is area / 5000
+		RaceLeftoverPointsPerItem: map[SpendLeftoverPointsOn]int{
+			SpendLeftoverPointsOnMines:                 2,
+			SpendLeftoverPointsOnFactories:             5,
+			SpendLeftoverPointsOnDefenses:              10,
+			SpendLeftoverPointsOnMineralConcentrations: 2,  // Due to some high level source code chicanery
+			SpendLeftoverPointsOnSurfaceMinerals:       10, // special case; denotes kT/point
+		},
+		StartingYear:              2400,
+		WormholeMinPlanetDistance: 30,
 		// TODO: Change tachyon cloak reduction to a property of the technology itself
 		TachyonCloakReduction:              .05, // 5% diminishing cloak reduction per detector
 		TachyonMaxCloakReduction:           .81, // tachyon detectors cap at 81% cloaking reduction
@@ -378,8 +372,8 @@ func NewRulesWithSeed(seed int64) Rules {
 			RandomEventPlanetaryChange: .05,
 			RandomEventAncientArtifact: 1.0 / 3, // 1 in 3 planets have random artifacts
 		},
-		AcquirablePartTradeChanceBase: 0.005, // 0.5% chance per item in fleet
-		AcquirablePartTradeItemMax:    25,    // 25 items max per trade instance (12.5% chance)
+		AcquirablePartTradeChanceBase: 0.01, // 1% per item after the shared 50% eligibility roll
+		AcquirablePartTradeItemMax:    25,   // 25% conditional chance per component draw (after 50% eligibility)
 		RandomCometMinYear:            10,
 		RandomCometMinYearPlayerWorld: 20,
 		CometStatsBySize: map[CometSize]CometStats{
@@ -452,11 +446,11 @@ func NewRulesWithSeed(seed int64) Rules {
 		},
 		RandomMineralDepositMaxConcentration: 180, // deposits only increase concentrations below 180
 		RandomMineralDepositMinYear:          10,  // no deposits in the first 10 years
-		RandomArtifactResearchBonusRange:     []int{120, 400},
+		RandomArtifactResearchBonusRange:     []int{100, 400},
 		MysteryTraderRules: MysteryTraderRules{
 			// ChanceSpawn:      []int{1}, // force it
 			ChanceSpawn:           []int{7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2}, // randomly pick a random chance to spawn an MT. It's not the same every turn
-			ChanceMaxTechGetsPart: 5,                                      // 1 in 5 chance a player with max tech gets a part if they get a research trader
+			ChanceMaxTechGetsPart: 5,                                      // 4 in 5 chance a max-tech player gets a part from a research trader
 			ChanceCourseChange:    20,                                     // 1 in 20 chance the MT speeds up/changes course
 			ChanceSpeedUpOnly:     3,                                      // if change course, 1 in 3 chance it's speed up only
 			ChanceAgain:           2,                                      // 1 in 2 chance an MT makes another trip through the universe

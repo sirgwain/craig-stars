@@ -273,3 +273,27 @@ func Test_getRandomMysteryTraderTech(t *testing.T) {
 		})
 	}
 }
+
+func TestMysteryTrader_getTechLevelReward(t *testing.T) {
+	tests := []struct{ gift, want int }{{5000, 6}, {6199, 6}, {6200, 7}, {7400, 8}, {10000, 10}}
+	for _, tt := range tests {
+		r := NewRulesWithSeed(0)
+		r.random = &testRandom{}
+		p := NewPlayer(1, NewRace())
+		mt := newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch)
+		assert.Equal(t, tt.want, mt.getTechLevelReward(&r, p, tt.gift).TechLevels.Total(), "gift %d", tt.gift)
+	}
+
+	t.Run("research already spent is doubled, high tech players get one level", func(t *testing.T) {
+		r := NewRulesWithSeed(0)
+		r.random = &testRandom{}
+		p := NewPlayer(1, NewRace()).WithTechLevels(TechLevel{20, 20, 20, 20, 20, 20}).WithTechLevelsSpent(TechLevel{Energy: 100})
+		p.Researching = Weapons
+		mt := newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch)
+
+		reward := mt.getTechLevelReward(&r, p, 5000)
+		assert.Equal(t, TechLevel{Energy: 1}, reward.TechLevels)
+		assert.Equal(t, 21, p.TechLevels.Energy)
+		assert.Equal(t, 200, p.TechLevelsSpent.Energy)
+	})
+}

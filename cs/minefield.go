@@ -181,6 +181,9 @@ func (minefield *Minefield) damageFleet(fleet *Fleet, fleetPlayer *Player, stats
 		shipsDestroyed += result.shipsDestroyed
 	}
 
+	if totalDamage > 0 {
+		fleet.noHeal = true
+	}
 	return MinefieldDamage{
 		Damage:         totalDamage,
 		ShipsDestroyed: shipsDestroyed,

@@ -422,8 +422,8 @@ func ppSpec() PRTSpec {
 	spec.PacketBuiltInScanner = true
 	spec.DetectPacketDestinationStarbases = true
 	spec.DetectAllPackets = true
-	spec.PacketTerraformChance = .5   // 50% per 100kT uncaught
-	spec.PacketPermaformChance = .001 // 0.1% per 100kT uncaught
+	spec.PacketTerraformChance = .5 // 50% per 100kT uncaught
+	spec.PacketPermaformChance = .1 // 10% of successful terraform rolls are also permanent (5% per 100 kT uncaught)
 
 	return spec
 }

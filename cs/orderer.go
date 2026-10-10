@@ -389,6 +389,13 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		return nil, nil, fmt.Errorf("source cannot transfer %v to new fleet, the fleet does not have enough of the required cargo", request.TransferAmount.Negative())
 	}
 
+	// this is technically not necessary because it's not saved to the DB, but in case
+	// later code calls SplitFleet during turn generation for some reason.
+	source.noHeal = source.noHeal || dest.noHeal
+	dest.noHeal = source.noHeal
+	source.warped = source.warped || dest.warped
+	dest.warped = source.warped
+
 	// update the tokens for each fleet
 	source.Tokens = request.SourceTokens
 	dest.Tokens = request.DestTokens
@@ -575,6 +582,8 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.WarpSpeed = source.WarpSpeed
 	fleet.PreviousPosition = source.PreviousPosition
 	fleet.BattlePlanNum = source.BattlePlanNum
+	fleet.noHeal = source.noHeal
+	fleet.warped = source.warped
 	fleet.Tokens = tokens
 	fleet.FleetOrders = source.FleetOrders
 
@@ -667,6 +676,8 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 
 	for i := 1; i < len(fleets); i++ {
 		mergingFleet := fleets[i]
+		fleet.noHeal = fleet.noHeal || mergingFleet.noHeal
+		fleet.warped = fleet.warped || mergingFleet.warped
 		dest = append(dest, mergingFleet.Name)
 
 		for _, token := range mergingFleet.Tokens {

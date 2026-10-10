@@ -243,6 +243,8 @@ const (
 	PlayerMessageFleetEngineStrainDestroyed
 	PlayerMessagePlanetRemoteTerraform
 	PlayerMessageFleetFollowedFleet
+	PlayerMessagePlanetClimateChange
+	PlayerMessagePlanetColonizeContested
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -780,6 +782,19 @@ func (m *messageClient) planetBuiltStarbase(player *Player, planet *Planet, flee
 
 func (m *messageClient) planetColonized(player *Player, planet *Planet) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetColonized, planet))
+}
+
+// Amount is the signed change; Amount2 is the resulting raw habitat value.
+func (m *messageClient) planetClimateChange(player *Player, planet *Planet, habType HabType, change int) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetClimateChange, planet).
+		withSpec(PlayerMessageSpec{HabType: FromHabType(habType), Amount: change, Amount2: planet.Hab.Get(habType)}))
+}
+
+// Colonists lost a race to colonize a planet. Amount is the number of players racing for the planet,
+// Amount2 the colonists lost, and TargetPlayerNum the winner, or 0 if nobody survived.
+func (m *messageClient) planetColonizeContested(player *Player, planet *Planet, sides int, colonistsLost int, winnerNum int) {
+	spec := PlayerMessageSpec{Amount: sides, Amount2: colonistsLost, TargetPlayerNum: winnerNum}
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetColonizeContested, planet).withSpec(spec))
 }
 
 func (m *messageClient) planetComet(player *Player, planet *Planet, size CometSize, mineralsAdded Mineral, mineralConcentrationIncreased Mineral, habChanged Hab, colonistsKilled int) {

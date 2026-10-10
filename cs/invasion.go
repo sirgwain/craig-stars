@@ -1,13 +1,14 @@
 package cs
 
-import "math"
+import "sort"
 
 type invasion struct {
-	planet    *Planet
-	defender  *Player
-	attacker  *Player
-	attackers int
-	fleets    []*Fleet // fleets involved in the invasion
+	planet       *Planet
+	defender     *Player
+	attacker     *Player
+	attackers    int
+	fleets       []*Fleet // fleets involved in the invasion
+	colonization bool
 }
 
 type invasionResult struct {
@@ -19,6 +20,7 @@ type invasionResult struct {
 	remainingAttackers        int
 	remainingDefenders        int
 	successful                bool
+	uninhabited               bool
 }
 
 type invader struct {
@@ -51,6 +53,7 @@ func (i *invader) addInvasion(inv invasion) {
 			// add to this existing invasion and remove the fleet name since
 			// we are invading with multiple fleets
 			existingInvasion.attackers += inv.attackers
+			existingInvasion.colonization = existingInvasion.colonization || inv.colonization
 			existingInvasion.fleets = append(existingInvasion.fleets, inv.fleets...)
 			return
 		}
@@ -60,71 +63,91 @@ func (i *invader) addInvasion(inv invasion) {
 	i.invasionsByPlanet[inv.planet.Num] = append(i.invasionsByPlanet[inv.planet.Num], inv)
 }
 
-// resolveInvasions resolves all invasions for a planet
-// TODO: add any logic for N-way invasions
+// resolveInvasions resolves all drops at each planet together, in kT, returning
+// one result per attacker, grouped by planet.
 func (i *invader) resolveInvasions(rules *Rules) []invasionResult {
 	var results []invasionResult
-	for _, invasions := range i.invasionsByPlanet {
-		for _, invasion := range invasions {
-			results = append(results, invasion.resolve(rules))
-		}
+	planets := make([]int, 0, len(i.invasionsByPlanet))
+	for num := range i.invasionsByPlanet {
+		planets = append(planets, num)
+	}
+	sort.Ints(planets)
+	for _, num := range planets {
+		results = append(results, resolvePlanetInvasions(rules, i.invasionsByPlanet[num])...)
 	}
 	return results
 }
 
-// invade a planet with a colonist drop
-func (i invasion) resolve(rules *Rules) invasionResult {
-	invasionDefenseCoverageFactor := rules.InvasionDefenseCoverageFactor
-
-	// figure out how many attackers are stopped by defenses
-	attacker := i.attacker
-	defender := i.defender
-	attackersAfterDefense := int(float64(i.attackers) * (1 - i.planet.Spec.DefenseCoverage*invasionDefenseCoverageFactor))
-	defenders := i.planet.GetPopulation()
-
-	// determine bonuses for warmongers and inner strength
-	attackBonus := attacker.Race.Spec.InvasionAttackBonus
-	defenseBonus := defender.Race.Spec.InvasionDefendBonus
-
-	remainingDefenders := 0
-	remainingAttackers := 0
-	attackersKilled := 0
-	defendersKilled := 0
-	successful := false
-
-	if float64(attackersAfterDefense)*attackBonus > float64(defenders)*defenseBonus {
-		remainingDefenders = 0
-		remainingAttackers = roundTo100(float64(attackersAfterDefense)-float64(defenders)*defenseBonus/attackBonus, math.Round)
-
-		// if we have a last-person-standing, they instantly repopulate. :)
-		if remainingAttackers == 0 {
-			remainingAttackers = 100
-		}
-
-		attackersKilled = i.attackers - remainingAttackers
-		defendersKilled = defenders
-		successful = true
-	} else {
-		// defenders won
-		remainingAttackers = 0
-		remainingDefenders = roundTo100(float64(defenders)-(float64(attackersAfterDefense)*attackBonus)/defenseBonus, math.Round)
-
-		// if we have a last-person-standing, they instantly repopulate. :)
-		if remainingDefenders == 0 {
-			remainingDefenders = 100
-		}
-		attackersKilled = i.attackers
-		defendersKilled = defenders - remainingDefenders
+// resolvePlanetInvasions resolves every attacker dropping colonists on a planet in the same phase.
+// Attackers combine their strength against the defenders. If they win, the
+// strongest attacker takes the planet, losing colonists to the defenders and
+// to the next strongest rival. Attackers tied for strongest destroy each other.
+func resolvePlanetInvasions(rules *Rules, invasions []invasion) []invasionResult {
+	if len(invasions) == 0 {
+		return nil
+	}
+	sort.Slice(invasions, func(a, b int) bool { return invasions[a].attacker.Num < invasions[b].attacker.Num })
+	planet, defender := invasions[0].planet, invasions[0].defender
+	defenders := planet.Cargo.Colonists
+	defensePower := 0
+	if defender != nil {
+		defensePower = int(float64(defenders) * defender.Race.Spec.InvasionDefendBonus)
 	}
 
-	return invasionResult{
-		invasion:                  i,
-		defenders:                 defenders,
-		attackersKilled:           attackersKilled,
-		attackersKilledByDefenses: i.attackers - attackersAfterDefense,
-		defendersKilled:           defendersKilled,
-		remainingAttackers:        remainingAttackers,
-		remainingDefenders:        remainingDefenders,
-		successful:                successful,
+	// work in kT, like the colonists on the planet
+	survival := 1 - planet.Spec.DefenseCoverage*rules.InvasionDefenseCoverageFactor
+	total, strongest, second, winner := 0, 0, 0, -1
+	tied := false
+	for n, inv := range invasions {
+		power := 0
+		if !inv.attacker.Race.Spec.LivesOnStarbases {
+			power = int(float64(inv.attackers/100) * inv.attacker.Race.Spec.InvasionAttackBonus * survival)
+		}
+		total += power
+		switch {
+		case winner == -1 || power > strongest:
+			second, strongest, winner, tied = strongest, power, n, false
+		case power == strongest:
+			second, tied = power, true
+		case power > second:
+			second = power
+		}
 	}
+
+	remainingDefenders, remainingAttackers := 0, 0
+	defenderWins := defensePower > total
+	if defenderWins {
+		remainingDefenders = defenders - defenders*total/defensePower
+	} else if !tied {
+		remainingAttackers = invasions[winner].attackers / 100
+		if total > 0 {
+			remainingAttackers = remainingAttackers * (total - defensePower) / total
+		}
+		if strongest > 0 {
+			remainingAttackers = remainingAttackers * (strongest - second) / strongest
+		}
+		// the last colonist standing repopulates
+		remainingAttackers = max(1, remainingAttackers)
+	}
+
+	results := make([]invasionResult, len(invasions))
+	for n, inv := range invasions {
+		remaining := 0
+		success := !defenderWins && !tied && n == winner
+		if success {
+			remaining = remainingAttackers * 100
+		}
+		results[n] = invasionResult{
+			invasion:                  inv,
+			defenders:                 defenders * 100,
+			attackersKilled:           inv.attackers - remaining,
+			attackersKilledByDefenses: inv.attackers - int(float64(inv.attackers)*survival),
+			defendersKilled:           (defenders - remainingDefenders) * 100,
+			remainingAttackers:        remaining,
+			remainingDefenders:        remainingDefenders * 100,
+			successful:                success,
+			uninhabited:               !defenderWins && tied,
+		}
+	}
+	return results
 }
