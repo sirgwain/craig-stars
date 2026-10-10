@@ -356,6 +356,15 @@
 		waypointJustAdded = false;
 	}
 
+	function onPointerCancel() {
+		draggingWaypoint = false;
+		pointerDown = false;
+		waypointJustAdded = false;
+		if (!$settings.addWaypoint) {
+			enableDragAndZoom();
+		}
+	}
+
 	// move the selected waypoint around snapping to targets
 	function dragWaypointMove(position: Position, mo: MapObjectLike | undefined) {
 		if (!($selectedWaypoint && $currentSelectedWaypointIndex && $commandedFleet)) {
@@ -421,7 +430,10 @@
 			mo: mo?.mapObject ?? emptyMapObject(),
 			position: !mo?.mapObject ? { x: Number(position.x), y: Number(position.y) } : undefined
 		});
-		waypointJustAdded = await onAddWaypoint(dest, fastestWaypoint);
+		// Suppress dragging for this gesture immediately. Pointer-up clears the guard;
+		// an asynchronous completion must never set it again after the finger is lifted.
+		waypointJustAdded = true;
+		await onAddWaypoint(dest, fastestWaypoint);
 		return true;
 	}
 	/**
@@ -529,6 +541,7 @@
 				pointermove={onPointerMove}
 				pointerdown={onPointerDown}
 				pointerup={onPointerUp}
+				pointercancel={onPointerCancel}
 				touchmove={onPointerMove}
 				searchRadius={20}
 				{transform}

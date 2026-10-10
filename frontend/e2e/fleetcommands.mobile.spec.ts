@@ -1,12 +1,75 @@
 import { fromJson } from '@bufbuild/protobuf';
 import { expect, type Locator, type Page } from '@playwright/test';
 import {
+	UpdateFleetOrdersRequestSchema,
 	UpdateFleetOrdersResponseSchema,
+	type UpdateFleetOrdersRequestJson,
 	type UpdateFleetOrdersResponseJson
 } from '../src/lib/protogen/craig_stars/v1/fleetservice_pb';
 import { StargateWarpSpeed } from '../src/lib/types/Consts';
 import { tapMapObject } from './helpers/scanner';
 import { test } from './setup';
+
+test('rapid waypoint taps update before a delayed save and persist in tap order', async ({
+	testGamePage
+}) => {
+	const { page, universe } = await testGamePage('Kitchen Sink');
+	const homeworld = universe.planets[0];
+	const target = universe.planets[1];
+	const secondTarget = universe.planets[2];
+	const endpoint = '**/api/grpc/craig_stars.v1.FleetService/UpdateFleetOrders';
+	let releaseSave!: () => void;
+	const heldSave = new Promise<void>((resolve) => {
+		releaseSave = resolve;
+	});
+	const requests: number[][] = [];
+	await page.route(endpoint, async (route) => {
+		const { fleetOrders } = fromJson(
+			UpdateFleetOrdersRequestSchema,
+			route.request().postDataJSON() as UpdateFleetOrdersRequestJson
+		);
+		requests.push(fleetOrders!.waypoints.map((wp) => wp.mapObjectTarget?.targetNum ?? 0));
+		if (requests.length === 1) await heldSave;
+		await route.continue();
+	});
+
+	try {
+		await tapMapObject(page, homeworld);
+		await page.locator('#add-waypoint').tap();
+		await tapMapObject(page, target);
+		await expect.poll(() => requests.length).toBe(1);
+		await tapMapObject(page, secondTarget);
+		const drawer = page.locator('[data-type="command-drawer"]');
+		await drawer.getByRole('button', { name: 'show command pane button' }).tap();
+		const waypoints = drawer.locator('[data-type="command-tile"][data-id="Fleet Waypoints"]');
+		await expect(waypoints.locator('li')).toHaveText([
+			homeworld!.mapObject!.name,
+			target.mapObject!.name,
+			secondTarget.mapObject!.name
+		]);
+		// Both taps are already visible, but only the first save has reached the network.
+		expect(requests).toHaveLength(1);
+		const saved = page.waitForResponse(
+			(res) =>
+				res.url().endsWith('/craig_stars.v1.FleetService/UpdateFleetOrders') &&
+				requests.length === 2
+		);
+		releaseSave();
+		const { fleet } = fromJson(
+			UpdateFleetOrdersResponseSchema,
+			(await (await saved).json()) as UpdateFleetOrdersResponseJson
+		);
+		expect(fleet!.fleetOrders!.waypoints.map((wp) => wp.mapObjectTarget?.targetNum)).toEqual([
+			homeworld!.mapObject!.num,
+			target.mapObject!.num,
+			secondTarget.mapObject!.num
+		]);
+		await expect(waypoints.locator('li')).toHaveCount(3);
+	} finally {
+		releaseSave();
+		await page.unrouteAll({ behavior: 'wait' });
+	}
+});
 
 /**
  * Drag a finger across an element, from one fraction of its width to another. Playwright only

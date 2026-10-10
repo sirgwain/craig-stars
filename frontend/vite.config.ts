@@ -38,7 +38,16 @@ export default defineConfig({
 				// Prebundle deps that tests reach through dynamic imports. Otherwise Vite finds them
 				// mid-run on a cold cache (like CI) and reloads the page, which breaks vi.mock.
 				optimizeDeps: {
-					include: ['@connectrpc/connect-web', '@connectrpc/connect', 'lodash-es']
+					include: [
+						'@connectrpc/connect-web',
+						'@connectrpc/connect',
+						'lodash-es',
+						'd3-selection',
+						'd3-zoom',
+						'd3-scale',
+						'd3-quadtree',
+						'hotkeys-js'
+					]
 				},
 				test: {
 					name: 'client',
