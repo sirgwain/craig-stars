@@ -31,7 +31,7 @@ describe('readScannerColors', () => {
 		expect(Object.values(colors.planet).every((value) => value === '#123456')).toBe(true);
 		expect(colors.waypointLine).toBe('#0000FF');
 		expect(colors.waypointLineCommanded).toBe('#00FFFF');
-		expect(colors.yearTick).toBe('#00FF00');
+		expect(colors.yearTick).toBe('#FFFFFF');
 		expect(warn).not.toHaveBeenCalled();
 	});
 

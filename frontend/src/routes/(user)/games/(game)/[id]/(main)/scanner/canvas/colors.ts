@@ -1,13 +1,13 @@
 import { dev } from '$app/env';
 
 export const fixedScannerColors = {
-	// These path and tick colors stay fixed because Stars! uses XOR to combine them.
+	// Keep path colors fixed to match Stars!' XOR palette.
 	// Stars! draws all fleet paths with a pure blue pen, then XORs the selected fleet's path
 	// with green, which makes it cyan
 	waypointLine: '#0000FF',
 	waypointLineCommanded: '#00FFFF',
-	// year ticks are XORed onto the scanner with this color
-	yearTick: '#00FF00'
+	// White ticks with a dark outline contrast with space and scanner coverage.
+	yearTick: '#FFFFFF'
 };
 
 export function readScannerColors(canvas: HTMLCanvasElement) {

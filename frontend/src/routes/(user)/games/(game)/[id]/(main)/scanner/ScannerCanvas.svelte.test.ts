@@ -8,7 +8,7 @@ vi.mock('./canvas/colors', () => ({
 	fixedScannerColors: {
 		waypointLine: '#0000FF',
 		waypointLineCommanded: '#00FFFF',
-		yearTick: '#00FF00'
+		yearTick: '#FFFFFF'
 	}
 }));
 vi.mock('#lib/services/GameContext.js', async () => {

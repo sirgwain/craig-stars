@@ -314,7 +314,8 @@ function drawWaypointPaths(ctx: CanvasRenderingContext2D, view: ScannerView, fra
 					wp1.warpSpeed,
 					width,
 					segment.start,
-					segment.end
+					segment.end,
+					returnLegOverlaps(path, i)
 				);
 			}
 		}
@@ -334,6 +335,38 @@ function drawWaypointPaths(ctx: CanvasRenderingContext2D, view: ScannerView, fra
 		});
 		ctx.setLineDash([]);
 	}
+}
+
+// Find portions of a leg that retrace an earlier leg in the opposite direction. Use world
+// coordinates so overlap detection is independent of zoom and snapping, including wormhole exits.
+function returnLegOverlaps(path: WaypointPath, legIndex: number) {
+	const from = path.exits[legIndex - 1] ?? path.waypoints[legIndex - 1].position;
+	const to = path.waypoints[legIndex].position;
+	const x = Number(from?.x ?? 0);
+	const y = Number(from?.y ?? 0);
+	const dx = Number(to?.x ?? 0) - x;
+	const dy = Number(to?.y ?? 0) - y;
+	const lengthSquared = dx * dx + dy * dy;
+	const overlaps: { start: number; end: number }[] = [];
+	if (lengthSquared === 0) {
+		return overlaps;
+	}
+	for (let i = 1; i < legIndex; i++) {
+		const otherFrom = path.exits[i - 1] ?? path.waypoints[i - 1].position;
+		const otherTo = path.waypoints[i].position;
+		const ox = Number(otherFrom?.x ?? 0) - x;
+		const oy = Number(otherFrom?.y ?? 0) - y;
+		const odx = Number(otherTo?.x ?? 0) - Number(otherFrom?.x ?? 0);
+		const ody = Number(otherTo?.y ?? 0) - Number(otherFrom?.y ?? 0);
+		// A crossing or a parallel leg elsewhere is not a return along this route.
+		if (dx * odx + dy * ody >= 0 || dx * ody !== dy * odx || dx * oy !== dy * ox) {
+			continue;
+		}
+		const start = Math.max(0, ((ox + odx) * dx + (oy + ody) * dy) / lengthSquared);
+		const end = Math.min(1, (ox * dx + oy * dy) / lengthSquared);
+		if (start < end) overlaps.push({ start, end });
+	}
+	return overlaps;
 }
 
 // the part of a line from p0 to p1 that leaves a gap at each end, or undefined if nothing's left
@@ -378,10 +411,11 @@ function waypointClearance(frame: ScannerFrame, view: ScannerView, wp: Waypoint)
 }
 
 /**
- * Draw a tick across the line for each year of travel, the same as DrawPathYearTicks in Stars!
+ * Draw a tick across the line for each year of travel.
  * Ticks are placed at exact multiples of the distance travelled per year from the start of
  * the leg, and skipped if they would be too close together to read. Only ticks on the drawn
- * part of the line (between start and end pixels along it) are shown.
+ * part of the line (between start and end pixels along it) are shown, excluding portions
+ * that retrace an earlier leg.
  */
 function drawYearTicks(
 	ctx: CanvasRenderingContext2D,
@@ -393,7 +427,8 @@ function drawYearTicks(
 	warpSpeed: number,
 	lineWidth: number,
 	start: number,
-	end: number
+	end: number,
+	returnOverlaps: { start: number; end: number }[]
 ) {
 	if (warpSpeed < 1 || warpSpeed > 10) {
 		return;
@@ -416,16 +451,17 @@ function drawYearTicks(
 	const inner = lineWidth / 2;
 	const outer = inner + tickLength;
 
-	// Stars! XORs the ticks with green so they show up on any background. For a pure green
-	// pen, difference blending gives the same result as XOR.
+	// Outline white ticks so they remain readable over space, scanner coverage, and paths.
 	ctx.save();
-	ctx.globalCompositeOperation = 'difference';
-	ctx.strokeStyle = fixedScannerColors.yearTick;
-	ctx.lineWidth = 1;
+	ctx.globalCompositeOperation = 'source-over';
 	ctx.beginPath();
 	for (let i = 1; i * yearDist < legDist; i++) {
 		const t = (i * yearDist) / legDist;
-		if (t * screenDist < start || t * screenDist > end) {
+		if (
+			t * screenDist < start ||
+			t * screenDist > end ||
+			returnOverlaps.some((overlap) => t >= overlap.start && t <= overlap.end)
+		) {
 			continue;
 		}
 		const x = view.snap(p0.x + dx * t);
@@ -435,6 +471,11 @@ function drawYearTicks(
 			ctx.lineTo(x + side * nx * outer, y + side * ny * outer);
 		}
 	}
+	ctx.strokeStyle = '#000000';
+	ctx.lineWidth = 3;
+	ctx.stroke();
+	ctx.strokeStyle = fixedScannerColors.yearTick;
+	ctx.lineWidth = 1;
 	ctx.stroke();
 	ctx.restore();
 }
