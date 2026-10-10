@@ -35,6 +35,7 @@
 		pointermove: (e: FinderEvent) => void;
 		pointerdown: (e: FinderEvent) => void;
 		pointerup: (e: FinderEvent) => void;
+		pointercancel?: (e: PointerEvent) => void;
 		touchmove: (e: FinderEvent) => void;
 		touchstart?: (e: FinderEvent) => void;
 		touchend?: (e: FinderEvent) => void;
@@ -51,6 +52,7 @@
 		pointermove,
 		pointerdown,
 		pointerup,
+		pointercancel,
 		touchmove,
 		touchstart,
 		touchend,
@@ -162,4 +164,5 @@
 	onpointerdown={onPointerDown}
 	onpointermove={onPointerMove}
 	onpointerup={onPointerUp}
+	onpointercancel={pointercancel}
 ></div>

@@ -17,6 +17,7 @@ import {
 	type BattlePlan,
 	type CargoTransfers,
 	type Fleet,
+	type FleetOrders,
 	type Game,
 	type GameSettings,
 	type GameWithPlayers,
@@ -44,7 +45,7 @@ import { CommandedPlayer } from '#lib/types/Player.js';
 import { PlayerSettings } from '#lib/types/PlayerSettings.js';
 import { emptyVector } from '#lib/types/Vector.js';
 import type { CS } from '#lib/wasm.js';
-import { create } from '@bufbuild/protobuf';
+import { clone, create } from '@bufbuild/protobuf';
 import { findIndex, kebabCase } from 'lodash-es';
 import { getContext } from 'svelte';
 import {
@@ -67,6 +68,7 @@ import {
 	transportPlanClient
 } from './connect';
 import { setReadOnly } from './asPlayerInterceptor';
+import { addError } from './Errors';
 import { FullGame } from './FullGame';
 import { rollover } from './Math';
 import { Universe } from './Universe';
@@ -216,11 +218,37 @@ export async function createGameContext(
 
 	const zoomTarget = writable<MapObjectLike | undefined>();
 
+	// Keep saves in order per fleet, while allowing local edits to draw immediately.
+	const fleetOrderSaves = new Map<string, Promise<void>>();
+	const fleetOrderVersions = new Map<string, number>();
+	const savedFleetOrders = new Map<string, FleetOrders>();
+	// Bumped when a failed save restores a fleet's orders, so edits computed before it are dropped.
+	const fleetOrderRollbacks = new Map<string, number>();
+	let contextVersion = 0;
+	let waypointEdits = Promise.resolve();
+
+	function rememberFleetOrders(u: Universe) {
+		savedFleetOrders.clear();
+		for (const fleet of u.fleets) {
+			if (fleet.fleetOrders) {
+				savedFleetOrders.set(key(fleet), clone(FleetOrdersSchema, fleet.fleetOrders));
+			}
+		}
+	}
+	rememberFleetOrders(u);
+
 	const messageNum = writable(getNextVisibleMessageNum(-1, false, p.messages, defaultSettings));
 
 	// reset the GameContext for a new game
 	// this is called after a new game is loaded from the server while waiting for a turn to generate
 	async function resetContext(fg: FullGame, p: CommandedPlayer, u: Universe) {
+		// Responses from the old turn/player must not update the new context.
+		contextVersion++;
+		fleetOrderSaves.clear();
+		fleetOrderVersions.clear();
+		fleetOrderRollbacks.clear();
+		waypointEdits = Promise.resolve();
+		rememberFleetOrders(u);
 		const { spec: raceSpec } = await cs.wasmService.computeRaceSpec({ race: p.race });
 		p.race.spec = raceSpec ?? p.race.spec;
 		await cs.wasmService.setPlayer({ player: p });
@@ -692,8 +720,7 @@ export async function createGameContext(
 		await cs.wasmService.setPlayer({ player: p });
 	}
 
-	// after a fleet is updated from the server, update the fleet in the universe, reset any commanded/selected
-	// state and trigger reactivity
+	// Publish a local or server fleet update and preserve the commanded fleet's waypoint selection.
 	function updateFleet(
 		fleet: CommandedFleet | Fleet,
 		updatedFleet: CommandedFleet | Fleet | undefined
@@ -701,17 +728,21 @@ export async function createGameContext(
 		if (!updatedFleet) {
 			return;
 		}
+		// Capture selection before replacing orders on the commanded fleet itself.
+		const index = get(currentSelectedWaypointIndex);
+		const cf = get(commandedFleet);
 		fleet = new CommandedFleet(Object.assign(fleet, updatedFleet));
 		// if the cargo is empty in the updated, it will be undefined in the response which means it
 		// won't be set by the Object.assign, so make sure it's assigned so cargo transfer work as expected
 		fleet.cargo = updatedFleet.cargo ?? emptyCargo();
 
-		const index = get(currentSelectedWaypointIndex);
 		const u = get(universe);
-		const cf = get(commandedFleet);
 
 		// update the fleet in the universe
 		u.updateFleet(fleet);
+		if (!fleetOrderSaves.has(key(fleet)) && fleet.fleetOrders) {
+			savedFleetOrders.set(key(fleet), clone(FleetOrdersSchema, fleet.fleetOrders));
+		}
 
 		// if we were commanding this fleet, recommand it to trigger reactivity
 		if (equal(cf, fleet)) {
@@ -722,7 +753,7 @@ export async function createGameContext(
 				fleet.fleetOrders?.waypoints &&
 				fleet.fleetOrders.waypoints.length > index
 			) {
-				selectWaypoint(fleet.fleetOrders!.waypoints[index]);
+				selectWaypoint(get(commandedFleet)!.fleetOrders.waypoints[index]);
 			}
 		}
 
@@ -801,6 +832,7 @@ export async function createGameContext(
 	}
 
 	async function submitTurn(): Promise<void> {
+		await flushFleetOrders();
 		const { player, game } = await playerClient.submitTurn({ gameId });
 		await updatePlayer(player);
 		if (game) {
@@ -809,6 +841,7 @@ export async function createGameContext(
 	}
 
 	async function forceGenerateTurn(): Promise<void> {
+		await flushFleetOrders();
 		await gameClient.forceGenerateTurn({ gameId });
 		await loadStatus();
 	}
@@ -977,7 +1010,46 @@ export async function createGameContext(
 		commandHomeWorld();
 	}
 
-	async function addWaypoint(dest: WaypointDest, fastestWaypoint: boolean): Promise<boolean> {
+	// Serialize waypoint edits: each must start from the previous edit's orders and selection.
+	// An edit is stale if the context, commanded fleet, or restored orders changed while it ran.
+	function queueWaypointEdit<T>(
+		edit: (isStale: () => boolean) => Promise<T>,
+		fallback: T,
+		failure: string
+	): Promise<T> {
+		const version = contextVersion;
+		const fleetKey = key(get(commandedFleet));
+		const queued = waypointEdits.then(async () => {
+			const rollbacks = fleetOrderRollbacks.get(fleetKey) ?? 0;
+			const isStale = () =>
+				version !== contextVersion ||
+				fleetKey !== key(get(commandedFleet)) ||
+				rollbacks !== (fleetOrderRollbacks.get(fleetKey) ?? 0);
+			return isStale() ? fallback : edit(isStale);
+		});
+		waypointEdits = queued.then(
+			() => {},
+			() => {}
+		);
+		return queued.catch((error) => {
+			addError(`${failure}: ${error}`);
+			return fallback;
+		});
+	}
+
+	function addWaypoint(dest: WaypointDest, fastestWaypoint: boolean): Promise<boolean> {
+		return queueWaypointEdit(
+			(isStale) => addWaypointLocally(dest, fastestWaypoint, isStale),
+			false,
+			'Could not add waypoint'
+		);
+	}
+
+	async function addWaypointLocally(
+		dest: WaypointDest,
+		fastestWaypoint: boolean,
+		isStale: () => boolean
+	): Promise<boolean> {
 		const fleet = get(commandedFleet);
 		const sw = get(selectedWaypoint);
 		const currentIndex = get(currentSelectedWaypointIndex);
@@ -994,15 +1066,15 @@ export async function createGameContext(
 			fastestWaypoint: fastest
 		});
 
-		if (!result.index || !result.fleet?.fleetOrders?.waypoints) {
+		if (isStale() || !result.index || !result.fleet?.fleetOrders?.waypoints) {
 			return false;
 		}
 
 		fleet.fleetOrders = result.fleet.fleetOrders;
-		await updateFleetOrders(fleet);
+		void updateFleetOrders(fleet);
 
 		// select the new waypoint
-		selectWaypoint(fleet.fleetOrders?.waypoints[result.index]);
+		selectWaypoint(get(commandedFleet)!.fleetOrders.waypoints[result.index]);
 		if (sw && sw.mapObjectTarget?.targetType && sw.mapObjectTarget?.targetNum) {
 			const mo = u.getMapObject(sw.mapObjectTarget);
 
@@ -1014,7 +1086,24 @@ export async function createGameContext(
 		return true;
 	}
 
-	async function updateWaypoint(dest: WaypointDest, fastestWaypoint: boolean, done: boolean) {
+	function updateWaypoint(dest: WaypointDest, fastestWaypoint: boolean, done: boolean) {
+		// Drag previews draw immediately; only the final drop changes orders.
+		if (!done) {
+			return updateWaypointLocally(dest, fastestWaypoint, false, () => false);
+		}
+		return queueWaypointEdit(
+			(isStale) => updateWaypointLocally(dest, fastestWaypoint, true, isStale),
+			undefined,
+			'Could not move waypoint'
+		);
+	}
+
+	async function updateWaypointLocally(
+		dest: WaypointDest,
+		fastestWaypoint: boolean,
+		done: boolean,
+		isStale: () => boolean
+	) {
 		const fleet = get(commandedFleet);
 		const sw = get(selectedWaypoint);
 		const currentIndex = get(currentSelectedWaypointIndex);
@@ -1031,6 +1120,10 @@ export async function createGameContext(
 			currentSelectedWaypointIndex: currentIndex,
 			fastestWaypoint: fastest
 		});
+
+		if (isStale()) {
+			return;
+		}
 
 		if (!result.fleet) {
 			console.error('error updating fleet waypoint, no fleet returned from wasm');
@@ -1053,7 +1146,8 @@ export async function createGameContext(
 			result.result === UpdateWaypointResult.NEXT_WAYPOINT
 		) {
 			// we dragged a waypoint onto the previous or next waypoint, delete it
-			deleteWaypoint();
+			// (we're already in the edit queue, so delete directly)
+			deleteWaypointLocally();
 			return;
 		}
 
@@ -1063,10 +1157,10 @@ export async function createGameContext(
 				result.fleet?.fleetOrders ??
 				// create a valid FleetOrders value with the correct shape
 				create(FleetOrdersSchema);
-			await updateFleetOrders(fleet);
+			void updateFleetOrders(fleet);
 
 			// select the new waypoint
-			selectWaypoint(fleet.fleetOrders?.waypoints[currentIndex]);
+			selectWaypoint(get(commandedFleet)!.fleetOrders.waypoints[currentIndex]);
 			if (sw && sw.mapObjectTarget?.targetType && sw.mapObjectTarget?.targetNum) {
 				const mo = u.getMapObject(sw.mapObjectTarget);
 
@@ -1077,13 +1171,21 @@ export async function createGameContext(
 		}
 	}
 
-	async function deleteWaypoint() {
+	function deleteWaypoint(): Promise<void> {
+		return queueWaypointEdit(
+			async () => deleteWaypointLocally(),
+			undefined,
+			'Could not delete waypoint'
+		);
+	}
+
+	function deleteWaypointLocally() {
 		const fleet = get(commandedFleet);
 		const sw = get(selectedWaypoint);
 		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
 		const u = get(universe);
 
-		if (!fleet || !selectedWaypoint || selectedWaypointIndex == 0) {
+		if (!fleet || !sw || selectedWaypointIndex == 0) {
 			return;
 		}
 
@@ -1107,18 +1209,77 @@ export async function createGameContext(
 		updateFleetOrders(fleet);
 	}
 
-	async function updateFleetOrders(fleet: CommandedFleet): Promise<void> {
-		const { fleet: updatedFleet } = await fleetClient.updateFleetOrders({
-			gameId,
-			fleetNum: fleet.mapObject?.num ?? 0,
-			fleetOrders: fleet.fleetOrders
-		});
-		if (updatedFleet) {
-			updateFleet(fleet, updatedFleet);
+	function updateFleetOrders(fleet: CommandedFleet): Promise<void> {
+		const fleetKey = key(fleet);
+		const version = contextVersion;
+		const revision = (fleetOrderVersions.get(fleetKey) ?? 0) + 1;
+		fleetOrderVersions.set(fleetKey, revision);
+		// Requests must own a snapshot; later taps and speed changes mutate the live orders.
+		const orders = clone(FleetOrdersSchema, fleet.fleetOrders);
+		const previous = fleetOrderSaves.get(fleetKey) ?? Promise.resolve();
+		const saving = previous
+			.catch(() => {})
+			.then(async () => {
+				// Each save sends the full orders, so a newer queued save supersedes this one.
+				if (version !== contextVersion || fleetOrderVersions.get(fleetKey) !== revision) return;
+				try {
+					const { fleet: updatedFleet } = await fleetClient.updateFleetOrders({
+						gameId,
+						fleetNum: fleet.mapObject.num,
+						fleetOrders: orders
+					});
+					if (version !== contextVersion) return;
+					if (!updatedFleet?.fleetOrders) throw new Error('No fleet orders returned');
+					savedFleetOrders.set(fleetKey, clone(FleetOrdersSchema, updatedFleet.fleetOrders));
+					if (fleetOrderVersions.get(fleetKey) === revision) {
+						updateFleet(currentFleet(), updatedFleet);
+					}
+				} catch (error) {
+					if (version === contextVersion && fleetOrderVersions.get(fleetKey) === revision) {
+						const savedOrders = savedFleetOrders.get(fleetKey);
+						if (savedOrders) {
+							fleetOrderRollbacks.set(fleetKey, (fleetOrderRollbacks.get(fleetKey) ?? 0) + 1);
+							const current = currentFleet();
+							updateFleet(current, {
+								...current,
+								fleetOrders: clone(FleetOrdersSchema, savedOrders)
+							});
+						}
+						addError(`Fleet orders could not be saved. Restored the last saved orders. ${error}`);
+					}
+					throw error;
+				}
+			})
+			.finally(() => {
+				if (fleetOrderSaves.get(fleetKey) === saving) fleetOrderSaves.delete(fleetKey);
+			});
+		function currentFleet(): Fleet {
+			const commanded = get(commandedFleet);
+			return equal(commanded, fleet)
+				? commanded!
+				: (get(universe).getFleet(fleet.mapObject.playerNum, fleet.mapObject.num) ?? fleet);
+		}
+		fleetOrderSaves.set(fleetKey, saving);
+		// Handle fire-and-forget saves here; callers awaiting completion still get the rejection.
+		void saving.catch(() => {});
+		updateFleet(fleet, fleet);
+		return saving;
+	}
+
+	async function flushFleetOrders(): Promise<void> {
+		// Edits can queue more edits while we wait, so wait until the queue stops changing.
+		let edits;
+		do {
+			edits = waypointEdits;
+			await edits;
+		} while (edits !== waypointEdits);
+		while (fleetOrderSaves.size) {
+			await Promise.all(fleetOrderSaves.values());
 		}
 	}
 
 	async function renameFleet(fleet: CommandedFleet, name: string): Promise<void> {
+		await flushFleetOrders();
 		const { fleet: updatedFleet } = await fleetClient.renameFleet({
 			gameId,
 			fleetNum: fleet.mapObject?.num ?? 0,
@@ -1157,6 +1318,7 @@ export async function createGameContext(
 		dest: CargoDest,
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
+		await flushFleetOrders();
 		const result = await fleetClient.transferCargo({
 			gameId,
 			fleetNum: fleet.mapObject?.num ?? 0,
@@ -1214,6 +1376,7 @@ export async function createGameContext(
 		destTokens: ShipToken[],
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
+		await flushFleetOrders();
 		const {
 			source: updatedSource,
 			dest: updatedDest,
@@ -1274,6 +1437,7 @@ export async function createGameContext(
 	}
 
 	async function splitAll(fleet: CommandedFleet): Promise<void> {
+		await flushFleetOrders();
 		const { fleets, cargoTransfers } = await fleetClient.splitAllFleets({
 			gameId,
 			fleetNum: fleet.mapObject?.num ?? 0
@@ -1302,6 +1466,7 @@ export async function createGameContext(
 	}
 
 	async function merge(fleet: CommandedFleet, fleetNums: number[]): Promise<void> {
+		await flushFleetOrders();
 		const { fleet: updatedFleet, cargoTransfers } = await fleetClient.mergeFleets({
 			gameId,
 			fleetNum: fleet.mapObject?.num ?? 0,
