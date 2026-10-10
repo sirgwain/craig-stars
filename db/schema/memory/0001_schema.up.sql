@@ -197,6 +197,7 @@ CREATE TABLE
     ai_difficulty TEXT DEFAULT '',
     acquired_techs TEXT NOT NULL DEFAULT '{}',
     archived BOOLEAN NOT NULL DEFAULT 0,
+    revision INTEGER NOT NULL DEFAULT 0,
     UNIQUE (game_id, num),
     CONSTRAINT fk_games_players FOREIGN KEY (game_id) REFERENCES games (id) ON DELETE CASCADE
   );

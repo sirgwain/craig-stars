@@ -71,6 +71,7 @@ type ReadClient interface {
 	GetPlayerForGame(ctx context.Context, gameID int64, playerNum int) (*cs.Player, error)
 	GetPlayerIntel(ctx context.Context, gameID int64, playerNum int) (*cs.Intels, error)
 	GetPlayerMapObjects(ctx context.Context, gameID int64, playerNum int) (*cs.PlayerMapObjects, error)
+	GetPlayerRevision(ctx context.Context, id int64) (int64, error)
 	GetPlayers(ctx context.Context) ([]*cs.Player, error)
 	GetPlayersForUser(ctx context.Context, userID int64) ([]*cs.Player, error)
 	GetPlayersStatusForGame(ctx context.Context, gameID int64) ([]*cs.Player, error)
@@ -130,6 +131,7 @@ type WriteClient interface {
 
 	ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error
 	DeletePlayer(ctx context.Context, id int64) error
+	IncrementPlayerRevision(ctx context.Context, id int64) (int64, error)
 	SavePlayer(ctx context.Context, player *cs.Player) error
 	SubmitPlayerTurn(ctx context.Context, gameID int64, num int, submittedTurn bool) error
 	UpdateLightPlayer(ctx context.Context, player *cs.Player) error

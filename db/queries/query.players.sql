@@ -347,6 +347,23 @@ WHERE
     game_id = ?
     AND num = ?;
 
+-- name: GetPlayerRevision :one
+SELECT
+    revision
+FROM
+    players
+WHERE
+    id = ?;
+
+-- name: IncrementPlayerRevision :one
+UPDATE players
+SET
+    revision = revision + 1
+WHERE
+    id = ?
+RETURNING
+    revision;
+
 -- name: ArchivePlayer :execrows
 UPDATE players
 SET

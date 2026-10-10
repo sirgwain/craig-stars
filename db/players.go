@@ -339,6 +339,16 @@ func (c *client) SubmitPlayerTurn(ctx context.Context, gameID int64, num int, su
 	return err
 }
 
+// get the revision of a player's orders. It changes every time the player changes something in the game
+func (c *client) GetPlayerRevision(ctx context.Context, id int64) (int64, error) {
+	return c.reader.GetPlayerRevision(ctx, id)
+}
+
+// increment the revision of a player's orders, returning the new revision
+func (c *client) IncrementPlayerRevision(ctx context.Context, id int64) (int64, error) {
+	return c.writer.IncrementPlayerRevision(ctx, id)
+}
+
 // update an existing player's lightweight fields
 func (c *client) ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error {
 	_, err := c.writer.ArchivePlayer(ctx, generated.ArchivePlayerParams{

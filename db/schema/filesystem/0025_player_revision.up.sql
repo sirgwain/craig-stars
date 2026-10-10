@@ -1,0 +1,2 @@
+ALTER TABLE players
+ADD revision INTEGER NOT NULL DEFAULT 0;

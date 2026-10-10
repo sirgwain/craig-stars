@@ -19,6 +19,11 @@ const asPlayerHeader = "X-As-Player"
 // header sent by clients viewing a game in read-only mode, i.e. viewing a submitted turn
 const readOnlyHeader = "X-Read-Only"
 
+// header with the revision of the player's orders. Every change a player makes to a game increments it.
+// Clients send back the revision they loaded so changes based on stale data, i.e. the player made
+// more recent changes on another device, are rejected.
+const playerRevisionHeader = "X-Player-Revision"
+
 type GameIdRequest interface {
 	GetGameId() int64
 }
@@ -119,17 +124,55 @@ func newGameInterceptor() connect.UnaryInterceptorFunc {
 					return nil, err
 				}
 
-				if gamePlayer != nil {
-					ctx = context.WithValue(ctx, keyGamePlayer, gamePlayer)
-				}
-
 				// update context with game
 				ctx = context.WithValue(ctx, keyGame, game)
+
+				if gamePlayer != nil {
+					ctx = context.WithValue(ctx, keyGamePlayer, gamePlayer)
+					return withPlayerRevision(ctx, req, next, gamePlayer, readOnlyRequest)
+				}
 			}
 			return next(ctx, req)
 		})
 	}
 	return connect.UnaryInterceptorFunc(interceptor)
+}
+
+// withPlayerRevision calls next, rejecting changes from clients that loaded an older revision of the
+// player's orders than the one in the database. The current revision is returned in the response
+// headers so clients know when they need to reload.
+func withPlayerRevision(ctx context.Context, req connect.AnyRequest, next connect.UnaryFunc, gamePlayer *cs.GamePlayer, readOnlyRequest bool) (connect.AnyResponse, error) {
+	// read the revision before loading any data so a client never thinks its data is newer than it is
+	revision, err := contextDb(ctx).GetPlayerRevision(ctx, gamePlayer.ID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to load player revision %w", err))
+	}
+
+	// clients that don't track revisions, i.e. the API, aren't checked
+	if clientRevision := req.Header().Get(playerRevisionHeader); !readOnlyRequest && clientRevision != "" && clientRevision != strconv.FormatInt(revision, 10) {
+		err := connect.NewError(connect.CodeAborted, fmt.Errorf("%s has newer changes from another device, reload to get the latest", gamePlayer.Name))
+		err.Meta().Set(playerRevisionHeader, strconv.FormatInt(revision, 10))
+		return nil, err
+	}
+
+	res, err := next(ctx, req)
+	if err == nil && !readOnlyRequest {
+		if revision, err = contextDbWrite(ctx).IncrementPlayerRevision(ctx, gamePlayer.ID); err != nil {
+			// the player could have been removed by this request, i.e. leaving a game
+			slog.Debug("increment player revision", slog.Any("error", err), slog.Int64("ID", gamePlayer.ID))
+			return res, nil
+		}
+	}
+
+	if err != nil {
+		var connectErr *connect.Error
+		if errors.As(err, &connectErr) {
+			connectErr.Meta().Set(playerRevisionHeader, strconv.FormatInt(revision, 10))
+		}
+		return res, err
+	}
+	res.Header().Set(playerRevisionHeader, strconv.FormatInt(revision, 10))
+	return res, nil
 }
 
 // parseAsPlayerHeader returns the player num requested in the X-As-Player header, or 0 if not set

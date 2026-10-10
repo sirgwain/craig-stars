@@ -7,6 +7,7 @@
 	import { setAsPlayerNum, setReadOnly } from '#lib/services/asPlayerInterceptor.js';
 	import { gameClient, playerClient } from '#lib/services/connect.js';
 	import { FullGame } from '#lib/services/FullGame.js';
+	import { resetPlayerRevisions } from '#lib/services/revisionInterceptor.js';
 	import { createGameContext, gameKey, type GameContext } from '#lib/services/GameContext.js';
 	import { clearLoadingModalText, me, setLoadingModalText } from '#lib/services/Stores.js';
 	import { Universe } from '#lib/services/Universe.js';
@@ -71,7 +72,29 @@
 		}
 	});
 
+	// While the game is open, check with the server for a new turn or for changes made
+	// on another device. Every game response has the player's revision, so asking is enough.
+	async function checkForChanges() {
+		if (!context || document.visibilityState !== 'visible') return;
+		try {
+			const { game } = await gameClient.getGame({ gameId: BigInt(id) });
+			if (game?.game && (game.game.state !== gameState || game.game.year !== year)) {
+				context.updateGame(getGameWithPlayersFlat(game));
+			}
+		} catch {
+			// we'll check again later
+		}
+	}
+
+	let checkForChangesInterval: number | undefined;
+	onMount(() => {
+		checkForChangesInterval = window.setInterval(checkForChanges, 30000);
+		document.addEventListener('visibilitychange', checkForChanges);
+	});
+
 	onDestroy(() => {
+		window.clearInterval(checkForChangesInterval);
+		document.removeEventListener('visibilitychange', checkForChanges);
 		hotkeys.deleteScope('root');
 		setAsPlayerNum(undefined);
 		setReadOnly(false);
@@ -111,6 +134,8 @@
 
 	// load the full game with intel and universe objects
 	async function loadFullGame(gameId: bigint) {
+		// we're loading everything, so any changes made on other devices are included
+		resetPlayerRevisions();
 		const { game } = await gameClient.getGame({ gameId });
 		if (!game) {
 			throw Error('failed to load game');

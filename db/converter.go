@@ -256,6 +256,7 @@ type Converter interface {
 	// goverter:autoMap PlayerOrders
 	// goverter:autoMap Intels
 	// goverter:autoMap PlayerPlans
+	// goverter:ignore Revision
 	ConvertGamePlayer(source *cs.Player) generated.Player
 
 	// goverter:autoMap GameDBObject
