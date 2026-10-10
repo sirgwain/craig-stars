@@ -15,6 +15,7 @@ type turnGenerator struct {
 	game             *FullGame
 	log              *slog.Logger
 	scorePopulations map[*Planet]planetScorePopulation
+	colonistDrops    invader // colonists dropped on planets this phase, resolved together
 }
 
 type planetScorePopulation struct {
@@ -28,7 +29,7 @@ func newTurnGenerator(game *FullGame) turnGenerator {
 		slog.String("GameName", game.Name),
 		slog.Int("Year", game.Year+1), // log for next turn
 	)
-	t := turnGenerator{game: game, log: turnLogger}
+	t := turnGenerator{game: game, log: turnLogger, colonistDrops: newInvader()}
 
 	t.game.Universe.setLogger(turnLogger)
 	t.game.Universe.buildMaps(game.Players)
@@ -59,12 +60,17 @@ func (t *turnGenerator) generateTurn() error {
 	t.packetInit()
 	t.planetInit()
 
+	for _, base := range t.game.Starbases {
+		base.noHeal = false
+	}
+
 	// wp0 tasks
 	t.fleetInit()
 	t.fleetByHandTransfers()
 	t.fleetScrap()
 	t.fleetUnload()
 	t.fleetColonize()
+	t.resolveColonistDrops()
 	t.fleetLoad()
 	t.fleetMerge()
 	t.fleetRoute()
@@ -84,9 +90,11 @@ func (t *turnGenerator) generateTurn() error {
 	if err := t.planetProduction(); err != nil {
 		return err
 	}
-	t.playerResearch()
-	t.permaform()
+	researchBudget := t.getResearchBudget() // production fixes the research budget before population growth
 	t.planetGrow()
+	if err := t.playerResearch(researchBudget); err != nil {
+		return err
+	}
 	t.wormholeJiggle()   // wormholes move after production, like the original
 	t.packetMove(true)   // move packets built this turn
 	t.decayPackets(true) // decay packets built this turn
@@ -106,6 +114,7 @@ func (t *turnGenerator) generateTurn() error {
 	t.fleetRemoteMine() // remote mine for normal miners
 	t.fleetUnload()
 	t.fleetColonize() // colonize wp1 after arriving at a planet
+	t.resolveColonistDrops()
 	t.fleetScrap()
 	t.fleetLoad()
 	t.decayMines()
@@ -116,9 +125,10 @@ func (t *turnGenerator) generateTurn() error {
 	t.fleetNotifyIdle()
 
 	// do some final stuff like instaforming and repairing
-	t.instaform()
 	t.fleetSweepMines()
 	t.fleetRepair()
+	t.permaform()
+	t.instaform()
 	t.fleetRemoteTerraform()
 
 	// reset all players
@@ -163,6 +173,7 @@ func (t *turnGenerator) fleetInit() {
 		// remove previous position, it will be reset on move
 		fleet.PreviousPosition = nil
 		fleet.warped = false
+		fleet.noHeal = false
 		fleet.jumpedFrom = nil
 
 		wp0 := &fleet.Waypoints[0]
@@ -207,7 +218,7 @@ func (t *turnGenerator) fleetByHandTransfers() {
 	}
 
 	// resolve any by hand invasions
-	t.resolveInvasions(cargoTransferer.invader)
+	t.queueColonistDrops(cargoTransferer.invader)
 
 	// all transfers are processed
 	for _, player := range t.game.Players {
@@ -225,98 +236,203 @@ func (t *turnGenerator) sendByHandResults(player *Player, results []byHandResult
 	}
 }
 
-// resolveInvasions resolves all invasions for an invader helper
-func (t *turnGenerator) resolveInvasions(invader invader) {
-	invasions := invader.resolveInvasions(&t.game.Rules)
-	for _, invasion := range invasions {
-		planet := invasion.planet
-		attacker := invasion.attacker
-		defender := invasion.defender
-
-		t.log.Debug("planet invaded",
-			slog.Int("Defender", defender.Num),
-			slog.Int("Attacker", attacker.Num),
-			slog.String("Fleet", invasion.fleetDescription()),
-			slog.String("Planet", planet.Name),
-			slog.Int("Attackers", invasion.attackers),
-			slog.Int("Defenders", invasion.defenders),
-			slog.Int("RemainingAttackers", invasion.remainingAttackers),
-			slog.Int("RemainingDefenders", invasion.remainingDefenders),
-			slog.Bool("AttackerWon", invasion.successful),
-		)
-
-		if defender == attacker {
-			// we beamed colonists back onto our own planet after it died off this turn
-			messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.attackersKilledByDefenses, invasion.successful)
-			planet.emptyPlanet()
-			planet.PlayerNum = attacker.Num
-			planet.setPopulation(invasion.remainingAttackers)
-			if len(attacker.ProductionPlans) > 0 {
-				plan := attacker.ProductionPlans[0]
-				plan.Apply(planet)
-			}
-			continue
-		}
-
-		// during invasion, even if the player loses the planet, they discover the invader
-		for _, fleet := range invasion.fleets {
-
-			for _, token := range fleet.Tokens {
-				defender.discoverer.discoverDesign(token.design, defender.Race.Spec.DiscoverDesignOnScan)
-			}
-			defender.discoverer.discoverFleet(fleet, false)
-		}
-
-		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.attackersKilledByDefenses, invasion.successful)
-		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackers, invasion.defenders, invasion.attackersKilled, invasion.defendersKilled, invasion.attackersKilledByDefenses, invasion.successful)
-
-		if !invasion.successful {
-			// reduce the population to however many colonists remain and move on
-			planet.setPopulation(invasion.remainingDefenders)
-			continue
-		}
-
-		// empty this planet
-		planet.emptyPlanet()
-
-		// take over the planet.
-		planet.PlayerNum = invasion.attacker.Num
-		planet.setPopulation(invasion.remainingAttackers)
-
-		// apply a production plan
-		if len(attacker.ProductionPlans) > 0 {
-			plan := attacker.ProductionPlans[0]
-			plan.Apply(planet)
-		}
-
-		// make sure the defender knows about this new planet
-		// the last dying colonist sends a report to their compatriots
-		defender.discoverer.clearPlanetOwnerIntel(planet)
-		defender.discoverer.discoverPlanet(&t.game.Rules, planet, true, true)
-
-		// check for tech trades
-		if !attacker.techLevelGained {
-			tt := newTechTrader()
-			field := tt.checkInvasionTechTrade(&t.game.Rules, attacker, defender.TechLevels)
-			if field != TechFieldNone {
-				// sweet, we gained a tech level
-				attacker.techLevelGained = true
-				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1) // add 1 to corresponding lvl
-
-				messager.playerTechGainedInvasion(attacker, planet, field)
-				attacker.updateTechsJustGained(t.game.Rules.techs, field)
-
-				t.log.Debug("invader gained tech level",
-					slog.Int("Attacker", attacker.Num),
-					slog.Int("Defender", defender.Num),
-					slog.String("Planet", planet.Name),
-					slog.String("field", string(field)),
-				)
-
-			}
+// queue colonist drops so by hand transfers, unloads and colonizers in a waypoint phase are resolved together
+func (t *turnGenerator) queueColonistDrops(drops invader) {
+	for _, invasions := range drops.invasionsByPlanet {
+		for _, inv := range invasions {
+			t.colonistDrops.addInvasion(inv)
 		}
 	}
+}
+
+// resolveColonistDrops resolves all colonist drops (invasions and colonizations) queued this phase.
+// Every player dropping on the same planet is resolved together, so there is a single outcome per planet.
+func (t *turnGenerator) resolveColonistDrops() {
+	// resolve the combat for every planet. There is one result per attacking player,
+	// grouped by planet, and none of them have been applied to the planets yet
+	results := t.colonistDrops.resolveInvasions(&t.game.Rules)
+	t.colonistDrops = newInvader()
+
+	// Loop 1: report each attacker's result. This happens before any planet changes
+	// so the messages and discoveries use the original owner. Colonizations of
+	// unowned planets have no defender, so they only get a log here
+	for _, inv := range results {
+		defenderNum := 0
+		if inv.defender != nil {
+			defenderNum = inv.defender.Num
+		}
+		t.log.Debug("planet invaded",
+			slog.Int("Defender", defenderNum),
+			slog.Int("Attacker", inv.attacker.Num),
+			slog.String("Fleet", inv.fleetDescription()),
+			slog.String("Planet", inv.planet.Name),
+			slog.Bool("Colonization", inv.colonization),
+			slog.Int("Attackers", inv.attackers),
+			slog.Int("Defenders", inv.defenders),
+			slog.Int("RemainingAttackers", inv.remainingAttackers),
+			slog.Int("RemainingDefenders", inv.remainingDefenders),
+			slog.Bool("AttackerWon", inv.successful),
+			slog.Bool("Uninhabited", inv.uninhabited),
+		)
+		if inv.defender == nil {
+			continue
+		}
+		defender, attacker, planet := inv.defender, inv.attacker, inv.planet
+		if defender != attacker {
+			// the defender learns about the invading fleets and gets an invasion message
+			for _, fleet := range inv.fleets {
+				for _, token := range fleet.Tokens {
+					defender.discoverer.discoverDesign(token.design, defender.Race.Spec.DiscoverDesignOnScan)
+				}
+				defender.discoverer.discoverFleet(fleet, false)
+			}
+			messager.planetInvaded(defender, planet, inv.fleetDescription(), attacker, defender, inv.attackers, inv.defenders, inv.attackersKilled, inv.defendersKilled, inv.attackersKilledByDefenses, inv.successful)
+		}
+		messager.planetInvaded(attacker, planet, inv.fleetDescription(), attacker, defender, inv.attackers, inv.defenders, inv.attackersKilled, inv.defendersKilled, inv.attackersKilledByDefenses, inv.successful)
+	}
+	// Loop 2: apply one outcome per planet. Each pass takes the group of results for
+	// one planet (results[n:end]) and updates the planet once, based on which
+	// attacker won, if any
+	for n := 0; n < len(results); {
+		end := n + 1
+		for end < len(results) && results[end].planet == results[n].planet {
+			end++
+		}
+		group, planet := results[n:end], results[n].planet
+
+		// at most one attacker in the group won the planet
+		winner := -1
+		for j, inv := range group {
+			if inv.successful {
+				winner = j
+				break
+			}
+		}
+		if winner < 0 {
+			// nobody won: the defenders hold on with their survivors, or tied
+			// attackers wiped each other out and the planet is left uninhabited
+			if group[0].uninhabited {
+				planet.emptyPlanet()
+			} else {
+				planet.setPopulation(group[0].remainingDefenders)
+			}
+		} else {
+			// the winner takes the planet with their surviving colonists
+			inv := group[winner]
+			attacker := inv.attacker
+			planet.emptyPlanet()
+			planet.PlayerNum = attacker.Num
+			planet.setPopulation(inv.remainingAttackers)
+			planet.Scanner = attacker.Race.Spec.InnateScanner
+			if attacker.Race.Spec.InnateMining {
+				planet.Mines = innateMines(attacker.Race.Spec.InnateMinesFactor, planet.GetPopulation())
+			}
+			if len(attacker.ProductionPlans) > 0 {
+				attacker.ProductionPlans[0].Apply(planet)
+			}
+			if inv.colonization {
+				t.log.Debug("colonized planet",
+					slog.Int("Player", attacker.Num),
+					slog.String("Planet", planet.Name),
+					slog.String("Fleet", inv.fleetDescription()),
+					slog.Int("Colonists", inv.remainingAttackers),
+				)
+				for _, fleet := range inv.fleets {
+					if fleet.Spec.OrbitalConstructionModule {
+						if design := attacker.GetFirstDesign(ShipDesignPurposeStarterColony); design != nil {
+							if err := t.buildStarbase(attacker, planet, design); err != nil {
+								t.log.Error("failed to build Starter Colony starbase",
+									slog.Int("Player", attacker.Num),
+									slog.String("Planet", planet.Name),
+									slog.Any("err", err),
+								)
+								messager.error(attacker, err)
+							}
+						} else {
+							t.log.Error("colonizer can't find Starter Colony design",
+								slog.Int("Player", attacker.Num),
+								slog.String("Fleet", fleet.Name),
+								slog.String("Planet", planet.Name),
+							)
+						}
+						break
+					}
+				}
+				messager.planetColonized(attacker, planet)
+			}
+			if inv.defender != nil && inv.defender != attacker {
+				field := newTechTrader().checkInvasionTechTrade(&t.game.Rules, attacker, inv.defender.TechLevels)
+				if field != TechFieldNone {
+					t.log.Debug("invader gained tech level",
+						slog.Int("Attacker", attacker.Num),
+						slog.Int("Defender", inv.defender.Num),
+						slog.String("Planet", planet.Name),
+						slog.String("field", string(field)),
+					)
+					attacker.techLevelGained = true
+					grantTradeResearch(&t.game.Rules, attacker, field)
+					messager.playerTechGainedInvasion(attacker, planet, field)
+				}
+			}
+		}
+		// now that the planet has its final owner, update the defender's intel and
+		// tell colonizers who lost a race for an unowned planet
+		for _, inv := range group {
+			if inv.defender != nil && inv.defender != inv.attacker {
+				inv.defender.discoverer.clearPlanetOwnerIntel(planet)
+				inv.defender.discoverer.discoverPlanet(&t.game.Rules, planet, true, true)
+			}
+			if inv.defender == nil && !inv.successful {
+				winnerNum := 0
+				if winner >= 0 {
+					winnerNum = group[winner].attacker.Num
+				}
+				messager.planetColonizeContested(inv.attacker, planet, len(group), inv.attackers, winnerNum)
+			}
+		}
+		planet.MarkDirty()
+		if planet.Owned() {
+			planet.Spec = ComputePlanetSpec(&t.game.Rules, t.game.getPlayer(planet.PlayerNum), planet)
+			t.discoverArtifact(planet)
+		}
+		// attackers who lost learn who holds the planet now, even if their fleets
+		// were scrapped or have moved on by the time players scan
+		for _, inv := range group {
+			if !planet.OwnedBy(inv.attacker.Num) {
+				inv.attacker.discoverer.discoverPlanet(&t.game.Rules, planet, false, false)
+			}
+		}
+		n = end
+	}
+}
+
+// discoverArtifact awards a planet's ancient artifact research bonus to its new owner.
+// Artifacts are discovered when colonists take possession, not in the annual
+// research pool; SS therefore cannot steal this one-time discovery.
+func (t *turnGenerator) discoverArtifact(planet *Planet) {
+	if !planet.Owned() || !planet.RandomArtifact {
+		return
+	}
+	planet.RandomArtifact = false
+	planet.MarkDirty()
+	if !t.game.RandomEvents {
+		return
+	}
+	player := t.game.getPlayer(planet.PlayerNum)
+	field := TechFields[t.game.Rules.random.Intn(len(TechFields))]
+	bounds := t.game.Rules.RandomArtifactResearchBonusRange
+	amount := bounds[0] + t.game.Rules.random.Intn(bounds[1]-bounds[0]+1)
+	if planet.GetPopulation() < 1000 {
+		amount = amount * planet.GetPopulation() / 1000
+	}
+	t.log.Debug("player found a research bonus artifact",
+		slog.Int("Player", player.Num),
+		slog.String("Planet", planet.Name),
+		slog.Int("Amount", amount),
+		slog.String("Field", string(field)),
+	)
+	messager.planetBonusResearchArtifact(player, planet, amount, field)
+	addFieldResearch(&t.game.Rules, player, field, amount)
 }
 
 // scrap a fleet at wp0/wp1
@@ -365,11 +481,9 @@ func (t *turnGenerator) scrapFleet(fleet *Fleet, colonize bool) {
 			field, acquiredPart := tt.checkFleetTechTrade(&t.game.Rules, planetPlayer, fleet.Tokens)
 			if field != TechFieldNone {
 				// we gained a level!
-				player.techLevelGained = true
-				player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
+				planetPlayer.techLevelGained = true
+				grantTradeResearch(&t.game.Rules, planetPlayer, field)
 				messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
-
-				planetPlayer.updateTechsJustGained(t.game.TechStore, field)
 
 				t.log.Debug("gained tech level from scrapping fleet",
 					slog.Int("Player", planetPlayer.Num),
@@ -381,11 +495,14 @@ func (t *turnGenerator) scrapFleet(fleet *Fleet, colonize bool) {
 
 			if acquiredPart != nil {
 				// we gained a part!
-				player.acquirablePartGained = true
-				player.AcquiredTechs[acquiredPart.Name] = true
+				planetPlayer.acquirablePartGained = true
+				if planetPlayer.AcquiredTechs == nil {
+					planetPlayer.AcquiredTechs = map[string]bool{}
+				}
+				planetPlayer.AcquiredTechs[acquiredPart.Name] = true
 				messager.playerAcquirablePartGainedScrappedFleet(planetPlayer, planet, fleet.Name, acquiredPart.Name)
-				if player.HasTech(acquiredPart) {
-					player.TechsJustGained = append(player.TechsJustGained, acquiredPart)
+				if planetPlayer.HasTech(acquiredPart) {
+					planetPlayer.TechsJustGained = append(planetPlayer.TechsJustGained, acquiredPart)
 				}
 
 				t.log.Debug("gained tech part from scrapping",
@@ -420,6 +537,7 @@ func (t *turnGenerator) scrapFleet(fleet *Fleet, colonize bool) {
 
 // fleetColonize will attempt to colonize planets for any fleets with the Colonize WaypointTask
 func (t *turnGenerator) fleetColonize() {
+	drops := newInvader()
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -463,38 +581,12 @@ func (t *turnGenerator) fleetColonize() {
 				continue
 			}
 
-			t.log.Debug("colonized planet",
-				slog.Int("Player", player.Num),
-				slog.String("Planet", planet.Name),
-				slog.String("Fleet", fleet.Name),
-				slog.Int("Colonists", fleet.Cargo.Colonists*100),
-			)
-
-			if fleet.Spec.OrbitalConstructionModule {
-				design := player.GetFirstDesign(ShipDesignPurposeStarterColony)
-				if design != nil {
-					if err := t.buildStarbase(player, planet, design); err != nil {
-						t.log.Error("failed to build Starter Colony starbase",
-							slog.Int("Player", fleet.PlayerNum),
-							slog.String("Planet", planet.Name),
-							slog.Any("err", err),
-						)
-					}
-				} else {
-					t.log.Error("colonizer can't find Starter Colony design",
-						slog.Int("Player", fleet.PlayerNum),
-						slog.String("Fleet", fleet.Name),
-						slog.String("Planet", planet.Name),
-					)
-				}
-			}
-
-			// colonize the planet and scrap the fleet
-			fleet.colonizePlanet(&t.game.Rules, player, planet)
+			drops.addInvasion(invasion{planet: planet, attacker: player, attackers: fleet.Cargo.Colonists * 100, fleets: []*Fleet{fleet}, colonization: true})
+			fleet.Cargo.Colonists = 0
 			t.scrapFleet(fleet, true)
-			messager.planetColonized(player, planet)
 		}
 	}
+	t.queueColonistDrops(drops)
 }
 
 // fleetUnload executes wp0/wp1 unload transport tasks for fleets
@@ -521,6 +613,16 @@ func (t *turnGenerator) fleetUnload() {
 				)
 			}
 
+			if dest.Deleted() || dest.GetMapObject().Position != fleet.Position {
+				// the target isn't here to transfer with. Tell the player and give up, unless these orders repeat
+				messager.fleetTargetLost(player, fleet, wp.TargetName, wp.TargetType)
+				if !fleet.RepeatOrders {
+					wp.Task = WaypointTaskNone
+					wp.TransportTasks = WaypointTransportTasks{}
+				}
+				continue
+			}
+
 			results := cargoTransferer.unload(fleet, dest, wp.TransportTasks)
 			t.sendTransportResults(player, fleet, dest, results)
 			if planet, ok := dest.(*Planet); ok {
@@ -530,7 +632,7 @@ func (t *turnGenerator) fleetUnload() {
 	}
 
 	// resolve any by hand invasions
-	t.resolveInvasions(cargoTransferer.invader)
+	t.queueColonistDrops(cargoTransferer.invader)
 }
 
 func (t *turnGenerator) fleetLoad() {
@@ -545,7 +647,7 @@ func (t *turnGenerator) fleetLoad() {
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
 			dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
-			if !ok || dest.Deleted() {
+			if !ok || dest.Deleted() || dest.GetMapObject().Position != fleet.Position {
 				// can't load from space
 				continue
 			}
@@ -1437,21 +1539,8 @@ func (t *turnGenerator) decayPackets(builtThisTurn bool) {
 		}
 
 		player := t.game.getPlayer(packet.PlayerNum)
-		// update the decay amount based on this distance traveled this turn
-		decayRate := packet.getPacketDecayRate(&t.game.Rules, &player.Race) * (packet.distanceTravelled / float64(packet.WarpSpeed*packet.WarpSpeed))
-
-		// skip calcs if no decay
-		if decayRate == 0 {
-			continue
-		}
-
-		// loop through all 3 mineral types and reduce each one in turn
-		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
-			mineral := float64(packet.Cargo.GetAmount(minType))
-			decayAmount := max(int(decayRate*mineral), int(float64(t.game.Rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
-			packet.Cargo = packet.Cargo.SubtractAmount(minType, decayAmount)
-			packet.Cargo = packet.Cargo.MinZero()
-		}
+		// decay based on the distance traveled this turn
+		packet.decay(&t.game.Rules, &player.Race, packet.distanceTravelled/float64(packet.WarpSpeed*packet.WarpSpeed))
 		t.log.Debug("decayed packet",
 			slog.Int("Player", packet.PlayerNum),
 			slog.String("Packet", packet.Name),
@@ -1544,8 +1633,10 @@ func (t *turnGenerator) detonateMines() {
 				messager.fleetMinefieldHit(minefieldPlayer, fleet, minefield, damage)
 			}
 
-			// clear out any destroyed tokens
-			fleet.removeEmptyTokens()
+			if damage.ShipsDestroyed > 0 {
+				lostCargo := fleet.removeLostShips(&t.game.Rules, fleetPlayer)
+				t.dropSalvage(fleet.Position, fleet.PlayerNum, lostCargo)
+			}
 
 			t.log.Debug("minefield detonation damaged fleet",
 				slog.Int("Player", minefield.PlayerNum),
@@ -1913,22 +2004,22 @@ func (t *turnGenerator) buildMineralPacket(player *Player, planet *Planet, cargo
 	return packet
 }
 
-func (t *turnGenerator) playerResearch() error {
-	r := newResearcher(&t.game.Rules)
-
-	// figure out how much each player can spend on research this turn
-	resourcesToSpendByPlayer := make(map[int]int, len(t.game.Players))
-
-	// start with leftover from production
+// Production fixes the annual research budget before population growth.
+func (t *turnGenerator) getResearchBudget() map[int]int {
+	budget := make(map[int]int, len(t.game.Players))
 	for _, player := range t.game.Players {
-		resourcesToSpendByPlayer[player.Num] = player.leftoverResources
+		budget[player.Num] = player.leftoverResources
 	}
-
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
-			resourcesToSpendByPlayer[planet.PlayerNum] += planet.Spec.ResourcesPerYearResearch
+			budget[planet.PlayerNum] += planet.Spec.ResourcesPerYearResearch
 		}
 	}
+	return budget
+}
+
+func (t *turnGenerator) playerResearch(resourcesToSpendByPlayer map[int]int) error {
+	r := newResearcher(&t.game.Rules)
 
 	// create a map of player num to player who gained a level
 	playerGainedLevel := make(map[int]bool, len(t.game.Players))
@@ -1949,36 +2040,6 @@ func (t *turnGenerator) playerResearch() error {
 	// keep track of how many research resources are stealable by other players
 	stealableResearchResources := TechLevel{}
 
-	// handle bonus artifacts
-	if t.game.RandomEvents {
-
-		for _, planet := range t.game.Planets {
-			if planet.RandomArtifact && planet.Owned() {
-				// score, we got a new artifact, but only once
-				planet.RandomArtifact = false
-
-				// figure out which field we research
-				player := t.game.getPlayer(planet.PlayerNum)
-				bonusRange := t.game.Rules.RandomArtifactResearchBonusRange
-				amount := t.game.Rules.random.Intn(bonusRange[1]-bonusRange[0]) + bonusRange[0]
-				field := TechFields[t.game.Rules.random.Intn(len(TechFields))]
-				messager.planetBonusResearchArtifact(player, planet, amount, field)
-
-				// research the field this random artifact came in
-				r.researchField(player, field, amount, onLevelGained)
-				stealableResearchResources.Set(field, stealableResearchResources.Get(field)+amount)
-				player.ResearchSpentLastYear += amount
-
-				t.log.Debug("player found a research bonus artifact",
-					slog.Int("Player", player.Num),
-					slog.String("Planet", planet.Name),
-					slog.Int("Amount", amount),
-					slog.String("Field", string(field)),
-				)
-			}
-		}
-	}
-
 	// finally, do regular research for each player
 	for _, player := range t.game.Players {
 		primaryField := player.Researching
@@ -1991,7 +2052,7 @@ func (t *turnGenerator) playerResearch() error {
 
 		// some races research other techs in addition to their primary field
 		if player.Race.Spec.ResearchSplashDamage > 0 {
-			resourcesToSpendOnOtherFields := int(float64(resourcesToSpend)*player.Race.Spec.ResearchSplashDamage + .5)
+			resourcesToSpendOnOtherFields := int(math.Ceil(float64(resourcesToSpendByPlayer[player.Num]) * player.Race.Spec.ResearchSplashDamage))
 			for _, field := range TechFields {
 				if field != primaryField {
 					r.researchField(player, field, resourcesToSpendOnOtherFields, onLevelGained)
@@ -2002,6 +2063,13 @@ func (t *turnGenerator) playerResearch() error {
 		}
 	}
 
+	livingPlayers := 0
+	for _, player := range t.game.Players {
+		if slices.ContainsFunc(t.game.Planets, func(p *Planet) bool { return p.PlayerNum == player.Num }) ||
+			slices.ContainsFunc(t.game.Fleets, func(f *Fleet) bool { return !f.Delete && f.PlayerNum == player.Num }) {
+			livingPlayers++
+		}
+	}
 	for _, player := range t.game.Players {
 		// find out if this player should steal any percentage of this research
 		stealsResearch := player.Race.Spec.StealsResearch
@@ -2018,7 +2086,7 @@ func (t *turnGenerator) playerResearch() error {
 		// we steal the average of each research
 		if stolenResearch.Total() > 0 {
 			for _, field := range TechFields {
-				stolenResourcesForField := stolenResearch.Get(field) / len(t.game.Players)
+				stolenResourcesForField := stolenResearch.Get(field) / max(1, livingPlayers)
 				r.researchField(player, field, stolenResourcesForField, onLevelGained)
 			}
 		}
@@ -2075,8 +2143,6 @@ func (t *turnGenerator) playerResearch() error {
 // for each planet, randomly check if the owner permaforms it
 func (t *turnGenerator) permaform() {
 
-	terraformer := NewTerraformer()
-
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.Players[planet.PlayerNum-1]
@@ -2085,12 +2151,23 @@ func (t *turnGenerator) permaform() {
 			}
 			adjustedPermaformChance := player.Race.Spec.PermaformChance
 			if planet.GetPopulation() <= player.Race.Spec.PermaformPopulation {
-				adjustedPermaformChance *= float64(planet.GetPopulation() / player.Race.Spec.PermaformPopulation)
+				adjustedPermaformChance *= float64(planet.GetPopulation()) / float64(player.Race.Spec.PermaformPopulation)
 			}
 
-			if adjustedPermaformChance >= t.game.Rules.random.Float64() {
+			if adjustedPermaformChance > t.game.Rules.random.Float64() {
 				habType := HabTypes[t.game.Rules.random.Intn(len(HabTypes))]
-				result := terraformer.PermaformOneStep(planet, player, habType)
+				if player.Race.IsImmune(habType) {
+					continue
+				}
+				direction := 0
+				if center := player.Race.HabCenter().Get(habType); center > planet.BaseHab.Get(habType) {
+					direction = 1
+				} else if center < planet.BaseHab.Get(habType) {
+					direction = -1
+				}
+				result := TerraformResult{Type: habType, Direction: direction}
+				planet.BaseHab.Set(habType, planet.BaseHab.Get(habType)+direction)
+				planet.TerraformedAmount = planet.Hab.Subtract(planet.BaseHab)
 
 				if result.Terraformed() {
 					planet.Spec = ComputePlanetSpec(&t.game.Rules, player, planet)
@@ -2117,6 +2194,7 @@ func (t *turnGenerator) planetGrow() {
 			continue
 		}
 		player := t.game.getPlayer(planet.PlayerNum)
+		planet.Spec = ComputePlanetSpec(&t.game.Rules, player, planet)
 		prevPop := planet.exactPopulation()
 		planet.grow(player)
 
@@ -2328,9 +2406,56 @@ func (t *turnGenerator) randomMineralDeposit() {
 	)
 }
 
-// TODO: Implement this
+// randomPlanetaryChange has a small chance each year of permanently shifting one
+// habitat axis on a random planet, cancelling its non-auto production. Colonies over
+// 5,000 colonists are protected for the first 20 years.
 func (t *turnGenerator) randomPlanetaryChange() {
+	rules := &t.game.Rules
 
+	// at most one planet changes per year, and only if the event's chance roll succeeds
+	if !t.game.RandomEvents || len(t.game.Planets) == 0 || rules.random.Float64() >= rules.RandomEventChances[RandomEventPlanetaryChange] {
+		return
+	}
+
+	// pick any planet, owned or not. Established colonies are safe for the first 20 years
+	planet := t.game.Planets[rules.random.Intn(len(t.game.Planets))]
+	if planet.Owned() && planet.GetPopulation() > 5000 && t.game.YearsPassed() < 20 {
+		return
+	}
+
+	// pick a random hab axis and shift it 4 to 8 points, up or down. The first
+	// roll is 3-5, and a 3 is rerolled into 6-8
+	habType := HabTypes[rules.random.Intn(len(HabTypes))]
+	amount := rules.random.Intn(3) + 3
+	if amount == 3 {
+		amount += rules.random.Intn(3) + 3
+	}
+	if rules.random.Intn(2) != 0 {
+		amount = -amount
+	}
+
+	// the change is permanent, so both the current and base hab move. Each is
+	// clamped separately, so the terraformed amount is recalculated
+	previous := planet.Hab.Get(habType)
+	planet.Hab.Set(habType, Clamp(previous+amount, rules.MinHab, rules.MaxHab))
+	planet.BaseHab.Set(habType, Clamp(planet.BaseHab.Get(habType)+amount, rules.MinHab, rules.MaxHab))
+	planet.TerraformedAmount = planet.Hab.Subtract(planet.BaseHab)
+
+	// the upheaval cancels any production that wasn't an auto build
+	planet.ProductionQueue = slices.DeleteFunc(planet.ProductionQueue, func(item ProductionQueueItem) bool { return !item.Type.IsAuto() })
+	planet.MarkDirty()
+	t.log.Debug("random planetary change",
+		slog.String("Planet", planet.Name),
+		slog.Int("Player", planet.PlayerNum),
+		slog.String("HabType", habType.String()),
+		slog.Int("Change", planet.Hab.Get(habType)-previous),
+	)
+
+	// only the owner, if there is one, is told about the change
+	if player := t.game.getPlayer(planet.PlayerNum); player != nil {
+		planet.Spec = ComputePlanetSpec(rules, player, planet)
+		messager.planetClimateChange(player, planet, habType, planet.Hab.Get(habType)-previous)
+	}
 }
 
 func (t *turnGenerator) fleetBattle() {
@@ -2531,9 +2656,8 @@ func (t *turnGenerator) fleetBattle() {
 				if field != TechFieldNone {
 					// we gained a level!
 					player.techLevelGained = true
-					player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
+					grantTradeResearch(&t.game.Rules, player, field)
 					messager.playerTechGainedBattle(player, planet, record, field)
-					player.updateTechsJustGained(t.game.TechStore, field)
 
 					t.log.Debug("gained tech level from battle",
 						slog.Int("Battle", battleNum),
@@ -2543,6 +2667,9 @@ func (t *turnGenerator) fleetBattle() {
 				}
 
 				if acquiredPart != nil {
+					if player.AcquiredTechs == nil {
+						player.AcquiredTechs = map[string]bool{}
+					}
 					player.AcquiredTechs[acquiredPart.Name] = true
 					player.acquirablePartGained = true
 					messager.playerAcquirablePartGainedBattle(player, planet, record, acquiredPart.Name)
@@ -2620,7 +2747,9 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 		}
 
 		for _, mo := range mapObjectsAtPosition {
-			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete && fleet.Waypoints[0].TargetType == MapObjectTypeMysteryTrader && fleet.Waypoints[0].TargetNum == mt.Num {
+			// every player with a fleet targeting the trader meets it, but only fleets
+			// ordered to meet it are absorbed
+			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete && fleet.targetingMysteryTrader(mt) {
 
 				player := t.game.getPlayer(fleet.PlayerNum)
 
@@ -2633,7 +2762,12 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 				reward := mt.meet(&t.game.Rules, t.game.Game, fleet, player)
 
 				if reward.Type == MysteryTraderRewardNone {
-					// fleet wasn't absorbed, move on
+					// a qualifying offer is absorbed even if a maxed player gets no reward
+					if fleet.Cargo.ToMineral().Total() >= mt.RequestedBoon {
+						mt.PlayersRewarded[player.Num] = true
+						t.game.deleteFleet(fleet)
+					}
+					// report that this offer produced no reward
 					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithoutReward, mt).withSpec(PlayerMessageSpec{}.withTargetFleet(fleet)))
 					continue
 				}
@@ -2646,8 +2780,7 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 				case MysteryTraderRewardResearch:
 					// tech levels!
 					// we gained a level!
-					player.techLevelGained = true
-					player.TechLevels = player.TechLevels.Add(reward.TechLevels)
+					// research was granted when the trader chose the reward
 					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).
 						withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.
 							withTargetFleet(fleet)))
@@ -2716,6 +2849,9 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 							slog.Int("Player", player.Num),
 							slog.String("Tech", reward.Tech),
 						)
+					}
+					if player.AcquiredTechs == nil {
+						player.AcquiredTechs = map[string]bool{}
 					}
 					player.AcquiredTechs[reward.Tech] = true
 					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.withTargetFleet(fleet)))
@@ -3056,7 +3192,7 @@ func (t *turnGenerator) fleetRemoteTerraform() {
 			continue
 		}
 
-		// don't remote terraform an unowned planet or a planet owned by us
+		// Remote terraforming requires an occupied planet; our own planets qualify.
 		planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
 		if !planet.Owned() {
 			continue
@@ -3067,8 +3203,8 @@ func (t *turnGenerator) fleetRemoteTerraform() {
 		deterraform := fleet.willAttack(player, planet.PlayerNum)
 		friend := player.IsFriend(planet.PlayerNum)
 
-		// do nothing to netural planets
-		if !friend && !deterraform {
+		// A hostile starbase protects the planet from orbital adjusters.
+		if !friend && (!deterraform || planet.Spec.HasStarbase) {
 			continue
 		}
 

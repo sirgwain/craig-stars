@@ -573,14 +573,15 @@ func Test_turn_permaform(t *testing.T) {
 
 	// mock the random number generator to return temp as the hab to permaform
 	rng := testRandom{}
-	rng.addFloats(.1) // permaform chance
-	rng.addInts(1)    // permaform temp
+	rng.addFloats(.05) // permaform chance
+	rng.addInts(1)     // permaform temp
 	game.Rules.random = &rng
 
 	u.Run((*turnGenerator).permaform)
 
 	// should have permaformed the planet temp in one direction
-	assert.Equal(t, Hab{49, 50, 49}, planet.Hab)
+	assert.Equal(t, Hab{49, 50, 49}, planet.BaseHab)
+	assert.Equal(t, Hab{49, 49, 49}, planet.Hab)
 }
 
 func Test_turn_permaformNone(t *testing.T) {
@@ -1384,6 +1385,111 @@ func Test_turn_detonateMines(t *testing.T) {
 	}
 }
 
+func Test_turn_detonateMinesCargoCapacity(t *testing.T) {
+	tests := []struct {
+		name         string
+		destroyAll   bool
+		wantShips    int
+		wantFraction float64
+	}{
+		{"one freighter destroyed", false, 1, 0.5},
+		{"both freighters destroyed", true, 0, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			damaged, undamaged := DesignTeamster, DesignTeamster
+			damaged.Name, undamaged.Name = "Damaged freighter", "Undamaged freighter"
+			u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
+				{
+					Player: NewPlayer(1, NewRace().WithPRT(SD)),
+					Minefields: []Minefield{{MinefieldType: MinefieldTypeStandard, NumMines: 100,
+						MinefieldOrders: MinefieldOrders{Detonate: true}}},
+				},
+				{
+					Designs: Designs(damaged, undamaged),
+					Fleets: []ScenarioFleet{{Name: "Freighters", Tokens: []ScenarioShipToken{
+						{Design: damaged.Name, Quantity: 1}, {Design: undamaged.Name, Quantity: 1},
+					}}},
+				},
+			}})
+			fleet := u.Fleet("Freighters")
+			capacity, fuelCapacity := fleet.Spec.CargoCapacity, fleet.Spec.FuelCapacity
+			fleet.Cargo = Cargo{Ironium: capacity - 20, Colonists: 20}
+			fleet.Fuel = fuelCapacity
+			cargo := fleet.Cargo
+			fleet.Tokens[0].Damage = float64(fleet.Tokens[0].design.Spec.Armor - 1)
+			fleet.Tokens[0].QuantityDamaged = 1
+			if tt.destroyAll {
+				fleet.Tokens[1].Damage = float64(fleet.Tokens[1].design.Spec.Armor - 1)
+				fleet.Tokens[1].QuantityDamaged = 1
+			}
+			stats := u.Game.Rules.MinefieldStatsByType[MinefieldTypeStandard]
+			stats.MinDamagePerFleet, stats.MinDamagePerFleetRS = 0, 0
+			stats.DamagePerEngine, stats.DamagePerEngineRS = 50, 50
+			u.Game.Rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
+
+			u.Run((*turnGenerator).detonateMines)
+
+			assert.Equal(t, tt.destroyAll, fleet.Delete)
+			assert.Len(t, fleet.Tokens, tt.wantShips)
+			assert.Equal(t, int(float64(capacity)*tt.wantFraction), fleet.Spec.CargoCapacity)
+			assert.Equal(t, cargo.Multiply(tt.wantFraction), fleet.Cargo)
+			assert.Equal(t, int(float64(fuelCapacity)*tt.wantFraction), fleet.Fuel)
+			require.Len(t, u.Game.Salvages, 1)
+			lostCargo := cargo.Subtract(fleet.Cargo)
+			assert.Equal(t, Cargo{Ironium: lostCargo.Ironium}, u.Game.Salvages[0].Cargo)
+		})
+	}
+}
+
+func Test_turn_fleetTransportLocation(t *testing.T) {
+	tests := []struct {
+		name         string
+		position     Vector
+		load         bool
+		wantTransfer int
+	}{
+		{"unload at same location", Vector{}, false, 5},
+		{"unload at different location", Vector{100, 0}, false, 0},
+		{"load at same location", Vector{}, true, -5},
+		{"load at different location", Vector{100, 0}, true, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{{
+				Designs: Designs(DesignTeamster),
+				Fleets: []ScenarioFleet{
+					{Name: "Source", Design: DesignTeamster.Name},
+					{Name: "Destination", Design: DesignTeamster.Name, Position: tt.position},
+				},
+			}}})
+			source, dest := u.Fleet("Source"), u.Fleet("Destination")
+			source.Cargo, dest.Cargo = Cargo{Ironium: 10}, Cargo{Ironium: 10}
+			source.Fuel, dest.Fuel = 10, 10
+			wp := &source.Waypoints[0]
+			wp.Task = WaypointTaskTransport
+			wp.TargetType, wp.TargetNum, wp.TargetPlayerNum = MapObjectTypeFleet, dest.Num, dest.PlayerNum
+			action := TransportActionUnloadAmount
+			if tt.load {
+				action = TransportActionLoadAmount
+			}
+			wp.TransportTasks.Ironium = WaypointTransportTask{Action: action, Amount: 5}
+			wp.TransportTasks.Fuel = WaypointTransportTask{Action: action, Amount: 5}
+			u.Run((*turnGenerator).fleetUnload)
+			u.Run((*turnGenerator).fleetLoad)
+			assert.Equal(t, 10-tt.wantTransfer, source.Cargo.Ironium)
+			assert.Equal(t, 10+tt.wantTransfer, dest.Cargo.Ironium)
+			assert.Equal(t, 10-tt.wantTransfer, source.Fuel)
+			assert.Equal(t, 10+tt.wantTransfer, dest.Fuel)
+			if tt.wantTransfer == 0 {
+				// the player is told, and the fleet gives up on the task
+				assert.Len(t, u.Messages(1, PlayerMessageFleetTargetLost), 1)
+				assert.Equal(t, WaypointTaskNone, wp.Task)
+			}
+		})
+	}
+}
+
 func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 	s := SingleUnitScenario()
 	s.Players = append(s.Players, ScenarioPlayer{
@@ -1396,10 +1502,10 @@ func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 	// move packet, wipe out planet
 	u.GenerateTurn()
 
-	// packet hits, but planet is fine and we recover 1/3rd of the cargo
+	// packet hits, but planet survives and the host recovers about 1/9th of the cargo
 	assert.NotEqual(t, 0, planet.exactPopulation())
 	assert.Equal(t, player.Num, planet.PlayerNum)
-	assert.Equal(t, 10/3, planet.Cargo.Ironium)
+	assert.Equal(t, 10*111/1000, planet.Cargo.Ironium)
 }
 
 func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
@@ -2223,7 +2329,7 @@ func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 
 	// fleet should be deleted, player gained tech
 	assert.Equal(t, true, fleet.Delete)
-	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.Len(t, u.Messages(1, PlayerMessageMysteryTraderMetWithReward), 1)
 	assert.Equal(t, TechLevel{Energy: 6}, player.TechLevels)
 }
 
@@ -2252,7 +2358,7 @@ func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
 
 	// fleet should be deleted, player gained tech
 	assert.Equal(t, true, fleet.Delete)
-	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.Len(t, u.Messages(1, PlayerMessageMysteryTraderMetWithReward), 1)
 	assert.True(t, player.HasAcquiredTech(&AntiMatterTorpedo.Tech))
 }
 
@@ -2283,7 +2389,7 @@ func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
 
 	// fleet should be deleted, player gained an additional tech
 	assert.Equal(t, true, fleet.Delete)
-	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.Len(t, u.Messages(1, PlayerMessageMysteryTraderMetWithReward), 1)
 	assert.Equal(t, 2, len(player.AcquiredTechs), "player should have acquired an additional tech. message is: %v", player.Messages[0])
 }
 
@@ -2313,7 +2419,7 @@ func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
 
 	// fleet should be deleted, player gained tech
 	assert.Equal(t, true, fleet.Delete)
-	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.Len(t, u.Messages(1, PlayerMessageMysteryTraderMetWithReward), 1)
 	assert.True(t, player.Messages[0].Spec.MysteryTrader.Ship.Name != "")
 	assert.True(t, player.Messages[0].Spec.MysteryTrader.ShipCount != 0)
 
@@ -2434,6 +2540,7 @@ func Test_turn_fleetUnloadColonistsOnPlanetThatDiedThisTurn(t *testing.T) {
 		planet.emptyPlanet()
 
 		u.turn.fleetUnload()
+		u.turn.resolveColonistDrops()
 
 		assert.Equal(t, 1, planet.PlayerNum)
 		assert.Equal(t, 1000, planet.GetPopulation())
@@ -2448,6 +2555,7 @@ func Test_turn_fleetUnloadColonistsOnPlanetThatDiedThisTurn(t *testing.T) {
 		planet.emptyPlanet()
 
 		u.turn.fleetUnload()
+		u.turn.resolveColonistDrops()
 
 		assert.Equal(t, 1, planet.PlayerNum)
 		assert.Equal(t, 1000, planet.GetPopulation())
@@ -2680,4 +2788,232 @@ func Test_turn_scoreAfterWaypointOneLoading(t *testing.T) {
 	loaded.Player(1).ResearchAmount = 0
 	loaded.GenerateTurn()
 	assert.Less(t, loaded.Player(1).GetScore().Resources, plain.Player(1).GetScore().Resources)
+}
+
+func Test_turn_playerResearchGRAndSS(t *testing.T) {
+	t.Run("GR spends half on the primary field and 15% on the others, rounded up", func(t *testing.T) {
+		s := SingleUnitScenario()
+		s.Players[0].Player = NewPlayer(1, NewRace().WithLRT(GR)).WithTechLevels(TechLevel{20, 20, 20, 20, 20, 20})
+		u := newTestUniverse(t, s)
+		p := u.Player(1)
+		p.Researching = Energy
+
+		require.NoError(t, u.turn.playerResearch(map[int]int{1: 1001}))
+		assert.Equal(t, TechLevel{501, 151, 151, 151, 151, 151}, p.TechLevelsSpent)
+	})
+	t.Run("SS steals the average of living players", func(t *testing.T) {
+		s := TestScenario{Players: []ScenarioPlayer{
+			{Player: NewPlayer(1, NewRace()).WithTechLevels(TechLevel{20, 20, 20, 20, 20, 20})},
+			{Player: NewPlayer(2, NewRace().WithPRT(SS)).WithTechLevels(TechLevel{20, 20, 20, 20, 20, 20})},
+			{}, // dead player, no planets or fleets
+		}, Planets: []ScenarioPlanet{{Name: "Donor", Owner: 1, Cargo: Cargo{Colonists: 1000}}, {Name: "Thief", Owner: 2, Cargo: Cargo{Colonists: 1000}}}}
+		u := newTestUniverse(t, s)
+		u.Player(1).Researching = Energy
+
+		require.NoError(t, u.turn.playerResearch(map[int]int{1: 1000}))
+		assert.Equal(t, 250, u.Player(2).TechLevelsSpent.Energy)
+	})
+}
+
+func Test_turn_discoverArtifact(t *testing.T) {
+	tests := []struct {
+		name                   string
+		population, roll, want int
+		randomEvents           bool
+	}{
+		{"maximum bonus", 1000, 300, 400, true},
+		{"small colonies get a smaller bonus", 500, 300, 200, true},
+		{"random events disabled", 1000, 300, 0, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, SingleUnitScenario())
+			p, planet := u.Player(1), u.Planet("Planet 1")
+			p.TechLevels = TechLevel{20, 20, 20, 20, 20, 20}
+			p.Researching = Energy
+			planet.setPopulation(tt.population)
+			planet.RandomArtifact = true
+			u.Game.RandomEvents = tt.randomEvents
+			u.Game.Rules.random = newIntRandom(0, tt.roll)
+
+			u.turn.discoverArtifact(planet)
+
+			assert.False(t, planet.RandomArtifact)
+			assert.Equal(t, tt.want, p.TechLevelsSpent.Energy)
+		})
+	}
+}
+
+func Test_turn_fleetColonizeDiscoversArtifact(t *testing.T) {
+	s := TestScenario{Players: []ScenarioPlayer{{Player: NewPlayer(1, NewRace()).WithTechLevels(TechLevel{20, 20, 20, 20, 20, 20}), Designs: Designs(DesignSantaMaria), Fleets: []ScenarioFleet{{Design: "Santa Maria", At: "Target", Cargo: Cargo{Colonists: 1}, Waypoints: []ScenarioWaypoint{{To: "Target", Task: WaypointTaskColonize}}}}}}, Planets: []ScenarioPlanet{{Name: "Target"}}}
+	u := newTestUniverse(t, s)
+	u.Planet("Target").RandomArtifact = true
+	u.Game.RandomEvents = true
+	u.Game.Rules.random = newIntRandom(0, 300)
+
+	u.turn.fleetColonize()
+	u.turn.resolveColonistDrops()
+
+	// 100 colonists find 10% of a 400 resource artifact
+	assert.Equal(t, 1, u.Planet("Target").PlayerNum)
+	assert.Equal(t, 40, u.Player(1).TechLevelsSpent.Energy)
+	assert.False(t, u.Planet("Target").RandomArtifact)
+}
+
+func Test_turn_permaformSmallColony(t *testing.T) {
+	s := SingleUnitScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPRT(CA).withImmuneGrav(true))
+	s.Planets[0].Hab = ScenarioValue(Hab{40, 40, 40})
+	s.Planets[0].BaseHab = s.Planets[0].Hab
+	s.Planets[0].Cargo = Cargo{Colonists: 500}
+	u := newTestUniverse(t, s)
+	planet := u.Planet("Planet 1")
+
+	// a small colony has a proportionally smaller chance
+	u.Game.Rules.random = newFloat64Random(.049).addInts(1)
+	u.Run((*turnGenerator).permaform)
+	assert.Equal(t, Hab{40, 41, 40}, planet.BaseHab)
+
+	// immune axes are never permaformed
+	u.Game.Rules.random = newFloat64Random(0).addInts(0)
+	u.Run((*turnGenerator).permaform)
+	assert.Equal(t, 40, planet.BaseHab.Grav)
+}
+
+func Test_turn_fleetRemoteTerraformEnemyStarbase(t *testing.T) {
+	s := TestScenario{Players: []ScenarioPlayer{
+		{Designs: Designs(DesignRemoteTerraformer), Fleets: []ScenarioFleet{{Design: "Remote Terraformer", At: "Target"}}},
+		{Designs: Designs(ShipDesign{Name: "Base", Hull: SpaceStation.Name})},
+	}, Planets: []ScenarioPlanet{{Name: "Target", Owner: 2, Cargo: Cargo{Colonists: 1000}, Starbase: "Base", Hab: ScenarioValue(Hab{50, 50, 50})}}}
+	u := newTestUniverse(t, s)
+	u.Player(1).Relations[1].Relation = PlayerRelationEnemy
+	planet := u.Planet("Target")
+	before := planet.Hab
+
+	// the starbase protects the planet
+	u.Run((*turnGenerator).fleetRemoteTerraform)
+	assert.Equal(t, before, planet.Hab)
+
+	planet.Spec.HasStarbase = false
+	planet.Starbase = nil
+	u.Run((*turnGenerator).fleetRemoteTerraform)
+	assert.NotEqual(t, before, planet.Hab)
+}
+
+func Test_turn_randomPlanetaryChange(t *testing.T) {
+	u := newTestUniverse(t, SingleUnitScenario())
+	u.Game.RandomEvents = true
+	u.Game.Year = 2420
+	planet := u.Planet("Planet 1")
+	planet.Hab, planet.BaseHab = Hab{98, 50, 50}, Hab{95, 50, 50}
+	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1}, {Type: QueueItemTypeAutoMines, Quantity: 10}}
+	u.Game.Rules.random = newFloat64Random(0).addInts(0, 0, 0, 2, 0) // gravity +8
+
+	u.Run((*turnGenerator).randomPlanetaryChange)
+
+	// both habs clamp, and manual production is cancelled
+	assert.Equal(t, 99, planet.Hab.Grav)
+	assert.Equal(t, 99, planet.BaseHab.Grav)
+	assert.Equal(t, planet.Hab.Subtract(planet.BaseHab), planet.TerraformedAmount)
+	assert.Equal(t, []ProductionQueueItem{{Type: QueueItemTypeAutoMines, Quantity: 10}}, planet.ProductionQueue)
+	messages := u.Messages(1, PlayerMessagePlanetClimateChange)
+	if assert.Len(t, messages, 1) {
+		assert.Equal(t, 1, messages[0].Spec.Amount)
+		assert.Equal(t, 99, messages[0].Spec.Amount2)
+	}
+}
+
+func Test_turn_scrapFleetTechTrade(t *testing.T) {
+	s := TestScenario{Players: []ScenarioPlayer{
+		{Player: NewPlayer(1, NewRace()).WithTechLevels(TechLevel{20, 20, 20, 20, 20, 20}), Designs: Designs(DesignLongRangeScout), Fleets: []ScenarioFleet{{Design: "Long Range Scout", At: "Target"}}},
+		{Designs: Designs(ShipDesign{Name: "Base", Hull: SpaceStation.Name})},
+	}, Planets: []ScenarioPlanet{{Name: "Target", Owner: 2, Cargo: Cargo{Colonists: 1000}, Starbase: "Base"}}}
+	u := newTestUniverse(t, s)
+	u.Game.Rules.random = &testRandom{}
+	receiver := u.Player(2)
+	fleet := u.Game.Fleets[0]
+	fleet.Tokens[0].design.Spec.TechLevel = TechLevel{Energy: 10}
+	receiver.TechLevels = TechLevel{Energy: 2}
+	receiver.Researching = Energy
+	receiver.TechLevelsSpent.Energy = 37
+
+	u.turn.scrapFleet(fleet, false)
+
+	// the starbase owner gains the level, keeps research already spent, and learns the new shield once
+	assert.Equal(t, 3, receiver.TechLevels.Energy)
+	assert.Equal(t, 37, receiver.TechLevelsSpent.Energy)
+	assert.True(t, receiver.techLevelGained)
+	assert.Equal(t, 1, len(slices.DeleteFunc(slices.Clone(receiver.TechsJustGained), func(tech *Tech) bool { return tech.Name != CowHideShield.Name })))
+}
+
+func Test_turn_mysteryTraderMeetRequiresTarget(t *testing.T) {
+	toTrader := []ScenarioWaypoint{{To: "Mystery Trader #1", Warp: 5}}
+	s := TestScenario{
+		Players: []ScenarioPlayer{
+			{Designs: Designs(DesignLongRangeScout), Fleets: []ScenarioFleet{
+				{Name: "Trader Bound", Design: "Long Range Scout", Cargo: Cargo{Ironium: 5000}, Waypoints: toTrader},
+				{Name: "Bystander", Design: "Long Range Scout", Cargo: Cargo{Ironium: 5000}},
+			}},
+			{Designs: Designs(DesignLongRangeScout), Fleets: []ScenarioFleet{
+				{Name: "Trader Bound", Design: "Long Range Scout", Cargo: Cargo{Ironium: 5000}, Waypoints: toTrader},
+			}},
+		},
+		MysteryTraders: []MysteryTrader{*newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch)},
+	}
+	u := newTestUniverse(t, s)
+	u.Game.RandomEvents = true
+	u.Game.Rules.random = &testRandom{}
+
+	u.RunE((*turnGenerator).mysteryTraderMeet)
+
+	// each player targeting the trader meets it, the bystander is left alone
+	assert.True(t, u.FleetFor(1, "Trader Bound").Delete)
+	assert.True(t, u.FleetFor(2, "Trader Bound").Delete)
+	assert.False(t, u.FleetFor(1, "Bystander").Delete)
+	assert.Len(t, u.Messages(1, PlayerMessageMysteryTraderMetWithReward), 1)
+	assert.Len(t, u.Messages(2, PlayerMessageMysteryTraderMetWithReward), 1)
+	assert.Empty(t, u.Messages(1, PlayerMessageMysteryTraderAlreadyRewarded))
+}
+
+func Test_turn_mysteryTraderMeetAfterChase(t *testing.T) {
+	s := SingleUnitScenario()
+	s.Players[0].Fleets[0].At = ""
+	s.Players[0].Fleets[0].Position = Vector{X: -20}
+	s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 5000}
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{Position: Vector{X: -20}}, {To: "Mystery Trader #1", Warp: 9}}
+	s.MysteryTraders = []MysteryTrader{*newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch)}
+	u := newTestUniverse(t, s)
+	u.Game.RandomEvents = true
+	u.Game.Rules.random = &testRandom{}
+	fleet := u.Fleet("Long Range Scout #1")
+
+	// the trader moves away before the fleet moves, the fleet follows and still meets it
+	mt := u.Game.MysteryTraders[0]
+	start := mt.Position
+	mt.Position = Vector{49, 0}
+	u.Game.moveMysteryTrader(mt, start)
+	u.Run((*turnGenerator).fleetMove)
+	assert.Equal(t, mt.Position, fleet.Position)
+
+	u.RunE((*turnGenerator).mysteryTraderMeet)
+	assert.True(t, fleet.Delete)
+	assert.Len(t, u.Messages(1, PlayerMessageMysteryTraderMetWithReward), 1)
+}
+
+func Test_turn_mysteryTraderMeetMaxTechNoReward(t *testing.T) {
+	s := SingleUnitScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace()).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+	s.Players[0].Fleets[0].Cargo = Cargo{Ironium: 5000}
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Mystery Trader #1", Warp: 5}}
+	s.MysteryTraders = []MysteryTrader{*newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch)}
+	u := newTestUniverse(t, s)
+	u.Game.RandomEvents = true
+	u.Game.Rules.random = newIntRandom(0) // the 1 in 5 roll for no part
+
+	u.RunE((*turnGenerator).mysteryTraderMeet)
+
+	// the trader still takes the minerals
+	assert.True(t, u.Fleet("Long Range Scout #1").Delete)
+	assert.True(t, u.Game.MysteryTraders[0].rewardedPlayer(1))
+	assert.Len(t, u.Messages(1, PlayerMessageMysteryTraderMetWithoutReward), 1)
 }

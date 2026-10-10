@@ -466,6 +466,9 @@ func (b *battle) hasMultiplePlayers() bool {
 
 // runBattle runs a battle!
 func (b *battle) runBattle() *BattleRecord {
+	for _, fleet := range b.fleets {
+		fleet.noHeal = true
+	}
 	b.prepareBattle()
 	for b.round = 1; b.round <= b.rules.NumBattleRounds; b.round++ {
 		if b.round > 1 {

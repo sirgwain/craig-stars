@@ -31,13 +31,11 @@ const MineralPacketDecayToNothing = -1
 
 func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int, cargo Cargo, position Vector, targetPlanetNum int) *MineralPacket {
 	packet := MineralPacket{
-		MapObject: MapObject{
-			Type:      MapObjectTypeMineralPacket,
-			PlayerNum: player.Num,
-			Num:       num,
-			Name:      fmt.Sprintf("%s Mineral Packet", player.Race.PluralName),
-			Position:  position,
-		},
+		Type:            MapObjectTypeMineralPacket,
+		PlayerNum:       player.Num,
+		Num:             num,
+		Name:            fmt.Sprintf("%s Mineral Packet", player.Race.PluralName),
+		Position:        position,
 		WarpSpeed:       warpSpeed,
 		SafeWarpSpeed:   safeWarpSpeed,
 		Cargo:           cargo,
@@ -77,6 +75,24 @@ func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float6
 	return packetDecayRate
 }
 
+// decay the packet's minerals for flying some fraction of a year. Packets thrown over
+// their safe speed lose a percentage of each mineral, with a minimum loss per mineral.
+func (packet *MineralPacket) decay(rules *Rules, race *Race, fraction float64) {
+	decayRate := packet.getPacketDecayRate(rules, race) * fraction
+	if decayRate == 0 {
+		return
+	}
+
+	for _, minType := range MineralTypes {
+		mineral := packet.Cargo.GetAmount(minType)
+		if mineral > 0 {
+			decayAmount := max(int(decayRate*float64(mineral)), int(float64(rules.PacketMinDecay)*race.Spec.PacketDecayFactor))
+			packet.Cargo = packet.Cargo.SubtractAmount(minType, decayAmount)
+		}
+	}
+	packet.Cargo = packet.Cargo.MinZero()
+}
+
 // move this packet through space
 func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Planet, planetPlayer *Player) {
 	dist := float64(packet.WarpSpeed * packet.WarpSpeed)
@@ -99,6 +115,13 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 	dist = min(totalDist, dist)
 
 	if totalDist == dist {
+		// packets decay for the part of the year they travelled before they impact
+		packet.decay(rules, &player.Race, min(1, dist/float64(packet.WarpSpeed*packet.WarpSpeed)))
+		if packet.Cargo.Total() == 0 {
+			// decayed to nothing before reaching the planet
+			packet.Delete = true
+			return
+		}
 		packet.completeMove(rules, player, target, planetPlayer)
 	} else {
 		// move this packet closer to the next planet
@@ -108,33 +131,49 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 	}
 }
 
-// Damage calcs as per the Stars! Manual
+// Complete movement of an incoming packet about to impact the planet
 //
 // Example:
 // You fling a 1000kT packet at Warp 10 at a planet with a Warp 5 driver, a population of 250,000 and 50 defenses preventing 60% of incoming damage.
-// spdPacket = 100
-// spdReceiver = 25
-// %CaughtSafely = 25%
-// minerals recovered = 1000kT x 25% + 1000kT x 75% x 1/3 = 250 + 250 = 500kT
-// dmgRaw = 75 x 1000 / 160 = 469
-// dmgRaw2 = 469 x 40% = 188
-// #colonists killed = Max. of ( 188 x 250,000 / 1000, 188 x 100)
-// = Max. of ( 47,000, 18800) = 47,000 colonists
-// #defenses destroyed = 50 * 188 / 1000 = 9 (rounded down)
+// packet power = 10 x 10 = 100
+// receiver power = 5 x 5 = 25 (halved for IT)
+// caught = 25 / 100 = 250 thousandths
+// minerals recovered = 1000kT x 250/1000 + 1000kT x 750/1000 x 1/9 = 250 + 83 = 333kT
+// raw damage = (100 - 25) x 1000 / 160 = 468
+// damage = 468 x 40% = 187
+// #colonists killed = Max. of (187 x 2,500kT / 1000, 187) x 100
+// = Max. of (467, 187) x 100 = 46,700 colonists
+// #defenses destroyed = Max. of (50 x 187 / 1000, 187 / 20) = Max. of (9, 9) = 9
+// (if this rounds to 0, there is a damage/20 chance of destroying one defense)
 //
 // If, however, the receiving planet had no mass driver or defenses, the damage is far greater:
-// minerals recovered = 1000kT x 0% + 1000kT x 100% x 1/3 = only 333kT dmgRaw = 100 x 1000 / 160 = 625
-// dmgRaw2 = 625 x 100% = 625
-// #colonists killed = Max. of (625 x 250,000 / 1000, 625 x 100)
-// = Max.of(156,250, 62500) = 156,250.
+// minerals recovered = 1000kT x 0 + 1000kT x 1/9 = only 111kT
+// raw damage = damage = 100 x 1000 / 160 = 625
+// #colonists killed = Max. of (625 x 2,500kT / 1000, 625) x 100
+// = Max. of (1,562, 625) x 100 = 156,200 colonists
+//
 // If the packet increased speed up to Warp 13, then:
-// dmgRaw2 = dmgRaw = 169 x 1000 / 160 = 1056
-// #colonists killed = Max. of (1056 x 250,000 / 1000, 1056 x 100)
-// = Max. of(264,000, 105600) destroying the colony
-
-// Complete movement of an incoming packet about to impact the planet
+// damage = 169 x 1000 / 160 = 1056
+// #colonists killed = Max. of (1056 x 2,500kT / 1000, 1056) x 100
+// = Max. of (2,640, 1056) x 100 = 264,000, destroying the colony
 func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *Planet, planetPlayer *Player) {
+	// Capture the receiver before casualties can remove its colony/starbase.
+	caughtPermille := packet.caughtPermille(planet, planetPlayer)
 	damage := packet.getDamage(planet, planetPlayer)
+	if planetPlayer != nil && !planetPlayer.Race.Spec.LivesOnStarbases && damage.Killed < planet.GetPopulation() && planet.Defenses > 0 {
+		strength := packet.impactStrength(planet, planetPlayer)
+		if strength > 0 && planet.Defenses*strength/1000 == 0 && rules.random.Intn(20) < strength {
+			damage.DefensesDestroyed = max(1, damage.DefensesDestroyed)
+		}
+	}
+
+	// Recovery is quantized in thousandths; the original recovers one ninth
+	// of the uncaught material, despite the manual's one-third description.
+	keepPermille := caughtPermille + (1000-caughtPermille)/9
+	for _, mineral := range MineralTypes {
+		planet.Cargo = planet.Cargo.AddAmount(mineral, packet.Cargo.GetAmount(mineral)*keepPermille/1000)
+	}
+	packet.checkTerraform(rules, player, planet, 1000-caughtPermille)
 
 	if damage == (MineralPacketDamage{}) {
 		// caught packet successfully, transfer cargo
@@ -152,22 +191,6 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 		}
 	}
 
-	mineralsRecovered := 1.0
-	if damage.Uncaught > 0 {
-		var percentCaughtSafely float64
-		if planet.Spec.HasStarbase && planet.Spec.SafePacketSpeed > 0 {
-			percentCaughtSafely = float64((packet.WarpSpeed * packet.WarpSpeed) / (planet.Spec.SafePacketSpeed * planet.Spec.SafePacketSpeed))
-		}
-		packet.checkTerraform(rules, player, planet, 1-percentCaughtSafely)
-		packet.checkPermaform(rules, player, planet, 1-percentCaughtSafely)
-
-		// only 1/3 of uncaught minerals will be recovered
-		mineralsRecovered = percentCaughtSafely + (1-percentCaughtSafely)/3
-	}
-
-	// one way or another, these minerals are ending up on the planet
-	planet.Cargo = planet.Cargo.Add(packet.Cargo.Multiply(mineralsRecovered))
-
 	// if we didn't receive this planet, notify the sender
 	if planet.PlayerNum != packet.PlayerNum {
 		if player.Race.Spec.DetectPacketDestinationStarbases && planet.Spec.HasStarbase {
@@ -182,6 +205,24 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	packet.Delete = true
 }
 
+// receiverPower is the square of the planet's mass driver speed. IT drivers
+// have half the normal catching power, even at their nominal safe speed.
+func receiverPower(planet *Planet, receiver *Player) int {
+	if !planet.Owned() || !planet.Spec.HasMassDriver {
+		return 0
+	}
+	power := planet.Spec.SafePacketSpeed * planet.Spec.SafePacketSpeed
+	return int(float64(power) * receiver.Race.Spec.PacketReceiverFactor)
+}
+
+// caughtPermille is the thousandths of the packet the receiving planet catches safely
+func (packet *MineralPacket) caughtPermille(planet *Planet, receiver *Player) int {
+	if packet.WarpSpeed <= 0 {
+		return 0
+	}
+	return min(1000, receiverPower(planet, receiver)*1000/(packet.WarpSpeed*packet.WarpSpeed))
+}
+
 // get the damage a mineral packet will do when it collides with a planet
 func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) MineralPacketDamage {
 	if !planet.Owned() {
@@ -189,32 +230,19 @@ func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) Min
 		return MineralPacketDamage{Uncaught: packet.Cargo.Total()}
 	}
 
-	if planet.Spec.HasMassDriver && planet.Spec.SafePacketSpeed >= packet.WarpSpeed {
+	caughtPermille := packet.caughtPermille(planet, planetPlayer)
+	if caughtPermille == 1000 {
 		// planet will successfully catch the packet
 		return MineralPacketDamage{}
 	}
 
-	if planetPlayer != nil && planetPlayer.Race.Spec.LivesOnStarbases {
-		// No damage, but all cargo is uncaught and might impact the planet
-		return MineralPacketDamage{Uncaught: packet.Cargo.Total()}
+	uncaught := (1000 - caughtPermille) * packet.Cargo.Total() / 1000
+	if planetPlayer.Race.Spec.LivesOnStarbases {
+		return MineralPacketDamage{Uncaught: uncaught}
 	}
-
-	// uh oh, this packet is going too fast and we'll take damage
-	receiverDriverSpeed := 0
-	if planet.Spec.HasStarbase {
-		receiverDriverSpeed = planet.Spec.SafePacketSpeed
-	}
-
-	weight := packet.Cargo.Total()
-	speedOfPacket := packet.WarpSpeed * packet.WarpSpeed
-	speedOfReceiver := receiverDriverSpeed * receiverDriverSpeed
-	percentCaughtSafely := float64(speedOfReceiver) / float64(speedOfPacket)
-	uncaught := int((1 - percentCaughtSafely) * float64(weight))
-	rawDamage := float64((speedOfPacket-speedOfReceiver)*weight) / 160
-	damageWithDefenses := rawDamage * (1 - planet.Spec.DefenseCoverage)
-	// TODO: How does this round?
-	colonistsKilled := roundTo100(max(damageWithDefenses*float64(planet.GetPopulation())/1000, damageWithDefenses*100), math.Round)
-	defensesDestroyed := int(max(float64(planet.Defenses)*damageWithDefenses/1000, damageWithDefenses/20))
+	damageWithDefenses := packet.impactStrength(planet, planetPlayer)
+	colonistsKilled := max(planet.Cargo.Colonists*damageWithDefenses/1000, damageWithDefenses) * 100
+	defensesDestroyed := max(planet.Defenses*damageWithDefenses/1000, damageWithDefenses/20)
 
 	// kill off colonists and destroy defenses, up to however much actually exists
 	return MineralPacketDamage{
@@ -225,51 +253,40 @@ func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) Min
 
 }
 
+// impactStrength is the damage of an uncaught packet after planetary defenses
+func (packet *MineralPacket) impactStrength(planet *Planet, planetPlayer *Player) int {
+	rawDamage := (packet.WarpSpeed*packet.WarpSpeed - receiverPower(planet, planetPlayer)) * packet.Cargo.Total() / 160
+	return max(0, int(float64(rawDamage)*(1-planet.Spec.DefenseCoverage)))
+}
+
 // Estimate potential damage of an incoming mineral packet.
 // Simulates decay each turn until impact
 func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target *Planet, planetPlayer *Player) MineralPacketDamage {
-	if target.Spec.HasMassDriver && target.Spec.SafePacketSpeed >= packet.WarpSpeed {
+	if packet.caughtPermille(target, planetPlayer) == 1000 {
 		// planet will have no problem catching the packet on arrival
 		return MineralPacketDamage{}
 	}
 
-	distPerYear := math.Pow(float64(packet.WarpSpeed), 2)
+	distPerYear := float64(packet.WarpSpeed * packet.WarpSpeed)
 	// save copy of packet so we don't alter the original
 	packetCopy := *packet
 
-	decayRate := packet.getPacketDecayRate(rules, &player.Race)
-	// no decay means we don't need to bother with decay calcs;
-	// 100% of the packet will make it to the end regardless
-	if decayRate == 0 {
-		goto damage
-	}
-
-	// decay packet incrementally
+	// decay the packet each year until impact, including the partial year it arrives
+	// (packets within 1ly of the target after a year's travel make it there, see movePacket)
 	for totalDist := packet.Position.DistanceTo(target.Position); totalDist > 0; totalDist -= distPerYear {
-		if totalDist <= distPerYear {
-			// 1 turn until impact - decay amount reduced
-			decayRate *= totalDist / distPerYear
-		}
-
-		// loop through all 3 mineral types and reduce each one in turn
-		for _, minType := range MineralTypes {
-			mineral := packetCopy.Cargo.GetAmount(minType)
-
-			// subtract either the normal or minimum decay amounts, whichever is higher (rounded DOWN)
-			if mineral > 0 {
-				decayAmount := int(max(decayRate*float64(mineral),
-					float64(rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
-				packetCopy.Cargo = packetCopy.Cargo.SubtractAmount(minType, decayAmount)
-			}
-		}
+		packetCopy.decay(rules, &player.Race, min(1, totalDist/distPerYear))
 
 		// packet out of minerals; return special exit code
-		if packetCopy.Cargo = packetCopy.Cargo.MinZero(); packetCopy.Cargo.Total() == 0 {
+		if packetCopy.Cargo.Total() == 0 {
 			return MineralPacketDamage{Uncaught: MineralPacketDecayToNothing}
+		}
+
+		if totalDist < distPerYear+1 {
+			// arrives this year
+			break
 		}
 	}
 
-damage:
 	// calculate damage based on however much cargo is left
 	damage := packetCopy.getDamage(target, planetPlayer)
 
@@ -280,113 +297,92 @@ damage:
 	return damage
 }
 
-// Check if an uncaught PP packet will terraform the target planet's environment (50% chance/100kT)
-func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet *Planet, uncaught float64) {
-	if player.Race.Spec.PacketTerraformChance <= 0 || player.Race.Spec.PacketPermaTerraformSizeUnit < 0 {
+// checkTerraform checks if an uncaught PP packet terraforms the target planet.
+// PP makes a 50% roll per 100 kT of each uncaught mineral. A successful
+// terraform roll has a further 10% chance of changing the underlying habitat.
+// Each mineral type affects one habitat axis: ironium -> grav, boranium -> temp,
+// germanium -> rad. Changes always move toward the sender's ideal habitat (or
+// outward, to the extremes, for an axis the sender is immune to).
+func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet *Planet, uncaughtPermille int) {
+	unit := player.Race.Spec.PacketPermaTerraformSizeUnit
+	chance := player.Race.Spec.PacketTerraformChance
+	if chance <= 0 || unit <= 0 || uncaughtPermille <= 0 {
 		return
 	}
-
 	terraformer := NewTerraformer()
-
-	// Evaluate each mineral type separately
-	for i, minType := range MineralTypes {
+	for i, mineralType := range MineralTypes {
 		habType := HabType(i)
-		direction := 0
 
-		// Loop through the mineral amount and perform terraform checks repeatedly
-		// to figure out how much to terraform
-		// We do the actual terraforming once per hab type to save time and avoid spam pings
-	tLoop:
-		for mineral := int(float64(packet.Cargo.GetAmount(minType)) * uncaught); mineral > 0; mineral -= player.Race.Spec.PacketPermaTerraformSizeUnit {
-
-			if Abs(direction) >= terraformer.GetTerraformAbility(player).Get(habType) {
-				// if we can't terraform this hab type any further, skip any remaining checks for brevity
-				break tLoop
-			}
-
-			terraformChance := player.Race.Spec.PacketTerraformChance
-			if mineral < player.Race.Spec.PacketPermaTerraformSizeUnit {
-				// decrease chance if packet has less minerals remaining than 1 check size unit.
-				// This ensures that smaller packets can still terraform planets
-				// (albeit proportionally less likely)
-				terraformChance *= float64(mineral) / float64(player.Race.Spec.PacketPermaTerraformSizeUnit)
-			}
-
-			// Example math: 250kT packet with 50% chance per 100kT
-			// Loop 1 has 250 left, full (50%) chance
-			// Loop 1 has 150 left, full (50%) chance
-			// Loop 1 has 50 left, half (25%) chance
-			// Loop 4 fails to execute as mineral is now below 0
-
-			if terraformChance < rules.random.Float64() {
-				// roll failed; better luck next time
-				continue tLoop
-			}
-
-			switch newHab, habCenter := planet.Hab.Get(habType)+direction,
-				player.Race.HabCenter().Get(habType); {
-			case newHab < habCenter:
-				// planet hab below ideal; need to raise it
-				direction += 1
-			case newHab > habCenter:
-				// planet hab above ideal; need to lower it
-				direction -= 1
-			default:
-				// planet hab already ideal; no further changes needed
-				break tLoop
-			}
-		}
-
-		// Terraform this hab type & send message if applicable
-		result := terraformer.TerraformHab(planet, player, habType, direction)
-		if result.Terraformed() {
-			messager.planetPacketTerraform(player, planet, result.Type, direction)
-		}
-	}
-}
-
-// Check if an uncaught PP packet will permanently alter the target planet's environment (0.1% chance/100kT)
-func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet *Planet, uncaught float64) {
-	if player.Race.Spec.PacketPermaformChance <= 0 || player.Race.Spec.PacketPermaTerraformSizeUnit <= 0 {
-		return
-	}
-
-	terraformer := NewTerraformer()
-
-	// Evaluate each mineral type separately
-	for i, minType := range MineralTypes {
-		habType := HabType(i)
-		direction := 0
-
-		// Loop through the mineral amount and perform checks repeatedly
-		for mineral := int(float64(packet.Cargo.GetAmount(minType)) * uncaught); mineral > 0; mineral -= player.Race.Spec.PacketPermaTerraformSizeUnit {
-
-			permaformChance := player.Race.Spec.PacketPermaformChance
-			if mineral < player.Race.Spec.PacketPermaTerraformSizeUnit {
-				// decrease chance if packet has less minerals remaining than 1 check size unit.
-				// This ensures that smaller packets can still permaform planets
-				// (albeit proportionally less likely)
-				permaformChance *= float64(mineral) / float64(player.Race.Spec.PacketPermaTerraformSizeUnit)
-			}
-
-			if permaformChance < rules.random.Float64() {
-				// roll failed; better luck next time
+		// roll once per 100 kT chunk of uncaught mineral (a partial chunk gets a
+		// proportionally smaller chance). Each hit is one click of temporary
+		// terraforming, and some hits are also a permanent click
+		temporary, permanent := 0, 0
+		for mineral := packet.Cargo.GetAmount(mineralType) * uncaughtPermille / 1000; mineral > 0; mineral -= unit {
+			rollChance := chance * float64(min(mineral, unit)) / float64(unit)
+			if rules.random.Float64() >= rollChance {
 				continue
 			}
-
-			// Permaform & keep track of result
-			result := terraformer.PermaformOneStep(planet, player, habType)
-			direction += result.Direction
-			if !result.Terraformed() {
-				// BaseHab already perfect for this hab type; stop permaforming
-				break
+			temporary++
+			if rules.random.Float64() < player.Race.Spec.PacketPermaformChance {
+				permanent++
 			}
 		}
-
-		// tell player about the permaforming for this hab type
-		if direction != 0 {
-			messager.planetPacketPermaform(player, planet, habType, direction)
+		// pick a direction: toward the sender's ideal, or, if the sender is immune
+		// to this axis, away from the middle. Immune senders only get half the
+		// temporary clicks
+		immune := player.Race.IsImmune(habType)
+		direction := 1
+		ideal := player.Race.HabCenter().Get(habType)
+		if immune {
+			if planet.BaseHab.Get(habType) < 50 {
+				direction = -1
+			}
+			temporary /= 2
+		} else if planet.BaseHab.Get(habType) > ideal {
+			direction = -1
+		}
+		// permanent clicks move the planet's base habitat, stopping at the sender's
+		// ideal (immune axes stop only at the min/max hab)
+		originalBase := planet.BaseHab.Get(habType)
+		newBase := originalBase + direction*permanent
+		if !immune {
+			newBase = originalBase + direction*min(permanent, Abs(ideal-originalBase))
+		}
+		newBase = Clamp(newBase, rules.MinHab, rules.MaxHab)
+		planet.BaseHab.Set(habType, newBase)
+		if change := newBase - originalBase; change != 0 {
+			messager.planetPacketPermaform(player, planet, habType, change)
+		}
+		// temporary clicks move the current habitat, like the sender's own
+		// terraforming would. They need the sender to have terraforming tech, can't go
+		// past the sender's ideal or the sender's terraforming range from the
+		// (possibly new) base, and never undo terraforming that's already further along
+		if temporary > 0 {
+			current := planet.Hab.Get(habType)
+			target := current
+			ability := terraformer.GetTerraformAbility(player).Get(habType)
+			if immune {
+				if terraformer.GetTerraformAbility(player).absSum() > 0 {
+					target = Clamp(current+direction*temporary, rules.MinHab, rules.MaxHab)
+				}
+			} else if current < ideal && ability > 0 {
+				limit := min(ideal, min(rules.MaxHab, newBase+ability))
+				if current < limit {
+					target = min(limit, current+temporary)
+				}
+			} else if current > ideal && ability > 0 {
+				limit := max(ideal, max(rules.MinHab, newBase-ability))
+				if current > limit {
+					target = max(limit, current-temporary)
+				}
+			}
+			planet.Hab.Set(habType, target)
+			if change := target - current; change != 0 {
+				messager.planetPacketTerraform(player, planet, habType, change)
+			}
 		}
 	}
-
+	// keep the terraformed amount in sync with any base habitat changes
+	planet.TerraformedAmount = planet.Hab.Subtract(planet.BaseHab)
+	planet.MarkDirty()
 }

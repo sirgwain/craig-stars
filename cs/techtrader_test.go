@@ -5,8 +5,6 @@ package cs
 import (
 	"reflect"
 	"testing"
-
-	"github.com/sirgwain/craig-stars/test"
 )
 
 func Test_techTrade_techLevelGained(t *testing.T) {
@@ -26,10 +24,10 @@ func Test_techTrade_techLevelGained(t *testing.T) {
 		{name: "Weapons", args: args{
 			current: TechLevel{Energy: 1, Weapons: 1, Propulsion: 1, Construction: 1, Electronics: 1, Biotechnology: 1},
 			target:  TechLevel{Energy: 1, Weapons: 2, Propulsion: 3, Construction: 4, Electronics: 5, Biotechnology: 6}},
-			rng:  newFloat64Random(.25),
+			rng:  &testRandom{floatsToReturn: []float64{.25}, intsToReturn: []int{1}},
 			want: Weapons,
 		},
-		{name: "None, random didn't work out", args: args{current: TechLevel{}, target: TechLevel{Energy: 1}}, rng: newFloat64Random(.3), want: TechFieldNone},
+		{name: "None, random didn't work out", args: args{current: TechLevel{}, target: TechLevel{Energy: 1}}, rng: newFloat64Random(.5), want: TechFieldNone},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -54,6 +52,7 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 		acquiredTechs   []string
 		tokens          []token
 		partChanceRolls []float64
+		partDraws       []int
 		acquiredTech    bool
 		want            *Tech
 	}{
@@ -133,7 +132,7 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 			want:            nil,
 		},
 		{
-			name:          "25 parts split in 2 fleets, 12.5% roll",
+			name:          "Trader hull cannot be learned from scrapping",
 			acquiredTechs: []string{},
 			tokens: []token{
 				{
@@ -159,10 +158,10 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 			},
 			partChanceRolls: []float64{0.125},
 			acquiredTech:    false,
-			want:            &MiniMorph.Tech,
+			want:            nil,
 		},
 		{
-			name:          "15 Enigmas/40 Alien Miners, fail x2 -> success",
+			name:          "Component counts ignore ship count; randomized draws can retry",
 			acquiredTechs: []string{MiniMorph.Name},
 			tokens: []token{
 				{
@@ -196,7 +195,8 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 					}, qty: 10,
 				},
 			},
-			partChanceRolls: []float64{1, 1, 0.075},
+			partChanceRolls: []float64{1, 1, 0.04},
+			partDraws:       []int{9, 4, 4},
 			acquiredTech:    false,
 			want:            &AlienMiner.Tech,
 		},
@@ -211,6 +211,7 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 				player.AcquiredTechs[t] = true
 			}
 			rng := newFloat64Random(tt.partChanceRolls...)
+			rng.intsToReturn = tt.partDraws
 
 			tokens := []ShipToken{}
 			for n, token := range tt.tokens {
@@ -231,30 +232,6 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 	}
 }
 
-func Test_techTradeChance(t *testing.T) {
-	type args struct {
-		baseChance float64
-		level      int
-	}
-	tests := []struct {
-		name string
-		args args
-		want float64
-	}{
-		{"no levels", args{baseChance: .5, level: 0}, 0},
-		{"one level", args{baseChance: .5, level: 1}, .25},
-		{"two levels", args{baseChance: .5, level: 2}, .375},
-		{"six levels", args{baseChance: .5, level: 6}, .492},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := techTradeChance(tt.args.baseChance, tt.args.level); !test.WithinTolerance(got, tt.want, .001) {
-				t.Errorf("techTradeChance() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_checkAcquirablePartChance(t *testing.T) {
 	tests := []struct {
 		name string
@@ -264,7 +241,7 @@ func Test_checkAcquirablePartChance(t *testing.T) {
 	}{
 		{name: "1 part; failed roll", qty: 1, rng: newFloat64Random(1), want: false},
 		{name: "10 parts; 5% roll", qty: 10, rng: newFloat64Random(0.05), want: true},
-		{name: "50 parts; fail -> success", qty: 50, rng: newFloat64Random(1, 0.125), want: true},
+		{name: "50 parts capped at 25; no second independent batch", qty: 50, rng: newFloat64Random(1, 0.125), want: false},
 	}
 	for _, tt := range tests {
 		rules := NewRulesWithSeed(0)

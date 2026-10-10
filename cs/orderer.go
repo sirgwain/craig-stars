@@ -385,35 +385,54 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		dest = fleet
 	}
 
-	if !source.CanTransfer(dest, request.TransferAmount.Negative()) {
-		return nil, nil, fmt.Errorf("source cannot transfer %v to new fleet, the fleet does not have enough of the required cargo", request.TransferAmount.Negative())
-	}
-
-	// update the tokens for each fleet
-	source.Tokens = request.SourceTokens
-	dest.Tokens = request.DestTokens
-
-	// remove any empty tokens
-	tokens := []ShipToken{}
-	for _, token := range source.Tokens {
+	// work out what each fleet will look like after the split, so we can check the request before changing either fleet
+	splitSource, splitDest := *source, *dest
+	splitSource.Tokens, splitDest.Tokens = []ShipToken{}, []ShipToken{}
+	for _, token := range request.SourceTokens {
 		if token.Quantity > 0 {
-			tokens = append(tokens, token)
+			splitSource.Tokens = append(splitSource.Tokens, token)
 		}
 	}
-	source.Tokens = tokens
-
-	tokens = []ShipToken{}
-	for _, token := range dest.Tokens {
+	for _, token := range request.DestTokens {
 		if token.Quantity > 0 {
-			tokens = append(tokens, token)
+			splitDest.Tokens = append(splitDest.Tokens, token)
 		}
 	}
-	dest.Tokens = tokens
+	player.InjectDesigns([]*Fleet{&splitSource, &splitDest})
+	splitSource.Spec = ComputeFleetSpec(rules, player, &splitSource)
+	splitDest.Spec = ComputeFleetSpec(rules, player, &splitDest)
 
-	// update fleet specs
-	player.InjectDesigns([]*Fleet{source, dest})
-	source.Spec = ComputeFleetSpec(rules, player, source)
-	dest.Spec = ComputeFleetSpec(rules, player, dest)
+	// if both fleets still have ships, each must have the cargo and fuel it gives up, and room for what it ends up with
+	if len(splitSource.Tokens) > 0 && len(splitDest.Tokens) > 0 {
+		transfer := request.TransferAmount
+		splitSource.Cargo, splitSource.Fuel = source.Cargo.Add(transfer.Cargo), source.Fuel+transfer.Fuel
+		splitDest.Cargo, splitDest.Fuel = dest.Cargo.Subtract(transfer.Cargo), dest.Fuel-transfer.Fuel
+		for _, fleet := range []*Fleet{&splitSource, &splitDest} {
+			if fleet.Cargo.HasNegative() || fleet.Fuel < 0 {
+				return nil, nil, fmt.Errorf("cannot transfer %v, fleet %s does not have enough of the required cargo or fuel", transfer, fleet.Name)
+			}
+			if fleet.Cargo.Total() > fleet.Spec.CargoCapacity {
+				return nil, nil, fmt.Errorf("fleet %s would exceed its cargo capacity after splitting", fleet.Name)
+			}
+			if fleet.Fuel > fleet.Spec.FuelCapacity {
+				return nil, nil, fmt.Errorf("fleet %s would exceed its fuel capacity after splitting", fleet.Name)
+			}
+		}
+	}
+
+	// this is technically not necessary because it's not saved to the DB, but in case
+	// later code calls SplitFleet during turn generation for some reason.
+	source.noHeal = source.noHeal || dest.noHeal
+	dest.noHeal = source.noHeal
+	source.warped = source.warped || dest.warped
+	dest.warped = source.warped
+
+	// update the tokens and specs for each fleet
+	source.Tokens = splitSource.Tokens
+	dest.Tokens = splitDest.Tokens
+
+	source.Spec = splitSource.Spec
+	dest.Spec = splitDest.Spec
 
 	if len(source.Tokens) == 0 {
 		// source is gone, no cargo transfer needed, just make sure the dest has all cargo and we're done
@@ -575,6 +594,8 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.WarpSpeed = source.WarpSpeed
 	fleet.PreviousPosition = source.PreviousPosition
 	fleet.BattlePlanNum = source.BattlePlanNum
+	fleet.noHeal = source.noHeal
+	fleet.warped = source.warped
 	fleet.Tokens = tokens
 	fleet.FleetOrders = source.FleetOrders
 
@@ -667,6 +688,8 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 
 	for i := 1; i < len(fleets); i++ {
 		mergingFleet := fleets[i]
+		fleet.noHeal = fleet.noHeal || mergingFleet.noHeal
+		fleet.warped = fleet.warped || mergingFleet.warped
 		dest = append(dest, mergingFleet.Name)
 
 		for _, token := range mergingFleet.Tokens {

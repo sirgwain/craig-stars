@@ -7,8 +7,6 @@ type Terraformer interface {
 	GetTerraformAbility(player *Player) Hab
 	GetBestTerraform(planet *Planet, player *Player, terraformer *Player) *HabType
 	TerraformHab(planet *Planet, terraformer *Player, habType HabType, amount int) TerraformResult
-	PermaformHab(planet *Planet, planetPlayer *Player, habType HabType, amount int) TerraformResult
-	PermaformOneStep(planet *Planet, player *Player, habType HabType) TerraformResult
 	TerraformOneStep(planet *Planet, player *Player, terraformer *Player, reverse bool) TerraformResult
 	GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab
 	GetMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab
@@ -349,24 +347,6 @@ func (t *terraform) TerraformHab(planet *Planet, terraformer *Player, habType Ha
 	return TerraformResult{Type: habType, Direction: planet.Hab.Get(habType) - hab}
 }
 
-// Permaform a planet a specified amount for the specified hab type
-//
-// Positive amount means increase, negative amount means decrease
-func (t *terraform) PermaformHab(planet *Planet, planetPlayer *Player, habType HabType, amount int) TerraformResult {
-	hab := planet.BaseHab.Get(habType)
-	planet.BaseHab.Set(habType, hab+amount)
-	planet.TerraformedAmount.Set(habType, planet.TerraformedAmount.Get(habType)+amount)
-
-	// if this means our terraformed hab is better as well, improve it
-	fromIdealHab := planetPlayer.Race.HabCenter().Get(habType) - planet.Hab.Get(habType)
-	if fromIdealHab != 0 {
-		planet.Hab.Set(habType, planet.Hab.Get(habType)+amount)
-	}
-
-	// only return actual change in BaseHab
-	return TerraformResult{Type: habType, Direction: planet.BaseHab.Get(habType) - hab}
-}
-
 // Terraforms the planet one step in whatever the best option is
 //
 // If reverse is true, this will terraform in the opposite direction making the planet less habitable
@@ -407,28 +387,4 @@ func (t *terraform) TerraformOneStep(planet *Planet, player *Player, terraformer
 	}
 
 	return TerraformResult{}
-}
-
-// Permanently terraform this planet one step for a specified habtype
-//
-// This adjusts the BaseHab as well as the hab
-func (t *terraform) PermaformOneStep(planet *Planet, player *Player, habType HabType) TerraformResult {
-	direction := 0
-
-	habCenter := player.Race.HabCenter()
-	playerHabIdeal := habCenter.Get(habType)
-	baseHab := planet.BaseHab.Get(habType)
-	fromIdealBaseHab := playerHabIdeal - baseHab
-	if fromIdealBaseHab > 0 {
-		// for example, the planet has Grav 49, but our player wants Grav 50
-		direction = 1
-	} else if fromIdealBaseHab < 0 {
-		// for example, the planet has Grav 51, but our player wants Grav 50
-		direction = -1
-	} else {
-		// planet already perfect, can't improve further
-		return TerraformResult{}
-	}
-
-	return t.PermaformHab(planet, player, habType, direction)
 }

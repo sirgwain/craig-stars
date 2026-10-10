@@ -37,6 +37,17 @@
 	{message.text}
 {:else if message.type === PlayerMessageType.PLANET_COLONIZED}
 	Your colonists are now in control of {planetName}.
+{:else if message.type === PlayerMessageType.PLANET_COLONIZE_CONTESTED}
+	<!-- Amount is the number of players racing for the planet, Amount2 the colonists lost. -->
+	{@const sides = message.spec?.amount ?? 0}
+	{@const winnerNum = message.spec?.mapObjectTarget?.targetPlayerNum ?? 0}
+	{#if winnerNum}
+		Your {(message.spec?.amount2 ?? 0).toLocaleString()} colonists were wiped out in a {sides}-way
+		race to colonize {planetName}. The {$universe.getPlayerPluralName(winnerNum)} now control the planet.
+	{:else}
+		Your colonists were involved in a {sides}-way race to colonize {planetName}. Nobody's colonists
+		survived.
+	{/if}
 {:else if message.type === PlayerMessageType.PLANET_PRODUCTION_QUEUE_EMPTY}
 	The production queue on {planetName} is empty.
 {:else if message.type === PlayerMessageType.PLANET_PRODUCTION_QUEUE_COMPLETE}
@@ -115,7 +126,7 @@
 	{:else}
 		<FallbackMessageDetail {message} />
 	{/if}
-{:else if [PlayerMessageType.PLANET_BUILT_TERRAFORM, PlayerMessageType.PLANET_PERMAFORM, PlayerMessageType.PLANET_PACKET_TERRAFORM, PlayerMessageType.PLANET_PACKET_PERMAFORM].includes(message.type)}
+{:else if [PlayerMessageType.PLANET_BUILT_TERRAFORM, PlayerMessageType.PLANET_PERMAFORM, PlayerMessageType.PLANET_PACKET_TERRAFORM, PlayerMessageType.PLANET_PACKET_PERMAFORM, PlayerMessageType.PLANET_CLIMATE_CHANGE].includes(message.type)}
 	<!-- Amount is the signed change; Amount2 is the resulting raw habitat value. -->
 	{@const direction = (message.spec?.amount ?? 0) > 0 ? 'increased' : 'decreased'}
 	{@const habName = getLongHabName(message.spec?.habType ?? 0)}
@@ -127,6 +138,11 @@
 		Your terraforming efforts on {planetName} have {direction} its {habName} to {habValue}.
 	{:else if message.type === PlayerMessageType.PLANET_PERMAFORM}
 		Your colonists have permanently {direction} the {habName} on {planetName} to {habValue}.
+	{:else if message.type === PlayerMessageType.PLANET_CLIMATE_CHANGE}
+		Fundamental changes in the environment have permanently {message.spec?.amount
+			? direction
+			: 'altered'} the {habName} on {planetName} to {habValue}. Any production on the planet that
+		was not automatic has been cancelled.
 	{:else}
 		Your mineral packet hitting {planetName} has {message.type ===
 		PlayerMessageType.PLANET_PACKET_PERMAFORM

@@ -218,3 +218,30 @@ func (r *researcher) getNextResearchField(player *Player) (nextField TechField) 
 
 	return nextField
 }
+
+// nextLevelCost returns the resources needed to research the next level in a field
+func nextLevelCost(rules *Rules, player *Player, field TechField) int {
+	r := newResearcher(rules)
+	return r.getTotalCost(player.TechLevels, player.Race.ResearchCost.Get(field), player.TechLevels.Get(field))
+}
+
+// addFieldResearch adds bonus research resources to a field, like those from
+// artifacts or tech trades. If the field is the one being researched, any
+// breakthrough moves on to the next research field like normal research.
+func addFieldResearch(rules *Rules, player *Player, field TechField, resources int) {
+	r := newResearcher(rules)
+	gained := func(p *Player, f TechField) {
+		messager.playerGainTechLevel(p, f, p.TechLevels.Get(f), p.Researching)
+		p.updateTechsJustGained(rules.techs, f)
+	}
+	if field == player.Researching {
+		r.research(player, resources, gained)
+	} else {
+		r.researchField(player, field, resources, gained)
+	}
+}
+
+// tech trades grant the full cost of the next level, keeping resources already spent on the field
+func grantTradeResearch(rules *Rules, player *Player, field TechField) {
+	addFieldResearch(rules, player, field, nextLevelCost(rules, player, field))
+}

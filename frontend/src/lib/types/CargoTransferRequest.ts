@@ -217,9 +217,8 @@ export function clampCargoTransfer(
 	// already feasible
 	if (sum >= minSum && sum <= maxSum) return out;
 
-	// We only ever need to pull deltas back toward 0.
-	// If sum is too positive: reduce positive components (dest->src) toward 0
-	// If sum is too negative: reduce negative components (src->dest) toward 0
+	// First pull transfers toward zero. A split can shrink a hold below its current load,
+	// so any remaining correction must move more cargo into the other hold.
 	const want = clamp(sum, minSum, maxSum);
 	let need = Math.abs(sum - want);
 	const reducePositive = sum > want;
@@ -245,6 +244,14 @@ export function clampCargoTransfer(
 		}
 	}
 
-	// (At this point, given sane capacities (totals <= caps), need should reach 0.)
+	for (const k of keys) {
+		if (need <= 0) break;
+		const v = out[k] ?? 0;
+		const available = reducePositive ? v + (src[k] ?? 0) : (dest[k] ?? 0) - v;
+		const take = Math.min(available, need);
+		out[k] = v + (reducePositive ? -take : take);
+		need -= take;
+	}
+
 	return out;
 }
