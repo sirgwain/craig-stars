@@ -2,7 +2,12 @@
 	import type { ProductionPlan } from '#lib/types/cs-proto.js';
 	import type { DesignFinder } from '#lib/services/Universe.js';
 	import { getQueueItemShortName } from '#lib/types/Planet.js';
-	import { getAutoAlchemyDescription, hasQuantity, isAuto } from '#lib/types/QueueItemType.js';
+	import {
+		getAutoAlchemyDescription,
+		getQuantityText,
+		hasQuantity,
+		isAuto
+	} from '#lib/types/QueueItemType.js';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -49,7 +54,10 @@
 								{getQueueItemShortName(queueItem, designFinder)}
 							</div>
 							<div>
-								{#if hasQuantity(queueItem.type)}{queueItem.quantity}{/if}
+								{#if hasQuantity(queueItem.type)}{getQuantityText(
+										queueItem.type,
+										queueItem.quantity
+									)}{/if}
 							</div>
 						</div>
 					</li>

@@ -50,6 +50,15 @@ export const isAuto = (type: QueueItemType): boolean => {
 export const hasQuantity = (type: QueueItemType): boolean =>
 	type !== QueueItemType.AUTO_MINERAL_ALCHEMY;
 
+// Terraforming is queued in clicks of 1%, so its quantity is shown as a percent.
+export const isTerraform = (type: QueueItemType): boolean =>
+	type === QueueItemType.TERRAFORM_ENVIRONMENT ||
+	type === QueueItemType.AUTO_MIN_TERRAFORM ||
+	type === QueueItemType.AUTO_MAX_TERRAFORM;
+
+export const getQuantityText = (type: QueueItemType, quantity: number): string =>
+	isTerraform(type) ? `${quantity}%` : `${quantity}`;
+
 export const getAutoAlchemyDescription = (hasFollowingItem: boolean): string =>
 	hasFollowingItem
 		? 'Creates minerals as needed to build the next order.'
