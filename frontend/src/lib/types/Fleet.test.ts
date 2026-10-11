@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { canTransferCargoType, getTokenDamage, moveDamagedTokens } from './Fleet';
+import { StargateWarpSpeed } from './Consts';
+import { canTransferCargoType, CommandedFleet, getTokenDamage, moveDamagedTokens } from './Fleet';
 import {
 	FleetSchema,
 	MapObjectType,
@@ -8,6 +9,7 @@ import {
 	ShipDesignSchema,
 	ShipDesignSpecSchema,
 	ShipTokenSchema,
+	type Planet,
 	type ShipTokenJson
 } from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
@@ -90,5 +92,79 @@ describe('getTokenDamage test', () => {
 				design
 			)
 		).toEqual({ quantity: 1, percent: 50 });
+	});
+});
+
+describe('trip to a waypoint', () => {
+	const planet = (num: number, dockCapacity: number) =>
+		({
+			mapObject: { num, playerNum: 1 },
+			spec: { planetStarbaseSpec: { dockCapacity } }
+		}) as Planet;
+	const planets = [planet(1, 0), planet(2, -1)];
+	const universe = { getPlanet: (num: number) => planets.find((p) => p.mapObject?.num === num) };
+	const player = { isFriend: (num: number) => num === 1 };
+	const at = (x: number, warpSpeed: number, estFuelUsage: number, planetNum = 0) => ({
+		position: { x, y: 0 },
+		warpSpeed,
+		estFuelUsage,
+		mapObjectTarget: planetNum
+			? { targetType: MapObjectType.PLANET, targetNum: planetNum }
+			: undefined
+	});
+	// out through deep space to a planet with no dock, on to a starbase, then out again
+	const fleet = new CommandedFleet(
+		create(FleetSchema, {
+			mapObject: { type: MapObjectType.FLEET, playerNum: 1, num: 1 },
+			fleetOrders: {
+				waypoints: [
+					at(0, 5, 0),
+					at(100, 5, 40),
+					at(125, 5, 10, 1),
+					at(200, 6, 60, 2),
+					at(210, 9, 5)
+				]
+			}
+		})
+	);
+	type Args = Parameters<typeof fleet.getFuelUsageToWaypoint>;
+	const fuelTo = (index: number) =>
+		fleet.getFuelUsageToWaypoint(
+			player as unknown as Args[0],
+			universe as unknown as Args[1],
+			index
+		);
+
+	it('adds up fuel leg by leg', () => {
+		expect(fuelTo(0)).toBe(0);
+		expect(fuelTo(1)).toBe(40);
+		expect(fuelTo(2)).toBe(50);
+	});
+
+	it('still shows the fuel it takes to reach a starbase', () => {
+		expect(fuelTo(3)).toBe(110);
+	});
+
+	it('starts over after refueling, keeping the most needed at once', () => {
+		// 5mg since the starbase is less than the 110mg it took to get there
+		expect(fuelTo(4)).toBe(110);
+	});
+
+	it('adds up the years of every leg', () => {
+		expect(fleet.getYearsToWaypoint(0)).toBe(0);
+		expect(fleet.getYearsToWaypoint(1)).toBe(4); // 100 ly at warp 5
+		expect(fleet.getYearsToWaypoint(2)).toBe(5); // 25 ly more
+		expect(fleet.getYearsToWaypoint(3)).toBe(8); // 75 ly at warp 6 is 3 years
+		expect(fleet.getYearsToWaypoint(4)).toBe(9); // a short hop still takes a year
+	});
+
+	it('uses a stargate in a year and never arrives at warp 0', () => {
+		const gate = new CommandedFleet(
+			create(FleetSchema, {
+				fleetOrders: { waypoints: [at(0, 5, 0), at(500, StargateWarpSpeed, 0), at(600, 0, 0)] }
+			})
+		);
+		expect(gate.getYearsToWaypoint(1)).toBe(1);
+		expect(gate.getYearsToWaypoint(2)).toBeUndefined();
 	});
 });
