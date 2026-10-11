@@ -233,19 +233,56 @@ func (s *shipDesignService) DeleteShipDesign(ctx context.Context, req *connect.R
 		}
 	}
 
+	// the planet specs and queue estimates are recomputed without the deleted design
+	remainingDesigns := make([]*cs.ShipDesign, 0, len(playerDesigns))
+	for _, d := range playerDesigns {
+		if d.Num != design.Num {
+			remainingDesigns = append(remainingDesigns, d)
+		}
+	}
+	player.Designs = remainingDesigns
+
+	starbasesByPlanetNum := make(map[int]*cs.Fleet)
+	for _, fleet := range leftoverPlayerFleets {
+		if fleet.Starbase {
+			starbasesByPlanetNum[fleet.PlanetNum] = fleet
+		}
+	}
+	planetsWithDeletedStarbase := make(map[int]bool)
+	for _, fleet := range fleetsToDelete {
+		if fleet.Starbase {
+			planetsWithDeletedStarbase[fleet.PlanetNum] = true
+		}
+	}
+
 	// remove this design from any production queues
+	orderer := cs.NewOrderer()
 	planetsToUpdate := []*cs.Planet{}
 	for _, planet := range playerPlanets {
 		newQueue := make([]cs.ProductionQueueItem, 0, len(planet.ProductionQueue))
 		for _, item := range planet.ProductionQueue {
-			if item.DesignNum == design.Num {
-				// remove this design from the queue and mark this planet for update
-				planetsToUpdate = append(planetsToUpdate, planet)
+			if (item.Type == cs.QueueItemTypeShipToken || item.Type == cs.QueueItemTypeStarbase) && item.DesignNum == design.Num {
 				continue
 			}
 			newQueue = append(newQueue, item)
 		}
+		if len(newQueue) == len(planet.ProductionQueue) && !planetsWithDeletedStarbase[planet.Num] {
+			continue
+		}
+
+		// the queue or starbase changed, so update the planet's spec and the estimates of whatever is still queued
 		planet.ProductionQueue = newQueue
+		if starbase := starbasesByPlanetNum[planet.Num]; starbase != nil {
+			if err := starbase.InjectDesigns(remainingDesigns); err != nil {
+				return nil, connect.NewError(connect.CodeInternal, err)
+			}
+			planet.Starbase = starbase
+		}
+		if err := orderer.UpdatePlanetOrders(&game.Rules, player, planet, planet.PlanetOrders); err != nil {
+			slog.Error("update planet after deleting design", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", player.Num), slog.String("Planet", planet.Name))
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+		planetsToUpdate = append(planetsToUpdate, planet)
 	}
 
 	// update fleets to remove tokens, delete fleets without tokens, update planets with production queue changes
