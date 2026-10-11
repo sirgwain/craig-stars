@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { scaleSqrt } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
-	import Area from '../graph/Area.svelte';
 	import AxisX from '../graph/AxisX.html.svelte';
 	import AxisY from '../graph/AxisY.html.svelte';
 	import Line from '../graph/Line.svelte';
+	import RegionX from '../graph/RegionX.svelte';
 	import type { EngineJson } from '#lib/types/cs-proto.js';
 
 	type Props = {
@@ -21,6 +21,11 @@
 			: []
 	);
 
+	// warp speeds above the engine's max safe speed damage the fleet
+	let maxSpeed = $derived(data.length - 1);
+	let maxSafeSpeed = $derived(engine.maxSafeSpeed ?? 0);
+	let hasUnsafeSpeeds = $derived(maxSafeSpeed > 0 && maxSafeSpeed < maxSpeed);
+
 	const xGetter = (d: DataType) => d[0];
 	const yGetter = (d: DataType) => d[1];
 </script>
@@ -35,12 +40,22 @@
 		{data}
 	>
 		<Html>
-			<AxisX />
-			<AxisY ticks={[0, 25, 100, 200, 400, 800]} formatTick={(d) => `${d as number}%`} />
+			<AxisX
+				tickClass={(d) =>
+					d === engine.idealSpeed ? 'text-primary font-bold' : 'text-base-content'}
+			/>
+			<AxisY
+				ticks={[0, 25, 100, 200, 400, 800]}
+				formatTick={(d) => `${d as number}%`}
+				tickClass={(d) => ((d as number) > 100 ? 'text-error' : 'text-base-content')}
+				gridlineClass={(d) => (d === 100 ? 'border-solid' : 'border-dashed')}
+			/>
 		</Html>
 		<ScaledSvg>
+			{#if hasUnsafeSpeeds}
+				<RegionX from={maxSafeSpeed} to={maxSpeed} />
+			{/if}
 			<Line />
-			<Area />
 		</ScaledSvg>
 	</LayerCake>
 </div>

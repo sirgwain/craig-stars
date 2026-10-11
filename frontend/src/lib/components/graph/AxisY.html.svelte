@@ -11,6 +11,8 @@
 	type Props = {
 		gridlines?: boolean;
 		formatTick?: (d: unknown) => string;
+		tickClass?: (d: unknown) => string;
+		gridlineClass?: (d: unknown) => string;
 		ticks?: number | Array<unknown> | undefined;
 		xTick?: number;
 		yTick?: number;
@@ -19,6 +21,8 @@
 	let {
 		gridlines = true,
 		formatTick = (d) => `${d}`,
+		tickClass = () => 'text-base-content',
+		gridlineClass = () => 'border-dashed',
 		ticks = 4,
 		xTick = -4,
 		yTick = -1
@@ -39,13 +43,13 @@
 		>
 			{#if gridlines !== false}
 				<div
-					class="border-t border-dashed border-base-content"
+					class="border-t border-base-content {gridlineClass(tick)}"
 					style="top:0;left:{isBandwidth ? $padding.left : 0}px;right:-{$padding.left +
 						$padding.right}px;"
 				></div>
 			{/if}
 			<div
-				class="text-base-content"
+				class={tickClass(tick)}
 				style="
           top:{yTick}px;
           left:{isBandwidth ? $padding.left + xTick - 4 : 0}px;
