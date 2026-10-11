@@ -143,6 +143,7 @@
 								<TechEngineGraph {engine} />
 							{/if}
 						</div>
+						<TechDescription tech={techLike} />
 					{:else if defense}
 						<div class="grow min-h-[14rem]">
 							{#if !hideGraph}

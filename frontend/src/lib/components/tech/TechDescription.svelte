@@ -287,9 +287,17 @@
 			}
 
 			if (hullComponent.movementBonus && hullComponent.movementBonus > 0) {
+				// movement bonuses are in quarter squares
+				const squares = hullComponent.movementBonus / 4;
 				descriptions.push(
-					`Increases speed in battle by ${hullComponent.movementBonus}
-						${hullComponent.movementBonus === 1 ? 'square' : 'squares'} of movement.`
+					`Increases speed in battle by ${squares < 1 ? `1/${1 / squares}` : squares}
+						${squares <= 1 ? 'square' : 'squares'} of movement.`
+				);
+			}
+
+			if (hullComponent.canJump) {
+				descriptions.push(
+					'This device allows a ship to jump to planetary stargates. The range and weight limits are determined by the destination stargate.'
 				);
 			}
 
@@ -439,19 +447,21 @@
 	});
 </script>
 
-<div class="flex flex-col p-1">
-	{#each stats as stat (stat)}
-		<div class="flex">
-			<div class="w-1/2 text-right font-semibold">{stat.label}:</div>
-			<div class="w-1/2 text-left ml-2">{stat.text}</div>
-		</div>
-	{/each}
+{#if stats.length > 0 || descriptions.length > 0 || warnings.length > 0}
+	<div class="flex flex-col p-1">
+		{#each stats as stat (stat)}
+			<div class="flex">
+				<div class="w-1/2 text-right font-semibold">{stat.label}:</div>
+				<div class="w-1/2 text-left ml-2">{stat.text}</div>
+			</div>
+		{/each}
 
-	<div class="mt-1"></div>
-	{#each descriptions as description (description)}
-		<div>{description}</div>
-	{/each}
-	{#each warnings as warning (warning)}
-		<div class="text-warning">{warning}</div>
-	{/each}
-</div>
+		<div class="mt-1"></div>
+		{#each descriptions as description (description)}
+			<div>{description}</div>
+		{/each}
+		{#each warnings as warning (warning)}
+			<div class="text-warning">{warning}</div>
+		{/each}
+	</div>
+{/if}
