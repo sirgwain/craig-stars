@@ -36,4 +36,30 @@ describe('planetsSortBy', () => {
 	])('sorts by $key', ({ key, want }) => {
 		expect(sorted(key)).toEqual(want);
 	});
+
+	describe('all planets report', () => {
+		const names: Record<number, string> = { 1: 'Zebras', 2: 'Aardvarks' };
+		const finder = { getPlayerPluralName: (num: number | undefined) => names[num ?? 0] ?? '' };
+		const planet = (name: string, playerNum: number, reportAge: number) =>
+			create(PlanetSchema, { mapObject: { name, playerNum, reportAge } });
+		const report = [
+			planet('Unowned', 0, 3),
+			planet('Zed', 1, 0),
+			planet('Beta', 2, 10),
+			planet('Unexplored', 0, -1),
+			planet('Alpha', 2, 1)
+		];
+		const sortedNames = (key: string) =>
+			[...report]
+				.sort(planetsSortBy(key, finder as Parameters<typeof planetsSortBy>[1]))
+				.map((p) => p.mapObject?.name);
+
+		it('sorts owners by name, each with their planets in order, and unowned planets last', () => {
+			expect(sortedNames('owner')).toEqual(['Alpha', 'Beta', 'Zed', 'Unexplored', 'Unowned']);
+		});
+
+		it('sorts report age with the newest first and unexplored planets last', () => {
+			expect(sortedNames('reportAge')).toEqual(['Zed', 'Alpha', 'Unowned', 'Beta', 'Unexplored']);
+		});
+	});
 });

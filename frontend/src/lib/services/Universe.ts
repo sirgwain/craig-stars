@@ -242,7 +242,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	getMyPlanets(sortKey: string, descending: boolean): Planet[] {
 		const planets = [...this.planets];
 
-		planets.sort(planetsSortBy(sortKey));
+		planets.sort(planetsSortBy(sortKey, this));
 		if (descending) {
 			planets.reverse();
 		}
@@ -251,7 +251,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	getPlanets(sortKey: string, descending: boolean): Planet[] {
 		const planets = [...this.planetIntels];
-		planets.sort(planetsSortBy(sortKey));
+		planets.sort(planetsSortBy(sortKey, this));
 		if (descending) {
 			planets.reverse();
 		}

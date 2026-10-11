@@ -27,6 +27,16 @@
 
 	let { planet }: Props = $props();
 
+	let owner = $derived(planet.mapObject?.playerNum ?? None);
+	let reportAge = $derived(planet.mapObject?.reportAge ?? 0);
+	let reportAgeText = $derived(
+		ownedBy(planet, $player.num) || reportAge <= 0
+			? 'Report is current'
+			: reportAge === 1
+				? 'Report is 1 year old'
+				: `Report is ${reportAge} years old`
+	);
+
 	function onPopulationTooltip(e: PointerEvent) {
 		e.preventDefault();
 		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
@@ -78,6 +88,13 @@
 				<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent m-auto" />
 			</div>
 		</div>
+		<!-- A ship without a penetrating scanner can still see who owns a planet it orbits. If the planet
+		     has a starbase, the title above shows the starbase marker. -->
+		{#if owner != None}
+			<div class="text-center" style={`color: ${$universe.getPlayerColor(owner)}`}>
+				{$universe.getPlayerPluralName(owner)}
+			</div>
+		{/if}
 	{:else}
 		<div
 			role="button"
@@ -97,15 +114,7 @@
 		<div class="flex justify-between">
 			<div class="ml-22">
 				<div>
-					{#if ownedBy(planet, $player.num)}
-						Report is current
-					{:else if planet.mapObject?.reportAge === 0}
-						Report is current
-					{:else if planet.mapObject?.reportAge === 1}
-						Report is 1 year old
-					{:else}
-						Report is {planet.mapObject?.reportAge} years old
-					{/if}
+					{reportAgeText}
 				</div>
 			</div>
 			<div>
