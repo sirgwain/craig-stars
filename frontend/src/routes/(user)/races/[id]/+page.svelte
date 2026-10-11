@@ -52,7 +52,8 @@
 		notify('Saved ' + race.pluralName);
 	};
 
-	let saveDisabled = $state(false);
+	let points = $state(0);
+	let saveDisabled = $derived(points < 0);
 </script>
 
 {#if loaded}
@@ -68,12 +69,8 @@
 
 		<ItemTitle>{race.name}</ItemTitle>
 		{#if cs}
-			<RacePoints
-				wasmClient={cs.wasmService}
-				{race}
-				onPointsUpdated={(points) => (saveDisabled = points < 0)}
-			/>
+			<RacePoints wasmClient={cs.wasmService} {race} onPointsUpdated={(p) => (points = p)} />
 		{/if}
-		<RaceEditor bind:race />
+		<RaceEditor bind:race {points} />
 	</form>
 {/if}
