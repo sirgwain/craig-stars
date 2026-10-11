@@ -21,7 +21,7 @@
 </script>
 
 <div class="flex flex-row justify-start gap-3 h-4 text-sm">
-	{#if to && dist}
+	{#if to}
 		<div class="w-10">
 			ID: {numOf(to)}
 		</div>

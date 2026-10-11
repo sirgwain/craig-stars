@@ -38,7 +38,7 @@ import {
 import { UpdateWaypointResult } from '#lib/protogen/craig_stars/v1/fleetservice_pb.js';
 import { CommandedFleet } from '#lib/types/Fleet.js';
 import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '#lib/types/Game.js';
-import { equal, key, type MapObjectLike } from '#lib/types/MapObject.js';
+import { deepSpaceMapObject, equal, key, type MapObjectLike } from '#lib/types/MapObject.js';
 import { getMapObjectTarget, getMapObjectTypeForMessageType } from '#lib/types/Message.js';
 import { CommandedPlanet } from '#lib/types/Planet.js';
 import { CommandedPlayer } from '#lib/types/Player.js';
@@ -1051,9 +1051,7 @@ export async function createGameContext(
 		isStale: () => boolean
 	): Promise<boolean> {
 		const fleet = get(commandedFleet);
-		const sw = get(selectedWaypoint);
 		const currentIndex = get(currentSelectedWaypointIndex);
-		const u = get(universe);
 		const fastest = get(settings).fastestWaypoint || fastestWaypoint;
 		if (!fleet) {
 			return false;
@@ -1073,15 +1071,9 @@ export async function createGameContext(
 		fleet.fleetOrders = result.fleet.fleetOrders;
 		void updateFleetOrders(fleet);
 
-		// select the new waypoint
+		// select the new waypoint, and what's there
 		selectWaypoint(get(commandedFleet)!.fleetOrders.waypoints[result.index]);
-		if (sw && sw.mapObjectTarget?.targetType && sw.mapObjectTarget?.targetNum) {
-			const mo = u.getMapObject(sw.mapObjectTarget);
-
-			if (mo) {
-				selectMapObject(mo);
-			}
-		}
+		selectWaypointMapObject(get(selectedWaypoint));
 
 		return true;
 	}
@@ -1107,7 +1099,6 @@ export async function createGameContext(
 		const fleet = get(commandedFleet);
 		const sw = get(selectedWaypoint);
 		const currentIndex = get(currentSelectedWaypointIndex);
-		const u = get(universe);
 		const fastest = get(settings).fastestWaypoint || fastestWaypoint;
 
 		if (!fleet || !sw) {
@@ -1159,15 +1150,24 @@ export async function createGameContext(
 				create(FleetOrdersSchema);
 			void updateFleetOrders(fleet);
 
-			// select the new waypoint
+			// select the waypoint where it ended up, and what's there
 			selectWaypoint(get(commandedFleet)!.fleetOrders.waypoints[currentIndex]);
-			if (sw && sw.mapObjectTarget?.targetType && sw.mapObjectTarget?.targetNum) {
-				const mo = u.getMapObject(sw.mapObjectTarget);
+			selectWaypointMapObject(get(selectedWaypoint));
+		}
+	}
 
-				if (mo) {
-					selectMapObject(mo);
-				}
+	// select whatever is at a waypoint: its target, or the point in space for a waypoint with no target
+	function selectWaypointMapObject(wp: Waypoint | undefined) {
+		if (!wp) {
+			return;
+		}
+		if (wp.mapObjectTarget?.targetType && wp.mapObjectTarget.targetNum) {
+			const mo = get(universe).getMapObject(wp.mapObjectTarget);
+			if (mo) {
+				selectMapObject(mo);
 			}
+		} else {
+			selectMapObject(deepSpaceMapObject(wp.position));
 		}
 	}
 
@@ -1183,7 +1183,6 @@ export async function createGameContext(
 		const fleet = get(commandedFleet);
 		const sw = get(selectedWaypoint);
 		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
-		const u = get(universe);
 
 		if (!fleet || !sw || selectedWaypointIndex == 0) {
 			return;
@@ -1200,11 +1199,7 @@ export async function createGameContext(
 		// select the previous waypoint
 		const wp = fleet.fleetOrders?.waypoints[selectedWaypointIndex - 1];
 		selectWaypoint(wp);
-
-		const mo = u.getMapObject(wp.mapObjectTarget);
-		if (mo) {
-			selectMapObject(mo);
-		}
+		selectWaypointMapObject(wp);
 
 		updateFleetOrders(fleet);
 	}

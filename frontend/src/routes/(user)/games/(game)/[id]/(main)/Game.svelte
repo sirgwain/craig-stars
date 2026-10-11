@@ -21,6 +21,7 @@
 	import { MapObjectType, type WaypointDest } from '#lib/types/cs-proto.js';
 	import {
 		commandable,
+		deepSpaceMapObject,
 		equal as mapObjectEqual,
 		ownedBy,
 		type MapObjectLike
@@ -296,6 +297,9 @@
 			if (mo) {
 				selectMapObject(mo);
 			}
+		} else {
+			// a waypoint in deep space selects that point in space
+			selectMapObject(deepSpaceMapObject(wp.position));
 		}
 	}
 

@@ -76,6 +76,16 @@ export function getMapObjectName(mo: MapObjectLike | Fleet | undefined): string 
 	return mo.mapObject?.name ?? '';
 }
 
+// A point in deep space, as a mapobject. Waypoints with no target use these so they can be picked and selected.
+export function deepSpaceMapObject(position: Vector | undefined): MapObjectLike {
+	return {
+		mapObject: create(MapObjectSchema, {
+			position,
+			name: `Space (${position?.x ?? 0}, ${position?.y ?? 0})`
+		})
+	};
+}
+
 // get the underlying map object as a destructurable item
 export function getUnderlyingMapObject(mo: MapObjectLike | undefined) {
 	const t = mo?.mapObject?.type ?? '';

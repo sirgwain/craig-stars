@@ -6,6 +6,8 @@ export const fixedScannerColors = {
 	// with green, which makes it cyan
 	waypointLine: '#0000FF',
 	waypointLineCommanded: '#00FFFF',
+	// While a waypoint is dragged, Stars! leaves the old path and XORs the new one over black, which is green.
+	waypointLineDragging: '#00FF00',
 	// White ticks with a dark outline contrast with space and scanner coverage.
 	yearTick: '#FFFFFF'
 };
