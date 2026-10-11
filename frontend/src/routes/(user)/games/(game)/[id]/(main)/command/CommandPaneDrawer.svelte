@@ -282,7 +282,7 @@
 					</div>
 				</DisclosureHeader>
 
-				<MapObjectSummaryCollapsed mapObject={summaryMapObject} />
+				<MapObjectSummaryCollapsed mapObject={summaryMapObject} {onShowCargoTransferDialog} />
 			</div>
 		{/if}
 	</div>

@@ -10,6 +10,7 @@
 	import { enumToString } from '#lib/types/Enums.js';
 	import {
 		canTransferCargo,
+		canTransferCargoOrFuel,
 		CommandedFleet,
 		getDamagePercentForToken,
 		getTokenDamage
@@ -47,6 +48,12 @@
 	function getMass(fleet: Fleet): number {
 		return fleet.spec?.shipDesignSpec?.mass ?? 0;
 	}
+
+	let canTransferFuel = $derived(
+		!!onShowCargoTransferDialog &&
+			ownedBy(fleet, $player.num) &&
+			canTransferCargoOrFuel(fleet, new CommandedFleet(fleet).getCargoTransferTarget($universe))
+	);
 
 	function transfer() {
 		if (!onShowCargoTransferDialog) {
@@ -97,7 +104,11 @@
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Fuel:</div>
 				<div class="grow">
-					<FuelBar value={fleet.fuel} capacity={fleet.spec?.shipDesignSpec?.fuelCapacity ?? 0} />
+					<FuelBar
+						value={fleet.fuel}
+						capacity={fleet.spec?.shipDesignSpec?.fuelCapacity ?? 0}
+						onPress={canTransferFuel ? transfer : undefined}
+					/>
 				</div>
 			</div>
 			<div class="flex flex-row">

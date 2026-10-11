@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { StargateWarpSpeed } from './Consts';
-import { canTransferCargoType, CommandedFleet, getTokenDamage, moveDamagedTokens } from './Fleet';
+import {
+	canTransferCargoOrFuel,
+	canTransferCargoType,
+	CommandedFleet,
+	getTokenDamage,
+	moveDamagedTokens
+} from './Fleet';
 import {
 	FleetSchema,
 	MapObjectType,
@@ -51,6 +57,28 @@ describe('canTransferCargoType test', () => {
 		const salvage = create(SalvageSchema, { mapObject: { type: MapObjectType.SALVAGE } });
 		expect(canTransferCargoType(fleet, salvage, ResourceType.COLONISTS)).toBe(false);
 		expect(canTransferCargoType(fleet, salvage, ResourceType.GERMANIUM)).toBe(true);
+	});
+});
+
+describe('canTransferCargoOrFuel test', () => {
+	const scout = create(FleetSchema, { mapObject: { playerNum: 1, type: MapObjectType.FLEET } });
+	const freighter = create(FleetSchema, {
+		mapObject: { playerNum: 1, type: MapObjectType.FLEET },
+		spec: { shipDesignSpec: { cargoCapacity: 70 } }
+	});
+
+	it('always opens for a fleet with a cargo hold', () => {
+		expect(canTransferCargoOrFuel(freighter, undefined)).toBe(true);
+	});
+
+	it('opens for a fleet with no hold only when it can trade fuel with our own fleet', () => {
+		const ours = create(FleetSchema, { mapObject: { playerNum: 1, type: MapObjectType.FLEET } });
+		const theirs = create(FleetSchema, { mapObject: { playerNum: 2, type: MapObjectType.FLEET } });
+		const salvage = create(SalvageSchema, { mapObject: { type: MapObjectType.SALVAGE } });
+		expect(canTransferCargoOrFuel(scout, ours)).toBe(true);
+		expect(canTransferCargoOrFuel(scout, theirs)).toBe(false);
+		expect(canTransferCargoOrFuel(scout, salvage)).toBe(false);
+		expect(canTransferCargoOrFuel(scout, undefined)).toBe(false);
 	});
 });
 

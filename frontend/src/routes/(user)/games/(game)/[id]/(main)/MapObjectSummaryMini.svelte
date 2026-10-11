@@ -3,7 +3,9 @@
 	import FuelBar from '#lib/components/game/FuelBar.svelte';
 	import PlanetHabValue from '#lib/components/game/PlanetHabValue.svelte';
 	import Starbase from '#lib/components/icons/Starbase.svelte';
+	import type { ShowCargoTransferDialogProps } from '#lib/services/Events.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
+	import { canTransferCargo, canTransferCargoOrFuel, CommandedFleet } from '#lib/types/Fleet.js';
 	import { population } from '#lib/types/Cargo.js';
 	import { getUnderlyingMapObject, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
 	import FleetSummary from './FleetSummary.svelte';
@@ -19,15 +21,33 @@
 
 	type Props = {
 		mapObject: MapObjectLike | undefined;
-	};
+	} & ShowCargoTransferDialogProps;
 
-	let { mapObject }: Props = $props();
+	let { mapObject, onShowCargoTransferDialog }: Props = $props();
 
 	let { planet, fleet, wormhole, minefield, mysteryTrader, salvage, mineralPacket } = $derived(
 		getUnderlyingMapObject(mapObject)
 	);
 
 	let playerFleet = $derived($universe.getMyFleet(fleet?.mapObject?.num));
+
+	// tapping the cargo or fuel bar opens the transfer dialog, like it does in the full summary
+	let transferFleet = $derived(playerFleet ? new CommandedFleet(playerFleet) : undefined);
+	let transferTarget = $derived(transferFleet?.getCargoTransferTarget($universe));
+	let canTransfer = $derived(
+		!!onShowCargoTransferDialog && !!transferFleet && canTransferCargo(transferFleet)
+	);
+	let canTransferFuel = $derived(
+		!!onShowCargoTransferDialog &&
+			!!transferFleet &&
+			canTransferCargoOrFuel(transferFleet, transferTarget)
+	);
+
+	function transfer() {
+		if (transferFleet) {
+			onShowCargoTransferDialog?.({ src: transferFleet, dest: transferTarget });
+		}
+	}
 </script>
 
 <div class="flex flex-row justify-start gap-3 text-sm">
@@ -99,6 +119,7 @@
 						<FuelBar
 							value={playerFleet.fuel}
 							capacity={playerFleet.spec?.shipDesignSpec?.fuelCapacity ?? 0}
+							onPress={canTransferFuel ? transfer : undefined}
 						/>
 					</div>
 				</div>
@@ -106,6 +127,8 @@
 					<div class="w-32 text-tile-item-title">Cargo:</div>
 					<div class="grow">
 						<CargoBar
+							onPointerDown={transfer}
+							canTransferCargo={canTransfer}
 							value={playerFleet.cargo}
 							capacity={playerFleet.spec?.shipDesignSpec?.cargoCapacity}
 						/>

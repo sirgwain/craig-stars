@@ -3,7 +3,11 @@
 	import FuelBar from '#lib/components/game/FuelBar.svelte';
 	import type { ShowCargoTransferDialogProps } from '#lib/services/Events.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
-	import { canTransferCargo, type CommandedFleet } from '#lib/types/Fleet.js';
+	import {
+		canTransferCargo,
+		canTransferCargoOrFuel,
+		type CommandedFleet
+	} from '#lib/types/Fleet.js';
 	import CommandTile from './CommandTile.svelte';
 
 	const { universe } = getGameContext();
@@ -13,6 +17,11 @@
 	} & ShowCargoTransferDialogProps;
 
 	let { fleet, onShowCargoTransferDialog }: Props = $props();
+
+	let canTransferFuel = $derived(
+		!!onShowCargoTransferDialog &&
+			canTransferCargoOrFuel(fleet, fleet.getCargoTransferTarget($universe))
+	);
 
 	function transfer() {
 		if (!onShowCargoTransferDialog) {
@@ -31,8 +40,11 @@
 		<div class="flex justify-between my-1">
 			<div class="w-12 text-tile-item-title">Fuel</div>
 			<div class="ml-1 size-full">
-				<!-- TODO: add fuel transfer -->
-				<FuelBar value={fleet.fuel} capacity={fleet.spec.shipDesignSpec?.fuelCapacity ?? 0} />
+				<FuelBar
+					value={fleet.fuel}
+					capacity={fleet.spec.shipDesignSpec?.fuelCapacity ?? 0}
+					onPress={canTransferFuel ? transfer : undefined}
+				/>
 			</div>
 		</div>
 
