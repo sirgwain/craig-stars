@@ -17,7 +17,7 @@
 	let numSubmitted = $derived(game.players.filter((p) => p.submittedTurn).length);
 </script>
 
-<div class="col-span-5">
+<div class="col-span-5 min-w-0">
 	<a
 		class="text-primary text-2xl hover:text-accent w-full"
 		href="/games/{game.game?.id}"
@@ -38,7 +38,7 @@
 {#if game.game?.hostId == BigInt($me.id)}
 	<div class="col-span-2 flex justify-center join">
 		<button onclick={onArchive} class="btn btn-error btn-sm rounded-l-md" title="Archive Game">
-			<Archive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
+			<Archive class="hover:stroke-accent size-4  stroke-base-content fill-none" />
 		</button>
 		<button
 			onclick={onDelete}
@@ -53,7 +53,7 @@
 {:else}
 	<div class="col-span-2 flex justify-center">
 		<button onclick={onArchive} class="btn btn-error btn-sm rounded-md" title="Archive Game">
-			<Archive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
+			<Archive class="hover:stroke-accent size-4  stroke-base-content fill-none" />
 		</button>
 	</div>
 {/if}

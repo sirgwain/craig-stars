@@ -12,7 +12,7 @@
 	let { text, ...rest }: Props = $props();
 </script>
 
-<div class="flex flex-col sm:w-[26rem] m-auto ${rest.class ?? ''}">
+<div class="flex flex-col sm:w-104 m-auto ${rest.class ?? ''}">
 	<div>
 		{text}
 	</div>

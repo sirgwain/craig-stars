@@ -62,9 +62,9 @@
 </script>
 
 <div class="flex flex-row justify-center px-1 w-full">
-	<div class="flex flex-col grow">
+	<div class="flex flex-col grow min-w-0">
 		<div class="text-xl font-semibold w-full text-center">Fleets to Merge</div>
-		<div class="border border-secondary bg-base-300 min-w-fit max-h-[26rem] h-full overflow-y-auto">
+		<div class="border border-secondary bg-base-300 min-w-0 max-h-104 h-full overflow-y-auto">
 			<ul class="w-full p-1">
 				{#each otherFleetsHere as otherFleet, index (key(otherFleet))}
 					{#if otherFleet.mapObject?.num !== fleet.mapObject.num}
@@ -73,7 +73,12 @@
 							class="pl-1"
 							class:bg-primary-focus={selectedFleetIndexes.indexOf(index) != -1}
 						>
-							<button class="w-full text-left" type="button" onclick={() => select(index)}>
+							<button
+								class="w-full text-left truncate"
+								type="button"
+								title={getMapObjectName(otherFleet)}
+								onclick={() => select(index)}
+							>
 								{getMapObjectName(otherFleet)}
 							</button>
 						</li>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MaxNameLength } from '#lib/types/Consts.js';
 	import TextInput from '#lib/components/TextInput.svelte';
 	import { WaypointTransportTasksSchema, type TransportPlan } from '#lib/types/cs-proto.js';
 	import { create } from '@bufbuild/protobuf';
@@ -21,5 +22,5 @@
 	});
 </script>
 
-<TextInput name="name" bind:value={name} required />
+<TextInput name="name" bind:value={name} required maxlength={MaxNameLength} />
 <TransportTasks bind:transportTasks={tasks} />

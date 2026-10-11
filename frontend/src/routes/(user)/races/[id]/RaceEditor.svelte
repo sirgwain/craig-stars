@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MaxNameLength } from '#lib/types/Consts.js';
 	import EnumSelect from '#lib/components/EnumSelect.svelte';
 	import LRTsDescriptions from '#lib/components/game/race/LRTsDescriptions.svelte';
 	import PRTDescription from '#lib/components/game/race/PRTDescription.svelte';
@@ -24,8 +25,8 @@
 	}
 </script>
 
-<TextInput name="name" bind:value={race.name} />
-<TextInput name="pluralName" bind:value={race.pluralName} />
+<TextInput name="name" bind:value={race.name} maxlength={MaxNameLength} />
+<TextInput name="pluralName" bind:value={race.pluralName} maxlength={MaxNameLength} />
 <EnumSelect
 	name="spendLeftoverPointsOn"
 	enumType={SpendLeftoverPointsOn}

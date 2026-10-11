@@ -10,7 +10,7 @@
 	title="Idle Fleets Filter"
 	class:btn-primary={$settings.showIdleFleetsOnly}
 	class:btn-ghost={!$settings.showIdleFleetsOnly}
-	class="btn btn-ghost fill-current btn-xs w-full h-full p-0"
+	class="btn btn-ghost fill-current btn-xs size-full p-0"
 	onclick={() => ($settings.showIdleFleetsOnly = !$settings.showIdleFleetsOnly)}
-	><IdleFleets class="w-6 h-6" /></a
+	><IdleFleets class="size-6 " /></a
 >

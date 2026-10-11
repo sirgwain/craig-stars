@@ -112,6 +112,10 @@
 	[role='button']:not(:disabled) {
 		cursor: pointer;
 	}
+	/* long user entered names (fleets, designs, races, etc) wrap instead of overflowing */
+	body {
+		overflow-wrap: break-word;
+	}
 }
 
 /* Preserve the existing game density; explicit sizing utilities still take precedence. */
@@ -179,6 +183,9 @@
 	.select {
 		font-size: 0.875rem;
 		padding-inline-end: 2.5rem;
+		/* keep long names out of the padding so they don't run under the arrow */
+		overflow: clip;
+		overflow-clip-margin: content-box;
 	}
 	.input-xs,
 	.select-xs {

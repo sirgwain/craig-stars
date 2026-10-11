@@ -68,7 +68,7 @@
 {#if selectedWaypoint}
 	<CommandTile title="Fleet Composition">
 		<div class="bg-base-100 h-20 overflow-y-auto">
-			<ul class="w-full h-full">
+			<ul class="size-full">
 				{#each fleet.tokens as token, index (index)}
 					<li class="pl-1">
 						<button
@@ -89,10 +89,10 @@
 										class="damage-bar h-full absolute opacity-50"
 									></div>
 								{/if}
-								<div>
+								<div class="min-w-0 truncate">
 									{$universe.getDesign($player.num, token.designNum)?.name}
 								</div>
-								<div>
+								<div class="shrink-0 pl-1">
 									{token.quantity}
 								</div>
 							</div>

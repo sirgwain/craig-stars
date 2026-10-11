@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MaxNameLength } from '#lib/types/Consts.js';
 	import CheckboxInput from '#lib/components/CheckboxInput.svelte';
 	import EnumSelect from '#lib/components/EnumSelect.svelte';
 	import TextInput from '#lib/components/TextInput.svelte';
@@ -35,7 +36,7 @@
 	});
 </script>
 
-<TextInput name="name" bind:value={name} required />
+<TextInput name="name" bind:value={name} required maxlength={MaxNameLength} />
 <EnumSelect name="primaryTarget" enumType={BattleTarget} bind:value={primaryTarget} />
 <EnumSelect
 	name="secondaryTarget"

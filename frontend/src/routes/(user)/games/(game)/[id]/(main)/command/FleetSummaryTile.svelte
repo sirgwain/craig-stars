@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MaxNameLength } from '#lib/types/Consts.js';
 	import type { NextPrevMapObjectProps, RenameFleetProps } from '#lib/services/Events.js';
 
 	import { getGameContext } from '#lib/services/GameContext.js';
@@ -30,7 +31,7 @@
 			name = $universe.getMyDesign(fleet.tokens[0].designNum)?.name ?? '';
 		}
 		if (name !== '') {
-			onRenameFleet?.({ fleet, name });
+			onRenameFleet?.({ fleet, name: name.slice(0, MaxNameLength) });
 		}
 	}
 </script>
@@ -39,7 +40,7 @@
 	<div class="grid grid-cols-2">
 		<div class="avatar border border-secondary p-2 bg-black m-auto relative">
 			{#if fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
-				<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
+				<div class="absolute -right-2 -top-1 text-xl size-6">+</div>
 			{/if}
 			<div class="fleet-avatar {getHullIcon(design)} bg-black"></div>
 		</div>

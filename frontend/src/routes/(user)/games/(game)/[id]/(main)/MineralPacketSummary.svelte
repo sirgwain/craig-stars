@@ -13,7 +13,7 @@
 	let target = $derived($universe.getPlanet(mineralPacket.targetPlanetNum));
 </script>
 
-<div class="flex flex-row md:min-h-[11rem]">
+<div class="flex flex-row md:min-h-44">
 	<div class="flex flex-col">
 		<div class="avatar">
 			<div class="mapobject-avatar-wrapper">

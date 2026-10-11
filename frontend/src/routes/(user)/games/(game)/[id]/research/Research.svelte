@@ -45,7 +45,7 @@
 >
 	<div class="stat place-items-center sm:grow">
 		<div class="stat-title">Researching</div>
-		<div class="stat-figure"><Icon class="w-8 h-8" src={Beaker} /></div>
+		<div class="stat-figure"><Icon class="size-8 " src={Beaker} /></div>
 		<div class="stat-value">
 			{enumToString(TechField, $player.playerOrders.researching)}
 			{getLevel($player, $player.playerOrders.researching) + 1}
@@ -60,7 +60,7 @@
 	</div>
 	<div class="stat place-items-center sm:grow">
 		<div class="stat-title">Resources Available</div>
-		<div class="stat-figure"><Factory class="w-8 h-8 fill-primary" /></div>
+		<div class="stat-figure"><Factory class="size-8  fill-primary" /></div>
 		<div class="stat-value">
 			{spec.resourcesPerYear}
 		</div>
@@ -71,14 +71,14 @@
 >
 	<div class="stat place-items-center sm:grow">
 		<div class="stat-title">Spent Last Year</div>
-		<div class="stat-figure"><Microscope class="w-8 h-8 fill-primary" /></div>
+		<div class="stat-figure"><Microscope class="size-8  fill-primary" /></div>
 		<div class="stat-value">
 			{$player.researchSpentLastYear}
 		</div>
 	</div>
 	<div class="grow stat place-items-center">
 		<div class="stat-title">Estimated Spending Next Year</div>
-		<div class="stat-figure"><Microscope class="w-8 h-8 fill-warning" /></div>
+		<div class="stat-figure"><Microscope class="size-8  fill-warning" /></div>
 		<div class="stat-value">
 			{spec.resourcesPerYearResearchEstimated}
 		</div>

@@ -116,7 +116,7 @@
 		{/if}
 
 		<div class="dropdown">
-			<label class="avatar w-8 h-8 place-content-center mx-1">
+			<label class="avatar size-8 place-content-center mx-1">
 				<UserAvatar user={$me} />
 			</label>
 		</div>
@@ -131,7 +131,7 @@
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<div
 				tabindex="0"
-				class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-300 w-[22rem] md:w-auto"
+				class="menu menu-sm dropdown-content mt-3 p-2 shadow-sm bg-base-300 w-88 md:w-auto"
 			>
 				<div class="flex flex-row justify-between">
 					<ul class="mt-11">
@@ -186,7 +186,7 @@
 										href={`/games/${$game.id}?asPlayer=${p.num}`}
 										class:active={p.num === $player.num}
 									>
-										<span class="w-3 h-3 rounded-full inline-block" style:background-color={p.color}
+										<span class="size-3 rounded-full inline-block" style:background-color={p.color}
 										></span>
 										{p.name}
 									</a>

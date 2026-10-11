@@ -63,7 +63,7 @@
 		>
 			<button
 				type="button"
-				class="w-full h-full text-left"
+				class="size-full text-left"
 				onpointerdown={(e) => onTechTooltip(e, futureTech.tech, true)}
 				>{futureTech.tech.tech?.name}</button
 			>

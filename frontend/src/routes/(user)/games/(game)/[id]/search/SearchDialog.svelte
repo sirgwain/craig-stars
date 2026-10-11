@@ -15,7 +15,7 @@
 
 <div class="modal" class:modal-open={show}>
 	<div
-		class="modal-box max-w-full max-h-max h-full w-full md:max-w-[40rem] md:max-h-[48rem] p-2"
+		class="modal-box max-w-full max-h-max size-full md:max-w-160 md:max-h-192 p-2"
 		use:clickOutside={onCancel}
 	>
 		{#if show}

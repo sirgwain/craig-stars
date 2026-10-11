@@ -42,15 +42,15 @@
 	}
 </script>
 
-<div class="dropdown h-full w-full" class:dropdown-end={end}>
+<div class="dropdown size-full" class:dropdown-end={end}>
 	<div
 		tabindex="0"
 		role="button"
 		{title}
 		aria-label={title}
-		class="btn btn-ghost btn-xs w-full h-full p-0"
+		class="btn btn-ghost btn-xs size-full p-0"
 	>
-		<Icon src={ChevronDown} class="w-3 h-3" />
+		<Icon src={ChevronDown} class="size-3 " />
 	</div>
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<ul

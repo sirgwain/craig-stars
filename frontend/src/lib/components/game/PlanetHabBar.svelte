@@ -41,7 +41,7 @@
 	class:cursor-help={!!onTooltip}
 	onpointerdown={onTooltip}
 >
-	<div class="text-right w-[5.5rem] text-tile-item-title">{habTypeString(habType)}</div>
+	<div class="text-right w-22 text-tile-item-title">{habTypeString(habType)}</div>
 	<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 		<div class="h-full relative">
 			{#if !immune}
@@ -66,5 +66,5 @@
 			/>
 		</div>
 	</div>
-	<div class="w-[3rem]">{getHabValueString(habType, value)}</div>
+	<div class="w-12">{getHabValueString(habType, value)}</div>
 </div>

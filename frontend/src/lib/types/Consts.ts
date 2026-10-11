@@ -26,6 +26,9 @@ export const UnlimitedSpaceDock = -1;
 export const NoScanner = -1;
 export const NoGate = -1;
 export const Infinite = -1;
+// the longest name a player can give a fleet, design, race or plan
+export const MaxNameLength = 80;
+export const MaxGameNameLength = 100;
 export const InfiniteGate = 2147483647; /* math.MaxInt32 */
 export const ReportAgeUnexplored = -1;
 export const Unowned = 0;

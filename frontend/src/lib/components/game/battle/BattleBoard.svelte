@@ -25,7 +25,7 @@
 			<!-- the grid of the board -->
 			<div class="flex flex-col md:mt-7">
 				<div
-					class="w-[690px] h-[690px] relative grid grid-cols-10 grid-cols-max grid-rows-max border-2 border-secondary rounded-md gap-0"
+					class="size-[690px] relative grid grid-cols-10 grid-cols-max grid-rows-max border-2 border-secondary rounded-md gap-0"
 				>
 					<BattleBoardAttack {battle} {phase} />
 

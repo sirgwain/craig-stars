@@ -64,7 +64,7 @@
 	}
 </script>
 
-<div class="flex flex-col md:min-h-[11rem] select-none w-full">
+<div class="flex flex-col md:min-h-44 select-none w-full">
 	{#if planet.mapObject?.reportAge === ReportAgeUnexplored}
 		<div class="relative w-full m-auto">
 			<!-- Icon on the left -->
@@ -87,7 +87,7 @@
 			class="flex justify-between cursor-help"
 			onpointerdown={onPopulationTooltip}
 		>
-			<div class="ml-[5.5rem]">
+			<div class="ml-22">
 				Value: <PlanetHabValue {planet} />
 			</div>
 			{#if population(planet.cargo)}
@@ -95,7 +95,7 @@
 			{/if}
 		</div>
 		<div class="flex justify-between">
-			<div class="ml-[5.5rem]">
+			<div class="ml-22">
 				<div>
 					{#if ownedBy(planet, $player.num)}
 						Report is current

@@ -522,10 +522,10 @@
 	class="flex flex-col h-full bg-base-200 shadow-sm rounded-xs border-2 border-base-300 text-base"
 >
 	<div class="text-center"><h2 class="text-lg">{planet.mapObject.name}</h2></div>
-	<div class="flex-col h-full w-full">
-		<div class="flex flex-col h-full w-full">
-			<div class="flex flex-row h-full w-full grid-cols-3">
-				<div class="flex-1 h-full bg-base-100 py-1 px-1">
+	<div class="flex-col size-full">
+		<div class="flex flex-col size-full">
+			<div class="flex flex-row size-full grid-cols-3">
+				<div class="flex-1 min-w-0 h-full bg-base-100 p-1">
 					<div class="flex flex-col h-full">
 						<ul class="grow h-20 overflow-y-auto">
 							{#if availableShipDesigns.length > 0}
@@ -547,7 +547,7 @@
 											class:text-queue-item-this-year={estimate.yearsToBuildOne == 1}
 											class:text-queue-item-next-year={estimate.yearsToBuildOne == 2}
 											class:text-queue-item-never={estimate.yearsToBuildOne == Infinite}
-											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
+											class="w-full pl-0.5 text-left truncate cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
 											{getFullName(item, $universe)}
@@ -575,7 +575,7 @@
 											class:text-queue-item-this-year={estimate.yearsToBuildOne == 1}
 											class:text-queue-item-next-year={estimate.yearsToBuildOne == 2}
 											class:text-queue-item-never={estimate.yearsToBuildOne == Infinite}
-											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
+											class="w-full pl-0.5 text-left truncate cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
 											{getFullName(item, $universe)}
@@ -594,7 +594,7 @@
 										ondblclick={() => addAvailableItem(item)}
 										class:italic={isAuto(item.type)}
 										class:bg-primary={item === selectedAvailableItem}
-										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
+										class="w-full pl-0.5 text-left truncate cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 									>
 										{getFullName(item, $universe)}
@@ -703,7 +703,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="flex-1 h-full bg-base-100 py-1">
+				<div class="flex-1 min-w-0 h-full bg-base-100 py-1">
 					<div class="flex flex-col h-full">
 						<ul class="grow h-20 overflow-y-auto">
 							<li>

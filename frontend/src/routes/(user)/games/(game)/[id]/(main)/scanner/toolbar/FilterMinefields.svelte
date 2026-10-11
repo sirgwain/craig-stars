@@ -35,7 +35,7 @@
 	}
 </script>
 
-<div class="dropdown h-full w-full">
+<div class="dropdown size-full">
 	<div
 		tabindex="0"
 		role="button"
@@ -44,9 +44,9 @@
 		data-filter="minefields"
 		class:btn-primary={shown.length > 0}
 		class:btn-ghost={shown.length === 0}
-		class="btn btn-xs w-full h-full p-0"
+		class="btn btn-xs size-full p-0"
 	>
-		<Minefield class="w-6 h-6" />
+		<Minefield class="size-6 " />
 	</div>
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<ul

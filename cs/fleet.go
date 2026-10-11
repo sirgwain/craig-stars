@@ -5,7 +5,11 @@ import (
 	"log/slog"
 	"math"
 	"slices"
+	"strings"
 )
+
+// the longest name a player can give a fleet or design
+const MaxNameLength = 80
 
 // warpspeed for using a stargate vs moving with warp drive
 const StargateWarpSpeed = 11
@@ -380,7 +384,11 @@ func (f *Fleet) Rename(name string) {
 
 // RenameByPlayer sets a player chosen name for the fleet. Unlike Rename, the fleet number
 // is not added to the name.
+// Names longer than MaxNameLength are cut short.
 func (f *Fleet) RenameByPlayer(name string) {
+	if runes := []rune(name); len(runes) > MaxNameLength {
+		name = strings.TrimSpace(string(runes[:MaxNameLength]))
+	}
 	f.BaseName = name
 	f.Name = name
 }

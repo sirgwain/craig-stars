@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MaxGameNameLength } from '#lib/types/Consts.js';
 	import CheckboxInput from '#lib/components/CheckboxInput.svelte';
 	import EnumSelect from '#lib/components/EnumSelect.svelte';
 	import TextInput from '#lib/components/TextInput.svelte';
@@ -24,7 +25,7 @@
 	{#if showInviteLink && !settings.public}
 		<PrivateGameLink />
 	{/if}
-	<TextInput name="name" bind:value={settings.name} />
+	<TextInput name="name" bind:value={settings.name} maxlength={MaxGameNameLength} />
 	<EnumSelect name="size" enumType={Size} bind:value={settings.size} />
 	<EnumSelect name="density" enumType={Density} bind:value={settings.density} />
 	<EnumSelect

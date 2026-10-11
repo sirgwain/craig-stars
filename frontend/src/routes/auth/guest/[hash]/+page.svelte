@@ -43,14 +43,14 @@
 </script>
 
 {#if loginError == ''}
-	<div class="flex items-center justify-center min-h-[100dvh] card">
+	<div class="flex items-center justify-center min-h-dvh card">
 		<div class="px-8 py-6 mt-4 bg-base-200 shadow-xl flex flex-col">
 			<LoadingSpinner />
 			<div class="mt-2">Signing in as guest</div>
 		</div>
 	</div>
 {:else}
-	<div class="flex items-center justify-center min-h-[100dvh] card">
+	<div class="flex items-center justify-center min-h-dvh card">
 		<div class="px-8 py-6 mt-4 bg-base-200 shadow-xl flex flex-col">
 			<div class="mt-2 text-error">Guest Login Failed</div>
 		</div>

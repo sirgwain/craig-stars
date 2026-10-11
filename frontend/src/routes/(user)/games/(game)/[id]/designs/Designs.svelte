@@ -117,7 +117,7 @@
 				{#if column.key === 'name'}
 					<div class="flex flex-row">
 						<button
-							class="w-full h-full cursor-help text-left"
+							class="size-full cursor-help text-left"
 							aria-label="Opens ship design visual"
 							onpointerdown={(e) => onShipDesignTooltip(e, row)}
 						>
@@ -130,7 +130,7 @@
 								</div>
 							</div>
 						</button>
-						<div class="text-left w-full my-auto">
+						<div class="text-left w-full max-w-[20rem] truncate my-auto">
 							<a href={`/games/${$game.id}/designs/${row.playerNum}/${row.num}`} class="cs-link">
 								{cell}
 							</a>
@@ -160,7 +160,7 @@
 					<BattleSpeed speed={row.spec?.movement ?? 0}></BattleSpeed>
 				{:else if column.key === 'hull'}
 					<button
-						class="w-full h-full cursor-help text-left"
+						class="size-full cursor-help text-left"
 						onpointerdown={(e) => onTechTooltip(e, $techs.getTech(row.hull))}
 						>{cell}
 						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" /></button

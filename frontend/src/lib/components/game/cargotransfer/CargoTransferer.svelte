@@ -243,9 +243,9 @@
 </script>
 
 {#if src.spec}
-	<div class="flex flex-row h-full w-full grid-cols-3">
-		<div class="flex-1 h-full bg-base-100 py-1 px-1">
-			<h1 class="text-xl text-center font-semibold h-[2rem]">
+	<div class="flex flex-row size-full grid-cols-3">
+		<div class="flex-1 min-w-0 h-full bg-base-100 p-1">
+			<h1 class="text-xl text-center font-semibold h-8 truncate" title={src.mapObject.name}>
 				<span class:hidden={!showHeader}>
 					{src.mapObject.name}
 				</span>
@@ -309,9 +309,9 @@
 				<QuantityModifierButtons bind:modifier={quantityModifier} />
 			</div>
 		</div>
-		<div class="flex-1 h-full bg-base-100 py-1 px-1">
+		<div class="flex-1 min-w-0 h-full bg-base-100 p-1">
 			<div class="flex flex-col h-full">
-				<h1 class="text-xl text-center font-semibold h-[2rem]">
+				<h1 class="text-xl text-center font-semibold h-8 truncate" title={dest?.mapObject?.name}>
 					<span class:hidden={!showHeader}>
 						{#if dest?.mapObject && dest.mapObject.name}
 							{dest.mapObject.name}

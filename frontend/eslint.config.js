@@ -1,5 +1,6 @@
 import prettier from 'eslint-config-prettier';
 import js from '@eslint/js';
+import betterTailwindcss from 'eslint-plugin-better-tailwindcss';
 import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
 import ts from 'typescript-eslint';
@@ -40,6 +41,23 @@ export default ts.config(
 			],
 			'@typescript-eslint/no-unnecessary-condition': 'error',
 			'no-undef': 'off'
+		}
+	},
+	{
+		// the same tailwind hints the vscode extension shows
+		files: ['**/*.svelte'],
+		plugins: {
+			'better-tailwindcss': betterTailwindcss
+		},
+		settings: {
+			'better-tailwindcss': {
+				entryPoint: 'src/css/app.css'
+			}
+		},
+		rules: {
+			'better-tailwindcss/enforce-canonical-classes': 'error',
+			'better-tailwindcss/no-conflicting-classes': 'error',
+			'better-tailwindcss/no-duplicate-classes': 'error'
 		}
 	},
 	{

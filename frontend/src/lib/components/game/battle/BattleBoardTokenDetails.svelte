@@ -56,7 +56,7 @@
 		<div class="text-primary mt-1">
 			<button
 				type="button"
-				class="w-full h-full cursor-help"
+				class="size-full cursor-help"
 				onpointerdown={(e) => onShipDesignTooltip(e, design)}
 			>
 				<div class="flex flex-col">

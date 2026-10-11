@@ -10,7 +10,7 @@
 	title="Show Fleet Counts"
 	class:btn-primary={$settings.showFleetTokenCounts}
 	class:btn-ghost={!$settings.showFleetTokenCounts}
-	class="btn btn-ghost fill-current btn-xs w-full h-full p-0"
+	class="btn btn-ghost fill-current btn-xs size-full p-0"
 	onclick={() => ($settings.showFleetTokenCounts = !$settings.showFleetTokenCounts)}
-	><FleetCount class="w-6 h-6" /></a
+	><FleetCount class="size-6 " /></a
 >

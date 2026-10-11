@@ -91,7 +91,10 @@
 	<div class="card-body p-2 gap-0">
 		<div class="flex flex-row items-center">
 			{#if !hideTitle}
-				<div class="flex-1 text-center text-lg font-semibold text-secondary">
+				<div
+					class="flex-1 min-w-0 truncate text-center text-lg font-semibold text-secondary"
+					title={getMapObjectName($selectedMapObject)}
+				>
 					{getMapObjectName($selectedMapObject)}
 				</div>
 			{/if}
@@ -104,7 +107,7 @@
 							showStarbaseDesign(e);
 						}}
 					>
-						<Starbase class="w-4 h-4 starbase" /></button
+						<Starbase class="size-4  starbase" /></button
 					>
 				{/if}
 				{#if !hideCycleButton}
@@ -116,7 +119,7 @@
 							selectNextMapObject();
 						}}
 					>
-						<Cycle class="w-4 h-4 fill-base-content hover:stroke-accent" /></button
+						<Cycle class="size-4  fill-base-content hover:stroke-accent" /></button
 					>
 				{/if}
 			</div>

@@ -120,7 +120,7 @@
 </script>
 
 <div class="flex flex-row select-none">
-	<div class="text-right flex flex-col justify-evenly w-[5.5rem]">
+	<div class="text-right flex flex-col justify-evenly w-22">
 		<div class="text-ironium">Ironium</div>
 		<div class="text-boranium">Boranium</div>
 		<div class="text-germanium">Germanium</div>
@@ -202,15 +202,15 @@
 			{/if}
 		</div>
 	</div>
-	<div class="w-[3rem] shrink-0"></div>
+	<div class="w-12 shrink-0"></div>
 </div>
 <div class="flex flex-row">
-	<div class="text-right flex flex-col justify-evenly w-[5.5rem] pr-1">kT</div>
+	<div class="text-right flex flex-col justify-evenly w-22 pr-1">kT</div>
 	<div class="grow flex flex-row justify-between">
 		{#each divisions as division, index (index)}
 			<div>{division}</div>
 		{/each}
-		<div class="dropdown dropdown-end dropdown-top w-[3rem] text-right">
+		<div class="dropdown dropdown-end dropdown-top w-12 text-right">
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<label
 				tabindex="0"

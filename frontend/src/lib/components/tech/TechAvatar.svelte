@@ -28,7 +28,7 @@
 		<button
 			type="button"
 			aria-label="Brings up information on technology"
-			class="w-full h-full"
+			class="size-full"
 			onpointerdown={(e) => {
 				onTechHullTooltip(e, hull);
 			}}

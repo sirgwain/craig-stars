@@ -11,7 +11,7 @@
 		<tr>
 			<th></th>
 			{#each players as player (player.num)}
-				<th class="h-20 w-20"
+				<th class="size-20"
 					><div class="origin-bottom -rotate-45 text-ellipsis w-20 overflow-hidden">
 						{$universe.getPlayerPluralName(player.num)}
 					</div></th

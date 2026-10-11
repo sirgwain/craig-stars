@@ -11,5 +11,5 @@
 	class:btn-primary={$settings.planetViewState == PlanetViewState.Normal}
 	class:btn-ghost={$settings.planetViewState != PlanetViewState.Normal}
 	onclick={() => ($settings.planetViewState = PlanetViewState.Normal)}
-	class="btn btn-xs h-full w-full p-0"><PlanetWithStarbase class="w-6 h-6" /></a
+	class="btn btn-xs size-full p-0"><PlanetWithStarbase class="size-6 " /></a
 >

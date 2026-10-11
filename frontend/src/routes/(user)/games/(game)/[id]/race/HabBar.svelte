@@ -15,7 +15,7 @@
 </script>
 
 <div class="flex flex-col md:flex-row">
-	<div class="text-center md:text-right md:w-[8rem] h-full my-auto mr-2">
+	<div class="text-center md:text-right md:w-32 h-full my-auto mr-2">
 		{habTypeString(habType)}
 	</div>
 	<div class="grow flex flex-col">
@@ -33,7 +33,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="flex flex-row gap-1 justify-center md:flex-col md:text-center md:ml-2 md:w-[8rem]">
+	<div class="flex flex-row gap-1 justify-center md:flex-col md:text-center md:ml-2 md:w-32">
 		{#if immune}
 			Immune
 		{:else}

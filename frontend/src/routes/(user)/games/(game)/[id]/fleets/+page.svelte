@@ -182,8 +182,10 @@
 		{#snippet cell({ column, row, cell })}
 			<span>
 				{#if column.key == 'name'}
-					<button class="cs-link text-xl text-left" onclick={() => selectFleet(row)}
-						>{getMapObjectName(row)}</button
+					<button
+						class="cs-link text-xl text-left max-w-[20rem] truncate align-bottom"
+						title={getMapObjectName(row)}
+						onclick={() => selectFleet(row)}>{getMapObjectName(row)}</button
 					>
 				{:else if column.key == 'num'}
 					{row.mapObject?.num ?? 0}
@@ -213,11 +215,11 @@
 						{getEta(row)}y
 					{/if}
 				{:else if column.key == 'fuel'}
-					<div class="w-32 leading-[1rem]">
+					<div class="w-32 leading-4">
 						<FuelBar value={row.fuel} capacity={row.spec?.shipDesignSpec?.fuelCapacity ?? 0} />
 					</div>
 				{:else if column.key == 'cargo'}
-					<div class="w-32 leading-[1rem]">
+					<div class="w-32 leading-4">
 						<CargoBar value={row.cargo} capacity={row.spec?.shipDesignSpec?.cargoCapacity} />
 					</div>
 				{:else if column.key == 'composition'}
@@ -226,7 +228,7 @@
 						row.tokens && row.tokens.length ? row.tokens[0].designNum : 0
 					)}
 					<div class="flex flex-row justify-between gap-1">
-						<div>
+						<div class="max-w-[16rem] truncate">
 							{design ? design.name : ''}
 						</div>
 						<div>

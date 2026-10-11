@@ -157,7 +157,7 @@
 		onfocus={() => searchInput?.select()}
 	/>
 	<div class="h-full">
-		<div class="mt-2 w-full h-full bg-base-200 border-2 border-base-300 overflow-y-auto pl-2">
+		<div class="mt-2 size-full bg-base-200 border-2 border-base-300 overflow-y-auto pl-2">
 			{#if results.planets.length > 0}
 				<h3 class="text-2xl font-bold mb-1">Planets</h3>
 				<ul class="mx-1">

@@ -39,14 +39,14 @@
 	</figure>
 	<div class="card-body">
 		<h2 class="card-title">
-			<div class="flex flex-row gap-1">
-				<div>
+			<div class="flex flex-row gap-1 min-w-0">
+				<div class="min-w-0">
 					<a class="cs-link" {href}>{design.name}</a>
 				</div>
 				<div>
 					<button
 						type="button"
-						class="w-full h-full cursor-help"
+						class="size-full cursor-help"
 						onpointerdown={(e) => onShipDesignTooltip(e, design)}
 					>
 						<Icon src={QuestionMarkCircle} size="16" class="cursor-help inline-block" />

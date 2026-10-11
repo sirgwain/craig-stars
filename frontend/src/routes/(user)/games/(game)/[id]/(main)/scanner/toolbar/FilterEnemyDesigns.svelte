@@ -12,17 +12,17 @@
 </script>
 
 <div class="flex flex-row">
-	<div class="h-10 w-10">
+	<div class="size-10">
 		<a
 			href="#filter-enemy-designs"
 			title="Enemy Ship Class Filter"
 			class:btn-primary={$settings.filterEnemyDesigns}
 			class:btn-ghost={!$settings.filterEnemyDesigns}
-			class="btn btn-ghost fill-current btn-xs w-full h-full p-0"
+			class="btn btn-ghost fill-current btn-xs size-full p-0"
 			onclick={(e) => {
 				e.preventDefault();
 				$settings.filterEnemyDesigns = !$settings.filterEnemyDesigns;
-			}}><FilterFleets primary="fill-fleet-enemy" class="w-6 h-6" /></a
+			}}><FilterFleets primary="fill-fleet-enemy" class="size-6 " /></a
 		>
 	</div>
 	<div class="h-10 w-3">

@@ -23,7 +23,7 @@
 	let growthAmount = $derived(getGrowth(planet));
 </script>
 
-<div class="flex flex-col sm:w-[26rem] m-auto">
+<div class="flex flex-col sm:w-104 m-auto">
 	<div>
 		{#if ownedBy(planet, player.num) && pop}
 			<p>
