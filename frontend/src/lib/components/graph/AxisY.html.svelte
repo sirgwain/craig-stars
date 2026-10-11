@@ -14,6 +14,8 @@
 		tickClass?: (d: unknown) => string;
 		gridlineClass?: (d: unknown) => string;
 		ticks?: number | Array<unknown> | undefined;
+		// only show ticks at whole numbers, for values that are counts of things
+		wholeNumbers?: boolean;
 		xTick?: number;
 		yTick?: number;
 	};
@@ -24,6 +26,7 @@
 		tickClass = () => 'text-base-content',
 		gridlineClass = () => 'border-dashed',
 		ticks = 4,
+		wholeNumbers = false,
 		xTick = -4,
 		yTick = -1
 	}: Props = $props();
@@ -31,7 +34,9 @@
 	let isBandwidth = $derived(typeof $yScale.bandwidth === 'function');
 
 	let tickVals = $derived(
-		Array.isArray(ticks) ? ticks : isBandwidth ? $yScale.domain() : $yScale.ticks(ticks)
+		(Array.isArray(ticks) ? ticks : isBandwidth ? $yScale.domain() : $yScale.ticks(ticks)).filter(
+			(tick: unknown) => !wholeNumbers || Number.isInteger(tick)
+		)
 	);
 </script>
 
