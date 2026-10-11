@@ -79,6 +79,8 @@
 	// the most fuel the trip needs at once, which starts over wherever the fleet refuels
 	let fuelUsage = $derived(fleet.getFuelUsageToWaypoint($player, $universe, tripIndex));
 	let runOutOfFuel = $derived(fuelUsage > fleet.fuel);
+	// the fleet runs dry before it finishes the leg to the selected waypoint
+	let runOutOfFuelOnLeg = $derived(fleet.getFuelOnArrival($player, $universe, tripIndex) < 0);
 	let travelTime = $derived(
 		travelYears === undefined ? 'Never' : travelYears === 1 ? '1 year' : `${travelYears} years`
 	);
@@ -176,7 +178,9 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Leg Fuel Usage</span>
-				<span>{fuelUsagePerLeg[selectedWaypointIndex - 1]}mg</span>
+				<span class:text-error={runOutOfFuelOnLeg}
+					>{fuelUsagePerLeg[selectedWaypointIndex - 1]}mg</span
+				>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Est Fuel Usage</span>
