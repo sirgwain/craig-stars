@@ -12,6 +12,8 @@
 		ownedBy,
 		type MapObjectLike
 	} from '#lib/types/MapObject.js';
+	import { XMark } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 
 	const { player, universe, settings } = getGameContext();
@@ -85,7 +87,10 @@
 
 	function selectNext() {
 		selectedItemIndex = Math.min(
-			results.planets.length + results.fleets.length + results.mysteryTraders.length,
+			Math.max(
+				0,
+				results.planets.length + results.fleets.length + results.mysteryTraders.length - 1
+			),
 			selectedItemIndex + 1
 		);
 	}
@@ -135,27 +140,41 @@
 				: selectedItemIndex <
 					  results.planets.length + results.fleets.length + results.mysteryTraders.length
 					? results.mysteryTraders[
-							selectedItemIndex - results.planets.length + results.fleets.length
+							selectedItemIndex - results.planets.length - results.fleets.length
 						]
 					: undefined
 	);
 </script>
 
 <div class="flex flex-col gap-1 h-full pb-2">
-	<input
-		type="search"
-		name="search"
-		placeholder="search"
-		class="input input-sm sm:w-auto mt-1"
-		autocomplete="off"
-		autocorrect="off"
-		autocapitalize="off"
-		spellcheck="false"
-		bind:this={searchInput}
-		bind:value={$settings.searchQuery}
-		onkeydown={onSearchKeyDown}
-		onfocus={() => searchInput?.select()}
-	/>
+	<div class="flex flex-row gap-1 mt-1">
+		<input
+			type="search"
+			name="search"
+			placeholder="search"
+			class="input input-sm grow"
+			autocomplete="off"
+			autocorrect="off"
+			autocapitalize="off"
+			spellcheck="false"
+			bind:this={searchInput}
+			bind:value={$settings.searchQuery}
+			onkeydown={onSearchKeyDown}
+			onfocus={() => searchInput?.select()}
+		/>
+		{#if onCancel}
+			<!-- the dialog fills a phone's screen, so there's nothing outside it to tap -->
+			<button
+				type="button"
+				class="btn btn-sm btn-outline btn-secondary"
+				title="close"
+				aria-label="Close search"
+				onclick={() => onCancel()}
+			>
+				<Icon src={XMark} size="16" class="hover:stroke-accent" />
+			</button>
+		{/if}
+	</div>
 	<div class="h-full">
 		<div class="mt-2 size-full bg-base-200 border-2 border-base-300 overflow-y-auto pl-2">
 			{#if results.planets.length > 0}
