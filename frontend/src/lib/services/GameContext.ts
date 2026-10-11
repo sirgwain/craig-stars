@@ -1001,9 +1001,9 @@ export async function createGameContext(
 		u.resetAllPlanets();
 		u.resetMapObjectsByPosition();
 		u.resetMyMapObjectsByPosition();
+		u.designs = u.designs.filter((d) => d.num != num);
 		universe.set(u);
 
-		u.designs = u.designs.filter((d) => d.num != num);
 		await cs.wasmService.setDesigns({ designs: u.getMyDesigns() });
 
 		// reset our view to the homeworld, in case the commanded fleet had our deleted design
