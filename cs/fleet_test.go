@@ -2889,3 +2889,87 @@ func Test_turn_noHealAfterGateAndMines(t *testing.T) {
 		assert.Equal(t, before, merged.Tokens[0].Damage)
 	})
 }
+
+func TestFleet_AddWaypointPursuit(t *testing.T) {
+	tests := []struct {
+		name            string
+		target          Fleet
+		fastestWaypoint bool
+		fuel            int
+		want            int
+	}{
+		{
+			name:   "stopped target, same as a position",
+			target: Fleet{MapObject: MapObject{Position: Vector{36, 0}}},
+			want:   6,
+		},
+		{
+			name:   "target coming at us, slow down",
+			target: Fleet{MapObject: MapObject{Position: Vector{50, 0}}, Heading: VectorFloat64{X: -1}, WarpSpeed: 5},
+			want:   5,
+		},
+		{
+			name:   "target running away slowly, takes an extra year",
+			target: Fleet{MapObject: MapObject{Position: Vector{36, 0}}, Heading: VectorFloat64{X: 1}, WarpSpeed: 4},
+			want:   6,
+		},
+		{
+			name:   "target running away at our ideal speed, don't go faster unless asked",
+			target: Fleet{MapObject: MapObject{Position: Vector{36, 0}}, Heading: VectorFloat64{X: 1}, WarpSpeed: 6},
+			want:   6,
+		},
+		{
+			name:   "can't catch a target that's close, don't slow down",
+			target: Fleet{MapObject: MapObject{Position: Vector{20, 0}}, Heading: VectorFloat64{X: 1}, WarpSpeed: 6},
+			want:   6,
+		},
+		{
+			name:   "slower speeds catch a close target years later, don't slow down",
+			target: Fleet{MapObject: MapObject{Position: Vector{20, 0}}, Heading: VectorFloat64{X: 1}, WarpSpeed: 4},
+			want:   6,
+		},
+		{
+			name:            "target running away, fastest",
+			target:          Fleet{MapObject: MapObject{Position: Vector{36, 0}}, Heading: VectorFloat64{X: 1}, WarpSpeed: 6},
+			fastestWaypoint: true,
+			want:            9,
+		},
+		{
+			name:   "target crossing our path",
+			target: Fleet{MapObject: MapObject{Position: Vector{30, 0}}, Heading: VectorFloat64{Y: 1}, WarpSpeed: 5},
+			want:   6,
+		},
+		{
+			name:   "target too fast to catch, ideal speed",
+			target: Fleet{MapObject: MapObject{Position: Vector{36, 0}}, Heading: VectorFloat64{X: 1}, WarpSpeed: 10},
+			want:   6,
+		},
+		{
+			name:   "not enough fuel to catch it",
+			target: Fleet{MapObject: MapObject{Position: Vector{36, 0}}, Heading: VectorFloat64{X: 1}, WarpSpeed: 6},
+			fuel:   5,
+			want:   6,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := testPlayer()
+			target := tt.target
+			target.Type, target.PlayerNum, target.Num = MapObjectTypeFleet, 2, 1
+			player.FleetIntels = []*Fleet{&target}
+
+			fleet := testLongRangeScout(player)
+			if tt.fuel != 0 {
+				fleet.Fuel = tt.fuel
+			}
+
+			fleet.AddWaypoint(player, WaypointDest{MO: target.MapObject}, 0, tt.fastestWaypoint)
+			assert.Equal(t, tt.want, fleet.Waypoints[1].WarpSpeed)
+
+			// dragging a waypoint onto the fleet picks the same speed
+			fleet.Waypoints[1] = NewPositionWaypoint(Vector{10, 10}, 5)
+			fleet.UpdateWaypoint(player, WaypointDest{MO: target.MapObject}, 1, tt.fastestWaypoint)
+			assert.Equal(t, tt.want, fleet.Waypoints[1].WarpSpeed)
+		})
+	}
+}

@@ -1733,6 +1733,9 @@ func (f *Fleet) AddWaypoint(
 		destPlanet = player.getPlanetIntelAt(position)
 	}
 	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, destPlanet, fuelAlreadyAllocated, fastestWaypoint)
+	if target := player.getMovingFleetIntel(dest.MO); target != nil {
+		warpSpeed = f.getPursuitWarp(player, selectedWaypoint.Position, target, f.getYearsToWaypoint(index), fuelAlreadyAllocated, fastestWaypoint, warpSpeed)
+	}
 
 	if dest.MO.Type != MapObjectTypeNone {
 		wp := Waypoint{
@@ -1838,6 +1841,9 @@ func (f *Fleet) UpdateWaypoint(
 		destPlanet = player.getPlanetIntelAt(position)
 	}
 	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, destPlanet, fuelAlreadyAllocated, fastestWaypoint)
+	if target := player.getMovingFleetIntel(dest.MO); target != nil {
+		warpSpeed = f.getPursuitWarp(player, previousWaypoint.Position, target, f.getYearsToWaypoint(waypointIndex-1), fuelAlreadyAllocated, fastestWaypoint, warpSpeed)
+	}
 
 	if dest.MO.Type != MapObjectTypeNone {
 		selectedWaypoint.Position = dest.MO.Position
@@ -2001,4 +2007,85 @@ func (f *Fleet) GetMaxWarp(
 		freeSpeed,
 		maxSafeSpeed,
 	)
+}
+
+// pursuitMaxYears is how many years ahead we look to see if a fleet can catch the fleet it's pursuing
+const pursuitMaxYears = 100
+
+// getYearsToWaypoint returns how many years it takes this fleet to reach the waypoint at waypointIndex
+func (f *Fleet) getYearsToWaypoint(waypointIndex int) int {
+	years := 0
+	for i := 1; i <= waypointIndex && i < len(f.Waypoints); i++ {
+		wp := f.Waypoints[i]
+		if wp.WarpSpeed == StargateWarpSpeed {
+			years++
+		} else if wp.WarpSpeed > 0 {
+			dist := wp.Position.DistanceTo(f.Waypoints[i-1].Position)
+			years += int(math.Ceil(dist / float64(wp.WarpSpeed*wp.WarpSpeed)))
+		}
+	}
+	return years
+}
+
+// pursue returns how many years it takes, and how far we travel, to catch a target moving at a constant heading
+// and speed. Each year the target moves, then we move straight at it. caught is false if we never catch it.
+func pursue(from, targetPosition, targetVelocity VectorFloat64, warpSpeed int) (years int, dist float64, caught bool) {
+	budget := float64(warpSpeed * warpSpeed)
+	for years = 1; years <= pursuitMaxYears; years++ {
+		targetPosition = targetPosition.Add(targetVelocity)
+		toTarget := targetPosition.Subtract(from)
+		distToTarget := toTarget.Length()
+		if distToTarget <= budget {
+			return years, dist + distToTarget, true
+		}
+		from = from.Add(toTarget.Scale(budget / distToTarget))
+		dist += budget
+	}
+	return 0, dist, false
+}
+
+// getPursuitWarp returns the warp speed this fleet should go to catch a moving fleet, leaving from a position
+// after waiting headStart years. We start at the ideal speed (or the fastest speed we can go, for fastestWaypoint)
+// and only slow down if we still catch the target just as soon. If we can't catch the target we don't slow down at all.
+func (f *Fleet) getPursuitWarp(
+	player *Player,
+	from Vector,
+	target *Fleet,
+	headStart int,
+	fuelAlreadyAllocated int,
+	fastestWaypoint bool,
+	fallback int,
+) int {
+	engine := f.Spec.Engine
+	targetVelocity := target.Heading.Normalized().Scale(float64(target.WarpSpeed * target.WarpSpeed))
+	targetPosition := target.Position.ToFloat64().Add(targetVelocity.Scale(float64(headStart)))
+
+	startSpeed := engine.IdealSpeed
+	if fastestWaypoint {
+		startSpeed = engine.MaxSafeSpeed
+	}
+
+	// go through speeds fastest to slowest so we end up with the slowest speed that catches the target soonest
+	warpSpeed, bestYears := 0, 0
+	for i := startSpeed; i >= max(engine.FreeSpeed, 1); i-- {
+		years, dist, caught := pursue(from.ToFloat64(), targetPosition, targetVelocity, i)
+		if !caught || f.GetFuelCost(player, i, math.Ceil(dist))+fuelAlreadyAllocated > f.Fuel {
+			continue
+		}
+		if bestYears == 0 || years <= bestYears {
+			warpSpeed, bestYears = i, years
+		}
+	}
+	if warpSpeed != 0 {
+		return warpSpeed
+	}
+
+	// we can't catch it, so go as fast as we have the fuel to get to where it is now
+	dist := math.Ceil(from.DistanceTo(target.Position))
+	for i := startSpeed; i > fallback; i-- {
+		if f.GetFuelCost(player, i, dist)+fuelAlreadyAllocated <= f.Fuel {
+			return i
+		}
+	}
+	return fallback
 }
