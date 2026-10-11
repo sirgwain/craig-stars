@@ -5,6 +5,7 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '#lib/services/GameContext.js';
+	import type { Waypoint } from '#lib/types/cs-proto.js';
 	import type { MapObjectLike } from '#lib/types/MapObject.js';
 	import type { ZoomTransform } from 'd3-zoom';
 	import { onDestroy } from 'svelte';
@@ -42,9 +43,11 @@
 		minObjectZoom: number;
 		// show a big X on this map object
 		locate: MapObjectLike | undefined;
+		// the commanded fleet's waypoints from before a waypoint drag started, while one is being dragged
+		dragOrigin?: Waypoint[];
 	};
 
-	let { transform, pixelsPerLightYear, minObjectZoom, locate }: Props = $props();
+	let { transform, pixelsPerLightYear, minObjectZoom, locate, dragOrigin }: Props = $props();
 
 	let container: HTMLDivElement | undefined = $state();
 	let canvas: HTMLCanvasElement | undefined = $state();
@@ -58,7 +61,9 @@
 	let minefields = $derived(buildMinefields($universe, $player, $settings));
 	let packetDests = $derived(buildPacketDests($universe, $commandedPlanet));
 	let routeDests = $derived(buildRouteDests($universe, $commandedPlanet));
-	let waypointPaths = $derived(buildWaypointPaths($universe, $player, $settings, $commandedFleet));
+	let waypointPaths = $derived(
+		buildWaypointPaths($universe, $player, $settings, $commandedFleet, dragOrigin)
+	);
 	let planets = $derived(
 		colors
 			? buildPlanets($universe, $player, $settings, $commandedMapObject, $commandedPlanet, colors)

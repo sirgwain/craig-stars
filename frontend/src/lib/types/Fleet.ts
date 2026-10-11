@@ -25,7 +25,7 @@ import { get as pluck } from 'lodash-es';
 import { type CargoType, totalCargo } from './Cargo';
 import type { CargoDest } from './CargoTransferRequest';
 import { None, StargateWarpSpeed } from './Consts';
-import { type MapObjectLike, owned } from './MapObject';
+import { deepSpaceMapObject, type MapObjectLike, owned } from './MapObject';
 import type { CommandedPlayer } from './Player';
 import { distance, emptyVector } from './Vector';
 import { enumToString } from './Enums';
@@ -96,7 +96,7 @@ export class CommandedFleet implements Fleet {
 		const mos = this.fleetOrders?.waypoints
 			.map((wp) =>
 				(wp.mapObjectTarget?.targetType ?? MapObjectType.UNSPECIFIED) == MapObjectType.UNSPECIFIED
-					? { mapObject: { position: wp.position } }
+					? deepSpaceMapObject(wp.position)
 					: universe.getMapObject(wp.mapObjectTarget)
 			)
 			.filter((m): m is MapObjectLike => !!m);

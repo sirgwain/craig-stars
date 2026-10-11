@@ -271,7 +271,11 @@ function drawWaypointPaths(ctx: CanvasRenderingContext2D, view: ScannerView, fra
 	const { colors } = frame;
 	ctx.lineCap = 'butt';
 	for (const path of frame.waypointPaths) {
-		ctx.strokeStyle = path.commanded ? colors.waypointLineCommanded : colors.waypointLine;
+		ctx.strokeStyle = path.dragging
+			? colors.waypointLineDragging
+			: path.commanded
+				? colors.waypointLineCommanded
+				: colors.waypointLine;
 		const points = path.waypoints.map((wp) => view.anchor(wp.position));
 		const exits = path.exits.map((exit) => (exit ? view.anchor(exit) : undefined));
 		// like Stars!, leave a gap around each waypoint so the path doesn't cover what's there
@@ -286,11 +290,13 @@ function drawWaypointPaths(ctx: CanvasRenderingContext2D, view: ScannerView, fra
 			// a leg after a wormhole starts where the fleet comes out
 			const exit = exits[i - 1];
 			const from = exit ?? points[i - 1];
+			// the gap is measured from the edge of the line, but with no gap the line goes all the way
+			const startClearance = exit ? exitClearance : clearances[i - 1];
 			const segment = segmentBetween(
 				from,
 				points[i],
-				(exit ? exitClearance : clearances[i - 1]) + width / 2,
-				clearances[i] + width / 2
+				startClearance ? startClearance + width / 2 : 0,
+				clearances[i] ? clearances[i] + width / 2 : 0
 			);
 			if (!segment) {
 				continue;
@@ -301,7 +307,16 @@ function drawWaypointPaths(ctx: CanvasRenderingContext2D, view: ScannerView, fra
 			ctx.lineTo(segment.x1, segment.y1);
 			ctx.stroke();
 
-			if (path.commanded && wp1.warpSpeed !== StargateWarpSpeed) {
+			// round off the corner where two legs meet in deep space
+			if (!clearances[i] && i < path.waypoints.length - 1) {
+				ctx.fillStyle = ctx.strokeStyle;
+				ctx.beginPath();
+				const nextWidth = frame.selectedWaypoint === wp1 ? 3 : path.commanded ? 2 : 1;
+				ctx.arc(points[i].x, points[i].y, Math.max(width, nextWidth) / 2, 0, 2 * Math.PI);
+				ctx.fill();
+			}
+
+			if (path.commanded && !path.dragOrigin && wp1.warpSpeed !== StargateWarpSpeed) {
 				drawYearTicks(
 					ctx,
 					view,
@@ -393,7 +408,7 @@ function wormholeClearance(view: ScannerView) {
 }
 
 // how far from a waypoint its path should stop, in pixels
-function waypointClearance(frame: ScannerFrame, view: ScannerView, wp: Waypoint): number {
+export function waypointClearance(frame: ScannerFrame, view: ScannerView, wp: Waypoint): number {
 	const min = waypointClearanceMin * view.iconScale;
 	const target = wp.mapObjectTarget;
 	if (target?.targetType === MapObjectType.WORMHOLE) {
@@ -404,6 +419,10 @@ function waypointClearance(frame: ScannerFrame, view: ScannerView, wp: Waypoint)
 		if (planet) {
 			return Math.max(planetExtents(planet, view).bottom, min);
 		}
+	}
+	if (!target?.targetType) {
+		// there's nothing to cover at a waypoint in deep space, so the path runs right through it
+		return 0;
 	}
 	return min;
 }

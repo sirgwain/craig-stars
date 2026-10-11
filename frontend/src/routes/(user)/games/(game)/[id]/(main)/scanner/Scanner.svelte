@@ -9,14 +9,16 @@
 		MapObjectType,
 		VectorSchema,
 		WaypointDestSchema,
+		WaypointSchema,
 		type Fleet,
 		type Vector,
+		type Waypoint,
 		type WaypointDest
 	} from '#lib/types/cs-proto.js';
 	import { filterFleet } from '#lib/types/Filter.js';
 	import { emptyMapObject, type MapObjectLike, type Position } from '#lib/types/MapObject.js';
 	import { distance, emptyVector, equal } from '#lib/types/Vector.js';
-	import { create } from '@bufbuild/protobuf';
+	import { clone, create } from '@bufbuild/protobuf';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
 	import { zoom, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
@@ -90,6 +92,8 @@
 
 	let pointerDown = false;
 	let draggingWaypoint = false;
+	// the commanded fleet's waypoints from before the drag, drawn so the player can see what they're changing
+	let dragOrigin: Waypoint[] | undefined = $state();
 	let dragAndZoomEnabled = false;
 
 	// set to true if we are moving a waypoint to a position rather than a target
@@ -347,6 +351,7 @@
 		// * if we have a commanded fleet
 		if (!waypointJustAdded && !draggingWaypoint && pointerDown && fleetWaypoint) {
 			draggingWaypoint = true;
+			dragOrigin = $commandedFleet.fleetOrders.waypoints.map((wp) => clone(WaypointSchema, wp));
 			onSelectWaypoint?.({ fleet: $commandedFleet, waypoint: fleetWaypoint });
 		}
 	}
@@ -432,6 +437,7 @@
 			dragWaypointDone(position, found);
 		}
 		draggingWaypoint = false;
+		dragOrigin = undefined;
 		pointerDown = false;
 		waypointJustAdded = false;
 	}
@@ -439,6 +445,7 @@
 	function onPointerCancel() {
 		tapeDone();
 		draggingWaypoint = false;
+		dragOrigin = undefined;
 		pointerDown = false;
 		waypointJustAdded = false;
 		if (!$settings.addWaypoint) {
@@ -612,6 +619,7 @@
 			{pixelsPerLightYear}
 			{minObjectZoom}
 			locate={showLocator ? $mostRecentMapObject : undefined}
+			{dragOrigin}
 		/>
 		{#if transform}
 			<MapObjectQuadTreeFinder

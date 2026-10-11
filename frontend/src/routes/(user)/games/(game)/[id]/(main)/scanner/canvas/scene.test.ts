@@ -346,3 +346,33 @@ describe('waypoint paths through wormholes', () => {
 		expect(pathFor(0).exits).toEqual([undefined, undefined, undefined]);
 	});
 });
+
+// While a waypoint is dragged the old path stays on screen under the one being dragged.
+it('keeps the path from before a drag while a waypoint is dragged', () => {
+	const fleet = create(FleetSchema, {
+		mapObject: { type: MapObjectType.FLEET, num: 1, playerNum: 1 },
+		fleetOrders: { waypoints: [{ position: { x: 0, y: 0 } }, { position: { x: 50, y: 50 } }] }
+	});
+	const universe = { fleets: [fleet], getWormhole: () => undefined } as unknown as Universe;
+	const player = { num: 1 } as CommandedPlayer;
+	const commanded = fleet as unknown as Parameters<typeof buildWaypointPaths>[3];
+	const settings = new PlayerSettings();
+
+	// not dragging, just the fleet's path
+	expect(buildWaypointPaths(universe, player, settings, commanded)).toMatchObject([
+		{ commanded: true, dragging: false }
+	]);
+
+	const before = [{ position: { x: 0, y: 0 } }, { position: { x: 20, y: 20 } }];
+	const paths = buildWaypointPaths(
+		universe,
+		player,
+		settings,
+		commanded,
+		before as Parameters<typeof buildWaypointPaths>[4]
+	);
+	expect(paths).toMatchObject([
+		{ commanded: true, dragOrigin: true, waypoints: before },
+		{ commanded: true, dragging: true, waypoints: fleet.fleetOrders?.waypoints }
+	]);
+});

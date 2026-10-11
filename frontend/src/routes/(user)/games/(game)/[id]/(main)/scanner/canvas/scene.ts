@@ -182,6 +182,10 @@ export type WaypointPath = {
 	// for waypoints at a wormhole we know the destination of, where the fleet comes out
 	exits: (Position | undefined)[];
 	commanded: boolean;
+	// while a waypoint is dragged, the path as it was before the drag started
+	dragOrigin?: boolean;
+	// the path with the waypoint that is being dragged
+	dragging?: boolean;
 };
 
 // Fleets that reach a wormhole jump to its destination and continue from there, so a path
@@ -201,7 +205,9 @@ export function buildWaypointPaths(
 	universe: Universe,
 	player: CommandedPlayer,
 	settings: PlayerSettings,
-	commandedFleet: CommandedFleet | undefined
+	commandedFleet: CommandedFleet | undefined,
+	// the commanded fleet's waypoints from before a waypoint drag started, while one is being dragged
+	dragOrigin?: Waypoint[]
 ): WaypointPath[] {
 	const paths: WaypointPath[] = universe.fleets
 		.filter(
@@ -217,8 +223,22 @@ export function buildWaypointPaths(
 
 	// draw the commanded fleet's path last so it's on top
 	if (commandedFleet && commandedFleet.fleetOrders.waypoints.length > 1) {
+		// like Stars!, leave the old path showing during a drag so the player can see what they're changing
+		if (dragOrigin && dragOrigin.length > 1) {
+			paths.push({
+				waypoints: dragOrigin,
+				exits: wormholeExits(universe, dragOrigin),
+				commanded: true,
+				dragOrigin: true
+			});
+		}
 		const waypoints = commandedFleet.fleetOrders.waypoints;
-		paths.push({ waypoints, exits: wormholeExits(universe, waypoints), commanded: true });
+		paths.push({
+			waypoints,
+			exits: wormholeExits(universe, waypoints),
+			commanded: true,
+			dragging: !!dragOrigin
+		});
 	}
 	return paths;
 }
