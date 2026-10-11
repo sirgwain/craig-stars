@@ -4,14 +4,16 @@
 	import TechAvatar from '#lib/components/tech/TechAvatar.svelte';
 	import { techs } from '#lib/services/Stores.js';
 	import { total } from '#lib/types/Cost.js';
+	import type { TokenDamage } from '#lib/types/Fleet.js';
 	import type { ShipDesign } from '#lib/types/cs-proto.js';
 	import DesignStats from '../DesignStats.svelte';
 
 	type Props = {
 		design: ShipDesign;
+		damage?: TokenDamage;
 	};
 
-	let { design }: Props = $props();
+	let { design, damage }: Props = $props();
 
 	let hull = $derived($techs.getHull(design.hull));
 </script>
@@ -42,7 +44,7 @@
 			</div>
 		{/if}
 		<div class="mx-2 sm:mx-0">
-			<DesignStats spec={design.spec} />
+			<DesignStats spec={design.spec} {damage} />
 		</div>
 	</div>
 </div>

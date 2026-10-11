@@ -14,6 +14,7 @@
 		Wormhole
 	} from '#lib/types/cs-proto.js';
 	import { MapObjectType } from '#lib/types/cs-proto.js';
+	import { getTokenDamage } from '#lib/types/Fleet.js';
 	import { getMapObjectName } from '#lib/types/MapObject.js';
 	import FleetSummary from './FleetSummary.svelte';
 	import MinefieldSummary from './MinefieldSummary.svelte';
@@ -35,13 +36,13 @@
 
 	function showStarbaseDesign(e: MouseEvent) {
 		if (selectedPlanet?.spec?.planetStarbaseSpec?.starbaseDesignNum) {
-			onShipDesignTooltip(
-				e,
-				$universe.getDesign(
-					selectedPlanet.mapObject?.playerNum,
-					selectedPlanet.spec.planetStarbaseSpec.starbaseDesignNum
-				)
+			const design = $universe.getDesign(
+				selectedPlanet.mapObject?.playerNum,
+				selectedPlanet.spec.planetStarbaseSpec.starbaseDesignNum
 			);
+			// we only know the damage of our own starbases
+			const starbase = $universe.getMyPlanetStarbase(selectedPlanet.mapObject?.num ?? 0);
+			onShipDesignTooltip(e, design, getTokenDamage(starbase?.tokens[0], design));
 		}
 	}
 

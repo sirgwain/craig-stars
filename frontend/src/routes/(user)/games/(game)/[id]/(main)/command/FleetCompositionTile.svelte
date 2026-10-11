@@ -9,7 +9,11 @@
 	} from '#lib/services/Events.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { Infinite } from '#lib/types/Consts.js';
-	import { getDamagePercentForToken, type CommandedFleet } from '#lib/types/Fleet.js';
+	import {
+		getDamagePercentForToken,
+		getTokenDamage,
+		type CommandedFleet
+	} from '#lib/types/Fleet.js';
 	import CommandTile from './CommandTile.svelte';
 	import { emptyVector } from '#lib/types/Vector.js';
 
@@ -70,8 +74,10 @@
 						<button
 							type="button"
 							class="w-full cursor-help"
-							onpointerdown={(e) =>
-								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))}
+							onpointerdown={(e) => {
+								const design = $universe.getDesign($player.num, token.designNum);
+								onShipDesignTooltip(e, design, getTokenDamage(token, design));
+							}}
 						>
 							<div class="flex flex-row justify-between relative">
 								{#if token.damage > 0 && token.quantityDamaged > 0}
