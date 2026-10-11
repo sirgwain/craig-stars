@@ -583,6 +583,61 @@ func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
 				ResourcesPerYear: 250,
 			},
 		},
+		{
+			name: "Tiny colony with no factories generates at least 1 resource",
+			args: args{
+				player:          testPlayer(),
+				numFacts:        0,
+				productivePop:   900,
+				installationPop: 900,
+			},
+			spec: PlanetSpec{
+				MaxPopulation: 1_000_000,
+			},
+			want: PlanetSpec{
+				MaxFactories:         1,
+				MaxPossibleFactories: 1000,
+				MaxPopulation:        1_000_000,
+				ResourcesPerYear:     1,
+			},
+		},
+		{
+			name: "No population generates no resources",
+			args: args{
+				player:          testPlayer(),
+				numFacts:        0,
+				productivePop:   0,
+				installationPop: 0,
+			},
+			spec: PlanetSpec{
+				MaxPopulation: 1_000_000,
+			},
+			want: PlanetSpec{
+				MaxFactories:         1,
+				MaxPossibleFactories: 1000,
+				MaxPopulation:        1_000_000,
+			},
+		},
+		{
+			name: "AR with no energy tech treats energy as 1",
+			args: args{
+				player: NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).
+					WithTechLevels(TechLevel{}).
+					withSpec(&rules),
+				numFacts:        0,
+				productivePop:   25_000,
+				installationPop: 25_000,
+			},
+			spec: PlanetSpec{
+				Habitability:  100,
+				MaxPopulation: 1_000_000,
+			},
+			want: PlanetSpec{
+				Habitability:     100,
+				MaxPopulation:    1_000_000,
+				ResourcesPerYear: 50,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
