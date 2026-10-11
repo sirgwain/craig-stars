@@ -8,7 +8,12 @@
 	import { StargateWarpSpeed } from '#lib/types/Consts.js';
 	import { WaypointTask, type Fleet, type ShipDesign } from '#lib/types/cs-proto.js';
 	import { enumToString } from '#lib/types/Enums.js';
-	import { canTransferCargo, CommandedFleet, getDamagePercentForToken } from '#lib/types/Fleet.js';
+	import {
+		canTransferCargo,
+		CommandedFleet,
+		getDamagePercentForToken,
+		getTokenDamage
+	} from '#lib/types/Fleet.js';
 	import { ownedBy } from '#lib/types/MapObject.js';
 
 	const { player, universe } = getGameContext();
@@ -139,11 +144,10 @@
 								<button
 									type="button"
 									class="w-full cursor-help"
-									onpointerdown={(e) =>
-										onShipDesignTooltip(
-											e,
-											$universe.getDesign(fleet.mapObject?.playerNum, token.designNum)
-										)}
+									onpointerdown={(e) => {
+										const design = $universe.getDesign(fleet.mapObject?.playerNum, token.designNum);
+										onShipDesignTooltip(e, design, getTokenDamage(token, design));
+									}}
 								>
 									<span class="flex flex-row justify-between relative">
 										{#if token.damage > 0 && token.quantityDamaged > 0}

@@ -213,6 +213,30 @@ export function getDamagePercentForToken(token: ShipToken, design: ShipDesign | 
 	return 0;
 }
 
+// the damaged ships in a token and how damaged each one is
+export type TokenDamage = {
+	quantity: number;
+	percent: number;
+};
+
+/**
+ * Get the damage to show for a token in a design popup
+ * @returns the number of damaged ships and the percent of armor each has lost, or undefined if undamaged
+ */
+export function getTokenDamage(
+	token: ShipToken | undefined,
+	design: ShipDesign | undefined
+): TokenDamage | undefined {
+	const armor = design?.spec?.armor ?? 0;
+	const quantity = Math.min(token?.quantityDamaged ?? 0, token?.quantity ?? 0);
+	const damage = token?.damage ?? 0;
+	if (armor <= 0 || quantity <= 0 || damage <= 0) {
+		return undefined;
+	}
+	// like the original, any damage shows as at least 1%
+	return { quantity, percent: Math.max(1, Math.floor((damage / armor) * 100)) };
+}
+
 // true if this fleet can transfer cargo
 export function canTransferCargo(fleet: Fleet): boolean {
 	return (fleet.spec?.shipDesignSpec?.cargoCapacity ?? 0) > 0;

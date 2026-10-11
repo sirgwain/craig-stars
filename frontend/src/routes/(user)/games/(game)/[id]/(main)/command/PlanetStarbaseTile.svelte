@@ -7,6 +7,7 @@
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { techs } from '#lib/services/Stores.js';
 	import { UnlimitedSpaceDock } from '#lib/types/Consts.js';
+	import { getTokenDamage } from '#lib/types/Fleet.js';
 	import type { CommandedPlanet } from '#lib/types/Planet.js';
 	import type { Fleet, ShipDesign } from '#lib/types/cs-proto.js';
 	import CommandTile from './CommandTile.svelte';
@@ -32,14 +33,17 @@
 			: undefined
 	);
 
+	let design = $derived(
+		starbase?.tokens && starbase.tokens.length > 0
+			? ($universe.getDesign($player.num, starbase.tokens[0].designNum) as ShipDesign | undefined)
+			: undefined
+	);
+
+	let damage = $derived(getTokenDamage(starbase?.tokens[0], design));
+
 	function showDesign(e: PointerEvent) {
 		e.preventDefault();
-		if (starbase?.tokens && starbase.tokens.length > 0) {
-			onShipDesignTooltip(
-				e,
-				$universe.getDesign($player.num, starbase.tokens[0].designNum) as ShipDesign | undefined
-			);
-		}
+		onShipDesignTooltip(e, design, damage);
 	}
 </script>
 
@@ -78,10 +82,10 @@
 			{#if starbase.tokens.length > 0}
 				<div class="flex justify-between">
 					<div class="text-tile-item-title">Damage</div>
-					{#if !starbase.tokens[0].damage}
-						<div>none</div>
+					{#if damage}
+						<div class="text-error">{damage.percent}%</div>
 					{:else}
-						<div>{starbase.tokens[0].damage}%</div>
+						<div>none</div>
 					{/if}
 				</div>
 			{/if}

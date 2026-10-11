@@ -5,9 +5,9 @@
 <script lang="ts">
 	import Design from '#lib/components/game/design/Design.svelte';
 
-	let { design }: ShipDesignTooltipProps = $props();
+	let { design, damage }: ShipDesignTooltipProps = $props();
 </script>
 
 <div>
-	<Design {design} />
+	<Design {design} {damage} />
 </div>

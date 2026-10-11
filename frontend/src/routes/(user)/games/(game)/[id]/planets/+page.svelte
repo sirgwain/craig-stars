@@ -24,6 +24,7 @@
 	import { ReportAgeUnexplored } from '#lib/types/Consts.js';
 	import type { Planet, ShipDesign } from '#lib/types/cs-proto.js';
 	import { MapObjectTargetSchema, MapObjectType, MineralSchema } from '#lib/types/cs-proto.js';
+	import { getTokenDamage } from '#lib/types/Fleet.js';
 	import { owned, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
 	import {
 		getGrowth,
@@ -266,13 +267,13 @@
 
 	function showDesign(e: PointerEvent, planet: Planet) {
 		e.preventDefault();
-		onShipDesignTooltip(
-			e,
-			$universe.getDesign(
-				planet.mapObject?.playerNum ?? 0,
-				planet.spec?.planetStarbaseSpec?.starbaseDesignNum ?? 0
-			) as ShipDesign | undefined
-		);
+		const design = $universe.getDesign(
+			planet.mapObject?.playerNum ?? 0,
+			planet.spec?.planetStarbaseSpec?.starbaseDesignNum ?? 0
+		) as ShipDesign | undefined;
+		// we only know the damage of our own starbases
+		const starbase = $universe.getMyPlanetStarbase(planet.mapObject?.num ?? 0);
+		onShipDesignTooltip(e, design, getTokenDamage(starbase?.tokens[0], design));
 	}
 
 	function onDefenseTooltip(e: PointerEvent, planet: Planet) {

@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { MinefieldType, type ShipDesignSpec } from '#lib/types/cs-proto.js';
 	import { Infinite, NoScanner } from '#lib/types/Consts.js';
+	import type { TokenDamage } from '#lib/types/Fleet.js';
 	import BattleSpeed from './BattleSpeed.svelte';
 
 	type Props = {
 		spec: ShipDesignSpec | undefined;
+		damage?: TokenDamage;
 	};
 
-	let { spec }: Props = $props();
+	let { spec, damage }: Props = $props();
 
 	function scanRange(range: number | undefined) {
 		return !range || range === NoScanner ? '-' : range;
@@ -138,6 +140,14 @@
 			<div class="flex justify-between">
 				<div class="font-semibold mr-5">Remote Mining</div>
 				<div>{spec.miningRate}kT/yr</div>
+			</div>
+		{/if}
+		{#if damage}
+			<div class="flex justify-between text-error">
+				<div class="font-semibold mr-5">Damage</div>
+				<div>
+					{spec.starbase ? `${damage.percent}%` : `${damage.quantity}@${damage.percent}%`}
+				</div>
 			</div>
 		{/if}
 	{/if}
