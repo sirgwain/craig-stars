@@ -136,6 +136,60 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
+	 * Get the most fuel the fleet needs at once on the way to a waypoint. Fuel use adds up leg by leg
+	 * and starts over at each planet the fleet refuels at, so a route that ends at a starbase still
+	 * shows what it takes to get there.
+	 * @returns the fuel needed, in mg
+	 */
+	getFuelUsageToWaypoint(
+		player: CommandedPlayer,
+		universe: Universe,
+		waypointIndex: number
+	): number {
+		const waypoints = this.fleetOrders.waypoints;
+		let sinceRefuel = 0;
+		let most = 0;
+		for (let i = 1; i <= waypointIndex && i < waypoints.length; i++) {
+			const wp = waypoints[i];
+			sinceRefuel += wp.estFuelUsage;
+			most = Math.max(most, sinceRefuel);
+			const target =
+				wp.mapObjectTarget?.targetType === MapObjectType.PLANET
+					? universe.getPlanet(wp.mapObjectTarget.targetNum)
+					: undefined;
+			if (this.canFuel(player, target)) {
+				sinceRefuel = 0;
+			}
+		}
+		return most;
+	}
+
+	/**
+	 * Get the years it takes to reach a waypoint, travelling every leg before it.
+	 * @returns the years, or undefined if a leg is at warp 0 and the fleet never gets there
+	 */
+	getYearsToWaypoint(waypointIndex: number): number | undefined {
+		const waypoints = this.fleetOrders.waypoints;
+		let years = 0;
+		for (let i = 1; i <= waypointIndex && i < waypoints.length; i++) {
+			const warpSpeed = waypoints[i].warpSpeed;
+			if (warpSpeed === 0) {
+				return undefined;
+			}
+			if (warpSpeed === StargateWarpSpeed) {
+				years += 1;
+				continue;
+			}
+			const dist = Math.floor(
+				distance(waypoints[i - 1].position ?? emptyVector(), waypoints[i].position ?? emptyVector())
+			);
+			// even a leg shorter than a year of travel takes a year
+			years += Math.max(1, Math.ceil(dist / (warpSpeed * warpSpeed)));
+		}
+		return years;
+	}
+
+	/**
 	 *
 	 * @param player The fleet player
 	 * @param targetPlanet the planet the fleet is targeting

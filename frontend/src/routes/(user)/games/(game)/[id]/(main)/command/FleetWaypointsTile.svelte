@@ -71,24 +71,17 @@
 		fleet.fleetOrders.waypoints.slice(1).map((wp1) => wp1.estFuelUsage)
 	);
 
-	// get the total fuel usage, but accounting for fueling stations
-	let fuelUsageTotal = $derived(
-		fuelUsagePerLeg.reduce(
-			(total, wpUsage, i) =>
-				fleet.fleetOrders.waypoints.length < i + 1 &&
-				fleet.fleetOrders.waypoints[i + 1].mapObjectTarget?.targetType === MapObjectType.PLANET &&
-				fleet.canFuel(
-					$player,
-					$universe.getPlanet(fleet.fleetOrders.waypoints[i + 1].mapObjectTarget?.targetNum)
-				)
-					? 0
-					: total + wpUsage,
-			0
-		)
-	);
+	// Like Stars!, travel time and fuel are for the trip up to the selected waypoint, or to the next
+	// waypoint when the fleet's current position is selected
+	let tripIndex = $derived(previousWaypoint ? selectedWaypointIndex : 1);
+	let travelYears = $derived(fleet.getYearsToWaypoint(tripIndex));
 
-	// will we run out of fuel at any leg of our journey or the last leg that we are currently updating?
-	let runOutOfFuel = $derived(fleet.willRunOutOfFuel($player, $universe));
+	// the most fuel the trip needs at once, which starts over wherever the fleet refuels
+	let fuelUsage = $derived(fleet.getFuelUsageToWaypoint($player, $universe, tripIndex));
+	let runOutOfFuel = $derived(fuelUsage > fleet.fuel);
+	let travelTime = $derived(
+		travelYears === undefined ? 'Never' : travelYears === 1 ? '1 year' : `${travelYears} years`
+	);
 
 	function onRepeatOrdersChanged(repeat: boolean) {
 		fleet.fleetOrders.repeatOrders = repeat;
@@ -179,23 +172,15 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
-				<span>
-					{#if waypoint.warpSpeed === StargateWarpSpeed}
-						1 year
-					{:else if waypoint.warpSpeed === 0}
-						Never
-					{:else}
-						{Math.ceil(Math.floor(dist) / (waypoint.warpSpeed * waypoint.warpSpeed))} years
-					{/if}
-				</span>
+				<span>{travelTime}</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Leg Fuel Usage</span>
 				<span>{fuelUsagePerLeg[selectedWaypointIndex - 1]}mg</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span class="text-tile-item-title">Total Fuel Usage</span>
-				<span class:text-error={runOutOfFuel}>{fuelUsageTotal}mg</span>
+				<span class="text-tile-item-title">Est Fuel Usage</span>
+				<span class:text-error={runOutOfFuel}>{fuelUsage}mg</span>
 			</div>
 
 			<label>
@@ -221,13 +206,11 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
-				<span
-					>{Math.ceil(Math.floor(dist) / (nextWaypoint.warpSpeed * nextWaypoint.warpSpeed))} years</span
-				>
+				<span>{travelTime}</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span class="text-tile-item-title">Total Fuel Usage</span>
-				<span class:text-error={runOutOfFuel}>{fuelUsageTotal}mg</span>
+				<span class="text-tile-item-title">Est Fuel Usage</span>
+				<span class:text-error={runOutOfFuel}>{fuelUsage}mg</span>
 			</div>
 			<label>
 				<input
