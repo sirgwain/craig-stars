@@ -41,9 +41,9 @@
 		item.queueItemCompletionEstimate ?? create(QueueItemCompletionEstimateSchema)
 	);
 
-	let yearsToBuildAll = $derived(
-		isAuto(item.type) ? estimate.yearsToSkipAuto : estimate.yearsToBuildAll
-	);
+	// for auto items this is the first year they build their full quantity, so an auto item
+	// that only builds some of its quantity this year is colored like any other partial build
+	let yearsToBuildAll = $derived(estimate.yearsToBuildAll);
 	let skipped = $derived(
 		!autoAlchemy &&
 			isAuto(item.type) &&
