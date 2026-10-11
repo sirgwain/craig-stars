@@ -2452,3 +2452,54 @@ func Test_orders_SplitFleet_names(t *testing.T) {
 		})
 	}
 }
+
+func Test_orders_Split_remoteMiningTask(t *testing.T) {
+	newFleet := func(player *Player) *Fleet {
+		miner := NewShipDesign(player.Num, 1).WithName("Cotton Picker").WithHull(MiniMiner.Name).
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: RoboMiniMiner.Name, HullSlotIndex: 3, Quantity: 1},
+			}).WithSpec(&rules, player)
+		scout := NewShipDesign(player.Num, 2).WithName("Long Range Scout").WithHull(Scout.Name).
+			WithSlots([]ShipDesignSlot{{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1}}).
+			WithSpec(&rules, player)
+		// miners with a scout along, set to remote mine where they are
+		fleet := testLongRangeScout(player)
+		player.Designs = []*ShipDesign{miner, scout}
+		fleet.Num = 1
+		fleet.Rename(miner.Name)
+		fleet.Tokens = []ShipToken{
+			{design: miner, DesignNum: miner.Num, Quantity: 1},
+			{design: scout, DesignNum: scout.Num, Quantity: 1},
+		}
+		fleet.Fuel = 0
+		fleet.Waypoints[0].Task = WaypointTaskRemoteMining
+		fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+		return fleet
+	}
+
+	t.Run("split", func(t *testing.T) {
+		player := testPlayer().WithNum(1)
+		source := newFleet(player)
+		gotSource, gotDest, err := NewOrderer().SplitFleet(&rules, player, []*Fleet{source}, SplitFleetRequest{
+			Source:       source,
+			SourceTokens: []ShipToken{{DesignNum: 1, Quantity: 1}, {DesignNum: 2, Quantity: 0}},
+			DestTokens:   []ShipToken{{DesignNum: 1, Quantity: 0}, {DesignNum: 2, Quantity: 1}},
+		})
+		assert.NoError(t, err)
+		// the miner keeps mining, the scout it left behind can't
+		assert.Equal(t, WaypointTaskRemoteMining, gotSource.Waypoints[0].Task)
+		assert.Equal(t, WaypointTaskNone, gotDest.Waypoints[0].Task)
+	})
+
+	t.Run("split all", func(t *testing.T) {
+		player := testPlayer().WithNum(1)
+		source := newFleet(player)
+		newFleets, err := NewOrderer().SplitAll(&rules, player, []*Fleet{source}, source)
+		assert.NoError(t, err)
+		assert.Equal(t, WaypointTaskRemoteMining, source.Waypoints[0].Task)
+		if assert.Len(t, newFleets, 1) {
+			assert.Equal(t, WaypointTaskNone, newFleets[0].Waypoints[0].Task)
+		}
+	})
+}

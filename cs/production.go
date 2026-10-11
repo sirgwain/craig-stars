@@ -313,6 +313,20 @@ func (p *producer) produce() (productionResult, error) {
 		alchemy = false
 	}
 
+	// with nothing left to research, leftover resources make minerals instead of going to waste
+	if available.Resources > 0 && len(p.player.TechLevels.LearnableTechFields(p.rules)) == 0 {
+		cost, err := p.getItemCost(p.rules, p.player, planet, ProductionQueueItem{Type: QueueItemTypeMineralAlchemy})
+		if err != nil {
+			return productionResult{}, err
+		}
+		if cost.Resources > 0 {
+			converted := available.Resources / cost.Resources
+			available.Resources -= converted * cost.Resources
+			available = available.AddToAllMineral(converted)
+			result.alchemy += converted
+		}
+	}
+
 	planet.ProductionQueue = queue
 	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
 	if planet.Cargo.MinZero() != planet.Cargo {

@@ -694,7 +694,7 @@
 					"techLevel": {
 						"energy": 10
 					},
-					"prtsDenied": ["PRT_AR"]
+					"prtsDenied": ["PRT_AR", "PRT_WM"]
 				},
 				"ranking": 20,
 				"category": "TECH_CATEGORY_PLANETARY_DEFENSE",
@@ -717,7 +717,7 @@
 					"techLevel": {
 						"energy": 16
 					},
-					"prtsDenied": ["PRT_AR"]
+					"prtsDenied": ["PRT_AR", "PRT_WM"]
 				},
 				"ranking": 30,
 				"category": "TECH_CATEGORY_PLANETARY_DEFENSE",
@@ -740,7 +740,7 @@
 					"techLevel": {
 						"energy": 23
 					},
-					"prtsDenied": ["PRT_AR"]
+					"prtsDenied": ["PRT_AR", "PRT_WM"]
 				},
 				"ranking": 40,
 				"category": "TECH_CATEGORY_PLANETARY_DEFENSE",

@@ -4,6 +4,7 @@
 	import PRTDescription from '#lib/components/game/race/PRTDescription.svelte';
 	import Population from '#lib/components/icons/Population.svelte';
 	import ItemTitle from '#lib/components/ItemTitle.svelte';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import type { Race, RaceSpec } from '#lib/types/cs-proto.js';
 	import { Grav, Rad, Temp } from '#lib/types/Hab.js';
 	import { getLabelForPRT } from '#lib/types/Race.js';
@@ -18,6 +19,8 @@
 	};
 
 	let { wasmClient, race }: Props = $props();
+
+	const { game } = getGameContext();
 
 	let spec: RaceSpec | undefined = $state();
 
@@ -77,7 +80,7 @@
 		habHigh={race.habHigh?.rad ?? 0}
 		immune={race.immuneRad}
 	/>
-	<HabChance {race} />
+	<HabChance {race} rules={$game.rules} />
 </div>
 
 <ItemTitle>Planetary Production</ItemTitle>

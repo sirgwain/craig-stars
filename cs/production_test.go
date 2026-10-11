@@ -1035,3 +1035,44 @@ func Test_production_genesisDevice(t *testing.T) {
 		})
 	}
 }
+
+// Research has nowhere to put leftover resources once every field is maxed, so they make minerals.
+func Test_production_leftoverAlchemyAtMaxTech(t *testing.T) {
+	maxed := TechLevel{rules.MaxTechLevel, rules.MaxTechLevel, rules.MaxTechLevel, rules.MaxTechLevel, rules.MaxTechLevel, rules.MaxTechLevel}
+	almost := maxed
+	almost.Biotechnology--
+	mine := ProductionQueueItem{Type: QueueItemTypeMine, Quantity: 1}
+
+	tests := []struct {
+		name       string
+		techLevels TechLevel
+		queue      []ProductionQueueItem
+		want       productionTestResult
+	}{
+		{
+			name:       "leftovers still go to research with a field to learn",
+			techLevels: almost,
+			want:       productionTestResult{leftover: 250},
+		},
+		{
+			name:       "leftovers become minerals at max tech, the odd resources are lost to research",
+			techLevels: maxed,
+			want:       productionTestResult{alchemy: 2, minerals: Mineral{2, 2, 2}, leftover: 50},
+		},
+		{
+			name:       "only what the queue didn't use is converted",
+			techLevels: maxed,
+			queue:      []ProductionQueueItem{mine},
+			want:       productionTestResult{alchemy: 2, mines: 1, minerals: Mineral{2, 2, 2}, leftover: 45},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player, planet := newProductionTestPlanet(250, Mineral{})
+			player.TechLevels = tt.techLevels
+			planet.ProductionQueue = tt.queue
+
+			assert.Equal(t, tt.want, runProduction(t, &rules, player, planet))
+		})
+	}
+}
