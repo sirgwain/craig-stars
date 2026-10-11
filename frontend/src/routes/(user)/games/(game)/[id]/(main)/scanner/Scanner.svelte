@@ -103,6 +103,89 @@
 	// if we just added a waypoint, don't drag it around
 	let waypointJustAdded = false;
 
+	// A press on the commanded fleet's waypoint is either the start of a drag or a click. We only know
+	// which once the pointer moves or lifts, so the click waits for pointer up.
+	// a finger wobbles more than a mouse while it's held still
+	const dragMinDistance = 3;
+	const touchMinDistance = 10;
+	let pressedAt: { x: number; y: number } | undefined;
+	let pressedWaypoint: Waypoint | undefined;
+	let pendingSelect: MapObjectLike | undefined;
+
+	function clientPoint(event: FinderEvent['event']): { x: number; y: number } | undefined {
+		if ('clientX' in event) {
+			return { x: event.clientX, y: event.clientY };
+		}
+		const touch = event.touches[0] ?? event.changedTouches[0];
+		return touch ? { x: touch.clientX, y: touch.clientY } : undefined;
+	}
+
+	// true once the pointer has moved far enough from where it went down to be a drag, not a click
+	function movedSincePress(event: FinderEvent['event']): boolean {
+		const point = clientPoint(event);
+		if (!pressedAt || !point) {
+			return true;
+		}
+		const mouse = event instanceof PointerEvent && event.pointerType === 'mouse';
+		const minDistance = mouse ? dragMinDistance : touchMinDistance;
+		return Math.hypot(point.x - pressedAt.x, point.y - pressedAt.y) >= minDistance;
+	}
+
+	function clearPress() {
+		pressedAt = undefined;
+		pressedWaypoint = undefined;
+		pendingSelect = undefined;
+		clearTimeout(longPressTimer);
+		longPressTimer = undefined;
+	}
+
+	// Holding a finger still on a mapobject opens its context menu, like a right click with a mouse.
+	const longPressMs = 500;
+	let longPressTimer: ReturnType<typeof setTimeout> | undefined;
+	// some browsers also send a contextmenu event for a long press, ignore it if we already handled it
+	let longPressed = false;
+
+	function startLongPress(event: FinderEvent['event'], found: MapObjectLike) {
+		if (!(event instanceof PointerEvent) || event.pointerType === 'mouse') {
+			return;
+		}
+		clearTimeout(longPressTimer);
+		longPressTimer = setTimeout(() => {
+			longPressTimer = undefined;
+			// A touch always starts a pan, so we can't go by whether the scanner is zooming. The timer
+			// is cancelled if the finger actually moves.
+			if (!pointerDown || draggingWaypoint) {
+				return;
+			}
+			// this press was for the menu, not a click or a drag
+			longPressed = true;
+			pendingSelect = undefined;
+			pressedWaypoint = undefined;
+			swallowNextClick();
+			onScannerContextPopup(event, found.mapObject?.position ?? emptyVector());
+		}, longPressMs);
+	}
+
+	// Lifting the finger after a long press sends a click, which would close the menu we just
+	// opened as a click outside of it. Stop that one click before anything else sees it.
+	let swallowClick: ((e: MouseEvent) => void) | undefined;
+	function swallowNextClick() {
+		stopSwallowingClick();
+		swallowClick = (e: MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
+			stopSwallowingClick();
+		};
+		window.addEventListener('click', swallowClick, true);
+	}
+
+	function stopSwallowingClick() {
+		if (swallowClick) {
+			window.removeEventListener('click', swallowClick, true);
+			swallowClick = undefined;
+		}
+	}
+
 	// the measuring tape is dragged out with the middle button, or the right button while shift is held.
 	// It measures from where the drag started to the pointer, snapping to mapobjects at either end
 	const tapeMinDistance = 3;
@@ -218,6 +301,9 @@
 	function handleZoom(e: D3ZoomEvent<HTMLElement, unknown>) {
 		transform = e.transform;
 		scale = transform.k;
+		// the map moved under the finger, so this isn't a long press
+		clearTimeout(longPressTimer);
+		longPressTimer = undefined;
 	}
 
 	function handleZoomStart() {
@@ -302,6 +388,12 @@
 			return;
 		}
 
+		if (longPressed) {
+			// this long press already opened the menu
+			longPressed = false;
+			return;
+		}
+
 		if (found && event instanceof MouseEvent) {
 			onScannerContextPopup(event, found.mapObject?.position ?? emptyVector());
 		}
@@ -316,11 +408,6 @@
 		if (tapeStart) {
 			tapeMove(position, found);
 			return;
-		}
-
-		if (draggingWaypoint && !zooming) {
-			positionWaypoint = event.shiftKey;
-			dragWaypointMove(position, found);
 		}
 
 		// check if we are over the commanded fleet's waypoint
@@ -343,16 +430,37 @@
 			}
 		}
 
+		if (longPressTimer && movedSincePress(event)) {
+			// the finger moved, so this is a pan or a drag
+			clearTimeout(longPressTimer);
+			longPressTimer = undefined;
+		}
+
 		// check if we started a waypoint drag
 		// we only
 		// * start dragging once
 		// * if the pointer is down
-		// * if we are over a mapobject
+		// * on the waypoint we pressed, or one the pointer moved over
+		// * once the pointer has moved, so a click on a waypoint isn't a drag
 		// * if we have a commanded fleet
-		if (!waypointJustAdded && !draggingWaypoint && pointerDown && fleetWaypoint) {
+		const dragWaypoint = pressedWaypoint ?? fleetWaypoint;
+		if (
+			!waypointJustAdded &&
+			!draggingWaypoint &&
+			pointerDown &&
+			dragWaypoint &&
+			$commandedFleet &&
+			movedSincePress(event)
+		) {
 			draggingWaypoint = true;
+			pendingSelect = undefined;
 			dragOrigin = $commandedFleet.fleetOrders.waypoints.map((wp) => clone(WaypointSchema, wp));
-			onSelectWaypoint?.({ fleet: $commandedFleet, waypoint: fleetWaypoint });
+			onSelectWaypoint?.({ fleet: $commandedFleet, waypoint: dragWaypoint });
+		}
+
+		if (draggingWaypoint && !zooming) {
+			positionWaypoint = event.shiftKey;
+			dragWaypointMove(position, found);
 		}
 	}
 
@@ -387,6 +495,11 @@
 		}
 
 		pointerDown = true;
+		longPressed = false;
+		pressedAt = clientPoint(event);
+		if (found && !(shouldAddWaypoint || $settings.addWaypoint)) {
+			startLongPress(event, found);
+		}
 
 		if (found) {
 			if ((shouldAddWaypoint || $settings.addWaypoint) && (await addWaypoint(found, position))) {
@@ -402,8 +515,13 @@
 							equal(wp.position ?? emptyVector(), found.mapObject?.position ?? emptyVector())
 						);
 
+				pressedWaypoint = fleetWaypoint;
 				if (fleetWaypoint && $selectedWaypoint != fleetWaypoint) {
 					onSelectWaypoint?.({ fleet: $commandedFleet, waypoint: fleetWaypoint });
+				} else if (fleetWaypoint) {
+					// Selecting what's here can command a planet, which would end the drag before it starts.
+					// Wait to see if this press is a drag.
+					pendingSelect = found;
 				} else {
 					mapObjectSelected(found);
 				}
@@ -435,7 +553,15 @@
 			}
 
 			dragWaypointDone(position, found);
+		} else if (pendingSelect) {
+			// the press on the selected waypoint was a click after all
+			mapObjectSelected(pendingSelect);
 		}
+		if (longPressed) {
+			// the click from this lift comes right after, if the browser sends one at all
+			setTimeout(stopSwallowingClick, 400);
+		}
+		clearPress();
 		draggingWaypoint = false;
 		dragOrigin = undefined;
 		pointerDown = false;
@@ -444,6 +570,7 @@
 
 	function onPointerCancel() {
 		tapeDone();
+		clearPress();
 		draggingWaypoint = false;
 		dragOrigin = undefined;
 		pointerDown = false;
@@ -579,6 +706,8 @@
 	});
 
 	onDestroy(() => {
+		clearTimeout(longPressTimer);
+		stopSwallowingClick();
 		hotkeys.unbind('v', 'root', showTargetLocation);
 	});
 
