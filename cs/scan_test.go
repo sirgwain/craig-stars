@@ -3,6 +3,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 	"testing"
@@ -526,4 +527,44 @@ func Test_scanMinefields(t *testing.T) {
 
 		})
 	}
+}
+
+// Allies who share their map pass on the players they know about, including ones they heard of
+// from an ally of their own.
+func Test_sharePlayerIntel(t *testing.T) {
+	none := PlayerRelationship{Relation: PlayerRelationNeutral}
+	share := PlayerRelationship{Relation: PlayerRelationFriend, ShareMap: true}
+	players := make([]*Player, 4)
+	for i := range players {
+		players[i] = NewPlayer(int64(i+1), NewRace().WithPluralName(fmt.Sprintf("Race %d", i+1))).WithNum(i + 1)
+		players[i].Relations = []PlayerRelationship{none, none, none, none}
+	}
+	for _, player := range players {
+		player.Intels.PlayerIntels = player.defaultPlayerIntels(players)
+		player.discoverer = newDiscovererWithAllies(testLogger, player, players)
+	}
+	// 2 shares with 1, 3 shares with 2, and only 3 has met 4
+	players[1].Relations[0] = share
+	players[2].Relations[1] = share
+	for _, player := range players {
+		player.discoverer = newDiscovererWithAllies(testLogger, player, players)
+	}
+	newDiscoverer(testLogger, players[2]).discoverPlayer(players[3])
+
+	sharePlayerIntel(players)
+
+	seen := func(player int) []bool {
+		result := []bool{}
+		for _, intel := range players[player-1].Intels.PlayerIntels {
+			result = append(result, intel.Seen)
+		}
+		return result
+	}
+	// player 1 hears of everyone through the chain, with their race names
+	assert.Equal(t, []bool{true, true, true, true}, seen(1))
+	assert.Equal(t, "Race 4", players[0].Intels.PlayerIntels[3].RacePluralName)
+	assert.Equal(t, []bool{false, true, true, true}, seen(2))
+	// nobody shares with 3 or 4, so they learn nothing new
+	assert.Equal(t, []bool{false, false, true, true}, seen(3))
+	assert.Equal(t, []bool{false, false, false, true}, seen(4))
 }
