@@ -10,6 +10,7 @@ import {
 	type FleetOrders
 } from '#lib/types/cs-proto.js';
 import type { CS } from '#lib/wasm.js';
+import { emptyCargoTransferRequest } from '#lib/types/CargoTransferRequest.js';
 import { CommandedPlayer } from '#lib/types/Player.js';
 import { errors } from './Errors';
 import { FullGame } from './FullGame';
@@ -24,7 +25,7 @@ import { Universe } from './Universe';
 // the order in which they finish.
 
 const clients = vi.hoisted(() => ({
-	fleetClient: { updateFleetOrders: vi.fn(), renameFleet: vi.fn() },
+	fleetClient: { updateFleetOrders: vi.fn(), renameFleet: vi.fn(), splitFleet: vi.fn() },
 	playerClient: { submitTurn: vi.fn() }
 }));
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
@@ -332,4 +333,22 @@ it('drops a waypoint calculated from orders that were rolled back', async () => 
 		10
 	]);
 	expect(clients.fleetClient.updateFleetOrders).toHaveBeenCalledOnce();
+});
+
+// Moving every ship into an existing fleet deletes the source. The server returns the surviving
+// dest as the new source, and it must stay in the universe exactly once.
+it('keeps the surviving fleet after splitting every ship into an existing fleet', async () => {
+	const { context, u } = await setup();
+	clients.fleetClient.splitFleet.mockResolvedValue({ source: fleet(2), cargoTransfers: {} });
+
+	await context.split(
+		get(context.commandedFleet)!,
+		u.fleets[1],
+		[],
+		[],
+		emptyCargoTransferRequest()
+	);
+
+	expect(get(context.universe).fleets.map((f) => f.mapObject?.num)).toEqual([2]);
+	expect(get(context.commandedFleet)?.mapObject.num).toBe(2);
 });

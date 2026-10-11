@@ -2602,8 +2602,8 @@ func (t *turnGenerator) fleetBattle() {
 				}
 			}
 
-			// each player should discover starbase info after battle
-			if planet != nil && planet.Starbase != nil {
+			// each player should discover starbase info after battle, including a starbase that was destroyed
+			if planet != nil {
 				for _, player := range playersAtPosition {
 					if planet.PlayerNum == player.Num {
 						continue

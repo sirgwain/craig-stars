@@ -23,7 +23,7 @@
 	{/if}
 	<div class="font-semibold text-xl">Status</div>
 	{#each $game.players as playerStatus (playerStatus.num)}
-		<div class="flex flex-row min-w-0">
+		<div class="flex flex-row min-w-0 pr-2">
 			<div class="w-4 shrink-0 my-auto">
 				{playerStatus.num}
 			</div>
@@ -36,7 +36,10 @@
 			</div>
 		</div>
 		{#if !settingUp}
-			<div class="my-auto">
+			<div
+				class="my-auto min-w-0 truncate pr-2"
+				title={$universe.getPlayerIntel(playerStatus.num)?.racePluralName}
+			>
 				{$universe.getPlayerIntel(playerStatus.num)?.racePluralName ?? 'unknown'}
 			</div>
 		{/if}

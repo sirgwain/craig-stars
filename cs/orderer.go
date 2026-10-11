@@ -434,6 +434,10 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	source.Spec = splitSource.Spec
 	dest.Spec = splitDest.Spec
 
+	// a fleet shouldn't keep the name of a design that moved to the other fleet
+	source.resetDefaultName(dest)
+	dest.resetDefaultName(source)
+
 	if len(source.Tokens) == 0 {
 		// source is gone, no cargo transfer needed, just make sure the dest has all cargo and we're done
 		source.Delete = true

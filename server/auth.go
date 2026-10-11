@@ -80,6 +80,12 @@ func (s *server) contextUserSession(r *http.Request) userSession {
 func (s *server) userSessionCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := s.mustGetUserSession(w, r)
+		if user.ID == 0 {
+			// a token without a database id isn't any user. Open slots and AI players have a user id of 0,
+			// so never let a request through as user 0
+			http.Error(w, "missing user id", http.StatusUnauthorized)
+			return
+		}
 
 		ctx := context.WithValue(r.Context(), keyUserSession, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -118,7 +124,7 @@ func (s *server) createNewDiscordUser(ctx context.Context, tokenUser tokenUser) 
 
 	var newUser *cs.User
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		newUser, err := c.CreateUser(ctx, user)
+		newUser, err = c.CreateUser(ctx, user)
 		if err != nil {
 			slog.Error("failed to create new user", slog.Any("error", err), slog.String("Username", user.Username))
 			return err
