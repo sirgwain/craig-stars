@@ -4,7 +4,10 @@ package cs
 
 import (
 	"reflect"
+	"slices"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTechStore_GetBestEngine(t *testing.T) {
@@ -124,4 +127,22 @@ func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
 			}
 		})
 	}
+}
+
+// A tech is announced on the breakthrough that reaches its level, and not again on later ones.
+func TestTechStore_GetTechsJustGained_once(t *testing.T) {
+	store := &StaticTechStore
+	store.Init()
+	has := func(techs []*Tech, name string) bool {
+		return slices.ContainsFunc(techs, func(tech *Tech) bool { return tech.Name == name })
+	}
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{Energy: 15})
+
+	assert.True(t, has(store.GetTechsJustGained(player, Energy), UltraDriver10.Name))
+	// a breakthrough in another field doesn't announce it again
+	player.TechLevels.Weapons = 1
+	assert.False(t, has(store.GetTechsJustGained(player, Weapons), UltraDriver10.Name))
+	// and neither does the next energy level
+	player.TechLevels.Energy = 16
+	assert.False(t, has(store.GetTechsJustGained(player, Energy), UltraDriver10.Name))
 }

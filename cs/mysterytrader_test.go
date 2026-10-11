@@ -25,7 +25,7 @@ func Test_generateMysteryTrader(t *testing.T) {
 		{"no mystery trader, odd year", args{&testRandom{}, &Game{Year: 2441}, 1}, nil},
 		{"no mystery trader, random chance failed", args{newIntRandom(0, 1), &Game{Year: 2440}, 1}, nil},
 		{"mystery trader, random always returns 0", args{newIntRandom(), &Game{Year: 2440}, 1},
-			newMysteryTrader(Vector{X: -20, Y: 20}, 1, 7, Vector{X: 20, Y: -20}, 5000, MysteryTraderRewardResearch),
+			newMysteryTrader(Vector{X: -20, Y: 20}, 1, 8, Vector{X: 20, Y: -20}, 5000, MysteryTraderRewardResearch),
 		},
 	}
 	for _, tt := range tests {
@@ -221,14 +221,16 @@ func Test_generateMysteryTraderReward(t *testing.T) {
 		{"all 0s", args{rng: *newIntRandom(), year: 2400, warpSpeed: 7}, MysteryTraderRewardResearch},
 		{"lifeboat 1 in 6 chance", args{rng: *newIntRandom(0, 5), year: 2400, warpSpeed: 7}, MysteryTraderRewardLifeboat},
 		{"research1", args{rng: *newIntRandom(0, 1), year: 2400, warpSpeed: 7}, MysteryTraderRewardResearch},
-		{"research2", args{rng: *newIntRandom(6, 0), year: 2400, warpSpeed: 7}, MysteryTraderRewardResearch},
-		{"engine", args{rng: *newIntRandom(6, 1), year: 2400, warpSpeed: 7}, MysteryTraderRewardEngine},
-		{"engine more likely later", args{rng: *newIntRandom(5, 1), year: 2500, warpSpeed: 7}, MysteryTraderRewardEngine},
-		{"engine more likely faster", args{rng: *newIntRandom(4, 1), year: 2500, warpSpeed: 11}, MysteryTraderRewardEngine},
-		{"torpedoes are hard", args{rng: *newIntRandom(6, 7, 7, 0), year: 2400, warpSpeed: 7}, MysteryTraderRewardTorpedo},
-		{"beams are harder", args{rng: *newIntRandom(6, 8, 8, 0), year: 2400, warpSpeed: 7}, MysteryTraderRewardBeamWeapon},
-		{"almost a beam, research instead", args{rng: *newIntRandom(6, 8, 8, 1), year: 2400, warpSpeed: 7}, MysteryTraderRewardResearch},
-		{"late game jump gate", args{rng: *newIntRandom(6, 12, 12), year: 2580, warpSpeed: 7}, MysteryTraderRewardJumpGate},
+		// part rewards are drawn from the parts and ships only, research isn't one of them
+		{"engine", args{rng: *newIntRandom(6, 0), year: 2400, warpSpeed: 7}, MysteryTraderRewardEngine},
+		{"bomb", args{rng: *newIntRandom(6, 1), year: 2400, warpSpeed: 7}, MysteryTraderRewardBomb},
+		{"engine more likely later", args{rng: *newIntRandom(5, 0), year: 2500, warpSpeed: 7}, MysteryTraderRewardEngine},
+		{"engine more likely faster", args{rng: *newIntRandom(4, 0), year: 2500, warpSpeed: 11}, MysteryTraderRewardEngine},
+		{"torpedoes are hard", args{rng: *newIntRandom(6, 6, 6, 0), year: 2400, warpSpeed: 7}, MysteryTraderRewardTorpedo},
+		{"beams are harder", args{rng: *newIntRandom(6, 7, 7, 0), year: 2400, warpSpeed: 7}, MysteryTraderRewardBeamWeapon},
+		{"almost a beam, research instead", args{rng: *newIntRandom(6, 7, 7, 1), year: 2400, warpSpeed: 7}, MysteryTraderRewardResearch},
+		{"late game jump gate", args{rng: *newIntRandom(6, 11, 11), year: 2580, warpSpeed: 7}, MysteryTraderRewardJumpGate},
+		{"lifeboat from the part list", args{rng: *newIntRandom(6, 12), year: 2400, warpSpeed: 7}, MysteryTraderRewardLifeboat},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

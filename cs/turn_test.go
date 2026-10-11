@@ -2372,6 +2372,65 @@ func Test_turn_mysteryTraderAgain(t *testing.T) {
 	assert.NotEqual(t, Vector{49, 0}, mt.Destination)
 }
 
+// A trader that speeds up and then leaves the same year doesn't announce the course change.
+func Test_turn_mysteryTraderChangeCourseAndFinish(t *testing.T) {
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{
+		{
+			MapObject:     MapObject{Position: Vector{}},
+			WarpSpeed:     7,
+			Destination:   Vector{49, 0},
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardResearch,
+		},
+	}
+	u := newTestUniverse(t, s)
+	game := u.Game
+	game.RandomEvents = true
+	// changes course, only speeds up, doesn't make another pass
+	game.Rules.random = newIntRandom(0, 1, 1)
+	mt := game.MysteryTraders[0]
+
+	u.Run((*turnGenerator).mysteryTraderMove)
+
+	assert.Equal(t, 8, mt.WarpSpeed)
+	assert.True(t, mt.Delete)
+	assert.Empty(t, game.Players[0].Messages)
+}
+
+// A trader slows down a warp for another pass, and leaves if another trader is still around.
+func Test_turn_mysteryTraderAgainRules(t *testing.T) {
+	trader := func(position, destination Vector) MysteryTrader {
+		return MysteryTrader{
+			MapObject:     MapObject{Position: position},
+			WarpSpeed:     10,
+			Destination:   destination,
+			RequestedBoon: 5000,
+			RewardType:    MysteryTraderRewardResearch,
+		}
+	}
+
+	s := SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{trader(Vector{}, Vector{100, 0})}
+	u := newTestUniverse(t, s)
+	u.Game.RandomEvents = true
+	// no course change, another pass
+	u.Game.Rules.random = newIntRandom(1, 0)
+	u.Run((*turnGenerator).mysteryTraderMove)
+	assert.False(t, u.Game.MysteryTraders[0].Delete)
+	assert.Equal(t, 9, u.Game.MysteryTraders[0].WarpSpeed)
+
+	// with a second trader far from its destination, the first one leaves instead
+	s = SingleUnitScenario()
+	s.MysteryTraders = []MysteryTrader{trader(Vector{}, Vector{100, 0}), trader(Vector{0, 500}, Vector{2000, 500})}
+	u = newTestUniverse(t, s)
+	u.Game.RandomEvents = true
+	u.Game.Rules.random = newIntRandom(1, 0)
+	u.Run((*turnGenerator).mysteryTraderMove)
+	assert.True(t, u.Game.MysteryTraders[0].Delete)
+	assert.False(t, u.Game.MysteryTraders[1].Delete)
+}
+
 func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 	s := SingleUnitScenario()
 	s.MysteryTraders = []MysteryTrader{

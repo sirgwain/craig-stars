@@ -244,7 +244,7 @@
 	"mysteryTraderRules": {
 		"chanceSpawn": [7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2],
 		"chanceMaxTechGetsPart": 5,
-		"chanceCourseChange": 20,
+		"chanceCourseChange": 25,
 		"chanceSpeedUpOnly": 3,
 		"chanceAgain": 2,
 		"evenYearOnly": true,

@@ -452,8 +452,8 @@ func NewRulesWithSeed(seed int64) Rules {
 			// ChanceSpawn:      []int{1}, // force it
 			ChanceSpawn:           []int{7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2}, // randomly pick a random chance to spawn an MT. It's not the same every turn
 			ChanceMaxTechGetsPart: 5,                                      // 4 in 5 chance a max-tech player gets a part from a research trader
-			ChanceCourseChange:    20,                                     // 1 in 20 chance the MT speeds up/changes course
-			ChanceSpeedUpOnly:     3,                                      // if change course, 1 in 3 chance it's speed up only
+			ChanceCourseChange:    25,                                     // 1 in 25 chance the MT speeds up/changes course
+			ChanceSpeedUpOnly:     3,                                      // if it does, 1 in 3 chance it also heads somewhere new, otherwise it only speeds up
 			ChanceAgain:           2,                                      // 1 in 2 chance an MT makes another trip through the universe
 			EvenYearOnly:          true,                                   // true for only spawning mystery traders during even years
 			GenesisDeviceCost:     Cost{0, 0, 0, 5000},                    // no miniaturization, always costs this much
