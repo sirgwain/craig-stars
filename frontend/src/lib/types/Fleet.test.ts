@@ -178,6 +178,29 @@ describe('trip to a waypoint', () => {
 		expect(fuelTo(4)).toBe(110);
 	});
 
+	it('knows the fuel left on arrival, filling up at starbases on the way', () => {
+		const fuelAt = (fuel: number, capacity: number, index: number) => {
+			const f = new CommandedFleet(fleet);
+			f.fuel = fuel;
+			f.spec = { shipDesignSpec: { fuelCapacity: capacity } } as typeof f.spec;
+			return f.getFuelOnArrival(
+				player as unknown as Args[0],
+				universe as unknown as Args[1],
+				index
+			);
+		};
+		expect(fuelAt(120, 200, 0)).toBe(120);
+		expect(fuelAt(120, 200, 1)).toBe(80);
+		expect(fuelAt(120, 200, 2)).toBe(70);
+		// arrives at the starbase with 10mg, then leaves it with a full tank
+		expect(fuelAt(120, 200, 3)).toBe(10);
+		expect(fuelAt(120, 200, 4)).toBe(195);
+		// not enough for the third leg, so it never reaches the starbase to fill up
+		expect(fuelAt(100, 200, 2)).toBe(50);
+		expect(fuelAt(100, 200, 3)).toBe(-10);
+		expect(fuelAt(100, 200, 4)).toBe(-10);
+	});
+
 	it('adds up the years of every leg', () => {
 		expect(fleet.getYearsToWaypoint(0)).toBe(0);
 		expect(fleet.getYearsToWaypoint(1)).toBe(4); // 100 ly at warp 5

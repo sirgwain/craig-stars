@@ -165,6 +165,32 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
+	 * Get the fuel left in the tanks when the fleet arrives at a waypoint, filling up at each planet
+	 * it can refuel at on the way.
+	 * @returns the fuel left, in mg. Negative if the fleet runs dry before it gets there
+	 */
+	getFuelOnArrival(player: CommandedPlayer, universe: Universe, waypointIndex: number): number {
+		const waypoints = this.fleetOrders.waypoints;
+		let fuel = this.fuel;
+		for (let i = 1; i <= waypointIndex && i < waypoints.length; i++) {
+			fuel -= waypoints[i].estFuelUsage;
+			if (fuel < 0) {
+				// it never gets any further
+				return fuel;
+			}
+			const wp = waypoints[i];
+			const target =
+				wp.mapObjectTarget?.targetType === MapObjectType.PLANET
+					? universe.getPlanet(wp.mapObjectTarget.targetNum)
+					: undefined;
+			if (i < waypointIndex && this.canFuel(player, target)) {
+				fuel = Math.max(fuel, this.spec.shipDesignSpec?.fuelCapacity ?? 0);
+			}
+		}
+		return fuel;
+	}
+
+	/**
 	 * Get the years it takes to reach a waypoint, travelling every leg before it.
 	 * @returns the years, or undefined if a leg is at warp 0 and the fleet never gets there
 	 */

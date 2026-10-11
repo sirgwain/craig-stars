@@ -291,6 +291,14 @@
 		}
 	}
 
+	// Only the window changing size re-fits the map. The scanner also changes size when the phone's
+	// command drawer opens, and the map shouldn't rescale under the player for that.
+	function onWindowResize() {
+		handleResize();
+		// a rotating phone can fire its resize before the layout settles
+		requestAnimationFrame(handleResize);
+	}
+
 	function handleKeyDown(e: KeyboardEvent) {
 		// add a waypoint if we are currently commanding a fleet and we didn't just click
 		// on the fleet
@@ -713,15 +721,7 @@
 		// bind the v key to show the target with X
 		hotkeys('v', 'root', showTargetLocation);
 
-		// the scanner can change size without the window doing so, and a rotating phone can fire its
-		// resize before the layout settles
-		const resizeObserver = new ResizeObserver(handleResize);
-		if (rect) {
-			resizeObserver.observe(rect);
-		}
-
 		return () => {
-			resizeObserver.disconnect();
 			unsubscribeZoomTarget();
 		};
 	});
@@ -751,7 +751,7 @@
 	// x/y coords of a mapobject or waypoint
 </script>
 
-<svelte:window onresize={handleResize} onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
+<svelte:window onresize={onWindowResize} onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
 
 <div
 	class:cursor-grab={waypointHighlighted}
