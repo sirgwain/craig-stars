@@ -10,7 +10,7 @@
 	import HabBar from './HabBar.svelte';
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';
-	const { player } = getGameContext();
+	const { game, player } = getGameContext();
 
 	let race = $state($player.race);
 </script>
@@ -68,7 +68,7 @@
 			habHigh={race.habHigh.rad}
 			immune={race.immuneRad}
 		/>
-		<HabChance {race} />
+		<HabChance {race} rules={$game.rules} />
 	</div>
 
 	<ItemTitle>Planetary Production</ItemTitle>

@@ -841,15 +841,15 @@ var MissileBattery = TechDefense{Tech: NewTech("Missile Battery", NewCost(5, 5, 
 	DefenseCoverage: 1.99,
 }
 
-var LaserBattery = TechDefense{Tech: NewTech("Laser Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 10}, PRTsDenied: []PRT{AR}}, 20, TechCategoryPlanetaryDefense, TechTagDefense),
+var LaserBattery = TechDefense{Tech: NewTech("Laser Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 10}, PRTsDenied: []PRT{AR, WM}}, 20, TechCategoryPlanetaryDefense, TechTagDefense),
 	DefenseCoverage: 2.39,
 }
 
-var PlanetaryShield = TechDefense{Tech: NewTech("Planetary Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 16}, PRTsDenied: []PRT{AR}}, 30, TechCategoryPlanetaryDefense, TechTagDefense),
+var PlanetaryShield = TechDefense{Tech: NewTech("Planetary Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 16}, PRTsDenied: []PRT{AR, WM}}, 30, TechCategoryPlanetaryDefense, TechTagDefense),
 	DefenseCoverage: 2.99,
 }
 
-var NeutronShield = TechDefense{Tech: NewTech("Neutron Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 23}, PRTsDenied: []PRT{AR}}, 40, TechCategoryPlanetaryDefense, TechTagDefense),
+var NeutronShield = TechDefense{Tech: NewTech("Neutron Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 23}, PRTsDenied: []PRT{AR, WM}}, 40, TechCategoryPlanetaryDefense, TechTagDefense),
 	DefenseCoverage: 3.79,
 }
 

@@ -931,6 +931,20 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	arFleet.Cargo.Colonists = 10
 	u.Run((*turnGenerator).fleetReproduce)
 	assert.Equal(t, 10, arFleet.Cargo.Colonists)
+
+	// a handful of IS colonists is too few to grow every year, but they gain 100 about one year in three
+	isPlayer.Race.GrowthRate = 15
+	grew := 0
+	for range 300 {
+		isFleet.Cargo.Colonists = 1
+		u.Run((*turnGenerator).fleetReproduce)
+		if isFleet.Cargo.Colonists == 2 {
+			grew++
+		} else {
+			assert.Equal(t, 1, isFleet.Cargo.Colonists)
+		}
+	}
+	assert.InDelta(t, 100, grew, 30)
 }
 
 func Test_turn_fleetPursuit(t *testing.T) {

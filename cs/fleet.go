@@ -401,6 +401,19 @@ func (f *Fleet) resetDefaultName(other *Fleet) {
 	}
 }
 
+// clearUnusableTasks removes waypoint tasks this fleet can no longer do, like remote mining
+// after its miners were split off into another fleet.
+func (f *Fleet) clearUnusableTasks() {
+	if f.Spec.MiningRate > 0 {
+		return
+	}
+	for i := range f.Waypoints {
+		if f.Waypoints[i].Task == WaypointTaskRemoteMining {
+			f.Waypoints[i].Task = WaypointTaskNone
+		}
+	}
+}
+
 // RenameByPlayer sets a player chosen name for the fleet. Unlike Rename, the fleet number
 // is not added to the name.
 // Names longer than MaxNameLength are cut short.

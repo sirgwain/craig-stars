@@ -3,6 +3,7 @@ package cs
 import (
 	"fmt"
 	"math"
+	"slices"
 
 	"log/slog"
 )
@@ -372,12 +373,14 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		if request.DestBaseName != "" {
 			baseName = request.DestBaseName
 		}
-		fleet := NewFleet(player, fleetNum, baseName, source.Waypoints)
+		fleet := NewFleet(player, fleetNum, baseName, slices.Clone(source.Waypoints))
 		fleet.OrbitingPlanetNum = source.OrbitingPlanetNum
 		fleet.Heading = source.Heading
 		fleet.WarpSpeed = source.WarpSpeed
 		fleet.PreviousPosition = source.PreviousPosition
 		fleet.FleetOrders = source.FleetOrders
+		// the new fleet gets its own copy of the waypoints, so changing them doesn't change the source's
+		fleet.Waypoints = slices.Clone(source.Waypoints)
 
 		// create a slice of empty tokens we will populate
 		fleet.Tokens = make([]ShipToken, len(source.Tokens))
@@ -437,6 +440,8 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	// a fleet shouldn't keep the name of a design that moved to the other fleet
 	source.resetDefaultName(dest)
 	dest.resetDefaultName(source)
+	source.clearUnusableTasks()
+	dest.clearUnusableTasks()
 
 	if len(source.Tokens) == 0 {
 		// source is gone, no cargo transfer needed, just make sure the dest has all cargo and we're done
@@ -592,7 +597,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	}
 
 	var baseDesign = tokens[0].design
-	fleet := newFleetForDesign(player, baseDesign, 1, fleetNum, baseDesign.Name, source.Waypoints)
+	fleet := newFleetForDesign(player, baseDesign, 1, fleetNum, baseDesign.Name, slices.Clone(source.Waypoints))
 	fleet.OrbitingPlanetNum = source.OrbitingPlanetNum
 	fleet.Heading = source.Heading
 	fleet.WarpSpeed = source.WarpSpeed
@@ -602,6 +607,8 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.warped = source.warped
 	fleet.Tokens = tokens
 	fleet.FleetOrders = source.FleetOrders
+	// the new fleet gets its own copy of the waypoints, so changing them doesn't change the source's
+	fleet.Waypoints = slices.Clone(source.Waypoints)
 
 	// for splitting fuel and cargo
 	originalCargoCapacity := source.Spec.CargoCapacity
@@ -668,6 +675,8 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	// update fleet specs
 	fleet.Spec = ComputeFleetSpec(rules, player, &fleet)
 	source.Spec = ComputeFleetSpec(rules, player, source)
+	fleet.clearUnusableTasks()
+	source.clearUnusableTasks()
 
 	// update fuel usage estimates
 	source.ComputeFuelUsage(player)

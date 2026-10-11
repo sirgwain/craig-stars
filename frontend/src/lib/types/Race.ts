@@ -6,6 +6,8 @@ import {
 	type Race
 } from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
+import type { Rules } from '#lib/types/cs-proto.js';
+import { defaultRules } from './Rules';
 import { Grav, Rad, Temp, type HabType } from './Hab';
 
 export type LRT = number;
@@ -169,14 +171,58 @@ export function getHabWidth(race: Race) {
 	};
 }
 
-export function getHabChance(race: Race): number {
-	const habWidth = getHabWidth(race);
-	// do a straight calc of hab width, so if we have a hab with widths of 50, 50% of planets will be habitable
-	// so we get (.5 * .5 * .5) = .125, or 1 in 8 planets
-	const gravChance = race.immuneGrav ? 1.0 : habWidth.grav / 100.0;
-	const tempChance = race.immuneTemp ? 1.0 : habWidth.temp / 100.0;
-	const radChance = race.immuneRad ? 1.0 : habWidth.rad / 100.0;
-	return gravChance * tempChance * radChance;
+// The number of planets a race can expect to search to find one it can live on, so 8 means "1 in 8 planets".
+// Returns 0 if every planet is habitable.
+// The rules decide how planet values are spread out. A value with no dropoff range (radiation) is equally
+// likely anywhere. One with a dropoff range (gravity, temperature) is rarer near the extremes, so each value
+// in the race's range is weighted by how often planets roll it.
+export function getHabitablePlanetOdds(race: Race, rules: Rules = defaultRules): number {
+	const universe = rules.universeGenerationRules ?? defaultRules.universeGenerationRules;
+	const minHab = universe?.minHab ?? 1;
+	const maxHab = universe?.maxHab ?? 99;
+	// hab values run from one below the lowest planet value to one above the highest
+	const scale = maxHab - minHab + 2;
+	let chance = 1;
+	const add = (immune: boolean, low: number, high: number, dropoff: number) => {
+		if (immune || high - low === scale) {
+			chance *= scale;
+		} else if (dropoff <= 0) {
+			chance *= high - low;
+		} else {
+			// a planet rolls its value in two parts, one of them up to the dropoff range, so there are
+			// more ways to roll a middle value than one near either end
+			const span = maxHab - minHab - dropoff;
+			let weight = 0;
+			for (let value = low; value <= high; value++) {
+				const roll = value - minHab;
+				if (roll >= 0 && roll <= span + dropoff) {
+					weight += Math.min(roll, dropoff, span, span + dropoff - roll) + 1;
+				}
+			}
+			chance = Math.trunc((chance * weight * scale) / ((span + 1) * (dropoff + 1)));
+		}
+	};
+	const dropoff = universe?.habDropoffRange;
+	add(
+		race.immuneGrav ?? false,
+		race.habLow?.grav ?? 0,
+		race.habHigh?.grav ?? 0,
+		dropoff?.grav ?? 0
+	);
+	add(
+		race.immuneTemp ?? false,
+		race.habLow?.temp ?? 0,
+		race.habHigh?.temp ?? 0,
+		dropoff?.temp ?? 0
+	);
+	add(race.immuneRad ?? false, race.habLow?.rad ?? 0, race.habHigh?.rad ?? 0, dropoff?.rad ?? 0);
+
+	const allPlanets = scale * scale * scale;
+	if (chance === allPlanets) {
+		return 0;
+	}
+	chance = Math.max(1, chance);
+	return Math.trunc((Math.trunc(chance / 2) + allPlanets) / chance);
 }
 
 export function isImmune(race: Race, habType: HabType): boolean {

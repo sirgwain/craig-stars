@@ -1461,6 +1461,13 @@ func (t *turnGenerator) fleetReproduce() {
 		} else {
 			// Calculate relative pop growth based on growth rate
 			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists*player.Race.GrowthRate) / 100)
+			if growth == 0 && fg.GrowthFactor > 0 && player.Race.GrowthRate > 0 {
+				// too few colonists to grow every year, but one year in three they still gain 100
+				if t.game.Rules.random.Intn(3) != 0 {
+					continue
+				}
+				growth = 1
+			}
 		}
 		if growth == 0 {
 			// no growth or death, too little pop
@@ -1903,7 +1910,6 @@ func (t *turnGenerator) planetProduction() error {
 		}
 
 		// any leftover resources go back to the player for research
-		// TODO: auto dump this in alchemy if techs are maxed
 		player.leftoverResources += result.leftoverResources
 	}
 	return nil
