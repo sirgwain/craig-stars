@@ -212,7 +212,8 @@ func generateMysteryTrader(rules *Rules, game *Game, num int) *MysteryTrader {
 	// We made it this far, WE HAVE A MYSTERY TRADER!
 
 	// determine speed
-	warpSpeed := mtRules.MinWarp + rules.random.Intn(mtRules.MaxWarp-mtRules.MinWarp)
+	// new traders are a warp faster than the slowest a trader will go after slowing down for another pass
+	warpSpeed := mtRules.MinWarp + 1 + rules.random.Intn(mtRules.MaxWarp-mtRules.MinWarp-1)
 
 	// determine where on the edge of the map we start
 	position := generateRandomMysteryTraderCoords(rules, game)
@@ -339,15 +340,15 @@ func generateMysteryTraderReward(rules *Rules, year int, warpSpeed int) MysteryT
 		}
 	} else {
 		// we made it to the good stuff!
-		// grab a random reward from the list, skipping the first one "None"
-		randomReward := MysteryTraderRewards[rules.random.Intn(len(MysteryTraderRewards)-1)+1]
+		// grab a random part or ship from the list, skipping "None" and "Research"
+		randomReward := MysteryTraderRewards[rules.random.Intn(len(MysteryTraderRewards)-2)+2]
 		if randomReward == MysteryTraderRewardTorpedo ||
 			randomReward == MysteryTraderRewardBeamWeapon ||
 			randomReward == MysteryTraderRewardGenesis ||
 			randomReward == MysteryTraderRewardJumpGate {
 
 			// the first random reward was something cool, make them roll again
-			randomReward = MysteryTraderRewards[rules.random.Intn(len(MysteryTraderRewards)-1)+1]
+			randomReward = MysteryTraderRewards[rules.random.Intn(len(MysteryTraderRewards)-2)+2]
 
 			if turn < 120 && randomReward == MysteryTraderRewardBeamWeapon ||
 				turn < 150 && randomReward == MysteryTraderRewardGenesis ||
@@ -386,7 +387,8 @@ func (mt *MysteryTrader) move() {
 }
 
 func (mt *MysteryTrader) change(rules *Rules, game *Game) bool {
-	if mt.WarpSpeed > rules.MysteryTraderRules.MaxWarp {
+	if mt.WarpSpeed >= rules.MysteryTraderRules.MaxWarp {
+		// already going as fast as a trader goes
 		return false
 	}
 
@@ -396,7 +398,7 @@ func (mt *MysteryTrader) change(rules *Rules, game *Game) bool {
 
 	// course change!
 	mt.WarpSpeed++
-	if rules.random.Intn(rules.MysteryTraderRules.ChanceSpeedUpOnly) == 0 {
+	if rules.random.Intn(rules.MysteryTraderRules.ChanceSpeedUpOnly) != 0 {
 		// speed up only
 		return true
 	}
@@ -407,16 +409,14 @@ func (mt *MysteryTrader) change(rules *Rules, game *Game) bool {
 	return true
 }
 
-func (mt *MysteryTrader) again(rules *Rules, game *Game, numHumanPlayers int) bool {
-	if len(mt.PlayersRewarded) == numHumanPlayers || rules.random.Intn(rules.MysteryTraderRules.ChanceAgain) > 0 {
-		// we've given to all human players or we aren't going again
+func (mt *MysteryTrader) again(rules *Rules, game *Game, numHumanPlayers int, otherTraders bool) bool {
+	if otherTraders || len(mt.PlayersRewarded) == numHumanPlayers || rules.random.Intn(rules.MysteryTraderRules.ChanceAgain) > 0 {
+		// another trader is still out there, we've given to all human players, or we aren't going again
 		return false
 	}
 
-	if mt.WarpSpeed-2 >= rules.MysteryTraderRules.MinWarp {
-		// slow it down
-		mt.WarpSpeed -= 2
-	}
+	// slow it down
+	mt.WarpSpeed = max(mt.WarpSpeed-1, rules.MysteryTraderRules.MinWarp)
 
 	// point the MT at a new location
 	mt.Destination = generateRandomMysteryTraderDestination(rules, game, mt.Position)

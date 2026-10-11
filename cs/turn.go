@@ -987,10 +987,8 @@ func (t *turnGenerator) mysteryTraderMove() {
 		}
 
 		// check for a course change
-		if mt.change(&t.game.Rules, t.game.Game) {
-			for _, player := range t.game.Players {
-				player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderChangedCourse, mt))
-			}
+		changedCourse := mt.change(&t.game.Rules, t.game.Game)
+		if changedCourse {
 			t.log.Debug("mysteryTrader changed course",
 				slog.Int("MysteryTrader", mt.Num),
 			)
@@ -1008,7 +1006,8 @@ func (t *turnGenerator) mysteryTraderMove() {
 		)
 
 		if mt.Position == mt.Destination {
-			if mt.again(&t.game.Rules, t.game.Game, t.game.GetNumHumanPlayers()) {
+			otherTraders := slices.ContainsFunc(t.game.MysteryTraders, func(other *MysteryTrader) bool { return other != mt && !other.Delete })
+			if mt.again(&t.game.Rules, t.game.Game, t.game.GetNumHumanPlayers(), otherTraders) {
 				for _, player := range t.game.Players {
 					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderAgain, mt))
 				}
@@ -1021,6 +1020,14 @@ func (t *turnGenerator) mysteryTraderMove() {
 				)
 				// all done, bye bye trader
 				t.game.deleteMysteryTrader(mt)
+			}
+		}
+
+		// a trader that changed course and then left has nothing left to look at, so only tell
+		// players about traders that are still here
+		if changedCourse && !mt.Delete {
+			for _, player := range t.game.Players {
+				player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderChangedCourse, mt))
 			}
 		}
 	}
