@@ -296,6 +296,16 @@ export function canTransferCargo(fleet: Fleet): boolean {
 	return (fleet.spec?.shipDesignSpec?.cargoCapacity ?? 0) > 0;
 }
 
+// True if opening the transfer dialog is any use for this fleet: it has a hold to fill, or it's
+// with another of our fleets it can trade fuel with.
+export function canTransferCargoOrFuel(fleet: Fleet, dest: CargoDest): boolean {
+	return (
+		canTransferCargo(fleet) ||
+		(dest?.mapObject?.type === MapObjectType.FLEET &&
+			dest.mapObject.playerNum === fleet.mapObject?.playerNum)
+	);
+}
+
 // true if this fleet can transfer this cargo type
 // used to stop stealing colonists or fuel
 export function canTransferCargoType(fleet: Fleet, dest: CargoDest, cargoType: CargoType): boolean {
