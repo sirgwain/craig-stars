@@ -1,6 +1,9 @@
 package cs
 
-import "maps"
+import (
+	"maps"
+	"slices"
+)
 
 type PRTSpec struct {
 	PRT                              PRT              `json:"prt,omitempty"`
@@ -112,17 +115,43 @@ func (t TechCostOffset) Add(other TechCostOffset) TechCostOffset {
 }
 
 type StartingPlanet struct {
-	Population         int             `json:"population,omitempty"`
-	Mines              int             `json:"mines,omitempty"`
-	Factories          int             `json:"factories,omitempty"`
-	Defenses           int             `json:"defenses,omitempty"`
-	HabPenaltyFactor   float64         `json:"habPenaltyFactor,omitempty"`
-	HasStargate        bool            `json:"hasStargate,omitempty"`
-	HasMassDriver      bool            `json:"hasMassDriver,omitempty"`
-	StarbaseDesignName string          `json:"starbaseDesignName,omitempty"`
-	StarbaseHull       string          `json:"starbaseHull,omitempty"`
-	StartingFleets     []StartingFleet `json:"startingFleets,omitzero"`
-	Homeworld          bool            `json:"homeworld,omitempty"`
+	Population int `json:"population,omitempty"`
+	// colonists an extra world takes from the homeworld when it is placed
+	PopulationFromHomeworld int             `json:"populationFromHomeworld,omitempty"`
+	Mines                   int             `json:"mines,omitempty"`
+	Factories               int             `json:"factories,omitempty"`
+	Defenses                int             `json:"defenses,omitempty"`
+	HabPenaltyFactor        float64         `json:"habPenaltyFactor,omitempty"`
+	HasStargate             bool            `json:"hasStargate,omitempty"`
+	HasMassDriver           bool            `json:"hasMassDriver,omitempty"`
+	StarbaseDesignName      string          `json:"starbaseDesignName,omitempty"`
+	StarbaseHull            string          `json:"starbaseHull,omitempty"`
+	StartingFleets          []StartingFleet `json:"startingFleets,omitzero"`
+	Homeworld               bool            `json:"homeworld,omitempty"`
+}
+
+// startingPlanetsForSize returns the starting planets a race gets in a universe of this size.
+// Extra worlds beyond the size's MaxStartingPlanetsForSize rule are dropped, and the homeworld
+// gives up colonists for each extra world that remains.
+func startingPlanetsForSize(rules *Rules, size Size, startingPlanets []StartingPlanet) []StartingPlanet {
+	planets := slices.Clone(startingPlanets)
+	if maxPlanets, ok := rules.MaxStartingPlanetsForSize[size]; ok && len(planets) > maxPlanets {
+		planets = planets[:maxPlanets]
+	}
+
+	for i := range planets {
+		if !planets[i].Homeworld {
+			continue
+		}
+		for _, planet := range planets {
+			if !planet.Homeworld {
+				planets[i].Population -= planet.PopulationFromHomeworld
+			}
+		}
+		break
+	}
+
+	return planets
 }
 
 type StartingFleet struct {
@@ -384,9 +413,9 @@ func ppSpec() PRTSpec {
 	spec.StartingTechLevels = TechLevel{Energy: 4}
 
 	spec.StartingPlanets = []StartingPlanet{
-		// one homeworld, 20k people, no hab penalty
+		// one homeworld, 25k people (20k after settling the extra world), no hab penalty
 		{
-			Population:         20000,
+			Population:         25000,
 			Mines:              10,
 			Factories:          10,
 			Defenses:           10,
@@ -400,15 +429,18 @@ func ppSpec() PRTSpec {
 			}, Homeworld: true,
 		},
 		// extra world where hab varies by 1/2 of the range
+		// like the original, it starts with 2/5 of the homeworld's colonists and the homeworld keeps 4/5.
+		// Universes too small for an extra world leave the homeworld at full population
 		{
-			Population:         10000,
-			Mines:              10,
-			Factories:          4,
-			Defenses:           0,
-			HabPenaltyFactor:   1,
-			HasMassDriver:      true,
-			StarbaseHull:       OrbitalFort.Name,
-			StarbaseDesignName: "Accelerator Platform",
+			Population:              10000,
+			PopulationFromHomeworld: 5000,
+			Mines:                   10,
+			Factories:               4,
+			Defenses:                0,
+			HabPenaltyFactor:        1,
+			HasMassDriver:           true,
+			StarbaseHull:            OrbitalFort.Name,
+			StarbaseDesignName:      "Accelerator Platform",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 			}, Homeworld: false,
@@ -437,9 +469,9 @@ func itSpec() PRTSpec {
 	}
 
 	spec.StartingPlanets = []StartingPlanet{
-		// one homeworld, 20k people, no hab penalty
+		// one homeworld, 25k people (20k after settling the extra world), no hab penalty
 		{
-			Population:         20000,
+			Population:         25000,
 			Mines:              10,
 			Factories:          10,
 			Defenses:           10,
@@ -455,15 +487,18 @@ func itSpec() PRTSpec {
 			}, Homeworld: true,
 		},
 		// extra world where hab varies by 1/2 of the range
+		// like the original, it starts with 2/5 of the homeworld's colonists and the homeworld keeps 4/5.
+		// Universes too small for an extra world leave the homeworld at full population
 		{
-			Population:         10000,
-			Mines:              10,
-			Factories:          4,
-			Defenses:           0,
-			HabPenaltyFactor:   1,
-			HasStargate:        true,
-			StarbaseHull:       OrbitalFort.Name,
-			StarbaseDesignName: "Porthole to Beyond",
+			Population:              10000,
+			PopulationFromHomeworld: 5000,
+			Mines:                   10,
+			Factories:               4,
+			Defenses:                0,
+			HabPenaltyFactor:        1,
+			HasStargate:             true,
+			StarbaseHull:            OrbitalFort.Name,
+			StarbaseDesignName:      "Porthole to Beyond",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 			}, Homeworld: false,

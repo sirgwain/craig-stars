@@ -1203,6 +1203,11 @@ func (m *StartingPlanet) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.PopulationFromHomeworld != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.PopulationFromHomeworld))
+		i--
+		dAtA[i] = 0x60
+	}
 	if m.Homeworld {
 		i--
 		if m.Homeworld {
@@ -1939,6 +1944,9 @@ func (m *StartingPlanet) SizeVT() (n int) {
 	}
 	if m.Homeworld {
 		n += 2
+	}
+	if m.PopulationFromHomeworld != 0 {
+		n += 1 + protohelpers.SizeOfVarint(uint64(m.PopulationFromHomeworld))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -4892,6 +4900,25 @@ func (m *StartingPlanet) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.Homeworld = bool(v != 0)
+		case 12:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PopulationFromHomeworld", wireType)
+			}
+			m.PopulationFromHomeworld = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PopulationFromHomeworld |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

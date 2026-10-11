@@ -1306,20 +1306,21 @@ func (x *StartingFleet) GetPurpose() string {
 }
 
 type StartingPlanet struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Population         int32                  `protobuf:"varint,1,opt,name=population,proto3" json:"population,omitempty"`
-	Mines              int32                  `protobuf:"varint,2,opt,name=mines,proto3" json:"mines,omitempty"`
-	Factories          int32                  `protobuf:"varint,3,opt,name=factories,proto3" json:"factories,omitempty"`
-	Defenses           int32                  `protobuf:"varint,4,opt,name=defenses,proto3" json:"defenses,omitempty"`
-	HabPenaltyFactor   float64                `protobuf:"fixed64,5,opt,name=hab_penalty_factor,json=habPenaltyFactor,proto3" json:"hab_penalty_factor,omitempty"`
-	HasStargate        bool                   `protobuf:"varint,6,opt,name=has_stargate,json=hasStargate,proto3" json:"has_stargate,omitempty"`
-	HasMassDriver      bool                   `protobuf:"varint,7,opt,name=has_mass_driver,json=hasMassDriver,proto3" json:"has_mass_driver,omitempty"`
-	StarbaseDesignName string                 `protobuf:"bytes,8,opt,name=starbase_design_name,json=starbaseDesignName,proto3" json:"starbase_design_name,omitempty"`
-	StarbaseHull       string                 `protobuf:"bytes,9,opt,name=starbase_hull,json=starbaseHull,proto3" json:"starbase_hull,omitempty"`
-	StartingFleets     []*StartingFleet       `protobuf:"bytes,10,rep,name=starting_fleets,json=startingFleets,proto3" json:"starting_fleets,omitempty"`
-	Homeworld          bool                   `protobuf:"varint,11,opt,name=homeworld,proto3" json:"homeworld,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	Population              int32                  `protobuf:"varint,1,opt,name=population,proto3" json:"population,omitempty"`
+	Mines                   int32                  `protobuf:"varint,2,opt,name=mines,proto3" json:"mines,omitempty"`
+	Factories               int32                  `protobuf:"varint,3,opt,name=factories,proto3" json:"factories,omitempty"`
+	Defenses                int32                  `protobuf:"varint,4,opt,name=defenses,proto3" json:"defenses,omitempty"`
+	HabPenaltyFactor        float64                `protobuf:"fixed64,5,opt,name=hab_penalty_factor,json=habPenaltyFactor,proto3" json:"hab_penalty_factor,omitempty"`
+	HasStargate             bool                   `protobuf:"varint,6,opt,name=has_stargate,json=hasStargate,proto3" json:"has_stargate,omitempty"`
+	HasMassDriver           bool                   `protobuf:"varint,7,opt,name=has_mass_driver,json=hasMassDriver,proto3" json:"has_mass_driver,omitempty"`
+	StarbaseDesignName      string                 `protobuf:"bytes,8,opt,name=starbase_design_name,json=starbaseDesignName,proto3" json:"starbase_design_name,omitempty"`
+	StarbaseHull            string                 `protobuf:"bytes,9,opt,name=starbase_hull,json=starbaseHull,proto3" json:"starbase_hull,omitempty"`
+	StartingFleets          []*StartingFleet       `protobuf:"bytes,10,rep,name=starting_fleets,json=startingFleets,proto3" json:"starting_fleets,omitempty"`
+	Homeworld               bool                   `protobuf:"varint,11,opt,name=homeworld,proto3" json:"homeworld,omitempty"`
+	PopulationFromHomeworld int32                  `protobuf:"varint,12,opt,name=population_from_homeworld,json=populationFromHomeworld,proto3" json:"population_from_homeworld,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *StartingPlanet) Reset() {
@@ -1427,6 +1428,13 @@ func (x *StartingPlanet) GetHomeworld() bool {
 		return x.Homeworld
 	}
 	return false
+}
+
+func (x *StartingPlanet) GetPopulationFromHomeworld() int32 {
+	if x != nil {
+		return x.PopulationFromHomeworld
+	}
+	return 0
 }
 
 type StealsResearch struct {
@@ -1787,7 +1795,7 @@ const file_craig_stars_v1_race_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1b\n" +
 	"\thull_name\x18\x02 \x01(\tR\bhullName\x12&\n" +
 	"\x0fhull_set_number\x18\x03 \x01(\rR\rhullSetNumber\x12\x18\n" +
-	"\apurpose\x18\x04 \x01(\tR\apurpose\"\xb6\x03\n" +
+	"\apurpose\x18\x04 \x01(\tR\apurpose\"\xf2\x03\n" +
 	"\x0eStartingPlanet\x12\x1e\n" +
 	"\n" +
 	"population\x18\x01 \x01(\x05R\n" +
@@ -1802,7 +1810,8 @@ const file_craig_stars_v1_race_proto_rawDesc = "" +
 	"\rstarbase_hull\x18\t \x01(\tR\fstarbaseHull\x12F\n" +
 	"\x0fstarting_fleets\x18\n" +
 	" \x03(\v2\x1d.craig_stars.v1.StartingFleetR\x0estartingFleets\x12\x1c\n" +
-	"\thomeworld\x18\v \x01(\bR\thomeworld\"\xce\x01\n" +
+	"\thomeworld\x18\v \x01(\bR\thomeworld\x12:\n" +
+	"\x19population_from_homeworld\x18\f \x01(\x05R\x17populationFromHomeworld\"\xce\x01\n" +
 	"\x0eStealsResearch\x12\x16\n" +
 	"\x06energy\x18\x01 \x01(\x01R\x06energy\x12\x18\n" +
 	"\aweapons\x18\x02 \x01(\x01R\aweapons\x12\x1e\n" +
