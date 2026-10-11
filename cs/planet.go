@@ -672,9 +672,11 @@ func (spec *PlanetSpec) ComputeResourcesPerYear(player *Player, numFacts, produc
 	if player.Race.Spec.InnateResources {
 		// Compute resources for AR
 		habMulti := float64(max(spec.Habitability, player.Race.Spec.MinHabFloor)) / 100
+		// like the original, energy tech counts as at least 1
+		energy := max(1, player.TechLevels.Energy)
 		// Confirmed: AR resources round up in base game
 		spec.ResourcesPerYear = int(math.Ceil(habMulti *
-			math.Sqrt(float64(productivePop*player.TechLevels.Energy)/float64(player.Race.PopEfficiency))))
+			math.Sqrt(float64(productivePop*energy)/float64(player.Race.PopEfficiency))))
 	} else {
 		// compute resources from population & factories
 		resourcesFromPop := productivePop / (player.Race.PopEfficiency * 100)
@@ -686,6 +688,11 @@ func (spec *PlanetSpec) ComputeResourcesPerYear(player *Player, numFacts, produc
 
 		// Add them together
 		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
+	}
+
+	// like the original, a populated planet always generates at least one resource
+	if productivePop > 0 {
+		spec.ResourcesPerYear = max(1, spec.ResourcesPerYear)
 	}
 }
 
