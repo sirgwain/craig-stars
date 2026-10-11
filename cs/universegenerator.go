@@ -38,6 +38,16 @@ func (ug *universeGenerator) Area() Vector {
 	return ug.area
 }
 
+// count the tokens of a fleet or starbase that starts the game already built
+func countStartingTokens(fleet *Fleet) {
+	for _, token := range fleet.Tokens {
+		if token.design != nil {
+			token.design.Spec.NumBuilt += token.Quantity
+			token.design.Spec.NumInstances += token.Quantity
+		}
+	}
+}
+
 // Generate a new universe using a UniverseGenerator
 func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 	ug.log.Debug("Generating universe", slog.String("Size", string(ug.Size)))
@@ -83,6 +93,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 			if planet.Starbase != nil {
 				planet.Starbase.InjectDesigns(player.Designs)
 				planet.Starbase.Spec = ComputeFleetSpec(&ug.Rules, player, planet.Starbase)
+				countStartingTokens(planet.Starbase)
 			}
 			planet.Spec = ComputePlanetSpec(&ug.Rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
@@ -98,6 +109,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 		player := ug.getPlayer(fleet.PlayerNum)
 		fleet.InjectDesigns(player.Designs)
 		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, fleet)
+		countStartingTokens(fleet)
 	}
 
 	// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
