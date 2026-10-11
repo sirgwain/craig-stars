@@ -271,3 +271,46 @@ func TestBuildScenario_fleetBaseName(t *testing.T) {
 	assert.Equal(t, "Route #A", u.Fleet("Route #A").BaseName)
 	assert.Equal(t, "Teamster", u.Fleet("Teamster #4").BaseName)
 }
+
+func TestBuildScenario_startingTokensCountAsBuilt(t *testing.T) {
+	game := BuildScenario(TestScenario{
+		Players: []ScenarioPlayer{{
+			Designs: []ShipDesign{
+				{Name: "Scout", Hull: Scout.Name, Slots: slices.Clone(LongRangeScoutTestSlots)},
+				{Name: "Unbuilt", Hull: Scout.Name, Slots: slices.Clone(LongRangeScoutTestSlots)},
+				{Name: "Base", Hull: SpaceStation.Name},
+			},
+			Fleets: []ScenarioFleet{
+				{Name: "One", Design: "Scout", At: "Home"},
+				{Name: "Three", Design: "Scout", Quantity: 3, At: "Home"},
+			},
+		}},
+		Planets: []ScenarioPlanet{{Name: "Home", Owner: 1, Starbase: "Base", Cargo: Cargo{Colonists: 2500}}},
+	})
+
+	player := game.Players[0]
+	for name, want := range map[string]int{"Scout": 4, "Unbuilt": 0, "Base": 1} {
+		design := player.GetDesignByName(name)
+		assert.Equal(t, want, design.Spec.NumBuilt, "%s numBuilt", name)
+		assert.Equal(t, want, design.Spec.NumInstances, "%s numInstances", name)
+	}
+}
+
+func TestGenerate_startingTokensCountAsBuilt(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+	game := NewGame()
+	universe, err := NewUniverseGenerator(game, []*Player{player}).Generate()
+	assert.NoError(t, err)
+
+	want := map[int]int{}
+	for _, fleet := range append(universe.Fleets, universe.Starbases...) {
+		for _, token := range fleet.Tokens {
+			want[token.DesignNum] += token.Quantity
+		}
+	}
+	assert.NotEmpty(t, want)
+	for _, design := range player.Designs {
+		assert.Equal(t, want[design.Num], design.Spec.NumBuilt, "%s numBuilt", design.Name)
+		assert.Equal(t, want[design.Num], design.Spec.NumInstances, "%s numInstances", design.Name)
+	}
+}
