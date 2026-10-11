@@ -31,6 +31,7 @@ enums:
   - name: RepairRate
   - name: ResearchCostLevel
   - name: ShipDesignPurpose
+  - name: ShipClass
   - name: Size
   - name: SpendLeftoverPointsOn
   - name: TechCategory

@@ -102,6 +102,8 @@ var C Converter
 // goverter:extend CSResourceTypeToResourceType
 // goverter:extend ShipDesignPurposeToCSShipDesignPurpose
 // goverter:extend CSShipDesignPurposeToShipDesignPurpose
+// goverter:extend ShipClassToCSShipClass
+// goverter:extend CSShipClassToShipClass
 // goverter:extend SizeToCSSize
 // goverter:extend CSSizeToSize
 // goverter:extend SpendLeftoverPointsOnToCSSpendLeftoverPointsOn

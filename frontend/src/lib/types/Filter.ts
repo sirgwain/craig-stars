@@ -1,4 +1,5 @@
-import { WaypointTask, type Fleet } from './cs-proto';
+import type { DesignFinder } from '#lib/services/Universe.js';
+import { ShipClass, WaypointTask, type Fleet, type Minefield, type ShipDesign } from './cs-proto';
 import type { CommandedPlayer } from './Player';
 
 export type FilterOptions = {
@@ -6,46 +7,110 @@ export type FilterOptions = {
 	filterMyDesigns?: boolean;
 	filterAllyDesigns?: boolean;
 	filterEnemyDesigns?: boolean;
-	filterDesigns?: string[];
+	// the nums of our designs to show when filtering our designs
+	filterDesigns?: number[];
+	// the classes of other players' ships to show when filtering them
 	filterAllyShipClasses?: ShipClass[];
 	filterEnemyShipClasses?: ShipClass[];
+	showMinefields?: boolean;
+	// whose minefields to show when minefields are shown
+	showMinefieldsOf?: MinefieldOwner[];
 };
 
-export type ShipClass = (typeof ShipClasses)[keyof typeof ShipClasses];
+// whose minefield it is, from our point of view
+export type MinefieldOwner = 'mine' | 'friends' | 'neutrals' | 'enemies';
 
-// ship classes used by filtering
-export const ShipClasses = {
-	Colony: 'Colony',
-	Freighter: 'Freighter',
-	Scout: 'Scout',
-	Warship: 'Warship',
-	Utility: 'Utility',
-	Bomber: 'Bomber',
-	Miner: 'Miner',
-	FuelTransport: 'Fuel Transport'
-} as const;
+// the minefield owners that can be shown, in the order they are listed
+export const MinefieldOwners: MinefieldOwner[] = ['mine', 'friends', 'neutrals', 'enemies'];
 
+export function getMinefieldOwner(player: CommandedPlayer, minefield: Minefield): MinefieldOwner {
+	const playerNum = minefield.mapObject?.playerNum ?? 0;
+	if (playerNum === player.num) {
+		return 'mine';
+	}
+	if (player.isFriend(playerNum)) {
+		return 'friends';
+	}
+	return player.isEnemy(playerNum) ? 'enemies' : 'neutrals';
+}
+
+// the minefield owners these options show, none if minefields are turned off
+export function getShownMinefieldOwners(options: FilterOptions): MinefieldOwner[] {
+	return (options.showMinefields ?? true) ? (options.showMinefieldsOf ?? MinefieldOwners) : [];
+}
+
+// true if this minefield should be shown with these filters
+export function filterMinefield(
+	player: CommandedPlayer,
+	minefield: Minefield,
+	options: FilterOptions
+): boolean {
+	return getShownMinefieldOwners(options).includes(getMinefieldOwner(player, minefield));
+}
+
+// the ship classes that can be filtered, in the order they are listed
+export const ShipClasses = Object.values(ShipClass).filter(
+	(c): c is ShipClass => typeof c !== 'string' && c !== ShipClass.UNSPECIFIED
+);
+
+// the class of a design's hull. Designs from before hulls had classes count as utility ships
+export function getShipClass(design: ShipDesign | undefined): ShipClass {
+	return design?.spec?.shipClass || ShipClass.UTILITY;
+}
+
+// true if this fleet should be shown with these filters
 export function filterFleet(
 	player: CommandedPlayer,
 	fleet: Fleet,
-	options: FilterOptions
+	options: FilterOptions,
+	designs: DesignFinder
 ): boolean {
+	if (!filterIdleFleet(player, fleet, options.showIdleFleetsOnly ?? false)) {
+		return false;
+	}
 	return (
-		filterIdleFleet(player, fleet, options.showIdleFleetsOnly ?? false) &&
-		filterMyDesigns(player, fleet, options.filterMyDesigns ?? false, options.filterDesigns ?? []) &&
-		filterAllyDesigns(
-			player,
-			fleet,
-			options.filterAllyDesigns ?? false,
-			options.filterAllyShipClasses ?? []
-		) &&
-		filterEnemyDesigns(
-			player,
-			fleet,
-			options.filterEnemyDesigns ?? false,
-			options.filterEnemyShipClasses ?? []
-		)
+		!isDesignFiltered(player, fleet, options) ||
+		getVisibleShipCount(player, fleet, options, designs) > 0
 	);
+}
+
+// true if one of the design filters applies to this fleet's owner
+function isDesignFiltered(player: CommandedPlayer, fleet: Fleet, options: FilterOptions): boolean {
+	const playerNum = fleet.mapObject?.playerNum;
+	if (playerNum === player.num) {
+		return options.filterMyDesigns ?? false;
+	}
+	if (player.isFriend(playerNum)) {
+		return options.filterAllyDesigns ?? false;
+	}
+	return options.filterEnemyDesigns ?? false;
+}
+
+// the number of ships in this fleet that the design filters show. Our fleets are filtered
+// by design, everyone else's by the class of each ship's hull
+export function getVisibleShipCount(
+	player: CommandedPlayer,
+	fleet: Fleet,
+	options: FilterOptions,
+	designs: DesignFinder
+): number {
+	const playerNum = fleet.mapObject?.playerNum;
+	let tokens = fleet.tokens;
+	if (isDesignFiltered(player, fleet, options)) {
+		if (playerNum === player.num) {
+			const showDesigns = options.filterDesigns ?? [];
+			tokens = tokens.filter((t) => showDesigns.includes(t.designNum));
+		} else {
+			const showShipClasses =
+				(player.isFriend(playerNum)
+					? options.filterAllyShipClasses
+					: options.filterEnemyShipClasses) ?? [];
+			tokens = tokens.filter((t) =>
+				showShipClasses.includes(getShipClass(designs.getDesign(playerNum, t.designNum)))
+			);
+		}
+	}
+	return tokens.reduce((count, t) => count + t.quantity, 0);
 }
 
 // This shows only your fleets that have no movement orders, and any active enemy ships (so you can match one with the other, if you wish).
@@ -70,57 +135,5 @@ export function filterIdleFleet(player: CommandedPlayer, fleet: Fleet, enabled: 
 	}
 
 	// don't show this fleet if we got here, it's our fleet and moving, or an enemy fleet and idle
-	return false;
-}
-
-export function filterMyDesigns(
-	player: CommandedPlayer,
-	fleet: Fleet,
-	enabled: boolean,
-	// TODO: add suport for showDesigns
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	showDesigns: string[]
-): boolean {
-	if (!enabled || fleet.mapObject?.playerNum !== player.num) {
-		// no filter or not my fleet, show it (it may be filtered by a different function)
-		return true;
-	}
-
-	return false;
-}
-
-export function filterEnemyDesigns(
-	player: CommandedPlayer,
-	fleet: Fleet,
-	enabled: boolean,
-	// TODO: add suport for showShipClasses
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	showShipClasses: ShipClass[]
-): boolean {
-	if (!enabled || !player.isEnemy(fleet.mapObject?.playerNum ?? 0)) {
-		// no filter or not an enemy fleet, show it (it may be filtered by a different function)
-		return true;
-	}
-
-	return false;
-}
-
-export function filterAllyDesigns(
-	player: CommandedPlayer,
-	fleet: Fleet,
-	enabled: boolean,
-	// TODO: add suport for showShipClasses
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	showShipClasses: ShipClass[]
-): boolean {
-	if (
-		!enabled ||
-		player.num == fleet.mapObject?.playerNum ||
-		!player.isFriend(fleet.mapObject?.playerNum)
-	) {
-		// no filter or not a friendly fleet, show it (it may be filtered by a different function)
-		return true;
-	}
-
 	return false;
 }

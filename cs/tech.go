@@ -151,6 +151,7 @@ type Engine struct {
 type TechHull struct {
 	Tech
 	Type                     TechHullType   `json:"type"`
+	Class                    ShipClass      `json:"class,omitempty"`
 	Mass                     int            `json:"mass"`
 	Armor                    int            `json:"armor"`
 	Shield                   int            `json:"shield,omitempty"`
@@ -184,6 +185,21 @@ type TechHullSlot struct {
 	Required bool          `json:"required,omitempty"`
 	Position VectorFloat64 `json:"position"`
 }
+
+// ShipClass is the broad class of a ship hull, used to pick out classes of ships on the scanner
+type ShipClass string
+
+const (
+	ShipClassNone          ShipClass = ""
+	ShipClassColony        ShipClass = "Colony"
+	ShipClassFreighter     ShipClass = "Freighter"
+	ShipClassScout         ShipClass = "Scout"
+	ShipClassWarship       ShipClass = "Warship"
+	ShipClassUtility       ShipClass = "Utility"
+	ShipClassBomber        ShipClass = "Bomber"
+	ShipClassMiner         ShipClass = "Miner"
+	ShipClassFuelTransport ShipClass = "FuelTransport"
+)
 
 type TechHullType string
 

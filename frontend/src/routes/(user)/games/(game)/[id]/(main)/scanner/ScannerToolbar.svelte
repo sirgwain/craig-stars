@@ -9,7 +9,6 @@
 	import SurfaceMinerals from '#lib/components/icons/SurfaceMinerals.svelte';
 	import type { NextPrevMapObjectProps } from '#lib/services/Events.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
-	import { clamp } from '#lib/services/Math.js';
 	import { PlanetViewState } from '#lib/types/PlayerSettings.js';
 	import {
 		ArrowLongLeft,
@@ -52,14 +51,18 @@
 	let toolbarWidth = $state(0);
 	// search/previous/next, plus cycle on small screens
 	let navWidth = $state(0);
-	// 7 filters, plus 2 ally filters when anyone shares their map with us
-	let filterCount = $derived(7 + ($player.relations.some((r) => r.shareMap) ? 2 : 0));
+	// 8 filters, plus 2 ally filters when anyone shares their map with us
+	let shareMap = $derived($player.relations.some((r) => r.shareMap));
+	let filterCount = $derived(8 + (shareMap ? 2 : 0));
+	// the dropdowns beside the design filters
+	let filterMenusWidth = $derived(12 * (2 + (shareMap ? 1 : 0)));
 
 	// collapse into a menu in stages as the toolbar runs out of room: first the filters and
 	// scanner percent, then the planet views
 	let fixedWidth = $derived(paddingWidth + actionsWidth + navWidth);
 	let showFilters = $derived(
-		toolbarWidth >= fixedWidth + percentWidth + itemWidth * (viewCount + filterCount)
+		toolbarWidth >=
+			fixedWidth + percentWidth + filterMenusWidth + itemWidth * (viewCount + filterCount)
 	);
 	let showViews = $derived(
 		showFilters || toolbarWidth >= fixedWidth + menuWidth + itemWidth * viewCount
@@ -69,83 +72,59 @@
 	settings.subscribe(closePlanetsMenu);
 </script>
 
+<!-- the menu of everything that doesn't fit in the toolbar -->
+{#snippet collapsedMenu()}
+	<div class="flex-none">
+		<ul class="menu menu-horizontal px-0">
+			<li>
+				<details bind:this={planetsViewMenuDropdown} use:clickOutside={closePlanetsMenu}>
+					<summary class="p-0">
+						<a
+							href="#planet-view-states"
+							class="btn btn-ghost btn-xs w-10 h-10 p-0"
+							onclick={(e) => {
+								e.preventDefault();
+								planetsViewMenuDropdown?.toggleAttribute('open');
+							}}
+						>
+							{#if showViews}
+								<Icon src={Funnel} class="w-6 h-6" />
+							{:else if $settings.planetViewState == PlanetViewState.SurfaceMinerals}
+								<SurfaceMinerals class="w-6 h-6" />
+							{:else if $settings.planetViewState == PlanetViewState.MineralConcentration}
+								<MineralConcentration class="w-6 h-6" />
+							{:else if $settings.planetViewState == PlanetViewState.Percent}
+								<Habitability class="w-6 h-6" />
+							{:else if $settings.planetViewState == PlanetViewState.Population}
+								<Population class="w-6 h-6" />
+							{:else}
+								<PlanetWithStarbase class="w-6 h-6" />
+							{/if}
+						</a>
+					</summary>
+					<ul class="bg-base-200 z-20 p-1 w-64">
+						<li>
+							<MobileViewSettings hideViews={showViews} />
+						</li>
+					</ul>
+				</details>
+			</li>
+		</ul>
+	</div>
+{/snippet}
+
+<!-- the toolbar is in the same order as the original's. Add waypoint and messages are always shown -->
 <div class="flex-initial navbar bg-base-200 py-0 my-0 min-h-0" bind:clientWidth={toolbarWidth}>
 	{#if showViews}
 		<div class="flex-none">
 			<PlanetViewStates class="menu menu-horizontal px-0" />
 		</div>
 		<div class="flex-none w-px h-6 mx-1 bg-base-content/20"></div>
-	{/if}
-	{#if showFilters}
-		<div class="flex-none">
-			<ScannerToolbarFilter class="menu menu-horizontal px-0" />
-		</div>
 	{:else}
-		<div class="flex-none">
-			<ul class="menu menu-horizontal px-0">
-				<!-- submenu -->
-				<li>
-					<details bind:this={planetsViewMenuDropdown} use:clickOutside={closePlanetsMenu}>
-						<summary class="p-0">
-							<a
-								href="#planet-view-states"
-								class="btn btn-ghost btn-xs w-10 h-10 p-0"
-								onclick={(e) => {
-									e.preventDefault();
-									planetsViewMenuDropdown?.toggleAttribute('open');
-								}}
-							>
-								{#if showViews}
-									<Icon src={Funnel} class="w-6 h-6" />
-								{:else if $settings.planetViewState == PlanetViewState.SurfaceMinerals}
-									<SurfaceMinerals class="w-6 h-6" />
-								{:else if $settings.planetViewState == PlanetViewState.MineralConcentration}
-									<MineralConcentration class="w-6 h-6" />
-								{:else if $settings.planetViewState == PlanetViewState.Percent}
-									<Habitability class="w-6 h-6" />
-								{:else if $settings.planetViewState == PlanetViewState.Population}
-									<Population class="w-6 h-6" />
-								{:else}
-									<PlanetWithStarbase class="w-6 h-6" />
-								{/if}
-							</a>
-						</summary>
-						<ul class="bg-base-200 z-20 p-1 w-64">
-							<li>
-								<MobileViewSettings hideViews={showViews} />
-							</li>
-						</ul>
-					</details>
-				</li>
-			</ul>
-		</div>
+		{@render collapsedMenu()}
 	{/if}
-	<div class="flex-none w-px h-6 mx-1 bg-base-content/20"></div>
-
 	<div class="flex-none">
 		<ul class="menu menu-horizontal items-center px-0">
-			<li class:hidden={!showFilters}>
-				<div class="w-full px-1">
-					<input
-						class="input input-sm w-16 pr-0 pl-1"
-						type="number"
-						min={0}
-						max={100}
-						step={10}
-						value={$settings.scannerPercent}
-						onchange={(e) => {
-							const val = parseInt(e.currentTarget.value);
-							if (val) {
-								$settings.scannerPercent = clamp(val, 0, 100);
-								e.currentTarget.value = `${$settings.scannerPercent}`;
-							} else {
-								$settings.scannerPercent = 0;
-								e.currentTarget.value = '0';
-							}
-						}}
-					/>
-				</div>
-			</li>
 			<li class="h-10 w-10">
 				<a
 					href="#add-waypoint"
@@ -177,7 +156,18 @@
 					{/if}
 				</a>
 			</li>
-
+		</ul>
+	</div>
+	<div class="flex-none w-px h-6 mx-1 bg-base-content/20"></div>
+	{#if showFilters}
+		<div class="flex-none">
+			<ScannerToolbarFilter class="flex flex-row flex-none items-center" />
+		</div>
+	{:else if showViews}
+		{@render collapsedMenu()}
+	{/if}
+	<div class="flex-none">
+		<ul class="menu menu-horizontal items-center px-0">
 			<li class="h-10 w-10">
 				<a
 					href="#messages"

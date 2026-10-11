@@ -6,50 +6,52 @@
 	import FilterEnemyDesigns from './FilterEnemyDesigns.svelte';
 	import FilterFleetCounts from './FilterFleetCounts.svelte';
 	import FilterIdleFleets from './FilterIdleFleets.svelte';
+	import FilterMinefields from './FilterMinefields.svelte';
 	import FilterMyDesigns from './FilterMyDesigns.svelte';
 	import FilterPlanetNames from './FilterPlanetNames.svelte';
 	import FilterPlayerColors from './FilterPlayerColors.svelte';
 	import FilterScanners from './FilterScanners.svelte';
+	import ScannerPercent from './ScannerPercent.svelte';
 
-	let { ...props }: HTMLAttributes<HTMLUListElement> = $props();
+	let { ...props }: HTMLAttributes<HTMLDivElement> = $props();
 
 	const { player } = getGameContext();
+
+	let shareMap = $derived($player.relations.some((r) => r.shareMap));
 </script>
 
-<ul {...props}>
-	<li class="h-10 w-10">
-		<FilterPlanetNames />
-	</li>
-	<li class="h-10 w-10">
-		<FilterFleetCounts />
-	</li>
-	<li class="h-10 w-10">
-		<FilterIdleFleets />
-	</li>
-	<li class="h-10 w-10">
-		<FilterMyDesigns />
-	</li>
-	{#if $player.relations.filter((r) => r.shareMap).length > 0}
-		<!-- optionally turn off ally scanners if we are sharing maps -->
-		<li class="h-10 w-10">
-			<FilterAllyDesigns />
-		</li>
-	{/if}
-	<li class="h-10 w-10">
-		<FilterEnemyDesigns />
-	</li>
-	<li class="h-10 w-10">
-		<FilterPlayerColors />
-	</li>
-
-	<li class="h-10 w-10">
+<!-- the filters are in the same order as the original's toolbar, with ours beside their closest relatives -->
+<div {...props}>
+	<div class="h-10 w-10">
 		<FilterScanners />
-	</li>
-
-	{#if $player.relations.filter((r) => r.shareMap).length > 0}
+	</div>
+	{#if shareMap}
 		<!-- optionally turn off ally scanners if we are sharing maps -->
-		<li class="h-10 w-10">
+		<div class="h-10 w-10">
 			<FilterAllyScanners />
-		</li>
+		</div>
 	{/if}
-</ul>
+	<div class="px-1">
+		<ScannerPercent />
+	</div>
+	<div class="h-10 w-10">
+		<FilterMinefields />
+	</div>
+	<div class="h-10 w-10">
+		<FilterPlanetNames />
+	</div>
+	<div class="h-10 w-10">
+		<FilterFleetCounts />
+	</div>
+	<div class="h-10 w-10">
+		<FilterIdleFleets />
+	</div>
+	<FilterMyDesigns />
+	{#if shareMap}
+		<FilterAllyDesigns />
+	{/if}
+	<FilterEnemyDesigns />
+	<div class="h-10 w-10">
+		<FilterPlayerColors />
+	</div>
+</div>

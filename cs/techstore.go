@@ -2030,6 +2030,7 @@ var CompletePhaseShield = TechHullComponent{Tech: NewTech("Complete Phase Shield
 
 var SmallFreighter = TechHull{Tech: NewTech("Small Freighter", NewCost(12, 0, 17, 20), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryShipHull),
 	Type:              TechHullTypeFreighter,
+	Class:             ShipClassFreighter,
 	Mass:              25,
 	Armor:             25,
 	FuelCapacity:      130,
@@ -2045,6 +2046,7 @@ var SmallFreighter = TechHull{Tech: NewTech("Small Freighter", NewCost(12, 0, 17
 
 var MediumFreighter = TechHull{Tech: NewTech("Medium Freighter", NewCost(20, 0, 19, 40), TechRequirements{TechLevel: TechLevel{Construction: 3}}, 20, TechCategoryShipHull),
 	Type:              TechHullTypeFreighter,
+	Class:             ShipClassFreighter,
 	Mass:              60,
 	Armor:             50,
 	FuelCapacity:      450,
@@ -2060,6 +2062,7 @@ var MediumFreighter = TechHull{Tech: NewTech("Medium Freighter", NewCost(20, 0, 
 
 var LargeFreighter = TechHull{Tech: NewTech("Large Freighter", NewCost(35, 0, 21, 100), TechRequirements{TechLevel: TechLevel{Construction: 8}}, 30, TechCategoryShipHull),
 	Type:              TechHullTypeFreighter,
+	Class:             ShipClassFreighter,
 	Mass:              125,
 	Armor:             150,
 	FuelCapacity:      2600,
@@ -2075,6 +2078,7 @@ var LargeFreighter = TechHull{Tech: NewTech("Large Freighter", NewCost(35, 0, 21
 
 var SuperFreighter = TechHull{Tech: NewTech("Super Freighter", NewCost(35, 0, 21, 100), TechRequirements{TechLevel: TechLevel{Construction: 13}, PRTsRequired: []PRT{IS}}, 40, TechCategoryShipHull),
 	Type:              TechHullTypeFreighter,
+	Class:             ShipClassFreighter,
 	Mass:              175,
 	Armor:             400,
 	FuelCapacity:      8000,
@@ -2091,6 +2095,7 @@ var SuperFreighter = TechHull{Tech: NewTech("Super Freighter", NewCost(35, 0, 21
 
 var Scout = TechHull{Tech: NewTech("Scout", NewCost(4, 2, 4, 10), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryShipHull),
 	Type:           TechHullTypeScout,
+	Class:          ShipClassScout,
 	BuiltInScanner: true,
 	Mass:           8,
 	Armor:          20,
@@ -2105,6 +2110,7 @@ var Scout = TechHull{Tech: NewTech("Scout", NewCost(4, 2, 4, 10), TechRequiremen
 
 var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequirements{TechLevel: TechLevel{Construction: 6}}, 60, TechCategoryShipHull),
 	Type:           TechHullTypeFighter,
+	Class:          ShipClassScout,
 	BuiltInScanner: true,
 	Mass:           8,
 	Armor:          45,
@@ -2120,6 +2126,7 @@ var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequir
 
 var Destroyer = TechHull{Tech: NewTech("Destroyer", NewCost(15, 3, 5, 35), TechRequirements{TechLevel: TechLevel{Construction: 3}}, 50, TechCategoryShipHull),
 	Type:           TechHullTypeFighter,
+	Class:          ShipClassScout,
 	BuiltInScanner: true,
 	Mass:           30,
 	Armor:          200,
@@ -2138,6 +2145,7 @@ var Destroyer = TechHull{Tech: NewTech("Destroyer", NewCost(15, 3, 5, 35), TechR
 
 var Cruiser = TechHull{Tech: NewTech("Cruiser", NewCost(40, 5, 8, 85), TechRequirements{TechLevel: TechLevel{Construction: 9}}, 80, TechCategoryShipHull),
 	Type:         TechHullTypeFighter,
+	Class:        ShipClassWarship,
 	Mass:         90,
 	Armor:        700,
 	Initiative:   5,
@@ -2155,6 +2163,7 @@ var Cruiser = TechHull{Tech: NewTech("Cruiser", NewCost(40, 5, 8, 85), TechRequi
 
 var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 10}, PRTsRequired: []PRT{WM}}, 90, TechCategoryShipHull),
 	Type:         TechHullTypeFighter,
+	Class:        ShipClassWarship,
 	Mass:         120,
 	Armor:        1000,
 	Initiative:   5,
@@ -2172,6 +2181,7 @@ var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 
 
 var Battleship = TechHull{Tech: NewTech("Battleship", NewCost(120, 25, 20, 225), TechRequirements{TechLevel: TechLevel{Construction: 13}}, 100, TechCategoryShipHull),
 	Type:         TechHullTypeCapitalShip,
+	Class:        ShipClassWarship,
 	Mass:         222,
 	Armor:        2000,
 	Initiative:   10,
@@ -2193,6 +2203,7 @@ var Battleship = TechHull{Tech: NewTech("Battleship", NewCost(120, 25, 20, 225),
 
 var Dreadnought = TechHull{Tech: NewTech("Dreadnought", NewCost(140, 30, 25, 275), TechRequirements{TechLevel: TechLevel{Construction: 16}, PRTsRequired: []PRT{WM}}, 110, TechCategoryShipHull),
 	Type:         TechHullTypeCapitalShip,
+	Class:        ShipClassWarship,
 	Mass:         250,
 	Armor:        4500,
 	Initiative:   10,
@@ -2216,6 +2227,7 @@ var Dreadnought = TechHull{Tech: NewTech("Dreadnought", NewCost(140, 30, 25, 275
 
 var Privateer = TechHull{Tech: NewTech("Privateer", NewCost(50, 3, 3, 50), TechRequirements{TechLevel: TechLevel{Construction: 4}}, 120, TechCategoryShipHull),
 	Type:              TechHullTypeMultiPurposeFreighter,
+	Class:             ShipClassUtility,
 	Mass:              65,
 	Armor:             150,
 	Initiative:        3,
@@ -2234,6 +2246,7 @@ var Privateer = TechHull{Tech: NewTech("Privateer", NewCost(50, 3, 3, 50), TechR
 
 var Rogue = TechHull{Tech: NewTech("Rogue", NewCost(80, 5, 5, 60), TechRequirements{TechLevel: TechLevel{Construction: 8}, PRTsRequired: []PRT{SS}}, 130, TechCategoryShipHull),
 	Type:              TechHullTypeMultiPurposeFreighter,
+	Class:             ShipClassUtility,
 	Mass:              75,
 	Armor:             450,
 	Initiative:        4,
@@ -2256,6 +2269,7 @@ var Rogue = TechHull{Tech: NewTech("Rogue", NewCost(80, 5, 5, 60), TechRequireme
 
 var Galleon = TechHull{Tech: NewTech("Galleon", NewCost(70, 5, 5, 105), TechRequirements{TechLevel: TechLevel{Construction: 11}}, 140, TechCategoryShipHull),
 	Type:              TechHullTypeMultiPurposeFreighter,
+	Class:             ShipClassUtility,
 	Mass:              125,
 	Armor:             900,
 	Initiative:        4,
@@ -2277,6 +2291,7 @@ var Galleon = TechHull{Tech: NewTech("Galleon", NewCost(70, 5, 5, 105), TechRequ
 
 var MiniColonyShip = TechHull{Tech: NewTech("Mini-Colony Ship", NewCost(2, 0, 2, 3), TechRequirements{TechLevel: TechLevel{}, PRTsRequired: []PRT{HE}}, 150, TechCategoryShipHull),
 	Type:              TechHullTypeColonizer,
+	Class:             ShipClassColony,
 	Mass:              8,
 	Armor:             10,
 	FuelCapacity:      150,
@@ -2291,6 +2306,7 @@ var MiniColonyShip = TechHull{Tech: NewTech("Mini-Colony Ship", NewCost(2, 0, 2,
 
 var ColonyShip = TechHull{Tech: NewTech("Colony Ship", NewCost(10, 0, 15, 20), TechRequirements{TechLevel: TechLevel{}}, 160, TechCategoryShipHull),
 	Type:              TechHullTypeColonizer,
+	Class:             ShipClassColony,
 	Mass:              20,
 	Armor:             20,
 	FuelCapacity:      200,
@@ -2305,6 +2321,7 @@ var ColonyShip = TechHull{Tech: NewTech("Colony Ship", NewCost(10, 0, 15, 20), T
 
 var MiniBomber = TechHull{Tech: NewTech("Mini Bomber", NewCost(18, 5, 9, 32), TechRequirements{TechLevel: TechLevel{Construction: 1}}, 170, TechCategoryShipHull),
 	Type:         TechHullTypeBomber,
+	Class:        ShipClassBomber,
 	Mass:         28,
 	Armor:        50,
 	FuelCapacity: 120,
@@ -2316,6 +2333,7 @@ var MiniBomber = TechHull{Tech: NewTech("Mini Bomber", NewCost(18, 5, 9, 32), Te
 
 var B17Bomber = TechHull{Tech: NewTech("B-17 Bomber", NewCost(55, 10, 10, 150), TechRequirements{TechLevel: TechLevel{Construction: 6}}, 180, TechCategoryShipHull),
 	Type:         TechHullTypeBomber,
+	Class:        ShipClassBomber,
 	Mass:         69,
 	Armor:        175,
 	FuelCapacity: 400,
@@ -2329,6 +2347,7 @@ var B17Bomber = TechHull{Tech: NewTech("B-17 Bomber", NewCost(55, 10, 10, 150), 
 
 var StealthBomber = TechHull{Tech: NewTech("Stealth Bomber", NewCost(55, 10, 15, 175), TechRequirements{TechLevel: TechLevel{Construction: 8}, PRTsRequired: []PRT{SS}}, 190, TechCategoryShipHull),
 	Type:         TechHullTypeBomber,
+	Class:        ShipClassBomber,
 	FuelCapacity: 750,
 	Armor:        225,
 	Mass:         70,
@@ -2343,6 +2362,7 @@ var StealthBomber = TechHull{Tech: NewTech("Stealth Bomber", NewCost(55, 10, 15,
 
 var B52Bomber = TechHull{Tech: NewTech("B-52 Bomber", NewCost(90, 15, 10, 280), TechRequirements{TechLevel: TechLevel{Construction: 15}}, 200, TechCategoryShipHull),
 	Type:         TechHullTypeBomber,
+	Class:        ShipClassBomber,
 	FuelCapacity: 750,
 	Armor:        450,
 	Mass:         110,
@@ -2359,6 +2379,7 @@ var B52Bomber = TechHull{Tech: NewTech("B-52 Bomber", NewCost(90, 15, 10, 280), 
 
 var MidgetMiner = TechHull{Tech: NewTech("Midget Miner", NewCost(10, 0, 3, 20), TechRequirements{TechLevel: TechLevel{}, LRTsRequired: ARM}, 210, TechCategoryShipHull),
 	Type:         TechHullTypeMiner,
+	Class:        ShipClassMiner,
 	FuelCapacity: 210,
 	Armor:        100,
 	Mass:         10,
@@ -2370,6 +2391,7 @@ var MidgetMiner = TechHull{Tech: NewTech("Midget Miner", NewCost(10, 0, 3, 20), 
 
 var MiniMiner = TechHull{Tech: NewTech("Mini-Miner", NewCost(25, 0, 6, 50), TechRequirements{TechLevel: TechLevel{Construction: 2}}, 220, TechCategoryShipHull),
 	Type:         TechHullTypeMiner,
+	Class:        ShipClassMiner,
 	Mass:         80,
 	Armor:        130,
 	FuelCapacity: 210,
@@ -2383,6 +2405,7 @@ var MiniMiner = TechHull{Tech: NewTech("Mini-Miner", NewCost(25, 0, 6, 50), Tech
 
 var Miner = TechHull{Tech: NewTech("Miner", NewCost(32, 0, 6, 110), TechRequirements{TechLevel: TechLevel{Construction: 6}, LRTsRequired: ARM}, 230, TechCategoryShipHull),
 	Type:         TechHullTypeMiner,
+	Class:        ShipClassMiner,
 	FuelCapacity: 500,
 	Armor:        475,
 	Mass:         110,
@@ -2398,6 +2421,7 @@ var Miner = TechHull{Tech: NewTech("Miner", NewCost(32, 0, 6, 110), TechRequirem
 
 var MaxiMiner = TechHull{Tech: NewTech("Maxi-Miner", NewCost(32, 0, 6, 140), TechRequirements{TechLevel: TechLevel{Construction: 11}, LRTsDenied: OBRM}, 240, TechCategoryShipHull),
 	Type:         TechHullTypeMiner,
+	Class:        ShipClassMiner,
 	FuelCapacity: 850,
 	Armor:        1400,
 	Mass:         110,
@@ -2413,6 +2437,7 @@ var MaxiMiner = TechHull{Tech: NewTech("Maxi-Miner", NewCost(32, 0, 6, 140), Tec
 
 var UltraMiner = TechHull{Tech: NewTech("Ultra-Miner", NewCost(30, 0, 6, 130), TechRequirements{TechLevel: TechLevel{Construction: 14}, LRTsRequired: ARM}, 250, TechCategoryShipHull),
 	Type:         TechHullTypeMiner,
+	Class:        ShipClassMiner,
 	FuelCapacity: 1300,
 	Armor:        1500,
 	Mass:         100,
@@ -2428,6 +2453,7 @@ var UltraMiner = TechHull{Tech: NewTech("Ultra-Miner", NewCost(30, 0, 6, 130), T
 
 var FuelTransport = TechHull{Tech: NewTech("Fuel Transport", NewCost(10, 0, 5, 50), TechRequirements{TechLevel: TechLevel{Construction: 4}, PRTsRequired: []PRT{IS}}, 260, TechCategoryShipHull),
 	Type:           TechHullTypeFuelTransport,
+	Class:          ShipClassFuelTransport,
 	Mass:           12,
 	Armor:          5,
 	FuelCapacity:   750,
@@ -2441,6 +2467,7 @@ var FuelTransport = TechHull{Tech: NewTech("Fuel Transport", NewCost(10, 0, 5, 5
 
 var SuperFuelXport = TechHull{Tech: NewTech("Super-Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}}, 270, TechCategoryShipHull),
 	Type:           TechHullTypeFuelTransport,
+	Class:          ShipClassFuelTransport,
 	Mass:           111,
 	Armor:          12,
 	FuelCapacity:   2250,
@@ -2455,6 +2482,7 @@ var SuperFuelXport = TechHull{Tech: NewTech("Super-Fuel Xport", NewCost(20, 0, 8
 
 var MiniMineLayer = TechHull{Tech: NewTech("Mini Mine Layer", NewCost(8, 2, 5, 20), TechRequirements{TechLevel: TechLevel{}, PRTsRequired: []PRT{SD}}, 280, TechCategoryShipHull),
 	Type:                  TechHullTypeMineLayer,
+	Class:                 ShipClassUtility,
 	Mass:                  10,
 	Armor:                 60,
 	FuelCapacity:          400,
@@ -2470,6 +2498,7 @@ var MiniMineLayer = TechHull{Tech: NewTech("Mini Mine Layer", NewCost(8, 2, 5, 2
 
 var SuperMineLayer = TechHull{Tech: NewTech("Super Mine Layer", NewCost(20, 3, 9, 30), TechRequirements{TechLevel: TechLevel{Construction: 15}, PRTsRequired: []PRT{SD}}, 290, TechCategoryShipHull),
 	Type:                  TechHullTypeMineLayer,
+	Class:                 ShipClassUtility,
 	FuelCapacity:          2200,
 	Armor:                 1200,
 	Mass:                  30,
@@ -2487,6 +2516,7 @@ var SuperMineLayer = TechHull{Tech: NewTech("Super Mine Layer", NewCost(20, 3, 9
 
 var Nubian = TechHull{Tech: NewTech("Nubian", NewCost(75, 12, 12, 150), TechRequirements{TechLevel: TechLevel{Construction: 26}}, 300, TechCategoryShipHull),
 	Type:         TechHullTypeCapitalShip,
+	Class:        ShipClassUtility,
 	FuelCapacity: 5000,
 	Armor:        5000,
 	Initiative:   2,
@@ -2510,6 +2540,7 @@ var Nubian = TechHull{Tech: NewTech("Nubian", NewCost(75, 12, 12, 150), TechRequ
 
 var MetaMorph = TechHull{Tech: NewTech("Meta Morph", NewCost(50, 12, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 10}, PRTsRequired: []PRT{HE}}, 310, TechCategoryShipHull),
 	Type:              TechHullTypeMultiPurposeFreighter,
+	Class:             ShipClassUtility,
 	Mass:              85,
 	Armor:             500,
 	Initiative:        2,

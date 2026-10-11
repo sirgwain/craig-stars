@@ -1,4 +1,5 @@
 import '../../../../../../../css/app.css';
+import { Universe } from '#lib/services/Universe.js';
 import { CommandedPlayer } from '#lib/types/Player.js';
 import { PlayerSettings } from '#lib/types/PlayerSettings.js';
 import { tick } from 'svelte';
@@ -20,7 +21,11 @@ async function layout(width: number, shareMap: boolean) {
 	if (shareMap) {
 		player.relations = [{ shareMap: true } as never];
 	}
-	state.context = { player: writable(player), settings: writable(new PlayerSettings()) };
+	state.context = {
+		player: writable(player),
+		settings: writable(new PlayerSettings()),
+		universe: writable(new Universe())
+	};
 
 	const host = document.createElement('div');
 	host.style.width = `${width}px`;
@@ -60,11 +65,12 @@ describe('ScannerToolbar', () => {
 	});
 
 	it.each([
-		// portrait iPads fit the whole toolbar
-		{ width: 820, shareMap: false, stage: 'full' },
-		{ width: 834, shareMap: false, stage: 'full' },
-		// the two ally filters don't fit, so the filters collapse and the views stay
+		// the filters don't fit on portrait iPads, so they collapse and the views stay
+		{ width: 820, shareMap: false, stage: 'views' },
+		{ width: 834, shareMap: false, stage: 'views' },
 		{ width: 834, shareMap: true, stage: 'views' },
+		// landscape iPads fit the whole toolbar
+		{ width: 1024, shareMap: false, stage: 'full' },
 		{ width: 1024, shareMap: true, stage: 'full' },
 		// the toolbar over the scanner, next to a two column command pane
 		{ width: 780, shareMap: false, stage: 'views' },

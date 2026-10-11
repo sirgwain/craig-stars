@@ -54,6 +54,7 @@
 		commandedPlanet,
 		commandedFleet,
 		commandMapObject,
+		currentSelectedWaypointIndex,
 		zoomToMapObject,
 		nextMapObject,
 		previousMapObject,
@@ -71,6 +72,9 @@
 		splitAll,
 		merge
 	} = getGameContext();
+
+	// the fastest warp the speed hotkeys will set
+	const maxWarpSpeed = 10;
 
 	// like the original, the toolbar spans the whole window when the window is tall enough that the
 	// command pane can spare the room. Otherwise it sits over the scanner.
@@ -109,7 +113,8 @@
 				showProductionQueueDialog = true;
 			}
 		});
-		hotkeys('⌘+k', 'root', () => {
+		hotkeys('⌘+k', 'root', (event) => {
+			event.preventDefault();
 			showSearchDialog = true;
 		});
 		hotkeys('Delete', 'root', () => {
@@ -117,6 +122,46 @@
 		});
 		hotkeys('Backspace', 'root', () => {
 			onDeleteWaypoint();
+		});
+		hotkeys('1, 2, 3, 4, 5, 6', 'root', (event) => {
+			$settings.planetViewState = Number(event.code.slice(-1)) - 1;
+		});
+		hotkeys('7', 'root', () => {
+			$settings.showScanners = !$settings.showScanners;
+		});
+		hotkeys('8', 'root', () => {
+			settings.update((s) => {
+				s.toggleMinefields();
+				return s;
+			});
+		});
+		hotkeys('0', 'root', () => {
+			$settings.showNames = !$settings.showNames;
+		});
+		hotkeys('shift+0', 'root', () => {
+			$settings.showFleetTokenCounts = !$settings.showFleetTokenCounts;
+		});
+		hotkeys(',', 'root', () => changeWarpSpeed(-1));
+		hotkeys('.', 'root', () => changeWarpSpeed(1));
+		hotkeys('[', 'root', () => selectAdjacentEnemyFleet(-1));
+		hotkeys(']', 'root', () => selectAdjacentEnemyFleet(1));
+		hotkeys('f', 'root', selectFirstMapObject);
+		hotkeys('shift+n', 'root', () => {
+			if (!selectAdjacentStarbase(1)) {
+				nextMapObject();
+			}
+		});
+		hotkeys('shift+p', 'root', () => {
+			if (!selectAdjacentStarbase(-1)) {
+				previousMapObject();
+			}
+		});
+		hotkeys('r', 'root', (event) => {
+			if ($commandedFleet) {
+				// don't type the r into the prompt
+				event.preventDefault();
+				promptRenameFleet();
+			}
 		});
 
 		// on the game view, prevent scrolling
@@ -126,13 +171,101 @@
 			hotkeys.unbind('n', 'root');
 			hotkeys.unbind('p', 'root');
 			hotkeys.unbind('q', 'root');
+			hotkeys.unbind('⌘+k', 'root');
 			hotkeys.unbind('Delete', 'root');
 			hotkeys.unbind('Backspace', 'root');
+			hotkeys.unbind('1, 2, 3, 4, 5, 6, 7, 8, 0, shift+0', 'root');
+			hotkeys.unbind(',', 'root');
+			hotkeys.unbind('., [, ], f, shift+n, shift+p, r', 'root');
 
 			// go back to normal
 			document.documentElement.classList.remove('overscroll-none');
 		};
 	});
+
+	function commandAndZoom(mo: MapObjectLike) {
+		commandMapObject(mo);
+		selectMapObject(mo);
+		zoomToMapObject(mo);
+	}
+
+	// speed up or slow down the selected waypoint. With no waypoint selected, this changes the next one
+	function changeWarpSpeed(change: number) {
+		const fleet = $commandedFleet;
+		const waypointIndex = Math.max(1, $currentSelectedWaypointIndex);
+		if (!fleet || waypointIndex >= fleet.fleetOrders.waypoints.length) {
+			return;
+		}
+		const waypoint = fleet.fleetOrders.waypoints[waypointIndex];
+		const warpSpeed = waypoint.warpSpeed + change;
+		if (warpSpeed < 0 || warpSpeed > maxWarpSpeed) {
+			return;
+		}
+		waypoint.warpSpeed = warpSpeed;
+		onChangeWaypoint({ fleet, waypoint, waypointIndex });
+	}
+
+	// cycle through the fleets we know about that belong to other players
+	function selectAdjacentEnemyFleet(offset: number) {
+		const fleets = $universe.fleetIntels.filter((f) => !ownedBy(f, $player.num));
+		if (fleets.length === 0) {
+			return;
+		}
+		const index = fleets.findIndex((f) => mapObjectEqual($selectedMapObject, f));
+		const next = index === -1 ? (offset > 0 ? 0 : -1) : index + offset;
+		const fleet = fleets[(next + fleets.length) % fleets.length];
+		selectMapObject(fleet);
+		zoomToMapObject(fleet);
+	}
+
+	// go to our first planet, or our first fleet if we are already there
+	function selectFirstMapObject() {
+		const byNum = (a: MapObjectLike, b: MapObjectLike) =>
+			(a.mapObject?.num ?? 0) - (b.mapObject?.num ?? 0);
+		const first = [
+			...$universe.getMyPlanets('num', false).sort(byNum).slice(0, 1),
+			...$universe.getMyFleets('num', false).sort(byNum).slice(0, 1)
+		].find((mo) => !mapObjectEqual($commandedMapObject, mo));
+		if (first) {
+			commandAndZoom(first);
+		}
+	}
+
+	// from a planet, go to the next or previous of our planets with a starbase that can build ships
+	function selectAdjacentStarbase(offset: number): boolean {
+		const num = $commandedPlanet?.mapObject.num;
+		if (num === undefined) {
+			return false;
+		}
+		const planets = $universe
+			.getMyPlanets('num', false)
+			.filter(
+				(p) =>
+					p.spec?.planetStarbaseSpec?.hasStarbase && p.spec.planetStarbaseSpec.dockCapacity !== 0
+			)
+			.sort((a, b) => (a.mapObject?.num ?? 0) - (b.mapObject?.num ?? 0));
+		const planet =
+			offset > 0
+				? (planets.find((p) => (p.mapObject?.num ?? 0) > num) ?? planets[0])
+				: (planets.findLast((p) => (p.mapObject?.num ?? 0) < num) ?? planets[planets.length - 1]);
+		if (planets.length > 0) {
+			commandAndZoom(planet);
+		}
+		return true;
+	}
+
+	function promptRenameFleet() {
+		const fleet = $commandedFleet;
+		if (!fleet) {
+			return;
+		}
+		const name =
+			prompt('Enter fleet name', fleet.baseName) ||
+			$universe.getMyDesign(fleet.tokens[0]?.designNum)?.name;
+		if (name) {
+			renameFleet(fleet, name);
+		}
+	}
 
 	function onNextMapObject() {
 		nextMapObject();

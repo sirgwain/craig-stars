@@ -103,6 +103,26 @@
 		showMessages = true;
 	};
 
+	const first = (event: Event) => {
+		event.preventDefault();
+		const num = getNextVisibleMessageNum(-1, showFilteredMessages, messages, $settings);
+		if (num >= 0) {
+			$messageNum = num;
+			viewBattle = false;
+			showMessages = true;
+		}
+	};
+
+	const last = (event: Event) => {
+		event.preventDefault();
+		const num = getPreviousVisibleMessageNum(messages.length, showFilteredMessages, messages);
+		if (num < messages.length) {
+			$messageNum = num;
+			viewBattle = false;
+			showMessages = true;
+		}
+	};
+
 	function goto() {
 		if (message) {
 			// battles go to the location on first click, and go to vattle view on second clic
@@ -135,11 +155,15 @@
 		hotkeys('up', 'root', previous);
 		hotkeys('down', 'root', next);
 		hotkeys('enter', 'root', goto);
+		hotkeys('home', 'root', first);
+		hotkeys('end', 'root', last);
 
 		return () => {
 			hotkeys.unbind('up', 'root', previous);
 			hotkeys.unbind('down', 'root', next);
 			hotkeys.unbind('enter', 'root', goto);
+			hotkeys.unbind('home', 'root', first);
+			hotkeys.unbind('end', 'root', last);
 		};
 	});
 	let message = $derived(messages.length ? messages[$messageNum] : undefined);

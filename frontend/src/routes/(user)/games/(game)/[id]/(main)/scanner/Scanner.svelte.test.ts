@@ -108,3 +108,93 @@ it.each(['pointerup', 'pointercancel'])(
 		expect(onUpdateWaypointDest).toHaveBeenLastCalledWith(expect.anything(), false, true);
 	}
 );
+
+it('measures with the tape from a mapobject to the pointer', async () => {
+	const fleet = new CommandedFleet(
+		create(FleetSchema, {
+			mapObject: { type: MapObjectType.FLEET, playerNum: 1, num: 1, position: { x: 10, y: 10 } },
+			fleetOrders: { waypoints: [{ position: { x: 10, y: 10 } }] }
+		})
+	);
+	const universe = new Universe();
+	universe.fleets = [fleet];
+	const player = new CommandedPlayer();
+	player.num = 1;
+	const zoomTarget = writable({ mapObject: fleet.mapObject });
+	state.context = {
+		game: writable({ area: { x: 100, y: 100 } }),
+		player: writable(player),
+		universe: writable(universe),
+		settings: writable(new PlayerSettings()),
+		zoomTarget,
+		commandedFleet: writable(fleet),
+		currentSelectedWaypointIndex: writable(0),
+		highlightMapObject: vi.fn(),
+		mostRecentMapObject: writable(undefined),
+		selectedWaypoint: writable(fleet.fleetOrders.waypoints[0])
+	};
+	const onSelectMapObject = vi.fn();
+	const { container } = render(Scanner, {
+		onAddWaypoint: vi.fn(),
+		onUpdateWaypointDest: vi.fn(),
+		onSelectWaypoint: vi.fn(),
+		onSelectMapObject,
+		onSetPacketDest: vi.fn(),
+		onSetRouteDest: vi.fn()
+	});
+	const scanner = container.firstElementChild as HTMLElement;
+	scanner.style.width = '200px';
+	scanner.style.height = '200px';
+	const root = scanner.firstElementChild as HTMLElement;
+	root.style.width = '200px';
+	root.style.height = '200px';
+	window.dispatchEvent(new Event('resize'));
+	await tick();
+	zoomTarget.set({
+		mapObject: { ...fleet.mapObject, position: create(VectorSchema, { x: 50, y: 50 }) }
+	});
+	await tick();
+	const overlay = scanner.querySelector<HTMLElement>('[data-type="scanner-overlay"]')!;
+	const transform = zoomIdentity.translate(-50, -50).scale(1.5);
+	function pointer(type: string, x: number, y: number, init: PointerEventInit) {
+		const [layerX, layerY] = transform.apply([x * 2, y * 2]);
+		const event = new PointerEvent(type, { bubbles: true, cancelable: true, ...init });
+		Object.defineProperties(event, { layerX: { value: layerX }, layerY: { value: layerY } });
+		overlay.dispatchEvent(event);
+		return event;
+	}
+	const status = () => scanner.querySelector('[data-type="tape-status"]')?.textContent;
+
+	// shift + right button, starting on the fleet
+	pointer('pointerdown', 11, 10, { button: 2, shiftKey: true });
+	await tick();
+	expect(status()).toBeUndefined();
+	// a small move doesn't start the tape
+	pointer('pointermove', 12, 11, { shiftKey: true });
+	await tick();
+	expect(status()).toBeUndefined();
+	pointer('pointermove', 40, 50, { shiftKey: true });
+	await tick();
+	expect(status()).toContain('Deep Space');
+	expect(status()).toContain('X: 40');
+	expect(status()).toContain('Y: 50');
+	expect(status()).toContain('50.00 light years');
+	const line = scanner.querySelector('[data-type="tape"] line')!;
+	const [x1, y1] = transform.apply([20, 20]);
+	expect(Number(line.getAttribute('x1'))).toBeCloseTo(x1);
+	expect(Number(line.getAttribute('y1'))).toBeCloseTo(y1);
+
+	pointer('pointerup', 40, 50, { button: 2, shiftKey: true });
+	await tick();
+	expect(status()).toBeUndefined();
+	expect(onSelectMapObject).not.toHaveBeenCalled();
+
+	// the middle button measures too
+	pointer('pointerdown', 40, 50, { button: 1 });
+	pointer('pointermove', 70, 90, {});
+	await tick();
+	expect(status()).toContain('50.00 light years');
+	pointer('pointerup', 70, 90, { button: 1 });
+	await tick();
+	expect(status()).toBeUndefined();
+});

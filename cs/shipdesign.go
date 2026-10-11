@@ -58,6 +58,7 @@ type ShipDesignSpec struct {
 	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
 	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
 	HullType                  TechHullType          `json:"hullType,omitempty"`
+	ShipClass                 ShipClass             `json:"shipClass,omitempty"`
 	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
 	Initiative                int                   `json:"initiative"`
 	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
@@ -355,6 +356,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		Starbase:                 hull.Starbase,
 		MaxPopulation:            hull.MaxPopulation,
 		HullType:                 hull.Type,
+		ShipClass:                hull.Class,
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 

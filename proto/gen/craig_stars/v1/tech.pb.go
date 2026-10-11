@@ -309,6 +309,74 @@ func (TechOrigin) EnumDescriptor() ([]byte, []int) {
 	return file_craig_stars_v1_tech_proto_rawDescGZIP(), []int{2}
 }
 
+// The broad class of a ship hull
+type ShipClass int32
+
+const (
+	ShipClass_SHIP_CLASS_UNSPECIFIED    ShipClass = 0
+	ShipClass_SHIP_CLASS_COLONY         ShipClass = 1
+	ShipClass_SHIP_CLASS_FREIGHTER      ShipClass = 2
+	ShipClass_SHIP_CLASS_SCOUT          ShipClass = 3
+	ShipClass_SHIP_CLASS_WARSHIP        ShipClass = 4
+	ShipClass_SHIP_CLASS_UTILITY        ShipClass = 5
+	ShipClass_SHIP_CLASS_BOMBER         ShipClass = 6
+	ShipClass_SHIP_CLASS_MINER          ShipClass = 7
+	ShipClass_SHIP_CLASS_FUEL_TRANSPORT ShipClass = 8
+)
+
+// Enum value maps for ShipClass.
+var (
+	ShipClass_name = map[int32]string{
+		0: "SHIP_CLASS_UNSPECIFIED",
+		1: "SHIP_CLASS_COLONY",
+		2: "SHIP_CLASS_FREIGHTER",
+		3: "SHIP_CLASS_SCOUT",
+		4: "SHIP_CLASS_WARSHIP",
+		5: "SHIP_CLASS_UTILITY",
+		6: "SHIP_CLASS_BOMBER",
+		7: "SHIP_CLASS_MINER",
+		8: "SHIP_CLASS_FUEL_TRANSPORT",
+	}
+	ShipClass_value = map[string]int32{
+		"SHIP_CLASS_UNSPECIFIED":    0,
+		"SHIP_CLASS_COLONY":         1,
+		"SHIP_CLASS_FREIGHTER":      2,
+		"SHIP_CLASS_SCOUT":          3,
+		"SHIP_CLASS_WARSHIP":        4,
+		"SHIP_CLASS_UTILITY":        5,
+		"SHIP_CLASS_BOMBER":         6,
+		"SHIP_CLASS_MINER":          7,
+		"SHIP_CLASS_FUEL_TRANSPORT": 8,
+	}
+)
+
+func (x ShipClass) Enum() *ShipClass {
+	p := new(ShipClass)
+	*p = x
+	return p
+}
+
+func (x ShipClass) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ShipClass) Descriptor() protoreflect.EnumDescriptor {
+	return file_craig_stars_v1_tech_proto_enumTypes[3].Descriptor()
+}
+
+func (ShipClass) Type() protoreflect.EnumType {
+	return &file_craig_stars_v1_tech_proto_enumTypes[3]
+}
+
+func (x ShipClass) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ShipClass.Descriptor instead.
+func (ShipClass) EnumDescriptor() ([]byte, []int) {
+	return file_craig_stars_v1_tech_proto_rawDescGZIP(), []int{3}
+}
+
 // Tech hull types
 type TechHullType int32
 
@@ -373,11 +441,11 @@ func (x TechHullType) String() string {
 }
 
 func (TechHullType) Descriptor() protoreflect.EnumDescriptor {
-	return file_craig_stars_v1_tech_proto_enumTypes[3].Descriptor()
+	return file_craig_stars_v1_tech_proto_enumTypes[4].Descriptor()
 }
 
 func (TechHullType) Type() protoreflect.EnumType {
-	return &file_craig_stars_v1_tech_proto_enumTypes[3]
+	return &file_craig_stars_v1_tech_proto_enumTypes[4]
 }
 
 func (x TechHullType) Number() protoreflect.EnumNumber {
@@ -386,7 +454,7 @@ func (x TechHullType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use TechHullType.Descriptor instead.
 func (TechHullType) EnumDescriptor() ([]byte, []int) {
-	return file_craig_stars_v1_tech_proto_rawDescGZIP(), []int{3}
+	return file_craig_stars_v1_tech_proto_rawDescGZIP(), []int{4}
 }
 
 // Terraform hab types
@@ -429,11 +497,11 @@ func (x TerraformHabType) String() string {
 }
 
 func (TerraformHabType) Descriptor() protoreflect.EnumDescriptor {
-	return file_craig_stars_v1_tech_proto_enumTypes[4].Descriptor()
+	return file_craig_stars_v1_tech_proto_enumTypes[5].Descriptor()
 }
 
 func (TerraformHabType) Type() protoreflect.EnumType {
-	return &file_craig_stars_v1_tech_proto_enumTypes[4]
+	return &file_craig_stars_v1_tech_proto_enumTypes[5]
 }
 
 func (x TerraformHabType) Number() protoreflect.EnumNumber {
@@ -442,7 +510,7 @@ func (x TerraformHabType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use TerraformHabType.Descriptor instead.
 func (TerraformHabType) EnumDescriptor() ([]byte, []int) {
-	return file_craig_stars_v1_tech_proto_rawDescGZIP(), []int{4}
+	return file_craig_stars_v1_tech_proto_rawDescGZIP(), []int{5}
 }
 
 // The basic skeleton of a Tech item, containing name, cost and other essential info.
@@ -1128,6 +1196,7 @@ type TechHull struct {
 	MaxPopulation            int32                  `protobuf:"varint,25,opt,name=max_population,json=maxPopulation,proto3" json:"max_population,omitempty"`
 	InnateScanRangePenFactor float64                `protobuf:"fixed64,26,opt,name=innate_scan_range_pen_factor,json=innateScanRangePenFactor,proto3" json:"innate_scan_range_pen_factor,omitempty"`
 	Slots                    []*TechHullSlot        `protobuf:"bytes,27,rep,name=slots,proto3" json:"slots,omitempty"`
+	Class                    ShipClass              `protobuf:"varint,28,opt,name=class,proto3,enum=craig_stars.v1.ShipClass" json:"class,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -1349,6 +1418,13 @@ func (x *TechHull) GetSlots() []*TechHullSlot {
 		return x.Slots
 	}
 	return nil
+}
+
+func (x *TechHull) GetClass() ShipClass {
+	if x != nil {
+		return x.Class
+	}
+	return ShipClass_SHIP_CLASS_UNSPECIFIED
 }
 
 type TechHullSlot struct {
@@ -1884,7 +1960,8 @@ const file_craig_stars_v1_tech_proto_rawDesc = "" +
 	"free_speed\x189 \x01(\x05R\tfreeSpeed\x12$\n" +
 	"\x0emax_safe_speed\x18: \x01(\x05R\fmaxSafeSpeed\x12\x1d\n" +
 	"\n" +
-	"fuel_usage\x18; \x03(\x05R\tfuelUsage\"\xf7\t\n" +
+	"fuel_usage\x18; \x03(\x05R\tfuelUsage\"\xa8\n" +
+	"\n" +
 	"\bTechHull\x12(\n" +
 	"\x04tech\x18\x01 \x01(\v2\x14.craig_stars.v1.TechR\x04tech\x120\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1c.craig_stars.v1.TechHullTypeR\x04type\x12\x12\n" +
@@ -1917,7 +1994,8 @@ const file_craig_stars_v1_tech_proto_rawDesc = "" +
 	"\x16double_mine_efficiency\x18\x18 \x01(\bR\x14doubleMineEfficiency\x12%\n" +
 	"\x0emax_population\x18\x19 \x01(\x05R\rmaxPopulation\x12>\n" +
 	"\x1cinnate_scan_range_pen_factor\x18\x1a \x01(\x01R\x18innateScanRangePenFactor\x122\n" +
-	"\x05slots\x18\x1b \x03(\v2\x1c.craig_stars.v1.TechHullSlotR\x05slots\"\x95\x01\n" +
+	"\x05slots\x18\x1b \x03(\v2\x1c.craig_stars.v1.TechHullSlotR\x05slots\x12/\n" +
+	"\x05class\x18\x1c \x01(\x0e2\x19.craig_stars.v1.ShipClassR\x05class\"\x95\x01\n" +
 	"\fTechHullSlot\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\rR\x04type\x12\x1a\n" +
 	"\bcapacity\x18\x02 \x01(\x05R\bcapacity\x12\x1a\n" +
@@ -2012,7 +2090,17 @@ const file_craig_stars_v1_tech_proto_rawDesc = "" +
 	"\n" +
 	"TechOrigin\x12\x1b\n" +
 	"\x17TECH_ORIGIN_UNSPECIFIED\x10\x00\x12\x1e\n" +
-	"\x1aTECH_ORIGIN_MYSTERY_TRADER\x10\x01*\xa2\x03\n" +
+	"\x1aTECH_ORIGIN_MYSTERY_TRADER\x10\x01*\xea\x01\n" +
+	"\tShipClass\x12\x1a\n" +
+	"\x16SHIP_CLASS_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11SHIP_CLASS_COLONY\x10\x01\x12\x18\n" +
+	"\x14SHIP_CLASS_FREIGHTER\x10\x02\x12\x14\n" +
+	"\x10SHIP_CLASS_SCOUT\x10\x03\x12\x16\n" +
+	"\x12SHIP_CLASS_WARSHIP\x10\x04\x12\x16\n" +
+	"\x12SHIP_CLASS_UTILITY\x10\x05\x12\x15\n" +
+	"\x11SHIP_CLASS_BOMBER\x10\x06\x12\x14\n" +
+	"\x10SHIP_CLASS_MINER\x10\a\x12\x1d\n" +
+	"\x19SHIP_CLASS_FUEL_TRANSPORT\x10\b*\xa2\x03\n" +
 	"\fTechHullType\x12\x1e\n" +
 	"\x1aTECH_HULL_TYPE_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15TECH_HULL_TYPE_BOMBER\x10\x01\x12\x1c\n" +
@@ -2048,61 +2136,63 @@ func file_craig_stars_v1_tech_proto_rawDescGZIP() []byte {
 	return file_craig_stars_v1_tech_proto_rawDescData
 }
 
-var file_craig_stars_v1_tech_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_craig_stars_v1_tech_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
 var file_craig_stars_v1_tech_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_craig_stars_v1_tech_proto_goTypes = []any{
 	(TechTag)(0),                 // 0: craig_stars.v1.TechTag
 	(TechCategory)(0),            // 1: craig_stars.v1.TechCategory
 	(TechOrigin)(0),              // 2: craig_stars.v1.TechOrigin
-	(TechHullType)(0),            // 3: craig_stars.v1.TechHullType
-	(TerraformHabType)(0),        // 4: craig_stars.v1.TerraformHabType
-	(*Tech)(nil),                 // 5: craig_stars.v1.Tech
-	(*TechRequirements)(nil),     // 6: craig_stars.v1.TechRequirements
-	(*TechHullComponent)(nil),    // 7: craig_stars.v1.TechHullComponent
-	(*TechHull)(nil),             // 8: craig_stars.v1.TechHull
-	(*TechHullSlot)(nil),         // 9: craig_stars.v1.TechHullSlot
-	(*TechPlanetary)(nil),        // 10: craig_stars.v1.TechPlanetary
-	(*TechPlanetaryScanner)(nil), // 11: craig_stars.v1.TechPlanetaryScanner
-	(*TechDefense)(nil),          // 12: craig_stars.v1.TechDefense
-	(*TechTerraform)(nil),        // 13: craig_stars.v1.TechTerraform
-	(*Engine)(nil),               // 14: craig_stars.v1.Engine
-	(*Bomb)(nil),                 // 15: craig_stars.v1.Bomb
-	nil,                          // 16: craig_stars.v1.Tech.TagsEntry
-	(*Cost)(nil),                 // 17: craig_stars.v1.Cost
-	(*TechLevel)(nil),            // 18: craig_stars.v1.TechLevel
-	(Prt)(0),                     // 19: craig_stars.v1.Prt
-	(MinefieldType)(0),           // 20: craig_stars.v1.MinefieldType
-	(*VectorFloat64)(nil),        // 21: craig_stars.v1.VectorFloat64
+	(ShipClass)(0),               // 3: craig_stars.v1.ShipClass
+	(TechHullType)(0),            // 4: craig_stars.v1.TechHullType
+	(TerraformHabType)(0),        // 5: craig_stars.v1.TerraformHabType
+	(*Tech)(nil),                 // 6: craig_stars.v1.Tech
+	(*TechRequirements)(nil),     // 7: craig_stars.v1.TechRequirements
+	(*TechHullComponent)(nil),    // 8: craig_stars.v1.TechHullComponent
+	(*TechHull)(nil),             // 9: craig_stars.v1.TechHull
+	(*TechHullSlot)(nil),         // 10: craig_stars.v1.TechHullSlot
+	(*TechPlanetary)(nil),        // 11: craig_stars.v1.TechPlanetary
+	(*TechPlanetaryScanner)(nil), // 12: craig_stars.v1.TechPlanetaryScanner
+	(*TechDefense)(nil),          // 13: craig_stars.v1.TechDefense
+	(*TechTerraform)(nil),        // 14: craig_stars.v1.TechTerraform
+	(*Engine)(nil),               // 15: craig_stars.v1.Engine
+	(*Bomb)(nil),                 // 16: craig_stars.v1.Bomb
+	nil,                          // 17: craig_stars.v1.Tech.TagsEntry
+	(*Cost)(nil),                 // 18: craig_stars.v1.Cost
+	(*TechLevel)(nil),            // 19: craig_stars.v1.TechLevel
+	(Prt)(0),                     // 20: craig_stars.v1.Prt
+	(MinefieldType)(0),           // 21: craig_stars.v1.MinefieldType
+	(*VectorFloat64)(nil),        // 22: craig_stars.v1.VectorFloat64
 }
 var file_craig_stars_v1_tech_proto_depIdxs = []int32{
-	17, // 0: craig_stars.v1.Tech.cost:type_name -> craig_stars.v1.Cost
-	6,  // 1: craig_stars.v1.Tech.requirements:type_name -> craig_stars.v1.TechRequirements
+	18, // 0: craig_stars.v1.Tech.cost:type_name -> craig_stars.v1.Cost
+	7,  // 1: craig_stars.v1.Tech.requirements:type_name -> craig_stars.v1.TechRequirements
 	1,  // 2: craig_stars.v1.Tech.category:type_name -> craig_stars.v1.TechCategory
 	2,  // 3: craig_stars.v1.Tech.origin:type_name -> craig_stars.v1.TechOrigin
-	16, // 4: craig_stars.v1.Tech.tags:type_name -> craig_stars.v1.Tech.TagsEntry
-	18, // 5: craig_stars.v1.TechRequirements.tech_level:type_name -> craig_stars.v1.TechLevel
-	19, // 6: craig_stars.v1.TechRequirements.prts_denied:type_name -> craig_stars.v1.Prt
-	19, // 7: craig_stars.v1.TechRequirements.prts_required:type_name -> craig_stars.v1.Prt
-	5,  // 8: craig_stars.v1.TechHullComponent.tech:type_name -> craig_stars.v1.Tech
-	20, // 9: craig_stars.v1.TechHullComponent.minefield_type:type_name -> craig_stars.v1.MinefieldType
-	5,  // 10: craig_stars.v1.TechHull.tech:type_name -> craig_stars.v1.Tech
-	3,  // 11: craig_stars.v1.TechHull.type:type_name -> craig_stars.v1.TechHullType
-	21, // 12: craig_stars.v1.TechHull.cargo_slot_position:type_name -> craig_stars.v1.VectorFloat64
-	21, // 13: craig_stars.v1.TechHull.cargo_slot_size:type_name -> craig_stars.v1.VectorFloat64
-	21, // 14: craig_stars.v1.TechHull.space_dock_slot_position:type_name -> craig_stars.v1.VectorFloat64
-	21, // 15: craig_stars.v1.TechHull.space_dock_slot_size:type_name -> craig_stars.v1.VectorFloat64
-	9,  // 16: craig_stars.v1.TechHull.slots:type_name -> craig_stars.v1.TechHullSlot
-	21, // 17: craig_stars.v1.TechHullSlot.position:type_name -> craig_stars.v1.VectorFloat64
-	5,  // 18: craig_stars.v1.TechPlanetary.tech:type_name -> craig_stars.v1.Tech
-	5,  // 19: craig_stars.v1.TechPlanetaryScanner.tech:type_name -> craig_stars.v1.Tech
-	5,  // 20: craig_stars.v1.TechDefense.tech:type_name -> craig_stars.v1.Tech
-	5,  // 21: craig_stars.v1.TechTerraform.tech:type_name -> craig_stars.v1.Tech
-	4,  // 22: craig_stars.v1.TechTerraform.hab_type:type_name -> craig_stars.v1.TerraformHabType
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	17, // 4: craig_stars.v1.Tech.tags:type_name -> craig_stars.v1.Tech.TagsEntry
+	19, // 5: craig_stars.v1.TechRequirements.tech_level:type_name -> craig_stars.v1.TechLevel
+	20, // 6: craig_stars.v1.TechRequirements.prts_denied:type_name -> craig_stars.v1.Prt
+	20, // 7: craig_stars.v1.TechRequirements.prts_required:type_name -> craig_stars.v1.Prt
+	6,  // 8: craig_stars.v1.TechHullComponent.tech:type_name -> craig_stars.v1.Tech
+	21, // 9: craig_stars.v1.TechHullComponent.minefield_type:type_name -> craig_stars.v1.MinefieldType
+	6,  // 10: craig_stars.v1.TechHull.tech:type_name -> craig_stars.v1.Tech
+	4,  // 11: craig_stars.v1.TechHull.type:type_name -> craig_stars.v1.TechHullType
+	22, // 12: craig_stars.v1.TechHull.cargo_slot_position:type_name -> craig_stars.v1.VectorFloat64
+	22, // 13: craig_stars.v1.TechHull.cargo_slot_size:type_name -> craig_stars.v1.VectorFloat64
+	22, // 14: craig_stars.v1.TechHull.space_dock_slot_position:type_name -> craig_stars.v1.VectorFloat64
+	22, // 15: craig_stars.v1.TechHull.space_dock_slot_size:type_name -> craig_stars.v1.VectorFloat64
+	10, // 16: craig_stars.v1.TechHull.slots:type_name -> craig_stars.v1.TechHullSlot
+	3,  // 17: craig_stars.v1.TechHull.class:type_name -> craig_stars.v1.ShipClass
+	22, // 18: craig_stars.v1.TechHullSlot.position:type_name -> craig_stars.v1.VectorFloat64
+	6,  // 19: craig_stars.v1.TechPlanetary.tech:type_name -> craig_stars.v1.Tech
+	6,  // 20: craig_stars.v1.TechPlanetaryScanner.tech:type_name -> craig_stars.v1.Tech
+	6,  // 21: craig_stars.v1.TechDefense.tech:type_name -> craig_stars.v1.Tech
+	6,  // 22: craig_stars.v1.TechTerraform.tech:type_name -> craig_stars.v1.Tech
+	5,  // 23: craig_stars.v1.TechTerraform.hab_type:type_name -> craig_stars.v1.TerraformHabType
+	24, // [24:24] is the sub-list for method output_type
+	24, // [24:24] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_tech_proto_init() }
@@ -2118,7 +2208,7 @@ func file_craig_stars_v1_tech_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_tech_proto_rawDesc), len(file_craig_stars_v1_tech_proto_rawDesc)),
-			NumEnums:      5,
+			NumEnums:      6,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,

@@ -245,7 +245,10 @@ test('planets report page', async ({ newGamePage }) => {
 	await page.locator('thead').getByRole('button', { name: 'Mine', exact: true }).click();
 	await page.locator('thead').getByRole('button', { name: 'Factories' }).click();
 	await page.getByRole('columnheader', { name: 'Defense' }).click();
-	await page.locator('thead').getByRole('button', { name: 'Surface Minerals', exact: true }).click();
+	await page
+		.locator('thead')
+		.getByRole('button', { name: 'Surface Minerals', exact: true })
+		.click();
 	await page.locator('thead').getByRole('button', { name: 'Mining Rate', exact: true }).click();
 
 	// show all
@@ -259,7 +262,10 @@ test('planets report page', async ({ newGamePage }) => {
 	await page.locator('thead').getByRole('button', { name: 'Population' }).click();
 	await page.locator('thead').getByRole('button', { name: 'Value' }).click();
 	await page.locator('thead').getByRole('button', { name: 'Defense' }).click();
-	await page.locator('thead').getByRole('button', { name: 'Surface Minerals', exact: true }).click();
+	await page
+		.locator('thead')
+		.getByRole('button', { name: 'Surface Minerals', exact: true })
+		.click();
 	await page
 		.locator('thead')
 		.getByRole('button', { name: 'Mineral Concentration', exact: true })

@@ -15,7 +15,7 @@ import {
 	type Waypoint
 } from '#lib/types/cs-proto.js';
 import type { CommandedFleet } from '#lib/types/Fleet.js';
-import { filterFleet } from '#lib/types/Filter.js';
+import { filterFleet, filterMinefield, getVisibleShipCount } from '#lib/types/Filter.js';
 import {
 	equal,
 	owned,
@@ -108,12 +108,21 @@ export function buildScanners(
 
 export type MinefieldDraw = { minefield: Minefield; radius: number; color: string };
 
+// the minefields the player has chosen to see
+export function getVisibleMinefields(
+	universe: Universe,
+	player: CommandedPlayer,
+	settings: PlayerSettings
+): Minefield[] {
+	return universe.allMinefields.filter((minefield) => filterMinefield(player, minefield, settings));
+}
+
 export function buildMinefields(
 	universe: Universe,
 	player: CommandedPlayer,
 	settings: PlayerSettings
 ): MinefieldDraw[] {
-	return universe.allMinefields.map((minefield) => ({
+	return getVisibleMinefields(universe, player, settings).map((minefield) => ({
 		minefield,
 		radius: Math.sqrt(minefield.numMines),
 		color: getDisplayColor(minefield.mapObject?.playerNum, player, universe, settings)
@@ -197,7 +206,7 @@ export function buildWaypointPaths(
 	const paths: WaypointPath[] = universe.fleets
 		.filter(
 			(f) =>
-				(equal(commandedFleet, f) || filterFleet(player, f, settings)) &&
+				(equal(commandedFleet, f) || filterFleet(player, f, settings, universe)) &&
 				f.mapObject?.num !== commandedFleet?.mapObject.num &&
 				(f.fleetOrders?.waypoints?.length ?? 0) > 1
 		)
@@ -277,7 +286,9 @@ export function buildPlanets(
 		const orbiting = universe
 			.getMapObjectsByPosition(position)
 			.filter((mo) => mo.mapObject?.type === MapObjectType.FLEET);
-		const orbitingVisible = orbiting.filter((f) => filterFleet(player, f as Fleet, settings));
+		const orbitingVisible = orbiting.filter((f) =>
+			filterFleet(player, f as Fleet, settings, universe)
+		);
 
 		const commanded =
 			(commandedMapObject?.mapObject?.type === MapObjectType.FLEET &&
@@ -346,7 +357,7 @@ export function buildPlanets(
 
 		if (settings.showFleetTokenCounts) {
 			const value = orbitingVisible.reduce(
-				(count, f) => count + (f as Fleet).tokens.reduce((c, t) => c + t.quantity, 0),
+				(count, f) => count + getVisibleShipCount(player, f as Fleet, settings, universe),
 				0
 			);
 			if (value) {
@@ -541,7 +552,7 @@ export function buildFleets(
 	const fleets = universe
 		.getAllFleets()
 		.filter((f) => !f.orbitingPlanetNum)
-		.filter((f) => equal(commandedFleet, f) || filterFleet(player, f, settings));
+		.filter((f) => equal(commandedFleet, f) || filterFleet(player, f, settings, universe));
 
 	const draws: FleetDraw[] = fleets.map((fleet) => ({
 		fleet,
@@ -567,7 +578,7 @@ export function buildFleets(
 			);
 			here[here.length - 1].count = {
 				value: here.reduce(
-					(c, d) => c + d.fleet.tokens.reduce((t, token) => t + token.quantity, 0),
+					(c, d) => c + getVisibleShipCount(player, d.fleet, settings, universe),
 					0
 				),
 				color: colors.orbit.text[orbitKind(enemies, friends)]

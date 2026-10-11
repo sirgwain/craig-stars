@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import ScannerCanvas from './ScannerCanvas.svelte';
 
-const state = vi.hoisted(() => ({ redraw: () => {} }));
+const state = vi.hoisted(() => ({
+	redraw: () => {},
+	showMinefields: (() => {}) as (show: boolean) => void
+}));
 vi.mock('./canvas/colors', () => ({
 	readScannerColors: () => ({ background: '#000000', selection: '#ffffff' }),
 	fixedScannerColors: {
@@ -28,7 +31,7 @@ vi.mock('#lib/services/GameContext.js', async () => {
 		})
 	);
 	const context = {
-		player: writable({ num: 1, isFriend: () => false }),
+		player: writable({ num: 1, isFriend: () => false, isEnemy: () => true }),
 		universe: writable({
 			allMinefields: minefields,
 			planets: [],
@@ -52,6 +55,11 @@ vi.mock('#lib/services/GameContext.js', async () => {
 	state.redraw = () =>
 		context.settings.update((settings) => {
 			settings.showNames = !settings.showNames;
+			return settings;
+		});
+	state.showMinefields = (show) =>
+		context.settings.update((settings) => {
+			settings.showMinefields = show;
 			return settings;
 		});
 	return { getGameContext: () => context };
@@ -116,6 +124,14 @@ describe.each([1, 2])('at device pixel ratio %s', (dpr) => {
 		const { dots, before, discard } = await scanner();
 		discard();
 		state.redraw();
+		await expect.poll(dots).toEqual(before);
+	});
+
+	it('hides minefields when they are turned off', async () => {
+		const { dots, before } = await scanner();
+		state.showMinefields(false);
+		await expect.poll(dots).toEqual([0, 0]);
+		state.showMinefields(true);
 		await expect.poll(dots).toEqual(before);
 	});
 
