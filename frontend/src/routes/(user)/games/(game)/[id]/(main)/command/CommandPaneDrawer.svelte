@@ -18,7 +18,7 @@
 		SplitAllProps
 	} from '#lib/services/Events.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
-	import { commandable, equalsTarget, getMapObjectName } from '#lib/types/MapObject.js';
+	import { commandable, getMapObjectName } from '#lib/types/MapObject.js';
 	import { distance, emptyVector } from '#lib/types/Vector.js';
 	import { slide } from 'svelte/transition';
 	import MapObjectSummary from '../MapObjectSummary.svelte';
@@ -119,6 +119,8 @@
 			: 0
 	);
 
+	// The drawer opens on whatever is commanded, even when the summary is showing something else the
+	// player selected. A summary of something commandable gets commanded first.
 	function toggleDrawer() {
 		open = !open;
 		if (summaryMapObject && commandable($player.num, summaryMapObject)) {
@@ -255,10 +257,7 @@
 			>
 				<DisclosureHeader
 					{open}
-					openable={commandable($player.num, summaryMapObject) ||
-						(summaryMapObject &&
-							$selectedWaypoint?.mapObjectTarget &&
-							equalsTarget(summaryMapObject, $selectedWaypoint.mapObjectTarget))}
+					openable={!!$commandedMapObject || commandable($player.num, summaryMapObject)}
 					onToggle={toggleDrawer}
 				>
 					<div class="flex flex-row w-full">
