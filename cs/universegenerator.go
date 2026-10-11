@@ -761,7 +761,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 	for _, player := range ug.Players {
 		designNames := map[string]bool{}
 		num := 1
-		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
+		for _, startingPlanet := range startingPlanetsForSize(&ug.Rules, ug.Size, player.Race.Spec.StartingPlanets) {
 			for _, startingFleet := range startingPlanet.StartingFleets {
 				if designNames[startingFleet.Name] {
 					// only create one design per name, i.e. Scout, Armed Probe
@@ -852,7 +852,7 @@ func (ug *universeGenerator) generatePlayerStartingPlanets() error {
 		// * Assign random starting planets to each "team" maximizing distance between enemy factions
 		// * Place allied homeworlds around each initial planet within a smaller range
 		// * Place players within each faction randomly and assign starting planets
-		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
+		for _, startingPlanet := range startingPlanetsForSize(rules, ug.Size, player.Race.Spec.StartingPlanets) {
 			if !startingPlanet.Homeworld && homeworld == nil {
 				// Since extra planets _have_ to be placed around the homeworld,
 				// the homeworld needs to be the first thing we place
@@ -1120,10 +1120,10 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 
 // create initial starbase designs for a player
 func (ug *universeGenerator) createStartingStarbaseDesigns(techStore *TechStore, player *Player, designNum int) []*ShipDesign {
-	numStartingPlanets := len(player.Race.Spec.StartingPlanets)
-	designs := make([]*ShipDesign, numStartingPlanets)
+	startingPlanets := startingPlanetsForSize(&ug.Rules, ug.Size, player.Race.Spec.StartingPlanets)
+	designs := make([]*ShipDesign, len(startingPlanets))
 
-	for i, startingPlanet := range player.Race.Spec.StartingPlanets {
+	for i, startingPlanet := range startingPlanets {
 		var starbase *ShipDesign
 		var purpose ShipDesignPurpose
 		switch {

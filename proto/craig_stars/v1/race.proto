@@ -179,6 +179,7 @@ message StartingPlanet {
   string starbase_hull = 9;
   repeated StartingFleet starting_fleets = 10;
   bool homeworld = 11;
+  int32 population_from_homeworld = 12;
 }
 
 message StealsResearch {

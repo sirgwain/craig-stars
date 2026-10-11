@@ -74,7 +74,7 @@
 	},
 	"createdAt": "0001-01-01T00:00:00Z",
 	"updatedAt": "0001-01-01T00:00:00Z",
-	"acquirablePartTradeChanceBase": 0.005,
+	"acquirablePartTradeChanceBase": 0.01,
 	"acquirablePartTradeItemMax": 25,
 	"cometStatsBySize": {
 		"1": {
@@ -827,7 +827,7 @@
 			},
 			"startingPlanets": [
 				{
-					"population": 20000,
+					"population": 25000,
 					"mines": 10,
 					"factories": 10,
 					"defenses": 10,
@@ -862,7 +862,8 @@
 							"hullName": "Scout",
 							"purpose": "Scout"
 						}
-					]
+					],
+					"populationFromHomeworld": 5000
 				}
 			],
 			"mineralsPerSingleMineralPacket": 70,
@@ -875,7 +876,7 @@
 			"detectPacketDestinationStarbases": true,
 			"detectAllPackets": true,
 			"packetTerraformChance": 0.5,
-			"packetPermaformChance": 0.001,
+			"packetPermaformChance": 0.1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
 			"builtInScanner": {},
@@ -905,7 +906,7 @@
 			},
 			"startingPlanets": [
 				{
-					"population": 20000,
+					"population": 25000,
 					"mines": 10,
 					"factories": 10,
 					"defenses": 10,
@@ -950,7 +951,8 @@
 							"hullName": "Scout",
 							"purpose": "Scout"
 						}
-					]
+					],
+					"populationFromHomeworld": 5000
 				}
 			],
 			"techCostOffset": {
@@ -1140,7 +1142,7 @@
 	},
 	"raceStartingPoints": 1650,
 	"radiatingImmune": 85,
-	"randomArtifactResearchBonusRange": [120, 400],
+	"randomArtifactResearchBonusRange": [100, 400],
 	"randomCometMinYear": 10,
 	"randomCometMinYearPlayerWorld": 20,
 	"randomEventChances": {
@@ -1234,5 +1236,17 @@
 		"10": 0.09090909090909091
 	},
 	"randomMineralDepositMaxConcentration": 180,
-	"randomMineralDepositMinYear": 10
+	"randomMineralDepositMinYear": 10,
+	"maxStartingPlanetsForSize": {
+		"1": 1,
+		"2": 1,
+		"3": 2,
+		"4": 2,
+		"5": 2,
+		"6": 2,
+		"7": 2,
+		"8": 2,
+		"9": 2,
+		"10": 2
+	}
 }

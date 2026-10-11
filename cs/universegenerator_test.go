@@ -83,37 +83,61 @@ func Test_universeGenerator_placeExtraPlayerPlanet(t *testing.T) {
 }
 
 func TestGenerateUniverseStartingPlanetsAcrossSeeds(t *testing.T) {
-	for seed := int64(0); seed < 50; seed++ {
-		t.Run(fmt.Sprintf("seed_%d", seed), func(t *testing.T) {
-			client := NewGamer()
-			game := newSeededGame(*NewGameSettings().WithSize(SizeTiny).WithDensity(DensitySparse))
-			game.Seed = seed
-			game.Rules.ResetSeed(seed)
-			players := []*Player{
-				client.NewPlayer(1, *NewRace().WithPRT(IT), &game.Rules).WithNum(1),
-				client.NewPlayer(2, *NewRace().WithPRT(PP), &game.Rules).WithNum(2),
-			}
-			universe, err := client.GenerateUniverse(game, players)
-			require.NoError(t, err)
-			for _, player := range players {
-				planets := universe.getPlanets(player.Num)
-				require.Len(t, planets, 2, "player %d should own both starting planets", player.Num)
-				homeworlds := 0
-				for _, planet := range planets {
-					if planet.Homeworld {
-						homeworlds++
-					}
-					require.NotNil(t, planet.Starbase)
-					assert.Equal(t, player.Num, planet.Starbase.PlayerNum)
+	tests := []struct {
+		size Size
+		// population of each starting planet, homeworld first
+		wantPopulations []int
+	}{
+		// tiny universes have no room for an extra world, so the homeworld keeps all its colonists
+		{size: SizeTiny, wantPopulations: []int{25000}},
+		{size: SizeTinyWide, wantPopulations: []int{25000}},
+		{size: SizeSmall, wantPopulations: []int{20000, 10000}},
+	}
+	for _, tt := range tests {
+		for seed := range int64(50) {
+			t.Run(fmt.Sprintf("%s_seed_%d", tt.size, seed), func(t *testing.T) {
+				client := NewGamer()
+				game := newSeededGame(*NewGameSettings().WithSize(tt.size).WithDensity(DensitySparse))
+				game.Seed = seed
+				game.Rules.ResetSeed(seed)
+				players := []*Player{
+					client.NewPlayer(1, *NewRace().WithPRT(IT), &game.Rules).WithNum(1),
+					client.NewPlayer(2, *NewRace().WithPRT(PP), &game.Rules).WithNum(2),
 				}
-				assert.Equal(t, 1, homeworlds)
-			}
-			starbasePlanets := make(map[int]bool)
-			for _, starbase := range universe.Starbases {
-				assert.False(t, starbasePlanets[starbase.PlanetNum], "duplicate starbases on planet %d", starbase.PlanetNum)
-				starbasePlanets[starbase.PlanetNum] = true
-			}
-		})
+				universe, err := client.GenerateUniverse(game, players)
+				require.NoError(t, err)
+				for _, player := range players {
+					planets := universe.getPlanets(player.Num)
+					require.Len(t, planets, len(tt.wantPopulations), "player %d should own all its starting planets", player.Num)
+					homeworlds := 0
+					for _, planet := range planets {
+						if planet.Homeworld {
+							homeworlds++
+							assert.Equal(t, tt.wantPopulations[0], planet.GetPopulation())
+						} else {
+							assert.Equal(t, tt.wantPopulations[1], planet.GetPopulation())
+						}
+						require.NotNil(t, planet.Starbase)
+						assert.Equal(t, player.Num, planet.Starbase.PlayerNum)
+					}
+					assert.Equal(t, 1, homeworlds)
+
+					// one starbase design per starting planet
+					starbaseDesigns := 0
+					for _, design := range player.Designs {
+						if design.Spec.Starbase {
+							starbaseDesigns++
+						}
+					}
+					assert.Equal(t, len(tt.wantPopulations), starbaseDesigns)
+				}
+				starbasePlanets := make(map[int]bool)
+				for _, starbase := range universe.Starbases {
+					assert.False(t, starbasePlanets[starbase.PlanetNum], "duplicate starbases on planet %d", starbase.PlanetNum)
+					starbasePlanets[starbase.PlanetNum] = true
+				}
+			})
+		}
 	}
 }
 

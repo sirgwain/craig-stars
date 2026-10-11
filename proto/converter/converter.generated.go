@@ -818,6 +818,7 @@ func (c *ProtoConverter) ConvertCSRules(source *cs.Rules) *v1.Rules {
 		craig_starsv1Rules.RandomMineralDepositChanceForSize = SizeMapToFloat64Map(c, (*source).RandomMineralDepositChanceForSize)
 		craig_starsv1Rules.RandomMineralDepositMaxConcentration = IntToInt32((*source).RandomMineralDepositMaxConcentration)
 		craig_starsv1Rules.RandomMineralDepositMinYear = IntToInt32((*source).RandomMineralDepositMinYear)
+		craig_starsv1Rules.MaxStartingPlanetsForSize = SizeMapToIntMap(c, (*source).MaxStartingPlanetsForSize)
 		pCraig_starsv1Rules = &craig_starsv1Rules
 	}
 	return pCraig_starsv1Rules
@@ -1940,6 +1941,7 @@ func (c *ProtoConverter) ConvertRules(source *v1.Rules) *cs.Rules {
 			}
 		}
 		csRules.MaxPopulation = Int32ToInt((*source).MaxPopulation)
+		csRules.MaxStartingPlanetsForSize = IntMapToSizeMap(c, (*source).MaxStartingPlanetsForSize)
 		csRules.MinFactories = Int32ToInt((*source).MinFactories)
 		csRules.MinMines = Int32ToInt((*source).MinMines)
 		csRules.MinPopFloor = Int32ToInt((*source).MinPopFloor)
@@ -2903,6 +2905,7 @@ func (c *ProtoConverter) csStartingPlanetToPCraig_starsv1StartingPlanet(source c
 		}
 	}
 	craig_starsv1StartingPlanet.Homeworld = source.Homeworld
+	craig_starsv1StartingPlanet.PopulationFromHomeworld = IntToInt32(source.PopulationFromHomeworld)
 	return &craig_starsv1StartingPlanet
 }
 func (c *ProtoConverter) csStealsResearchToPCraig_starsv1StealsResearch(source cs.StealsResearch) *v1.StealsResearch {
@@ -3970,6 +3973,7 @@ func (c *ProtoConverter) pCraig_starsv1StartingPlanetToCsStartingPlanet(source *
 	var csStartingPlanet cs.StartingPlanet
 	if source != nil {
 		csStartingPlanet.Population = Int32ToInt((*source).Population)
+		csStartingPlanet.PopulationFromHomeworld = Int32ToInt((*source).PopulationFromHomeworld)
 		csStartingPlanet.Mines = Int32ToInt((*source).Mines)
 		csStartingPlanet.Factories = Int32ToInt((*source).Factories)
 		csStartingPlanet.Defenses = Int32ToInt((*source).Defenses)

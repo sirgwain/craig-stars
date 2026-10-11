@@ -24,6 +24,7 @@ type Rules struct {
 	InvasionDefenseCoverageFactor        float64                             `json:"invasionDefenseCoverageFactor"`
 	LRTSpecs                             map[LRT]LRTSpec                     `json:"lrtSpecs"`
 	MaxPopulation                        int                                 `json:"maxPopulation"`
+	MaxStartingPlanetsForSize            map[Size]int                        `json:"maxStartingPlanetsForSize"`
 	MinFactories                         int                                 `json:"minFactories"`
 	MinMines                             int                                 `json:"minMines"`
 	MinPopFloor                          int                                 `json:"minPopFloor"`
@@ -561,6 +562,19 @@ func NewRulesWithSeed(seed int64) Rules {
 				ChanceToJump:   0.04,
 				JiggleDistance: 10,
 			},
+		},
+		// like the original, tiny universes have no room for extra starting worlds (i.e. for IT and PP)
+		MaxStartingPlanetsForSize: map[Size]int{
+			SizeTiny:       1,
+			SizeTinyWide:   1,
+			SizeSmall:      2,
+			SizeSmallWide:  2,
+			SizeMedium:     2,
+			SizeMediumWide: 2,
+			SizeLarge:      2,
+			SizeLargeWide:  2,
+			SizeHuge:       2,
+			SizeHugeWide:   2,
 		},
 		WormholePairsForSize: map[Size]int{
 			SizeTiny:       1,

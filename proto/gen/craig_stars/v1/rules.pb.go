@@ -1079,6 +1079,7 @@ type Rules struct {
 	RandomMineralDepositChanceForSize    map[int32]float64         `protobuf:"bytes,61,rep,name=random_mineral_deposit_chance_for_size,json=randomMineralDepositChanceForSize,proto3" json:"random_mineral_deposit_chance_for_size,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"` // Size enum
 	RandomMineralDepositMaxConcentration int32                     `protobuf:"varint,62,opt,name=random_mineral_deposit_max_concentration,json=randomMineralDepositMaxConcentration,proto3" json:"random_mineral_deposit_max_concentration,omitempty"`
 	RandomMineralDepositMinYear          int32                     `protobuf:"varint,63,opt,name=random_mineral_deposit_min_year,json=randomMineralDepositMinYear,proto3" json:"random_mineral_deposit_min_year,omitempty"`
+	MaxStartingPlanetsForSize            map[int32]int32           `protobuf:"bytes,64,rep,name=max_starting_planets_for_size,json=maxStartingPlanetsForSize,proto3" json:"max_starting_planets_for_size,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"` // Size enum
 	unknownFields                        protoimpl.UnknownFields
 	sizeCache                            protoimpl.SizeCache
 }
@@ -1547,6 +1548,13 @@ func (x *Rules) GetRandomMineralDepositMinYear() int32 {
 	return 0
 }
 
+func (x *Rules) GetMaxStartingPlanetsForSize() map[int32]int32 {
+	if x != nil {
+		return x.MaxStartingPlanetsForSize
+	}
+	return nil
+}
+
 var File_craig_stars_v1_rules_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_rules_proto_rawDesc = "" +
@@ -1636,7 +1644,7 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	" \x01(\x05R\aminWarp\x12\x19\n" +
 	"\bmin_year\x18\v \x01(\x05R\aminYear\x12%\n" +
 	"\x0erequested_boon\x18\f \x01(\x05R\rrequestedBoon\x12G\n" +
-	"\ttech_boon\x18\r \x03(\v2*.craig_stars.v1.MysteryTraderTechBoonRulesR\btechBoon\"\xc1%\n" +
+	"\ttech_boon\x18\r \x03(\v2*.craig_stars.v1.MysteryTraderTechBoonRulesR\btechBoon\"\x87'\n" +
 	"\x05Rules\x128\n" +
 	"\n" +
 	"cost_rules\x18\x01 \x01(\v2\x19.craig_stars.v1.CostRulesR\tcostRules\x12>\n" +
@@ -1703,7 +1711,8 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\tmin_mines\x18< \x01(\x05R\bminMines\x12\x8f\x01\n" +
 	"&random_mineral_deposit_chance_for_size\x18= \x03(\v2<.craig_stars.v1.Rules.RandomMineralDepositChanceForSizeEntryR!randomMineralDepositChanceForSize\x12V\n" +
 	"(random_mineral_deposit_max_concentration\x18> \x01(\x05R$randomMineralDepositMaxConcentration\x12D\n" +
-	"\x1frandom_mineral_deposit_min_year\x18? \x01(\x05R\x1brandomMineralDepositMinYear\x1a_\n" +
+	"\x1frandom_mineral_deposit_min_year\x18? \x01(\x05R\x1brandomMineralDepositMinYear\x12v\n" +
+	"\x1dmax_starting_planets_for_size\x18@ \x03(\v24.craig_stars.v1.Rules.MaxStartingPlanetsForSizeEntryR\x19maxStartingPlanetsForSize\x1a_\n" +
 	"\x15CometStatsBySizeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x120\n" +
 	"\x05value\x18\x02 \x01(\v2\x1a.craig_stars.v1.CometStatsR\x05value:\x028\x01\x1aT\n" +
@@ -1733,7 +1742,10 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\v2\x1d.craig_stars.v1.WormholeStatsR\x05value:\x028\x01\x1aT\n" +
 	"&RandomMineralDepositChanceForSizeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01J\x04\b7\x108R\x15torpedo_splash_damage*\x7f\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\x1aL\n" +
+	"\x1eMaxStartingPlanetsForSizeEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01J\x04\b7\x108R\x15torpedo_splash_damage*\x7f\n" +
 	"\tCometSize\x12\x1a\n" +
 	"\x16COMET_SIZE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10COMET_SIZE_SMALL\x10\x01\x12\x15\n" +
@@ -1770,7 +1782,7 @@ func file_craig_stars_v1_rules_proto_rawDescGZIP() []byte {
 }
 
 var file_craig_stars_v1_rules_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_craig_stars_v1_rules_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_craig_stars_v1_rules_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_craig_stars_v1_rules_proto_goTypes = []any{
 	(CometSize)(0),                              // 0: craig_stars.v1.CometSize
 	(RandomEvent)(0),                            // 1: craig_stars.v1.RandomEvent
@@ -1795,30 +1807,31 @@ var file_craig_stars_v1_rules_proto_goTypes = []any{
 	nil,                                         // 20: craig_stars.v1.Rules.WormholePairsForSizeEntry
 	nil,                                         // 21: craig_stars.v1.Rules.WormholeStatsByStabilityEntry
 	nil,                                         // 22: craig_stars.v1.Rules.RandomMineralDepositChanceForSizeEntry
-	(*Cost)(nil),                                // 23: craig_stars.v1.Cost
-	(*Hab)(nil),                                 // 24: craig_stars.v1.Hab
-	(*timestamppb.Timestamp)(nil),               // 25: google.protobuf.Timestamp
-	(*LRTSpec)(nil),                             // 26: craig_stars.v1.LRTSpec
-	(*MinefieldStats)(nil),                      // 27: craig_stars.v1.MinefieldStats
-	(*PRTSpec)(nil),                             // 28: craig_stars.v1.PRTSpec
-	(*WormholeStats)(nil),                       // 29: craig_stars.v1.WormholeStats
+	nil,                                         // 23: craig_stars.v1.Rules.MaxStartingPlanetsForSizeEntry
+	(*Cost)(nil),                                // 24: craig_stars.v1.Cost
+	(*Hab)(nil),                                 // 25: craig_stars.v1.Hab
+	(*timestamppb.Timestamp)(nil),               // 26: google.protobuf.Timestamp
+	(*LRTSpec)(nil),                             // 27: craig_stars.v1.LRTSpec
+	(*MinefieldStats)(nil),                      // 28: craig_stars.v1.MinefieldStats
+	(*PRTSpec)(nil),                             // 29: craig_stars.v1.PRTSpec
+	(*WormholeStats)(nil),                       // 30: craig_stars.v1.WormholeStats
 }
 var file_craig_stars_v1_rules_proto_depIdxs = []int32{
-	23, // 0: craig_stars.v1.CostRules.defense_cost:type_name -> craig_stars.v1.Cost
-	23, // 1: craig_stars.v1.CostRules.planetary_scanner_cost:type_name -> craig_stars.v1.Cost
-	23, // 2: craig_stars.v1.CostRules.terraform_cost:type_name -> craig_stars.v1.Cost
+	24, // 0: craig_stars.v1.CostRules.defense_cost:type_name -> craig_stars.v1.Cost
+	24, // 1: craig_stars.v1.CostRules.planetary_scanner_cost:type_name -> craig_stars.v1.Cost
+	24, // 2: craig_stars.v1.CostRules.terraform_cost:type_name -> craig_stars.v1.Cost
 	3,  // 3: craig_stars.v1.BattleRules.jammer_cap:type_name -> craig_stars.v1.JammerCap
 	3,  // 4: craig_stars.v1.BattleRules.jammer_multi:type_name -> craig_stars.v1.JammerCap
-	24, // 5: craig_stars.v1.UniverseGenerationRules.hab_dropoff_range:type_name -> craig_stars.v1.Hab
+	25, // 5: craig_stars.v1.UniverseGenerationRules.hab_dropoff_range:type_name -> craig_stars.v1.Hab
 	12, // 6: craig_stars.v1.UniverseGenerationRules.race_leftover_points_per_item:type_name -> craig_stars.v1.UniverseGenerationRules.RaceLeftoverPointsPerItemEntry
 	8,  // 7: craig_stars.v1.MysteryTraderTechBoonRules.rewards:type_name -> craig_stars.v1.MysteryTraderTechBoonMineralsReward
-	23, // 8: craig_stars.v1.MysteryTraderRules.genesis_device_cost:type_name -> craig_stars.v1.Cost
+	24, // 8: craig_stars.v1.MysteryTraderRules.genesis_device_cost:type_name -> craig_stars.v1.Cost
 	9,  // 9: craig_stars.v1.MysteryTraderRules.tech_boon:type_name -> craig_stars.v1.MysteryTraderTechBoonRules
 	5,  // 10: craig_stars.v1.Rules.cost_rules:type_name -> craig_stars.v1.CostRules
 	6,  // 11: craig_stars.v1.Rules.battle_rules:type_name -> craig_stars.v1.BattleRules
 	7,  // 12: craig_stars.v1.Rules.universe_generation_rules:type_name -> craig_stars.v1.UniverseGenerationRules
-	25, // 13: craig_stars.v1.Rules.created_at:type_name -> google.protobuf.Timestamp
-	25, // 14: craig_stars.v1.Rules.updated_at:type_name -> google.protobuf.Timestamp
+	26, // 13: craig_stars.v1.Rules.created_at:type_name -> google.protobuf.Timestamp
+	26, // 14: craig_stars.v1.Rules.updated_at:type_name -> google.protobuf.Timestamp
 	13, // 15: craig_stars.v1.Rules.comet_stats_by_size:type_name -> craig_stars.v1.Rules.CometStatsBySizeEntry
 	14, // 16: craig_stars.v1.Rules.lrt_specs:type_name -> craig_stars.v1.Rules.LrtSpecsEntry
 	15, // 17: craig_stars.v1.Rules.minefield_stats_by_type:type_name -> craig_stars.v1.Rules.MinefieldStatsByTypeEntry
@@ -1830,16 +1843,17 @@ var file_craig_stars_v1_rules_proto_depIdxs = []int32{
 	20, // 23: craig_stars.v1.Rules.wormhole_pairs_for_size:type_name -> craig_stars.v1.Rules.WormholePairsForSizeEntry
 	21, // 24: craig_stars.v1.Rules.wormhole_stats_by_stability:type_name -> craig_stars.v1.Rules.WormholeStatsByStabilityEntry
 	22, // 25: craig_stars.v1.Rules.random_mineral_deposit_chance_for_size:type_name -> craig_stars.v1.Rules.RandomMineralDepositChanceForSizeEntry
-	4,  // 26: craig_stars.v1.Rules.CometStatsBySizeEntry.value:type_name -> craig_stars.v1.CometStats
-	26, // 27: craig_stars.v1.Rules.LrtSpecsEntry.value:type_name -> craig_stars.v1.LRTSpec
-	27, // 28: craig_stars.v1.Rules.MinefieldStatsByTypeEntry.value:type_name -> craig_stars.v1.MinefieldStats
-	28, // 29: craig_stars.v1.Rules.PrtSpecsEntry.value:type_name -> craig_stars.v1.PRTSpec
-	29, // 30: craig_stars.v1.Rules.WormholeStatsByStabilityEntry.value:type_name -> craig_stars.v1.WormholeStats
-	31, // [31:31] is the sub-list for method output_type
-	31, // [31:31] is the sub-list for method input_type
-	31, // [31:31] is the sub-list for extension type_name
-	31, // [31:31] is the sub-list for extension extendee
-	0,  // [0:31] is the sub-list for field type_name
+	23, // 26: craig_stars.v1.Rules.max_starting_planets_for_size:type_name -> craig_stars.v1.Rules.MaxStartingPlanetsForSizeEntry
+	4,  // 27: craig_stars.v1.Rules.CometStatsBySizeEntry.value:type_name -> craig_stars.v1.CometStats
+	27, // 28: craig_stars.v1.Rules.LrtSpecsEntry.value:type_name -> craig_stars.v1.LRTSpec
+	28, // 29: craig_stars.v1.Rules.MinefieldStatsByTypeEntry.value:type_name -> craig_stars.v1.MinefieldStats
+	29, // 30: craig_stars.v1.Rules.PrtSpecsEntry.value:type_name -> craig_stars.v1.PRTSpec
+	30, // 31: craig_stars.v1.Rules.WormholeStatsByStabilityEntry.value:type_name -> craig_stars.v1.WormholeStats
+	32, // [32:32] is the sub-list for method output_type
+	32, // [32:32] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_rules_proto_init() }
@@ -1857,7 +1871,7 @@ func file_craig_stars_v1_rules_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_rules_proto_rawDesc), len(file_craig_stars_v1_rules_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   20,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

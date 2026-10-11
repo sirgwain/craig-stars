@@ -201,4 +201,5 @@ message Rules {
   map<int32, double> random_mineral_deposit_chance_for_size = 61; // Size enum
   int32 random_mineral_deposit_max_concentration = 62;
   int32 random_mineral_deposit_min_year = 63;
+  map<int32, int32> max_starting_planets_for_size = 64; // Size enum
 }
