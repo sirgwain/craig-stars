@@ -1,5 +1,5 @@
-import type { PlayerMessageType } from './cs-proto';
-import type { FilterOptions } from './Filter';
+import type { PlayerMessageType, ShipClass } from './cs-proto';
+import { MinefieldOwners, type FilterOptions, type MinefieldOwner } from './Filter';
 
 export enum PlanetViewState {
 	// I do enjoy the classics
@@ -24,6 +24,7 @@ export class PlayerSettings implements FilterOptions {
 	showScanners = true;
 	showAllyScanners = true;
 	showMinefields = true;
+	showMinefieldsOf: MinefieldOwner[] = [...MinefieldOwners];
 	showMessagePane = false;
 	showPlayerColors = false;
 	scannerPercent = 100;
@@ -44,9 +45,9 @@ export class PlayerSettings implements FilterOptions {
 	filterMyDesigns = false;
 	filterAllyDesigns = false;
 	filterEnemyDesigns = false;
-	filterDesigns = [];
-	filterAllyShipClasses = [];
-	filterEnemyShipClasses = [];
+	filterDesigns: number[] = [];
+	filterAllyShipClasses: ShipClass[] = [];
+	filterEnemyShipClasses: ShipClass[] = [];
 
 	constructor(
 		public gameId = '0',
@@ -80,6 +81,18 @@ export class PlayerSettings implements FilterOptions {
 	}
 	isMessageFiltered(type: PlayerMessageType) {
 		return this.messageTypeFilter.has(Number(type));
+	}
+	// show these players' minefields, or hide all minefields if there are none to show
+	setShownMinefieldOwners(owners: MinefieldOwner[]) {
+		this.showMinefieldsOf = owners;
+		this.showMinefields = owners.length > 0;
+	}
+	// show or hide minefields. Showing them brings back the ones that were shown before
+	toggleMinefields() {
+		this.showMinefields = !this.showMinefields;
+		if (this.showMinefields && this.showMinefieldsOf.length === 0) {
+			this.showMinefieldsOf = [...MinefieldOwners];
+		}
 	}
 	isMessageVisible(type: PlayerMessageType) {
 		return !this.messageTypeFilter.has(Number(type));

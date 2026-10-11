@@ -179,6 +179,20 @@ message TechHull {
   int32 max_population = 25;
   double innate_scan_range_pen_factor = 26;
   repeated TechHullSlot slots = 27;
+  ShipClass class = 28;
+}
+
+// The broad class of a ship hull
+enum ShipClass {
+  SHIP_CLASS_UNSPECIFIED = 0;
+  SHIP_CLASS_COLONY = 1;
+  SHIP_CLASS_FREIGHTER = 2;
+  SHIP_CLASS_SCOUT = 3;
+  SHIP_CLASS_WARSHIP = 4;
+  SHIP_CLASS_UTILITY = 5;
+  SHIP_CLASS_BOMBER = 6;
+  SHIP_CLASS_MINER = 7;
+  SHIP_CLASS_FUEL_TRANSPORT = 8;
 }
 
 // Tech hull types

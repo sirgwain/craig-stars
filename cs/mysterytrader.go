@@ -733,6 +733,7 @@ var MultiCargoPod = TechHullComponent{Tech: NewTechWithOrigin("Multi Cargo Pod",
 
 var MiniMorph = TechHull{Tech: NewTechWithOrigin("Mini Morph", NewCost(30, 8, 8, 100), TechRequirements{Acquirable: true, TechLevel: TechLevel{Construction: 8}}, 305, TechCategoryShipHull, OriginMysteryTrader),
 	Type:              TechHullTypeMultiPurposeFreighter,
+	Class:             ShipClassUtility,
 	Mass:              70,
 	Armor:             250,
 	Initiative:        2,

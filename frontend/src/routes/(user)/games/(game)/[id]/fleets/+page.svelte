@@ -57,7 +57,9 @@
 		$universe
 			.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
 			.filter((i) => i.mapObject?.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
-			.filter((i) => filterFleet($player, i, { showIdleFleetsOnly: $settings.showIdleFleetsOnly }))
+			.filter((i) =>
+				filterFleet($player, i, { showIdleFleetsOnly: $settings.showIdleFleetsOnly }, $universe)
+			)
 	);
 
 	type TableFleet = Fleet & {

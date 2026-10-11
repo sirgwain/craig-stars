@@ -1653,6 +1653,55 @@ func CSShipDesignPurposeToShipDesignPurpose(m cs.ShipDesignPurpose) craig_starsv
 		return craig_starsv1.ShipDesignPurpose_SHIP_DESIGN_PURPOSE_UNSPECIFIED
 	}
 }
+func ShipClassToCSShipClass(m craig_starsv1.ShipClass) cs.ShipClass {
+	switch m {
+	case craig_starsv1.ShipClass_SHIP_CLASS_UNSPECIFIED:
+		return cs.ShipClassNone
+	case craig_starsv1.ShipClass_SHIP_CLASS_COLONY:
+		return cs.ShipClassColony
+	case craig_starsv1.ShipClass_SHIP_CLASS_FREIGHTER:
+		return cs.ShipClassFreighter
+	case craig_starsv1.ShipClass_SHIP_CLASS_SCOUT:
+		return cs.ShipClassScout
+	case craig_starsv1.ShipClass_SHIP_CLASS_WARSHIP:
+		return cs.ShipClassWarship
+	case craig_starsv1.ShipClass_SHIP_CLASS_UTILITY:
+		return cs.ShipClassUtility
+	case craig_starsv1.ShipClass_SHIP_CLASS_BOMBER:
+		return cs.ShipClassBomber
+	case craig_starsv1.ShipClass_SHIP_CLASS_MINER:
+		return cs.ShipClassMiner
+	case craig_starsv1.ShipClass_SHIP_CLASS_FUEL_TRANSPORT:
+		return cs.ShipClassFuelTransport
+	default:
+		return cs.ShipClass("")
+	}
+}
+
+func CSShipClassToShipClass(m cs.ShipClass) craig_starsv1.ShipClass {
+	switch m {
+	case cs.ShipClassNone:
+		return craig_starsv1.ShipClass_SHIP_CLASS_UNSPECIFIED
+	case cs.ShipClassColony:
+		return craig_starsv1.ShipClass_SHIP_CLASS_COLONY
+	case cs.ShipClassFreighter:
+		return craig_starsv1.ShipClass_SHIP_CLASS_FREIGHTER
+	case cs.ShipClassScout:
+		return craig_starsv1.ShipClass_SHIP_CLASS_SCOUT
+	case cs.ShipClassWarship:
+		return craig_starsv1.ShipClass_SHIP_CLASS_WARSHIP
+	case cs.ShipClassUtility:
+		return craig_starsv1.ShipClass_SHIP_CLASS_UTILITY
+	case cs.ShipClassBomber:
+		return craig_starsv1.ShipClass_SHIP_CLASS_BOMBER
+	case cs.ShipClassMiner:
+		return craig_starsv1.ShipClass_SHIP_CLASS_MINER
+	case cs.ShipClassFuelTransport:
+		return craig_starsv1.ShipClass_SHIP_CLASS_FUEL_TRANSPORT
+	default:
+		return craig_starsv1.ShipClass_SHIP_CLASS_UNSPECIFIED
+	}
+}
 func SizeToCSSize(m craig_starsv1.Size) cs.Size {
 	switch m {
 	case craig_starsv1.Size_SIZE_UNSPECIFIED:

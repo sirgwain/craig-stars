@@ -966,6 +966,7 @@ func (c *ProtoConverter) ConvertCSShipDesignSpec(source cs.ShipDesignSpec) *v1.S
 			craig_starsv1ShipDesignSpec.WeaponSlots[l] = c.csShipDesignSlotToPCraig_starsv1ShipDesignSlot(source.WeaponSlots[l])
 		}
 	}
+	craig_starsv1ShipDesignSpec.ShipClass = CSShipClassToShipClass(source.ShipClass)
 	return &craig_starsv1ShipDesignSpec
 }
 func (c *ProtoConverter) ConvertCSShipDesigns(source []*cs.ShipDesign) []*v1.ShipDesign {
@@ -1034,6 +1035,7 @@ func (c *ProtoConverter) ConvertCSTechHull(source *cs.TechHull) *v1.TechHull {
 				craig_starsv1TechHull.Slots[i] = c.csTechHullSlotToPCraig_starsv1TechHullSlot((*source).Slots[i])
 			}
 		}
+		craig_starsv1TechHull.Class = CSShipClassToShipClass((*source).Class)
 		pCraig_starsv1TechHull = &craig_starsv1TechHull
 	}
 	return pCraig_starsv1TechHull
@@ -2074,6 +2076,7 @@ func (c *ProtoConverter) ConvertShipDesignSpec(source *v1.ShipDesignSpec) *cs.Sh
 		csShipDesignSpec.FuelGeneration = Int32ToInt((*source).FuelGeneration)
 		csShipDesignSpec.HasWeapons = (*source).HasWeapons
 		csShipDesignSpec.HullType = TechHullTypeToCSTechHullType((*source).HullType)
+		csShipDesignSpec.ShipClass = ShipClassToCSShipClass((*source).ShipClass)
 		csShipDesignSpec.ImmuneToOwnDetonation = (*source).ImmuneToOwnDetonation
 		csShipDesignSpec.Initiative = Int32ToInt((*source).Initiative)
 		csShipDesignSpec.InnateScanRangePenFactor = (*source).InnateScanRangePenFactor
@@ -2192,6 +2195,7 @@ func (c *ProtoConverter) ConvertTechHull(source *v1.TechHull) *cs.TechHull {
 		var csTechHull cs.TechHull
 		csTechHull.Tech = c.ConvertTech((*source).Tech)
 		csTechHull.Type = TechHullTypeToCSTechHullType((*source).Type)
+		csTechHull.Class = ShipClassToCSShipClass((*source).Class)
 		csTechHull.Mass = Int32ToInt((*source).Mass)
 		csTechHull.Armor = Int32ToInt((*source).Armor)
 		csTechHull.Shield = Int32ToInt((*source).Shield)
@@ -2988,6 +2992,7 @@ func (c *ProtoConverter) csTechHullToPCraig_starsv1TechHull(source cs.TechHull) 
 			craig_starsv1TechHull.Slots[i] = c.csTechHullSlotToPCraig_starsv1TechHullSlot(source.Slots[i])
 		}
 	}
+	craig_starsv1TechHull.Class = CSShipClassToShipClass(source.Class)
 	return &craig_starsv1TechHull
 }
 func (c *ProtoConverter) csTechPlanetaryScannerToPCraig_starsv1TechPlanetaryScanner(source cs.TechPlanetaryScanner) *v1.TechPlanetaryScanner {
@@ -3889,6 +3894,7 @@ func (c *ProtoConverter) pCraig_starsv1ShipDesignSpecToCsShipDesignSpec(source *
 		csShipDesignSpec.FuelGeneration = Int32ToInt((*source).FuelGeneration)
 		csShipDesignSpec.HasWeapons = (*source).HasWeapons
 		csShipDesignSpec.HullType = TechHullTypeToCSTechHullType((*source).HullType)
+		csShipDesignSpec.ShipClass = ShipClassToCSShipClass((*source).ShipClass)
 		csShipDesignSpec.ImmuneToOwnDetonation = (*source).ImmuneToOwnDetonation
 		csShipDesignSpec.Initiative = Int32ToInt((*source).Initiative)
 		csShipDesignSpec.InnateScanRangePenFactor = (*source).InnateScanRangePenFactor

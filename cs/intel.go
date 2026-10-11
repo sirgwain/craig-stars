@@ -549,6 +549,9 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 
 	}
 
+	// the hull tells us the class of ship
+	intel.Spec.ShipClass = design.Spec.ShipClass
+
 	// discover slots if we haven't already and this scanner discovers them
 	if discoverSlots {
 		if len(intel.Slots) == 0 {

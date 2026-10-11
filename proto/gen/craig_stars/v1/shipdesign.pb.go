@@ -444,6 +444,7 @@ type ShipDesignSpec struct {
 	TorpedoBonus              float64                `protobuf:"fixed64,62,opt,name=torpedo_bonus,json=torpedoBonus,proto3" json:"torpedo_bonus,omitempty"`
 	TorpedoJamming            float64                `protobuf:"fixed64,63,opt,name=torpedo_jamming,json=torpedoJamming,proto3" json:"torpedo_jamming,omitempty"`
 	WeaponSlots               []*ShipDesignSlot      `protobuf:"bytes,64,rep,name=weapon_slots,json=weaponSlots,proto3" json:"weapon_slots,omitempty"`
+	ShipClass                 ShipClass              `protobuf:"varint,65,opt,name=ship_class,json=shipClass,proto3,enum=craig_stars.v1.ShipClass" json:"ship_class,omitempty"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -926,6 +927,13 @@ func (x *ShipDesignSpec) GetWeaponSlots() []*ShipDesignSlot {
 	return nil
 }
 
+func (x *ShipDesignSpec) GetShipClass() ShipClass {
+	if x != nil {
+		return x.ShipClass
+	}
+	return ShipClass_SHIP_CLASS_UNSPECIFIED
+}
+
 var File_craig_stars_v1_shipdesign_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_shipdesign_proto_rawDesc = "" +
@@ -951,7 +959,7 @@ const file_craig_stars_v1_shipdesign_proto_rawDesc = "" +
 	"\x0eShipDesignSlot\x12%\n" +
 	"\x0ehull_component\x18\x01 \x01(\tR\rhullComponent\x12&\n" +
 	"\x0fhull_slot_index\x18\x02 \x01(\x05R\rhullSlotIndex\x12\x1a\n" +
-	"\bquantity\x18\x03 \x01(\x05R\bquantity\"\xfe\x14\n" +
+	"\bquantity\x18\x03 \x01(\x05R\bquantity\"\xb8\x15\n" +
 	"\x0eShipDesignSpec\x126\n" +
 	"\x17additional_mass_drivers\x18\x01 \x01(\x05R\x15additionalMassDrivers\x12\x14\n" +
 	"\x05armor\x18\x02 \x01(\x05R\x05armor\x12*\n" +
@@ -1032,7 +1040,9 @@ const file_craig_stars_v1_shipdesign_proto_rawDesc = "" +
 	"\x0eterraform_rate\x18= \x01(\x05R\rterraformRate\x12#\n" +
 	"\rtorpedo_bonus\x18> \x01(\x01R\ftorpedoBonus\x12'\n" +
 	"\x0ftorpedo_jamming\x18? \x01(\x01R\x0etorpedoJamming\x12A\n" +
-	"\fweapon_slots\x18@ \x03(\v2\x1e.craig_stars.v1.ShipDesignSlotR\vweaponSlots\x1aK\n" +
+	"\fweapon_slots\x18@ \x03(\v2\x1e.craig_stars.v1.ShipDesignSlotR\vweaponSlots\x128\n" +
+	"\n" +
+	"ship_class\x18A \x01(\x0e2\x19.craig_stars.v1.ShipClassR\tshipClass\x1aK\n" +
 	"\x1dMineLayingRateByMineTypeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01*\xc6\b\n" +
@@ -1094,6 +1104,7 @@ var file_craig_stars_v1_shipdesign_proto_goTypes = []any{
 	(*Engine)(nil),         // 8: craig_stars.v1.Engine
 	(TechHullType)(0),      // 9: craig_stars.v1.TechHullType
 	(*TechLevel)(nil),      // 10: craig_stars.v1.TechLevel
+	(ShipClass)(0),         // 11: craig_stars.v1.ShipClass
 }
 var file_craig_stars_v1_shipdesign_proto_depIdxs = []int32{
 	5,  // 0: craig_stars.v1.ShipDesign.game_db_object:type_name -> craig_stars.v1.GameDBObject
@@ -1109,11 +1120,12 @@ var file_craig_stars_v1_shipdesign_proto_depIdxs = []int32{
 	6,  // 10: craig_stars.v1.ShipDesignSpec.smart_bombs:type_name -> craig_stars.v1.Bomb
 	10, // 11: craig_stars.v1.ShipDesignSpec.tech_level:type_name -> craig_stars.v1.TechLevel
 	2,  // 12: craig_stars.v1.ShipDesignSpec.weapon_slots:type_name -> craig_stars.v1.ShipDesignSlot
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	11, // 13: craig_stars.v1.ShipDesignSpec.ship_class:type_name -> craig_stars.v1.ShipClass
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_shipdesign_proto_init() }

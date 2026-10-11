@@ -42,6 +42,10 @@ export const bindNavigationHotkeys = (gameId: bigint) => {
 		event.preventDefault();
 		goto(`/games/${gameId}/research`);
 	});
+	hotkeys('F6', 'root', (event) => {
+		event.preventDefault();
+		goto(`/games/${gameId}/battle-plans`);
+	});
 	hotkeys('F7', 'root', (event) => {
 		event.preventDefault();
 		goto(`/games/${gameId}/relations`);
@@ -62,6 +66,7 @@ export const unbindNavigationHotkeys = () => {
 	hotkeys.unbind('F3', 'root');
 	hotkeys.unbind('F4', 'root');
 	hotkeys.unbind('F5', 'root');
+	hotkeys.unbind('F6', 'root');
 	hotkeys.unbind('F7', 'root');
 	hotkeys.unbind('F8', 'root');
 	hotkeys.unbind('F10', 'root');

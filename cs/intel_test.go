@@ -128,3 +128,23 @@ func Test_discover_discoverPlayerScores(t *testing.T) {
 	d.discoverPlayerScores(otherPlayer, 20)
 	assert.Equal(t, make([]PlayerScore, 10), player.Intels.ScoreIntels[1].ScoreHistory)
 }
+
+func Test_discover_discoverDesignShipClass(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+	design := &ShipDesign{PlayerNum: 2, Num: 1, Hull: Destroyer.Name, Spec: ShipDesignSpec{Mass: 30, ShipClass: Destroyer.Class}}
+
+	// a design known from before hulls had classes
+	player.ShipDesignIntels = append(player.ShipDesignIntels, &ShipDesign{PlayerNum: 2, Num: 1, Hull: Destroyer.Name, Spec: ShipDesignSpec{Mass: 30}})
+
+	d := newDiscoverer(testLogger, player)
+	d.discoverDesign(design, false)
+	assert.Equal(t, 1, len(player.ShipDesignIntels))
+	assert.Equal(t, ShipClassScout, player.ShipDesignIntels[0].Spec.ShipClass)
+
+	// a new design learns its class from the hull, without its components being scanned
+	design2 := &ShipDesign{PlayerNum: 2, Num: 2, Hull: Battleship.Name, Spec: ShipDesignSpec{Mass: 222, ShipClass: Battleship.Class}}
+	d.discoverDesign(design2, false)
+	assert.Equal(t, 2, len(player.ShipDesignIntels))
+	assert.Equal(t, ShipClassWarship, player.ShipDesignIntels[1].Spec.ShipClass)
+	assert.Equal(t, 0, len(player.ShipDesignIntels[1].Slots))
+}

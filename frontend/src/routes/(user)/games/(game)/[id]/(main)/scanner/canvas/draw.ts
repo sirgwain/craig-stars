@@ -72,9 +72,7 @@ export function drawScanner(ctx: CanvasRenderingContext2D, view: ScannerView, fr
 	ctx.fillRect(0, 0, view.width, view.height);
 
 	drawScanners(ctx, view, frame);
-	if (frame.settings.showMinefields) {
-		drawMinefields(ctx, view, frame);
-	}
+	drawMinefields(ctx, view, frame);
 	drawDestLines(ctx, view, frame.packetDests, colors.packetDestLine);
 	drawDestLines(ctx, view, frame.routeDests, colors.routeLine);
 	drawWaypointPaths(ctx, view, frame);

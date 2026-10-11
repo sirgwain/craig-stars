@@ -283,6 +283,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:           TechHullTypeScout,
+				ShipClass:          ShipClassScout,
 				Engine:             LongHump6.Engine,
 				NumEngines:         1,
 				Cost:               Cost{17, 2, 7, 22},
@@ -316,6 +317,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:           TechHullTypeScout,
+				ShipClass:          ShipClassScout,
 				Engine:             LongHump6.Engine,
 				NumEngines:         1,
 				Cost:               Cost{12, 8, 7, 24},
@@ -359,6 +361,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:           TechHullTypeFreighter,
+				ShipClass:          ShipClassFreighter,
 				Engine:             LongHump6.Engine,
 				NumEngines:         1,
 				Cost:               Cost{36, 0, 20, 63},
@@ -396,6 +399,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:       TechHullTypeFighter,
+				ShipClass:      ShipClassScout,
 				Engine:         LongHump6.Engine,
 				NumEngines:     1,
 				Cost:           Cost{33, 11, 23, 67},
@@ -439,6 +443,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:       TechHullTypeCapitalShip,
+				ShipClass:      ShipClassWarship,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 76, 165},
@@ -479,6 +484,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:       TechHullTypeCapitalShip,
+				ShipClass:      ShipClassWarship,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{109, 30, 45, 170},
@@ -519,6 +525,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:       TechHullTypeCapitalShip,
+				ShipClass:      ShipClassWarship,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 46, 156},
@@ -559,6 +566,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:       TechHullTypeCapitalShip,
+				ShipClass:      ShipClassWarship,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 44, 150},
@@ -598,6 +606,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:       TechHullTypeCapitalShip,
+				ShipClass:      ShipClassWarship,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 58, 162},
@@ -635,6 +644,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:           TechHullTypeBomber,
+				ShipClass:          ShipClassBomber,
 				Engine:             AlphaDrive8.Engine,
 				NumEngines:         1,
 				Cost:               Cost{34, 24, 11, 62},

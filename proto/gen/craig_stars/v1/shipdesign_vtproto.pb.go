@@ -230,6 +230,13 @@ func (m *ShipDesignSpec) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.ShipClass != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.ShipClass))
+		i--
+		dAtA[i] = 0x4
+		i--
+		dAtA[i] = 0x88
+	}
 	if len(m.WeaponSlots) > 0 {
 		for iNdEx := len(m.WeaponSlots) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.WeaponSlots[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -1071,6 +1078,9 @@ func (m *ShipDesignSpec) SizeVT() (n int) {
 			l = e.SizeVT()
 			n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
 		}
+	}
+	if m.ShipClass != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.ShipClass))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -2982,6 +2992,25 @@ func (m *ShipDesignSpec) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 65:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ShipClass", wireType)
+			}
+			m.ShipClass = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ShipClass |= ShipClass(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

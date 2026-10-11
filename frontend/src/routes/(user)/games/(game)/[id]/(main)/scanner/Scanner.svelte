@@ -15,7 +15,7 @@
 	} from '#lib/types/cs-proto.js';
 	import { filterFleet } from '#lib/types/Filter.js';
 	import { emptyMapObject, type MapObjectLike, type Position } from '#lib/types/MapObject.js';
-	import { emptyVector, equal } from '#lib/types/Vector.js';
+	import { distance, emptyVector, equal } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
@@ -24,6 +24,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { derived as derivedStore } from 'svelte/store';
 	import MapObjectQuadTreeFinder, { type FinderEvent } from './MapObjectQuadTreeFinder.svelte';
+	import { getVisibleMinefields } from './canvas/scene';
 	import ScannerCanvas from './ScannerCanvas.svelte';
 
 	const {
@@ -97,6 +98,22 @@
 
 	// if we just added a waypoint, don't drag it around
 	let waypointJustAdded = false;
+
+	// the measuring tape is dragged out with the middle button, or the right button while shift is held.
+	// It measures from where the drag started to the pointer, snapping to mapobjects at either end
+	const tapeMinDistance = 3;
+	type Tape = { start: Vector; end: Vector; name: string };
+	let tapeStart: Vector | undefined;
+	let tapeContextMenu = false;
+	let tape: Tape | undefined = $state();
+	let tapeLine = $derived.by(() => {
+		if (!tape || !transform) {
+			return undefined;
+		}
+		const [x1, y1] = transform.apply([scaler.x(tape.start.x), scaler.y(tape.start.y)]);
+		const [x2, y2] = transform.apply([scaler.x(tape.end.x), scaler.y(tape.end.y)]);
+		return { x1, y1, x2, y2 };
+	});
 
 	// zoomBehavior is based on clientWidth/height
 	let zoomBehavior: ZoomBehavior<HTMLElement, unknown> = $derived(
@@ -238,9 +255,48 @@
 			.call(zoomBehavior.scaleTo, scale);
 	}
 
+	function isTapeButton(event: FinderEvent['event']): boolean {
+		return (
+			event instanceof PointerEvent &&
+			(event.button === 1 || (event.button === 2 && event.shiftKey))
+		);
+	}
+
+	function tapePosition(position: Position, mo: MapObjectLike | undefined): Vector {
+		const snapped = mo?.mapObject?.position ?? position;
+		return create(VectorSchema, { x: Number(snapped.x ?? 0), y: Number(snapped.y ?? 0) });
+	}
+
+	function tapeMove(position: Position, mo: MapObjectLike | undefined) {
+		if (!tapeStart) {
+			return;
+		}
+		const end = tapePosition(position, mo);
+		if (
+			!tape &&
+			Math.abs(end.x - tapeStart.x) < tapeMinDistance &&
+			Math.abs(end.y - tapeStart.y) < tapeMinDistance
+		) {
+			// like a click, the tape doesn't start until the pointer moves away
+			return;
+		}
+		tape = { start: tapeStart, end, name: mo?.mapObject?.name || 'Deep Space' };
+	}
+
+	function tapeDone() {
+		tapeStart = undefined;
+		tape = undefined;
+	}
+
 	// turn off dragging
 	function onContextMenu(e: FinderEvent) {
 		const { event, found } = e;
+
+		if (tapeContextMenu) {
+			// this right click was the measuring tape
+			tapeContextMenu = false;
+			return;
+		}
 
 		if (found && event instanceof MouseEvent) {
 			onScannerContextPopup(event, found.mapObject?.position ?? emptyVector());
@@ -252,6 +308,11 @@
 		const { event, found, position } = e;
 
 		highlightMapObject(found);
+
+		if (tapeStart) {
+			tapeMove(position, found);
+			return;
+		}
 
 		if (draggingWaypoint && !zooming) {
 			positionWaypoint = event.shiftKey;
@@ -293,6 +354,20 @@
 	async function onPointerDown(e: FinderEvent) {
 		const { event, found, position } = e;
 
+		if (isTapeButton(event)) {
+			// the middle button would otherwise start scrolling the page
+			event.preventDefault();
+			tapeStart = tapePosition(position, found);
+			tapeContextMenu = (event as PointerEvent).button === 2;
+			try {
+				// keep measuring if the pointer leaves the scanner
+				(event.target as Element).setPointerCapture((event as PointerEvent).pointerId);
+			} catch {
+				// the pointer is already gone
+			}
+			return;
+		}
+
 		if (event instanceof MouseEvent && event.button != 0) {
 			// we only care about the first button
 			return;
@@ -300,7 +375,7 @@
 
 		if (
 			found?.mapObject?.type === MapObjectType.FLEET &&
-			!filterFleet($player, found as Fleet, $settings)
+			!filterFleet($player, found as Fleet, $settings, $universe)
 		) {
 			// this object we clicked is filtered out, don't do anything
 			return;
@@ -339,6 +414,11 @@
 	function onPointerUp(e: FinderEvent) {
 		const { event, found, position } = e;
 
+		if (tapeStart) {
+			tapeDone();
+			return;
+		}
+
 		if (event instanceof MouseEvent && event.button != 0) {
 			// we only care about the first button
 			return;
@@ -357,6 +437,7 @@
 	}
 
 	function onPointerCancel() {
+		tapeDone();
 		draggingWaypoint = false;
 		pointerDown = false;
 		waypointJustAdded = false;
@@ -496,7 +577,7 @@
 
 	// data used by the scanner is derived from the universe/commandedFleet stores
 	// when they update, our data updates
-	const data = derivedStore([universe, commandedFleet], ([u, f]) => [
+	const data = derivedStore([universe, commandedFleet, player, settings], ([u, f, p, s]) => [
 		// add mapobject waypoints
 		...(f?.getWaypointMapObjects(u) || []),
 		...u.getAllFleets().filter((f) => f.orbitingPlanetNum === None),
@@ -504,7 +585,8 @@
 		...u.salvages,
 		...u.wormholes,
 		...u.mineralPackets,
-		...u.allMinefields,
+		// minefields that aren't shown can't be picked
+		...getVisibleMinefields(u, p, s),
 		...u.allPlanets
 	]);
 
@@ -546,6 +628,20 @@
 				searchRadius={20}
 				{transform}
 			/>
+		{/if}
+		{#if tape && tapeLine}
+			<svg class="absolute inset-0 w-full h-full z-20 pointer-events-none" data-type="tape">
+				<line {...tapeLine} class="stroke-white" stroke-width="1" />
+			</svg>
+			<div
+				class="absolute bottom-0 left-0 right-0 z-20 pointer-events-none flex flex-row flex-wrap gap-x-4 px-2 py-0.5 bg-base-200 text-sm"
+				data-type="tape-status"
+			>
+				<span class="font-semibold">{tape.name}</span>
+				<span>X: {tape.end.x}</span>
+				<span>Y: {tape.end.y}</span>
+				<span class="ml-auto">{distance(tape.start, tape.end).toFixed(2)} light years</span>
+			</div>
 		{/if}
 	</div>
 </div>
