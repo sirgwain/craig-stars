@@ -515,6 +515,18 @@ func (p *Player) GetFleetIntel(playerNum, num int) *Fleet {
 	return nil
 }
 
+// getMovingFleetIntel returns our intel of the fleet a map object refers to, if it's a fleet we know is moving
+func (p *Player) getMovingFleetIntel(mo MapObject) *Fleet {
+	if mo.Type != MapObjectTypeFleet {
+		return nil
+	}
+	fleet := p.GetFleetIntel(mo.PlayerNum, mo.Num)
+	if fleet == nil || fleet.WarpSpeed == 0 || fleet.WarpSpeed == StargateWarpSpeed || fleet.Heading == (VectorFloat64{}) {
+		return nil
+	}
+	return fleet
+}
+
 // getPlanetIntelAt returns our intel of the planet at a position, if there is one
 func (p *Player) getPlanetIntelAt(position Vector) *Planet {
 	for _, planet := range p.PlanetIntels {
