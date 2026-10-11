@@ -17,27 +17,35 @@
 	import FilterPlayerColors from './FilterPlayerColors.svelte';
 
 	const { player, settings } = getGameContext();
+
+	type Props = {
+		// true if the toolbar is already showing the planet views
+		hideViews?: boolean;
+	};
+	let { hideViews = false }: Props = $props();
 </script>
 
 <div class="flex flex-col bottom-0 top-0 bg-base-200">
-	<div class="menu-title">Planet View</div>
-	<div class="flex flex-row w-full">
-		<div class="h-10 w-10">
-			<PlanetViewStatesNormal />
+	{#if !hideViews}
+		<div class="menu-title">Planet View</div>
+		<div class="flex flex-row w-full">
+			<div class="h-10 w-10">
+				<PlanetViewStatesNormal />
+			</div>
+			<div class="h-10 w-10">
+				<PlanetViewStateSurfaceMinerals />
+			</div>
+			<div class="h-10 w-10">
+				<PlanetViewStateMineralConc />
+			</div>
+			<div class="h-10 w-10">
+				<PlanetViewStateHab />
+			</div>
+			<div class="h-10 w-10">
+				<PlanetViewStatePopulation />
+			</div>
 		</div>
-		<div class="h-10 w-10">
-			<PlanetViewStateSurfaceMinerals />
-		</div>
-		<div class="h-10 w-10">
-			<PlanetViewStateMineralConc />
-		</div>
-		<div class="h-10 w-10">
-			<PlanetViewStateHab />
-		</div>
-		<div class="h-10 w-10">
-			<PlanetViewStatePopulation />
-		</div>
-	</div>
+	{/if}
 	<div class="menu-title">Filter</div>
 	<div class="flex flex-row justify-center w-full">
 		<div class="h-10 w-10">

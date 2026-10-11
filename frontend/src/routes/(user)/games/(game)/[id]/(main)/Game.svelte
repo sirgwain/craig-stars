@@ -41,6 +41,7 @@
 	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import Scanner from './scanner/Scanner.svelte';
+	import MessagesPane from './MessagesPane.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
 
 	const {
@@ -70,6 +71,20 @@
 		splitAll,
 		merge
 	} = getGameContext();
+
+	// like the original, the toolbar spans the whole window when the window is tall enough that the
+	// command pane can spare the room. Otherwise it sits over the scanner.
+	// The single column command pane is taller, so it needs a taller window
+	const toolbarFullWidthMinHeight = 960;
+	const toolbarFullWidthMinHeightSingleColumn = 1100;
+	let innerWidth = $state(0);
+	let innerHeight = $state(0);
+	let toolbarHeight = $state(0);
+	let toolbarFullWidth = $derived(
+		innerWidth >= 768 &&
+			innerHeight >=
+				(innerWidth >= 1024 ? toolbarFullWidthMinHeight : toolbarFullWidthMinHeightSingleColumn)
+	);
 
 	let showProductionQueueDialog = $state(false);
 	let showCargoTransferDialog = $state(false);
@@ -354,14 +369,104 @@
 	}
 </script>
 
-<!-- for small mobile displays we put the scanner on top and the command pane below it-->
-<div class="flex flex-col h-full md:flex-row select-none" data-type="game-view" data-id={$game.id}>
-	<!-- for medium+ displays, command pane goes on the left -->
-	<div
-		class="hidden overflow-x-hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[30rem] overflow-y-auto md:max-h-[calc(100dvh-4rem)]"
-	>
-		<div class="flex flex-row flex-wrap gap-2 justify-center">
-			<CommandPane
+<svelte:window bind:innerWidth bind:innerHeight />
+
+{#snippet toolbar()}
+	<ScannerToolbar
+		onShowSearch={() => (showSearchDialog = true)}
+		onCycleMapObject={() => selectNextMapObject()}
+		{onNextMapObject}
+		{onPreviousMapObject}
+	/>
+{/snippet}
+
+<div class="flex flex-col h-full select-none" data-type="game-view" data-id={$game.id}>
+	{#if toolbarFullWidth}
+		<div class="flex-none mb-1" bind:clientHeight={toolbarHeight}>
+			{@render toolbar()}
+		</div>
+	{/if}
+	<!-- for small mobile displays we put the scanner on top and the command pane below it-->
+	<div class="flex flex-col grow min-h-0 md:flex-row">
+		<!-- for medium+ displays, command pane goes on the left -->
+		<div
+			class="hidden overflow-x-hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[30rem] overflow-y-auto md:max-h-[calc(100dvh-4rem)]"
+			style:max-height={toolbarFullWidth
+				? `calc(100dvh - 4.25rem - ${toolbarHeight}px)`
+				: undefined}
+		>
+			<div class="flex flex-row flex-wrap gap-2 justify-center">
+				<CommandPane
+					{onNextMapObject}
+					{onPreviousMapObject}
+					{onRenameFleet}
+					{onSelectWaypoint}
+					{onChangeWaypoint}
+					{onDeleteWaypoint}
+					{onSplitAll}
+					{onBattlePlanChanged}
+					{onChangeMassDriverSpeed}
+					{onClearProductionQueue}
+					onShowProductionQueueDialog={() => (showProductionQueueDialog = true)}
+					onShowCargoTransferDialog={(e) => {
+						showCargoTransferDialog = true;
+						cargoTransferDialogEvent = e;
+					}}
+					onShowMergeFleetDialog={(e) => {
+						showMergeFleetsDialog = true;
+						mergeFleetsDialogEvent = e;
+					}}
+					onShowSplitFleetDialog={(e) => {
+						showSplitFleetDialog = true;
+						splitFleetDialogEvent = e;
+					}}
+					onShowTransportTasksDialog={(e) => {
+						showTransportTasksDialog = true;
+						transportTasksDialogEvent = e;
+					}}
+				/>
+			</div>
+			<div class="hidden lg:block lg:p-1 mx-2">
+				<MapObjectSummary
+					onShowCargoTransferDialog={(e) => {
+						showCargoTransferDialog = true;
+						cargoTransferDialogEvent = e;
+					}}
+				/>
+			</div>
+		</div>
+
+		<div class="flex flex-col grow">
+			<div class="flex flex-col grow border-gray-700 border-2 shadow-xs">
+				{#if !toolbarFullWidth}
+					{@render toolbar()}
+				{/if}
+				<MessagesPane bind:showMessages={$settings.showMessagePane} messages={$player.messages} />
+				<Scanner
+					{onSelectWaypoint}
+					{onAddWaypoint}
+					{onUpdateWaypointDest}
+					{onSelectMapObject}
+					{onSetPacketDest}
+					{onSetRouteDest}
+				/>
+			</div>
+			<div class="hidden md:block">
+				<MapObjectStatsBar />
+			</div>
+			<div class="hidden md:block md:w-full lg:hidden mb-2">
+				<MapObjectSummary
+					onShowCargoTransferDialog={(e) => {
+						showCargoTransferDialog = true;
+						cargoTransferDialogEvent = e;
+					}}
+				/>
+			</div>
+		</div>
+
+		<!-- for phone displays, use a drawer -->
+		<div class="flex flex-col">
+			<CommandPaneDrawer
 				{onNextMapObject}
 				{onPreviousMapObject}
 				{onRenameFleet}
@@ -391,77 +496,6 @@
 				}}
 			/>
 		</div>
-		<div class="hidden lg:block lg:p-1 mx-2">
-			<MapObjectSummary
-				onShowCargoTransferDialog={(e) => {
-					showCargoTransferDialog = true;
-					cargoTransferDialogEvent = e;
-				}}
-			/>
-		</div>
-	</div>
-
-	<div class="flex flex-col grow">
-		<div class="flex flex-col grow border-gray-700 border-2 shadow-xs">
-			<ScannerToolbar
-				onShowSearch={() => (showSearchDialog = true)}
-				onCycleMapObject={() => selectNextMapObject()}
-				{onNextMapObject}
-				{onPreviousMapObject}
-			/>
-			<Scanner
-				{onSelectWaypoint}
-				{onAddWaypoint}
-				{onUpdateWaypointDest}
-				{onSelectMapObject}
-				{onSetPacketDest}
-				{onSetRouteDest}
-			/>
-		</div>
-		<div class="hidden md:block">
-			<MapObjectStatsBar />
-		</div>
-		<div class="hidden md:block md:w-full lg:hidden mb-2">
-			<MapObjectSummary
-				onShowCargoTransferDialog={(e) => {
-					showCargoTransferDialog = true;
-					cargoTransferDialogEvent = e;
-				}}
-			/>
-		</div>
-	</div>
-
-	<!-- for phone displays, use a drawer -->
-	<div class="flex flex-col">
-		<CommandPaneDrawer
-			{onNextMapObject}
-			{onPreviousMapObject}
-			{onRenameFleet}
-			{onSelectWaypoint}
-			{onChangeWaypoint}
-			{onDeleteWaypoint}
-			{onSplitAll}
-			{onBattlePlanChanged}
-			{onChangeMassDriverSpeed}
-			{onClearProductionQueue}
-			onShowProductionQueueDialog={() => (showProductionQueueDialog = true)}
-			onShowCargoTransferDialog={(e) => {
-				showCargoTransferDialog = true;
-				cargoTransferDialogEvent = e;
-			}}
-			onShowMergeFleetDialog={(e) => {
-				showMergeFleetsDialog = true;
-				mergeFleetsDialogEvent = e;
-			}}
-			onShowSplitFleetDialog={(e) => {
-				showSplitFleetDialog = true;
-				splitFleetDialogEvent = e;
-			}}
-			onShowTransportTasksDialog={(e) => {
-				showTransportTasksDialog = true;
-				transportTasksDialogEvent = e;
-			}}
-		/>
 	</div>
 </div>
 

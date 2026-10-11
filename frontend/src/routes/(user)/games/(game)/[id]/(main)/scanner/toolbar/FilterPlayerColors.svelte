@@ -10,7 +10,7 @@
 	title="Show Player Colors"
 	class:btn-primary={$settings.showPlayerColors}
 	class:btn-ghost={!$settings.showPlayerColors}
-	class="btn btn-ghost btn-xs w-full h-full"
+	class="btn btn-ghost btn-xs w-full h-full p-0"
 	onclick={() => ($settings.showPlayerColors = !$settings.showPlayerColors)}
 	><PlayerColors class="w-6 h-6" /></a
 >

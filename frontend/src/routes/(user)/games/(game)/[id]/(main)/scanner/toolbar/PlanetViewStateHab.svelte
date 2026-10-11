@@ -11,5 +11,5 @@
 	class:btn-primary={$settings.planetViewState == PlanetViewState.Percent}
 	class:btn-ghost={$settings.planetViewState != PlanetViewState.Percent}
 	onclick={() => ($settings.planetViewState = PlanetViewState.Percent)}
-	class="btn btn-xs h-full text-xl font-semibold"><Habitability class="w-6 h-6" /></a
+	class="btn btn-xs h-full text-xl font-semibold w-full p-0"><Habitability class="w-6 h-6" /></a
 >
