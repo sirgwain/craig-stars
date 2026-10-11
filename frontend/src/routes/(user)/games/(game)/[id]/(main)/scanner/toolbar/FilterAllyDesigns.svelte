@@ -10,7 +10,7 @@
 	title="Ally Ship Class Filter"
 	class:btn-primary={$settings.filterAllyDesigns}
 	class:btn-ghost={!$settings.filterAllyDesigns}
-	class="btn btn-ghost fill-current btn-xs w-full h-full"
+	class="btn btn-ghost fill-current btn-xs w-full h-full p-0"
 	onclick={() => ($settings.filterAllyDesigns = !$settings.filterAllyDesigns)}
 	><FilterFleets primary="fill-fleet-ally" class="w-6 h-6" /></a
 >

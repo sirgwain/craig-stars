@@ -11,7 +11,7 @@
 	class:btn-primary={$settings.planetViewState == PlanetViewState.MineralConcentration}
 	class:btn-ghost={$settings.planetViewState != PlanetViewState.MineralConcentration}
 	onclick={() => ($settings.planetViewState = PlanetViewState.MineralConcentration)}
-	class="btn btn-xs h-full"
+	class="btn btn-xs h-full w-full p-0"
 >
 	<MineralConcentration class="w-6 h-6" />
 </a>

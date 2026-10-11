@@ -16,10 +16,13 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	{...rest}
 >
-	<polygon
-		points={`0,0 0,${size} ${size},${size}`}
-		fill={color}
-		transform={`translate(350 400) translate(${-size / 2} ${-size / 2})`}
-	/>
-	<text x="200" y="150" class="text-[200px] text-base-content">32</text>
+	<!-- shift the art left so it is centered in the icon -->
+	<g transform="translate(-85 -15)">
+		<polygon
+			points={`0,0 0,${size} ${size},${size}`}
+			fill={color}
+			transform={`translate(350 400) translate(${-size / 2} ${-size / 2})`}
+		/>
+		<text x="200" y="150" class="text-[200px] text-base-content">32</text>
+	</g>
 </svg>
