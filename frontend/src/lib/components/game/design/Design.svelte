@@ -22,7 +22,7 @@
 	<div class="border border-secondary bg-black p-1">
 		<TechAvatar tech={hull} hullSetNumber={design.hullSetNumber} />
 	</div>
-	<h1 class="text-lg font-semibold mx-auto">
+	<h1 class="text-lg font-semibold mx-auto min-w-0 text-center">
 		{design.name}
 	</h1>
 </div>

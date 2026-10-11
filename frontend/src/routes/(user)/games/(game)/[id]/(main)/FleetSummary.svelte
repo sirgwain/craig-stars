@@ -57,7 +57,7 @@
 	}
 </script>
 
-<div class="flex flex-row md:min-h-[11rem] w-full">
+<div class="flex flex-row md:min-h-44 w-full">
 	<div class="flex flex-col">
 		<div class="avatar mr-2">
 			<div
@@ -65,14 +65,14 @@
 				style={`border-color: ${$universe.getPlayerColor(fleet.mapObject?.playerNum)};`}
 			>
 				{#if fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
-					<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
+					<div class="absolute -right-2 -top-1 text-xl size-6">+</div>
 				{/if}
 
 				<div class="fleet-avatar {getHullIcon(design)} bg-black">
 					<button
 						type="button"
 						aria-label="Opens ship design tooltip"
-						class="w-full h-full cursor-help"
+						class="size-full cursor-help"
 						onpointerdown={(e) => onShipDesignTooltip(e, design)}
 					></button>
 				</div>
@@ -114,8 +114,10 @@
 		{/if}
 		{#if fleet.fleetOrders?.waypoints && fleet.fleetOrders.waypoints.length > 1}
 			<div class="flex flex-row">
-				<div class="w-32 text-tile-item-title">Next Waypoint:</div>
-				<div>{$universe.getTargetName(fleet.fleetOrders.waypoints[1])}</div>
+				<div class="w-32 shrink-0 text-tile-item-title">Next Waypoint:</div>
+				<div class="min-w-0 truncate">
+					{$universe.getTargetName(fleet.fleetOrders.waypoints[1])}
+				</div>
 			</div>
 			{#if fleet.fleetOrders.waypoints[1].task !== WaypointTask.UNSPECIFIED}
 				<div class="flex flex-row">
@@ -138,7 +140,7 @@
 			<div class="text-tile-item-title">
 				Fleet Composition:
 				<div class="bg-base-100 h-16 overflow-y-auto mt-1 w-full md:w-60 font-normal">
-					<ul class="w-full h-full">
+					<ul class="size-full">
 						{#each fleet.tokens as token, index (index)}
 							<li class="pl-1">
 								<button
@@ -160,10 +162,10 @@
 											></div>
 										{/if}
 
-										<span>
+										<span class="min-w-0 truncate">
 											{$universe.getDesign(fleet.mapObject?.playerNum, token.designNum)?.name}
 										</span>
-										<span>
+										<span class="shrink-0 pl-1">
 											{token.quantity}
 										</span>
 									</span>

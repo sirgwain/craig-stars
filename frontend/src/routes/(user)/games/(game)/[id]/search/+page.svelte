@@ -18,6 +18,6 @@
 	}
 </script>
 
-<div class="w-full mx-auto md:max-w-2xl h-full">
+<div class="size-full mx-auto md:max-w-2xl">
 	<SearchResults onOk={(e) => selectSearchResult(e)} />
 </div>

@@ -28,9 +28,9 @@
 		<div class="card-body">
 			<h2 class="card-title">
 				{#if href}
-					<a class="cs-link" {href}>{game.name}</a>
+					<a class="cs-link min-w-0" {href}>{game.name}</a>
 				{:else}
-					{game.name}
+					<span class="min-w-0">{game.name}</span>
 				{/if}
 			</h2>
 			<div class="flex flex-col">

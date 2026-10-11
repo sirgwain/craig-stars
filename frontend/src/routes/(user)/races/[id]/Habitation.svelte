@@ -66,7 +66,7 @@
 </script>
 
 <div class="flex flex-col md:flex-row">
-	<div class="text-center md:text-right md:w-[5.5rem] h-full my-auto mr-2">
+	<div class="text-center md:text-right md:w-22 h-full my-auto mr-2">
 		{habTypeString(habType)}
 	</div>
 	<div class="grow flex flex-col">
@@ -116,7 +116,7 @@
 		</div>
 	</div>
 	<div
-		class="flex flex-row gap-1 leading-5 justify-center md:flex-col md:text-center md:ml-2 md:w-[5rem]"
+		class="flex flex-row gap-1 leading-5 justify-center md:flex-col md:text-center md:ml-2 md:w-20"
 	>
 		<div class:hidden={immune}>{getHabValueString(habType, habLow ?? 0)}</div>
 		<div class:hidden={immune}>to</div>

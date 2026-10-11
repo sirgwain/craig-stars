@@ -199,26 +199,30 @@
 </script>
 
 {#if destTokens}
-	<div class="flex flex-col px-1 w-full h-full">
+	<div class="flex flex-col px-1 size-full">
 		<div class="flex flex-col grow">
 			<div class="text-xl font-semibold w-full text-center">Split Fleet</div>
 
 			<!-- Token split page -->
 			<div class="flex flex-row justify-around font-semibold mb-2">
 				<!-- Source fleet -->
-				<div class="grow flex flex-col">
+				<div class="grow min-w-0 flex flex-col">
 					<div class="flex flex-col place-items-center">
 						<FleetIcon fleet={src} tokens={srcTokens} />
-						<div class="h-[2rem] font-semibold text-xl">{src.mapObject.name}</div>
+						<div class="h-8 max-w-full truncate font-semibold text-xl" title={src.mapObject.name}>
+							{src.mapObject.name}
+						</div>
 					</div>
 					<div class="border border-secondary p-2">
 						{#each srcTokens as token (token)}
 							{@const design = $universe.getMyDesign(token.designNum)}
 							<div class="flex flex-row gap-1 min-h-8">
-								<div class="grow flex flex-row">
-									<div class="text-right pr-1 w-full">{design?.name}</div>
+								<div class="grow min-w-0 flex flex-row">
+									<div class="text-right pr-1 w-full min-w-0 truncate" title={design?.name}>
+										{design?.name}
+									</div>
 									<div
-										class="w-16 sm:w-20 h-8 my-auto ml-auto px-1 text-right border border-secondary"
+										class="w-16 sm:w-20 shrink-0 h-8 my-auto ml-auto px-1 text-right border border-secondary"
 									>
 										{token.quantity}
 									</div>
@@ -263,19 +267,23 @@
 					</div>
 				</div>
 				<!-- Dest fleet -->
-				<div class="grow flex flex-col">
+				<div class="grow min-w-0 flex flex-col">
 					<div class="flex flex-col place-items-center">
 						<FleetIcon fleet={dest} tokens={destTokens} />
-						<div class="h-[2rem] font-semibold text-xl">{dest.mapObject?.name}</div>
+						<div class="h-8 max-w-full truncate font-semibold text-xl" title={dest.mapObject?.name}>
+							{dest.mapObject?.name}
+						</div>
 					</div>
 					<div class="border border-secondary p-2">
 						{#each destTokens as token (token)}
 							{@const design = $universe.getMyDesign(token.designNum)}
 							<div class="flex flex-row gap-1 min-h-8">
-								<div class="grow flex flex-row">
-									<div class="text-right pr-1 w-full">{design?.name}</div>
+								<div class="grow min-w-0 flex flex-row">
+									<div class="text-right pr-1 w-full min-w-0 truncate" title={design?.name}>
+										{design?.name}
+									</div>
 									<div
-										class="w-16 sm:w-20 h-8 my-auto ml-auto px-1 text-right border border-secondary"
+										class="w-16 sm:w-20 shrink-0 h-8 my-auto ml-auto px-1 text-right border border-secondary"
 									>
 										{token.quantity}
 									</div>

@@ -25,12 +25,12 @@
 >
 	<div class="card-body">
 		<h2 class="card-title">
-			<a class="cs-link" {href}>{plan.name}</a>
+			<a class="cs-link min-w-0" {href}>{plan.name}</a>
 		</h2>
 		<div class="flex flex-col">
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Name</div>
-				<div>{plan.name}</div>
+				<div class="min-w-0">{plan.name}</div>
 			</div>
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Primary Target</div>

@@ -10,7 +10,7 @@
 	title="Show Scanners"
 	class:fill-accent={$settings.showScanners}
 	class:fill-current={!$settings.showScanners}
-	class="btn btn-ghost btn-xs w-full h-full p-0"
+	class="btn btn-ghost btn-xs size-full p-0"
 	onclick={() => ($settings.showScanners = !$settings.showScanners)}
-	><span><Scanner class="w-6 h-6" /></span></a
+	><span><Scanner class="size-6 " /></span></a
 >

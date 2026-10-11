@@ -147,7 +147,7 @@
 								class="btn btn-info btn-sm rounded-l-md"
 								title="Unarchive Game"
 							>
-								<Unarchive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
+								<Unarchive class="hover:stroke-accent size-4  stroke-base-content fill-none" />
 							</button>
 							<button
 								onclick={() => deleteGame(row)}
@@ -166,7 +166,7 @@
 								class="btn btn-info btn-sm rounded-md"
 								title="Unarchive Game"
 							>
-								<Unarchive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
+								<Unarchive class="hover:stroke-accent size-4  stroke-base-content fill-none" />
 							</button>
 						</div>
 					{/if}

@@ -22,7 +22,7 @@
 	>
 		<div class="stat place-items-center sm:grow">
 			<div class="stat-title">Growth Rate</div>
-			<div class="stat-figure"><Population class="w-8 h-8 fill-base-content" /></div>
+			<div class="stat-figure"><Population class="size-8  fill-base-content" /></div>
 			<div class="stat-value">
 				{race.growthRate * (race.spec.growthFactor || 1)}%
 			</div>

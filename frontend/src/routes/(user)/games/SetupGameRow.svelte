@@ -16,7 +16,7 @@
 	}
 </script>
 
-<div class="col-span-5">
+<div class="col-span-5 min-w-0">
 	<a
 		class="text-primary text-2xl hover:text-accent w-full"
 		href={ready(game) ? `/games/${game.game?.id}` : `/join-game/${game.game?.id}`}

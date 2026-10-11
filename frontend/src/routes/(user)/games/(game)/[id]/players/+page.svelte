@@ -34,16 +34,13 @@
 		<PlayerScores />
 	</div>
 
-	<div class="h-[400px] w-full sm:w-[42rem] mx-auto my-5 py-5 px-1">
+	<div class="h-[400px] w-full sm:w-2xl mx-auto my-5 py-5 px-1">
 		<PlayerScoresGraph {type} />
 	</div>
 	<div class="flex flex-row flex-wrap gap-1 justify-center">
 		{#each graphTypes as graphType (graphType)}
 			<div class="cs-form-control">
-				<label
-					class="cs-form-label cursor-pointer btn w-[11rem]"
-					class:bg-primary={type == graphType}
-				>
+				<label class="cs-form-label cursor-pointer btn w-44" class:bg-primary={type == graphType}>
 					<span class="cs-label-text text-center w-full">{startCase(graphType)}</span>
 					<input
 						type="radio"

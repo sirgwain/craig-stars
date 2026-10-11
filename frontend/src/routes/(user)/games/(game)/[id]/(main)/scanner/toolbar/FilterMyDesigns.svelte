@@ -14,17 +14,17 @@
 </script>
 
 <div class="flex flex-row">
-	<div class="h-10 w-10">
+	<div class="size-10">
 		<a
 			href="#filter-my-designs"
 			title="Design Filter"
 			class:btn-primary={$settings.filterMyDesigns}
 			class:btn-ghost={!$settings.filterMyDesigns}
-			class="btn btn-ghost fill-current btn-xs w-full h-full p-0"
+			class="btn btn-ghost fill-current btn-xs size-full p-0"
 			onclick={(e) => {
 				e.preventDefault();
 				$settings.filterMyDesigns = !$settings.filterMyDesigns;
-			}}><FilterFleets class="w-6 h-6" /></a
+			}}><FilterFleets class="size-6 " /></a
 		>
 	</div>
 	<div class="h-10 w-3">

@@ -81,7 +81,10 @@
 		{#snippet cell({ column, row, cell })}
 			<span>
 				{#if column.key == 'pluralName'}
-					<a class="cs-link text-2xl" href="/races/{row.id}">{cell}</a>
+					<a
+						class="cs-link text-2xl inline-block max-w-[20rem] truncate align-bottom"
+						href="/races/{row.id}">{cell}</a
+					>
 				{:else if column.key == 'prt'}
 					{getLabelForPRT(row.prt)}
 				{:else if column.key == 'createdAt'}

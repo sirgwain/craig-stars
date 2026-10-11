@@ -17,9 +17,7 @@
 </script>
 
 <div data-type="dialog" data-id="Production Queue" class="modal" class:modal-open={show}>
-	<div
-		class="modal-box max-w-full max-h-max h-full w-full lg:max-w-[40rem] lg:max-h-[48rem] p-0 md:p-[1.25rem] pb-5"
-	>
+	<div class="modal-box max-w-full max-h-max size-full lg:max-w-160 lg:max-h-192 p-0 md:p-5 pb-5">
 		{#if $commandedPlanet && show}
 			<ProductionQueue planet={$commandedPlanet} {onOk} {onCancel} {onNext} {onPrev} />
 		{/if}

@@ -33,7 +33,7 @@
 <CommandTile title="Production">
 	<div class="bg-base-100 h-20 overflow-y-auto">
 		{#if planet.planetOrders.productionQueue}
-			<ul class="w-full h-full">
+			<ul class="size-full">
 				{#if queueItems}
 					{#each queueItems as queueItem, index (index)}
 						<li class="pl-1 cursor-default">
@@ -59,8 +59,8 @@
 			})
 		)}
 		<div class="flex justify-between mt-1">
-			<span>Route to</span>
-			<span>{getMapObjectName(routeDest)}</span>
+			<span class="shrink-0">Route to</span>
+			<span class="min-w-0 truncate pl-1">{getMapObjectName(routeDest)}</span>
 		</div>
 	{/if}
 	<div class="flex justify-between">

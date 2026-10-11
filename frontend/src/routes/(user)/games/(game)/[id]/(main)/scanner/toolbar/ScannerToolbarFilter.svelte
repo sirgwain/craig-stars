@@ -22,28 +22,28 @@
 
 <!-- the filters are in the same order as the original's toolbar, with ours beside their closest relatives -->
 <div {...props}>
-	<div class="h-10 w-10">
+	<div class="size-10">
 		<FilterScanners />
 	</div>
 	{#if shareMap}
 		<!-- optionally turn off ally scanners if we are sharing maps -->
-		<div class="h-10 w-10">
+		<div class="size-10">
 			<FilterAllyScanners />
 		</div>
 	{/if}
 	<div class="px-1">
 		<ScannerPercent />
 	</div>
-	<div class="h-10 w-10">
+	<div class="size-10">
 		<FilterMinefields />
 	</div>
-	<div class="h-10 w-10">
+	<div class="size-10">
 		<FilterPlanetNames />
 	</div>
-	<div class="h-10 w-10">
+	<div class="size-10">
 		<FilterFleetCounts />
 	</div>
-	<div class="h-10 w-10">
+	<div class="size-10">
 		<FilterIdleFleets />
 	</div>
 	<FilterMyDesigns />
@@ -51,7 +51,7 @@
 		<FilterAllyDesigns />
 	{/if}
 	<FilterEnemyDesigns />
-	<div class="h-10 w-10">
+	<div class="size-10">
 		<FilterPlayerColors />
 	</div>
 </div>

@@ -30,10 +30,10 @@
 	});
 </script>
 
-<div class="absolute w-full h-full z-30 pointer-events-none">
+<div class="absolute size-full z-30 pointer-events-none">
 	{#if actionToken?.action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_BEAM_FIRE' && targetVector}
-		<div class="relative left-0 top-0 w-full h-full">
-			<svg class="w-full h-full">
+		<div class="relative left-0 top-0 size-full">
+			<svg class="size-full">
 				<path
 					d={`M${actionToken.x * 66 + 32}, ${actionToken.y * 66 + 32} l${targetVector.x * 66},${
 						targetVector.y * 66
@@ -43,9 +43,9 @@
 			</svg>
 		</div>
 	{:else if action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_TORPEDO_FIRE' && action.to}
-		<div class="relative left-0 top-0 w-full h-full">
+		<div class="relative left-0 top-0 size-full">
 			<TorpedoHit
-				class="w-8 h-8 fill-transparent"
+				class="size-8  fill-transparent"
 				fill="#FF0000"
 				style={`transform: translate(${(action.to.x ?? 0) * 66 + 32 - 16}px, ${(action.to.y ?? 0) * 68 + 32 - 16}px)`}
 			/>

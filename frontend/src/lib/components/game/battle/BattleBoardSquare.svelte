@@ -80,7 +80,7 @@
 		</div>
 		<button
 			type="button"
-			class="w-full h-full cursor-pointer"
+			class="size-full cursor-pointer"
 			aria-label="Selects the token on the board"
 			onclick={() => {
 				const newTokenIndex = selected ? (tokenIndex + 1) % tokens.length : tokenIndex;

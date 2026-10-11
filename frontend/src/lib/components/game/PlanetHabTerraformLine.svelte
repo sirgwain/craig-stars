@@ -10,7 +10,7 @@
 	let { x1 = 50, x2 = 50, ...rest }: Props = $props();
 </script>
 
-<div class="absolute h-full w-full">
+<div class="absolute size-full">
 	<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" {...rest}>
 		<line {x1} y1="50" {x2} y2="50" vector-effect="non-scaling-stroke" stroke-width="1" />
 	</svg>

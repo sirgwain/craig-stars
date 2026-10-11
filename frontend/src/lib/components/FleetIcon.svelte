@@ -30,7 +30,7 @@
 		style={`border-color: ${$universe.getPlayerColor(fleet.mapObject?.playerNum)};`}
 	>
 		{#if tokens.reduce((count, t) => count + t.quantity, 0) > 1}
-			<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
+			<div class="absolute -right-2 -top-1 text-xl size-6">+</div>
 		{/if}
 
 		<div class="fleet-avatar {getHullIcon(design)} bg-black">
@@ -39,7 +39,7 @@
 			{/if}
 			<button
 				type="button"
-				class="w-full h-full cursor-help"
+				class="size-full cursor-help"
 				aria-label="Opens ship design tooltip"
 				onpointerdown={(e) => onShipDesignTooltip(e, design)}
 			></button>

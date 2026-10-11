@@ -16,7 +16,7 @@
 	let { children, onSubmitTurn }: Props = $props();
 </script>
 
-<main class="flex flex-col h-[100dvh]">
+<main class="flex flex-col h-dvh">
 	<header class="flex-none z-50">
 		<GameMenu {onSubmitTurn} />
 	</header>

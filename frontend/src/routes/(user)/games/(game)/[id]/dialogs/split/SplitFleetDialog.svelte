@@ -18,7 +18,7 @@
 </script>
 
 <div class="modal" class:modal-open={show}>
-	<div class="modal-box max-w-full max-h-max h-full w-full lg:max-w-[40rem] lg:max-h-[48rem]">
+	<div class="modal-box max-w-full max-h-max size-full lg:max-w-160 lg:max-h-192">
 		{#if props && show}
 			<SplitFleet src={props.src} dest={props.dest} {onOk} {onCancel} />
 		{/if}

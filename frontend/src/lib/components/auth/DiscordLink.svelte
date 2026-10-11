@@ -10,5 +10,5 @@
 
 <a class="btn bg-[#7289da]" id="discord-login" href={`/api/auth/discord/login?from=${from}`}
 	>Login&nbsp;
-	<Discord class="fill-base-content w-4 h-4" />
+	<Discord class="fill-base-content size-4 " />
 </a>

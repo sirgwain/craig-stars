@@ -47,7 +47,7 @@
 				</div>
 				<div class="mt-1">
 					{#if planet.spec?.planetStarbaseSpec?.hasStarbase}
-						<Starbase class="w-4 h-4 starbase" />
+						<Starbase class="size-4  starbase" />
 					{/if}
 				</div>
 				<div class="mt-1">

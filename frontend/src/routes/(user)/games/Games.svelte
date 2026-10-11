@@ -90,12 +90,12 @@
 <div class="flex justify-evenly">
 	{#if !$me.isGuest()}
 		<a class="btn gap-2" href="/host-game">
-			<Galaxy class="fill-current w-12 h-12" />
+			<Galaxy class="fill-current size-12 " />
 			Host
 		</a>
 	{/if}
 	<a class="btn gap-2" href="/single-player-game">
-		<Processor class="fill-current w-12 h-12" />
+		<Processor class="fill-current size-12 " />
 		Single Player
 	</a>
 </div>

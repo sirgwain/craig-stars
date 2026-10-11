@@ -46,7 +46,7 @@
 </script>
 
 <div class="modal" class:modal-open={show}>
-	<div class="modal-box max-w-full max-h-max h-full w-full lg:max-w-[40rem] lg:max-h-[32rem]">
+	<div class="modal-box max-w-full max-h-max size-full lg:max-w-160 lg:max-h-128">
 		{#if show}
 			<div class="flex flex-row justify-center px-1 w-full">
 				<div class="flex flex-col grow">

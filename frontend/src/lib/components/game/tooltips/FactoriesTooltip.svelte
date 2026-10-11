@@ -18,7 +18,7 @@
 	}: FactoriesTooltipProps = $props();
 </script>
 
-<div class="flex flex-col sm:w-[26rem] m-auto">
+<div class="flex flex-col sm:w-104 m-auto">
 	<div class="text-xl font-semibold text-center">Factories</div>
 	<div>
 		{#if canBuildFactories}

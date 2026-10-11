@@ -81,24 +81,24 @@
 					<summary class="p-0">
 						<a
 							href="#planet-view-states"
-							class="btn btn-ghost btn-xs w-10 h-10 p-0"
+							class="btn btn-ghost btn-xs size-10 p-0"
 							onclick={(e) => {
 								e.preventDefault();
 								planetsViewMenuDropdown?.toggleAttribute('open');
 							}}
 						>
 							{#if showViews}
-								<Icon src={Funnel} class="w-6 h-6" />
+								<Icon src={Funnel} class="size-6 " />
 							{:else if $settings.planetViewState == PlanetViewState.SurfaceMinerals}
-								<SurfaceMinerals class="w-6 h-6" />
+								<SurfaceMinerals class="size-6 " />
 							{:else if $settings.planetViewState == PlanetViewState.MineralConcentration}
-								<MineralConcentration class="w-6 h-6" />
+								<MineralConcentration class="size-6 " />
 							{:else if $settings.planetViewState == PlanetViewState.Percent}
-								<Habitability class="w-6 h-6" />
+								<Habitability class="size-6 " />
 							{:else if $settings.planetViewState == PlanetViewState.Population}
-								<Population class="w-6 h-6" />
+								<Population class="size-6 " />
 							{:else}
-								<PlanetWithStarbase class="w-6 h-6" />
+								<PlanetWithStarbase class="size-6 " />
 							{/if}
 						</a>
 					</summary>
@@ -125,13 +125,13 @@
 	{/if}
 	<div class="flex-none">
 		<ul class="menu menu-horizontal items-center px-0">
-			<li class="h-10 w-10">
+			<li class="size-10">
 				<a
 					href="#add-waypoint"
 					id="add-waypoint"
 					class:fill-accent={$settings.addWaypoint}
 					class:fill-current={!$settings.addWaypoint}
-					class="btn btn-ghost btn-xs w-full h-full p-0 border"
+					class="btn btn-ghost btn-xs size-full p-0 border"
 					onclick={(e) => {
 						e.preventDefault();
 						// 3 state toggle
@@ -150,9 +150,9 @@
 					}}
 				>
 					{#if $settings.fastestWaypoint}
-						<AddWaypointFast class="w-6 h-6" />
+						<AddWaypointFast class="size-6 " />
 					{:else}
-						<AddWaypoint class="w-6 h-6" />
+						<AddWaypoint class="size-6 " />
 					{/if}
 				</a>
 			</li>
@@ -168,10 +168,10 @@
 	{/if}
 	<div class="flex-none">
 		<ul class="menu menu-horizontal items-center px-0">
-			<li class="h-10 w-10">
+			<li class="size-10">
 				<a
 					href="#messages"
-					class="btn btn-ghost btn-xs w-full h-full p-0"
+					class="btn btn-ghost btn-xs size-full p-0"
 					onclick={(e) => {
 						e.preventDefault();
 						$settings.showMessagePane = !$settings.showMessagePane;
@@ -181,7 +181,7 @@
 					<span class="indicator">
 						<Icon
 							src={Envelope}
-							class={`w-6 h-6 ${$settings.showMessagePane ? 'stroke-accent' : 'stroke-current'}`}
+							class={`size-6  ${$settings.showMessagePane ? 'stroke-accent' : 'stroke-current'}`}
 						/>
 						<span class="indicator-item badge badge-secondary badge-xs px-1"
 							>{$player.messages.length}</span

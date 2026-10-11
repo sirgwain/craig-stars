@@ -9,7 +9,7 @@
 </script>
 
 {#if cost}
-	<div class="flex flex-col min-w-[8rem]">
+	<div class="flex flex-col min-w-32">
 		<div class="flex justify-between">
 			<div class="text-ironium">Ironium</div>
 			<div>{cost.ironium ?? 0}kT</div>

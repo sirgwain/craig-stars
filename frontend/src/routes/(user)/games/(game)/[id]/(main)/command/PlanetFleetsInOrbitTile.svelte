@@ -67,7 +67,7 @@
 	{#if selectedFleet && selectedFleet.spec}
 		<div class="flex justify-between my-1">
 			<div class="w-12">Fuel</div>
-			<div class="ml-1 h-full w-full">
+			<div class="ml-1 size-full">
 				<FuelBar
 					value={selectedFleet.fuel}
 					capacity={selectedFleet.spec.shipDesignSpec?.fuelCapacity ?? 0}
@@ -77,7 +77,7 @@
 
 		<div class="flex justify-between my-1">
 			<div class="w-12">Cargo</div>
-			<div class="ml-1 h-full w-full">
+			<div class="ml-1 size-full">
 				<CargoBar
 					onPointerDown={transfer}
 					canTransferCargo={canTransferCargo(selectedFleet)}

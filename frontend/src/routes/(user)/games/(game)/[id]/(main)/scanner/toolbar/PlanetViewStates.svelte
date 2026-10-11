@@ -10,19 +10,19 @@
 </script>
 
 <ul {...props}>
-	<li class="h-10 w-10">
+	<li class="size-10">
 		<PlanetViewStatesNormal />
 	</li>
-	<li class="h-10 w-10">
+	<li class="size-10">
 		<PlanetViewStateSurfaceMinerals />
 	</li>
-	<li class="h-10 w-10">
+	<li class="size-10">
 		<PlanetViewStateMineralConc />
 	</li>
-	<li class="h-10 w-10">
+	<li class="size-10">
 		<PlanetViewStateHab />
 	</li>
-	<li class="h-10 w-10">
+	<li class="size-10">
 		<PlanetViewStatePopulation />
 	</li>
 </ul>

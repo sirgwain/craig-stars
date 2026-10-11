@@ -92,7 +92,7 @@
 	);
 </script>
 
-<div class="border border-base-300 bg-base-100 w-full h-full">
+<div class="border border-base-300 bg-base-100 size-full">
 	{#if highestValue === 0}
 		<div class="flex flex-row justify-center h-full">
 			<div class="my-auto">No Data</div>

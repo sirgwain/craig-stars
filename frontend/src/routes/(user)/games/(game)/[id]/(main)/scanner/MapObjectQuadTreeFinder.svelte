@@ -153,7 +153,7 @@
 </script>
 
 <div
-	class="absolute h-full w-full z-10"
+	class="absolute size-full z-10"
 	data-type="scanner-overlay"
 	role="link"
 	tabindex="-1"

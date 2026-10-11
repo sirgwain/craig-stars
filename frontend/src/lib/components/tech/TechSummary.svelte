@@ -83,7 +83,7 @@
 {#if techLike.tech}
 	{@const tech = techLike.tech}
 	<div
-		class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 max-h-fit min-h-fit w-full h-full"
+		class="card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 max-h-fit min-h-fit size-full"
 	>
 		<div class="card-body p-3 gap-0">
 			<div class="text-lg font-semibold text-center mb-1 text-secondary">
@@ -105,7 +105,7 @@
 			</div>
 
 			<div class="flex flex-row gap-2">
-				<div class="flex flex-col flex-initial min-w-[6rem]">
+				<div class="flex flex-col flex-initial min-w-24">
 					<!-- icon and tech requirements row-->
 					<TechAvatar tech={techLike} hullTooltip={true} />
 					<TechLevelRequirements tech={techLike} {player} />
@@ -138,20 +138,20 @@
 						{/if}
 					</div>
 					{#if engine}
-						<div class="grow min-h-[14rem]">
+						<div class="grow min-h-56">
 							{#if !hideGraph}
 								<TechEngineGraph {engine} />
 							{/if}
 						</div>
 						<TechDescription tech={techLike} />
 					{:else if defense}
-						<div class="grow min-h-[14rem]">
+						<div class="grow min-h-56">
 							{#if !hideGraph}
 								<TechDefenseGraph {defense} />
 							{/if}
 						</div>
 					{:else}
-						<div class="border border-base-300 bg-base-100 grow min-h-[14rem]">
+						<div class="border border-base-300 bg-base-100 grow min-h-56">
 							<TechDescription tech={techLike} />
 							<TechWarnings tech={techLike} />
 						</div>
@@ -159,7 +159,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="flex flex-col min-h-[2rem]">
+		<div class="flex flex-col min-h-8">
 			<TechWarnings tech={techLike} />
 			<TechTraitRequirements tech={techLike} {player} />
 		</div>

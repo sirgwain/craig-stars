@@ -161,15 +161,15 @@
 					{/if}
 
 					{#each $game.players as playerStatus, index (index)}
-						<div class="flex flex-row h-8 my-auto">
-							<div class="w-4">
+						<div class="flex flex-row h-8 my-auto min-w-0">
+							<div class="w-4 shrink-0">
 								{playerStatus.num}
 							</div>
 							<div
-								class="h-4 w-4 my-auto border border-secondary mx-2"
+								class="size-4 shrink-0 my-auto border border-secondary mx-2"
 								style={`background-color: ${playerStatus.color}`}
 							></div>
-							<div class="h-8">
+							<div class="h-8 min-w-0 truncate" title={playerStatus.name}>
 								{playerStatus.name}
 							</div>
 						</div>

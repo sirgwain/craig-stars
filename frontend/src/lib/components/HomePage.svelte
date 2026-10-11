@@ -11,12 +11,12 @@
 				<a
 					href="https://discord.gg/Ctdx7h6UZS"
 					class="btn btn-outline btn-sm btn-secondary rounded-md"
-					><Discord class="fill-base-content w-5 h-5" /></a
+					><Discord class="fill-base-content size-5 " /></a
 				>
 				<a
 					href="https://github.com/sirgwain/craig-stars"
 					class="btn btn-outline btn-sm btn-secondary rounded-md"
-					><GitHub class="fill-base-content w-5 h-5" /></a
+					><GitHub class="fill-base-content size-5 " /></a
 				>
 			</div>
 			<h1 class="text-center text-5xl font-bold text-accent">craig-stars</h1>

@@ -33,7 +33,7 @@
 
 		{#if user}
 			<div class="dropdown dropdown-end">
-				<label class="avatar w-8 h-8 place-content-center">
+				<label class="avatar size-8 place-content-center">
 					<UserAvatar {user} />
 				</label>
 			</div>
@@ -75,12 +75,12 @@
 					<li><div class="divider"></div></li>
 					<li>
 						<a href="https://discord.gg/Ctdx7h6UZS" target="_blank"
-							><Discord class="fill-base-content w-5 h-5" /> Discord</a
+							><Discord class="fill-base-content size-5 " /> Discord</a
 						>
 					</li>
 					<li>
 						<a href="https://github.com/sirgwain/craig-stars" target="_blank"
-							><GitHub class="fill-base-content w-5 h-5" /> GitHub</a
+							><GitHub class="fill-base-content size-5 " /> GitHub</a
 						>
 					</li>
 					<li><div class="divider"></div></li>

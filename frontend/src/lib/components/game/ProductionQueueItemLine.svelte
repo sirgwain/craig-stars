@@ -72,11 +72,11 @@
 	class="w-full text-left px-1 select-none hover:text-secondary-focus"
 >
 	<div class="flex justify-between">
-		<div>
+		<div class="min-w-0 truncate">
 			{shortName ? getShortName(item, $universe) : getFullName(item, $universe)}
 		</div>
 		{#if hasQuantity(item.type)}
-			<div>{getQuantityText(item.type, item.quantity)}</div>
+			<div class="shrink-0 pl-1">{getQuantityText(item.type, item.quantity)}</div>
 		{/if}
 	</div>
 </button>

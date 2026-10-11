@@ -30,6 +30,6 @@
 </script>
 
 <h1 class="text-xl">Cargo Transfer</h1>
-<div class="md:w-[600px] md:h-[400px] w-full h-full">
+<div class="md:w-[600px] md:h-[400px] size-full">
 	<CargoTransferDialog src={fleet} dest={planet} />
 </div>

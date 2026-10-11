@@ -16,7 +16,7 @@
 	}
 </script>
 
-<div class="flex flex-col min-w-[8rem]">
+<div class="flex flex-col min-w-32">
 	{#if spec}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Mass</div>

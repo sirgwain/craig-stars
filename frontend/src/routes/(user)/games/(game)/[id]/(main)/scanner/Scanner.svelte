@@ -606,7 +606,7 @@
 	bind:this={rect}
 	use:clickOutside={disableAddWaypointMode}
 >
-	<div class="relative w-full h-full" bind:this={root}>
+	<div class="relative size-full" bind:this={root}>
 		<ScannerCanvas
 			{transform}
 			{pixelsPerLightYear}
@@ -630,11 +630,11 @@
 			/>
 		{/if}
 		{#if tape && tapeLine}
-			<svg class="absolute inset-0 w-full h-full z-20 pointer-events-none" data-type="tape">
+			<svg class="absolute inset-0 size-full z-20 pointer-events-none" data-type="tape">
 				<line {...tapeLine} class="stroke-white" stroke-width="1" />
 			</svg>
 			<div
-				class="absolute bottom-0 left-0 right-0 z-20 pointer-events-none flex flex-row flex-wrap gap-x-4 px-2 py-0.5 bg-base-200 text-sm"
+				class="absolute bottom-0 inset-x-0 z-20 pointer-events-none flex flex-row flex-wrap gap-x-4 px-2 py-0.5 bg-base-200 text-sm"
 				data-type="tape-status"
 			>
 				<span class="font-semibold">{tape.name}</span>

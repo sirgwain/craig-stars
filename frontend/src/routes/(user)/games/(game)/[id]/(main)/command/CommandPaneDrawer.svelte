@@ -148,7 +148,7 @@
 				class="bg-base-200 border-t border-base-300 rounded-t-2xl h-[80vh] shadow-lg relative z-5 p-4"
 			>
 				<DisclosureHeader {open} onToggle={toggleDrawer}>
-					<div class="flex flex-row justify-center w-full pb-1">
+					<div class="w-full min-w-0 truncate text-center pb-1">
 						{$commandedMapObject?.mapObject?.name}
 					</div>
 				</DisclosureHeader>

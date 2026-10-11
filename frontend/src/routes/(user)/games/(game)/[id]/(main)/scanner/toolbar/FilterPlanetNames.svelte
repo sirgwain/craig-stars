@@ -10,7 +10,7 @@
 	title="Show Planet Names"
 	class:btn-primary={$settings.showNames}
 	class:btn-ghost={!$settings.showNames}
-	class="btn btn-ghost btn-xs w-full h-full p-0"
+	class="btn btn-ghost btn-xs size-full p-0"
 	onclick={() => ($settings.showNames = !$settings.showNames)}
-	><PlanetNames class="w-6 h-6 hover:text-accent" /></a
+	><PlanetNames class="size-6  hover:text-accent" /></a
 >

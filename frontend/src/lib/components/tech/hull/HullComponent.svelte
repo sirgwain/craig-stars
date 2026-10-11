@@ -133,11 +133,11 @@
 				onTechTooltip(e, $techs.getHullComponent(shipDesignSlot.hullComponent));
 			}
 		}}
-		class="w-full h-full"
+		class="size-full"
 		data-type="hull-component-button"
 		data-id={shipDesignSlot?.hullComponent}
 	>
-		<div class="flex flex-col justify-between w-full h-full">
+		<div class="flex flex-col justify-between size-full">
 			{#if shipDesignSlot}
 				<div class="grow">&nbsp;</div>
 				<span class="h-4 mt-auto text-center font-bold text-black"

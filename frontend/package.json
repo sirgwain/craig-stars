@@ -14,7 +14,7 @@
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:unit": "vitest",
 		"test:e2e": "playwright test",
-		"lint": "eslint .",
+		"lint": "svelte-kit sync && eslint .",
 		"format": "prettier --write .",
 		"generate": "buf generate"
 	},
@@ -58,6 +58,7 @@
 		"date-fns": "^4.4.0",
 		"eslint": "^10.5.0",
 		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-better-tailwindcss": "^4.7.0",
 		"eslint-plugin-svelte": "^3.19.0",
 		"globals": "^17.6.0",
 		"google-protobuf": "^4.0.2",

@@ -33,31 +33,31 @@
 	{#if !hideViews}
 		<div class="menu-title">Planet View</div>
 		<div class="flex flex-row justify-center w-full">
-			<div class="h-10 w-10">
+			<div class="size-10">
 				<PlanetViewStatesNormal />
 			</div>
-			<div class="h-10 w-10">
+			<div class="size-10">
 				<PlanetViewStateSurfaceMinerals />
 			</div>
-			<div class="h-10 w-10">
+			<div class="size-10">
 				<PlanetViewStateMineralConc />
 			</div>
-			<div class="h-10 w-10">
+			<div class="size-10">
 				<PlanetViewStateHab />
 			</div>
-			<div class="h-10 w-10">
+			<div class="size-10">
 				<PlanetViewStatePopulation />
 			</div>
 		</div>
 	{/if}
 	<div class="menu-title">Scanners</div>
 	<div class="flex flex-row justify-center items-center w-full">
-		<div class="h-10 w-10">
+		<div class="size-10">
 			<FilterScanners />
 		</div>
 		{#if shareMap}
 			<!-- optionally turn off ally scanners if we are sharing maps -->
-			<div class="h-10 w-10">
+			<div class="size-10">
 				<FilterAllyScanners />
 			</div>
 		{/if}
@@ -67,16 +67,16 @@
 	</div>
 	<div class="menu-title">Filter</div>
 	<div class="flex flex-row justify-center w-full">
-		<div class="h-10 w-10">
+		<div class="size-10">
 			<FilterMinefields />
 		</div>
-		<div class="h-10 w-10">
+		<div class="size-10">
 			<FilterPlanetNames />
 		</div>
-		<div class="h-10 w-10">
+		<div class="size-10">
 			<FilterFleetCounts />
 		</div>
-		<div class="h-10 w-10">
+		<div class="size-10">
 			<FilterIdleFleets />
 		</div>
 	</div>
@@ -86,7 +86,7 @@
 			<FilterAllyDesigns />
 		{/if}
 		<FilterEnemyDesigns />
-		<div class="h-10 w-10">
+		<div class="size-10">
 			<FilterPlayerColors />
 		</div>
 	</div>

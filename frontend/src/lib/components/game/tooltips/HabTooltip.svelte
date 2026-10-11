@@ -56,7 +56,7 @@
 	});
 </script>
 
-<div class="flex flex-col sm:w-[26rem] m-auto">
+<div class="flex flex-col sm:w-104 m-auto">
 	<div>
 		{#if isImmune(player.race, habType)}
 			<p>

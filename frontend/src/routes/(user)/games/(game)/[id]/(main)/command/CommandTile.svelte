@@ -11,7 +11,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="md:w-[14rem] card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 select-none"
+	class="md:w-56 card bg-base-200 shadow-sm rounded-xs border-2 border-base-300 select-none"
 	data-type="command-tile"
 	data-id={title}
 	oncontextmenu={(e) => e.preventDefault()}
@@ -19,7 +19,10 @@
 	<div class="card-body p-3 gap-0">
 		<button class="w-full">
 			<div class="flex flex-row items-center mb-1">
-				<div class="flex-1 text-center text-lg font-semibold text-secondary">
+				<div
+					class="flex-1 min-w-0 truncate text-center text-lg font-semibold text-secondary"
+					{title}
+				>
 					{title}
 				</div>
 			</div>

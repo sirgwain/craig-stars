@@ -25,7 +25,7 @@
 	const yGetter = (d: DataType) => d[1];
 </script>
 
-<div class="border border-base-300 bg-base-100 w-full h-full mt-5 pb-7">
+<div class="border border-base-300 bg-base-100 size-full mt-5 pb-7">
 	<LayerCake
 		percentRange={true}
 		x={xGetter}

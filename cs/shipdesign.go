@@ -5,6 +5,7 @@ import (
 	"math"
 	"slices"
 	"strings"
+	"unicode/utf8"
 )
 
 // Fleets are made up of ships, and each ship has a design. Players start with designs created
@@ -185,6 +186,9 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	// Basic design/hull checks
 	if strings.TrimSpace(sd.Name) == "" {
 		return fmt.Errorf("design has no name")
+	}
+	if utf8.RuneCountInString(sd.Name) > MaxNameLength {
+		return fmt.Errorf("design name is longer than %d characters", MaxNameLength)
 	}
 	hull := rules.techs.GetHull(sd.Hull)
 	if hull == nil {

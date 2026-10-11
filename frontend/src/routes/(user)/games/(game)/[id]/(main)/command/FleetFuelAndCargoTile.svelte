@@ -30,7 +30,7 @@
 	<CommandTile title="Fuel & Cargo">
 		<div class="flex justify-between my-1">
 			<div class="w-12 text-tile-item-title">Fuel</div>
-			<div class="ml-1 h-full w-full">
+			<div class="ml-1 size-full">
 				<!-- TODO: add fuel transfer -->
 				<FuelBar value={fleet.fuel} capacity={fleet.spec.shipDesignSpec?.fuelCapacity ?? 0} />
 			</div>
@@ -38,7 +38,7 @@
 
 		<div class="flex justify-between my-1">
 			<div class="w-12 text-tile-item-title">Cargo</div>
-			<div class="ml-1 h-full w-full">
+			<div class="ml-1 size-full">
 				<CargoBar
 					onPointerDown={transfer}
 					canTransferCargo={canTransferCargo(fleet)}

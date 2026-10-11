@@ -104,7 +104,7 @@
 				<div class="text-tile-item-title">Stargate</div>
 				{#if stargate}
 					<div>
-						<span class="w-full h-full">
+						<span class="size-full">
 							{stargate.tech?.name}
 						</span>
 					</div>
@@ -124,7 +124,7 @@
 				<div class="text-tile-item-title">Mass Driver</div>
 				{#if starbase.spec.hasMassDriver}
 					<div>
-						<span class="w-full h-full">
+						<span class="size-full">
 							Warp {starbase.spec.shipDesignSpec?.safePacketSpeed}
 						</span>
 					</div>

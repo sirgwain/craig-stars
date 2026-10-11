@@ -11,5 +11,5 @@
 	class:btn-primary={$settings.planetViewState == PlanetViewState.SurfaceMinerals}
 	class:btn-ghost={$settings.planetViewState != PlanetViewState.SurfaceMinerals}
 	onclick={() => ($settings.planetViewState = PlanetViewState.SurfaceMinerals)}
-	class="btn btn-xs h-full w-full p-0"><SurfaceMinerals class="w-6 h-6" /></a
+	class="btn btn-xs size-full p-0"><SurfaceMinerals class="size-6 " /></a
 >

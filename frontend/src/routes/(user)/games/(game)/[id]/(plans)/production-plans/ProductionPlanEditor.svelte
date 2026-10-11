@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MaxNameLength } from '#lib/types/Consts.js';
 	import TextInput from '#lib/components/TextInput.svelte';
 	import type { DesignFinder } from '#lib/services/Universe.js';
 	import {
@@ -39,7 +40,7 @@
 	];
 </script>
 
-<TextInput name="name" bind:value={name} required />
+<TextInput name="name" bind:value={name} required maxlength={MaxNameLength} />
 
 <!-- edit production -->
 <Production {designFinder} {availableItems} bind:queueItems={items} />

@@ -25,7 +25,7 @@
 		ownedBy,
 		type MapObjectLike
 	} from '#lib/types/MapObject.js';
-	import { None } from '#lib/types/Consts.js';
+	import { MaxNameLength, None } from '#lib/types/Consts.js';
 	import { emptyVector, equal } from '#lib/types/Vector.js';
 	import type { ConnectError } from '@connectrpc/connect';
 	import hotkeys from 'hotkeys-js';
@@ -263,7 +263,7 @@
 			prompt('Enter fleet name', fleet.baseName) ||
 			$universe.getMyDesign(fleet.tokens[0]?.designNum)?.name;
 		if (name) {
-			renameFleet(fleet, name);
+			renameFleet(fleet, name.slice(0, MaxNameLength));
 		}
 	}
 
@@ -523,7 +523,7 @@
 	<div class="flex flex-col grow min-h-0 md:flex-row">
 		<!-- for medium+ displays, command pane goes on the left -->
 		<div
-			class="hidden overflow-x-hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[30rem] overflow-y-auto md:max-h-[calc(100dvh-4rem)]"
+			class="hidden overflow-x-hidden md:flex md:flex-col md:flex-none justify-between md:w-62 lg:w-120 overflow-y-auto md:max-h-[calc(100dvh-4rem)]"
 			style:max-height={toolbarFullWidth
 				? `calc(100dvh - 4.25rem - ${toolbarHeight}px)`
 				: undefined}

@@ -6,7 +6,7 @@
 	import TechAvatar from '#lib/components/tech/TechAvatar.svelte';
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { techs } from '#lib/services/Stores.js';
-	import { HullSlotTypeNone } from '#lib/types/Consts.js';
+	import { HullSlotTypeNone, MaxNameLength } from '#lib/types/Consts.js';
 	import { canLearnTech } from '#lib/types/Player.js';
 	import { canFillSlot, hullAllowed } from '#lib/types/Tech.js';
 	import { hasRequiredLevels } from '#lib/types/TechLevel.js';
@@ -232,6 +232,7 @@
 						name="name"
 						bind:value={name}
 						required
+						maxlength={MaxNameLength}
 						titleClass="cs-label-text w-16 text-right"
 					/>
 				</div>
@@ -276,7 +277,7 @@
 							>
 								<button
 									type="button"
-									class="w-full h-full"
+									class="size-full"
 									onclick={() => techHullComponentClicked(hc)}
 								>
 									<div class="flex flex-row place-items-center">

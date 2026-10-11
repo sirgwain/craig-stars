@@ -117,12 +117,12 @@
 {#if fleet.fleetOrders.waypoints}
 	<CommandTile title="Fleet Waypoints">
 		<div class="bg-base-100 h-20 overflow-y-auto">
-			<ul class="w-full h-full">
+			<ul class="size-full">
 				{#each fleet.fleetOrders.waypoints as wp, index (index)}
 					<li class="pl-1 {selectedWaypointIndex == index ? 'bg-primary-focus' : ''}">
 						<button
 							type="button"
-							class="text-left w-full h=full"
+							class="text-left size-full truncate"
 							onclick={() => onSelectWaypoint?.({ fleet, waypoint: wp })}
 						>
 							{$universe.getTargetName(wp)}
@@ -144,8 +144,8 @@
 			</div>
 
 			<div class="flex justify-between mt-1">
-				<span class="text-tile-item-title">Coming From</span>
-				<span>{$universe.getTargetName(previousWaypoint)}</span>
+				<span class="shrink-0 text-tile-item-title">Coming From</span>
+				<span class="min-w-0 truncate pl-1">{$universe.getTargetName(previousWaypoint)}</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Distance</span>
@@ -208,8 +208,8 @@
 			</label>
 		{:else if nextWaypoint}
 			<div class="flex justify-between mt-1">
-				<span class="text-tile-item-title">Going to</span>
-				<span>{$universe.getTargetName(nextWaypoint)}</span>
+				<span class="shrink-0 text-tile-item-title">Going to</span>
+				<span class="min-w-0 truncate pl-1">{$universe.getTargetName(nextWaypoint)}</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Distance</span>
