@@ -9,6 +9,7 @@
 		getAutoAlchemyDescription,
 		getFullName,
 		getShortName,
+		getQuantityText,
 		hasQuantity,
 		isAuto
 	} from '#lib/types/QueueItemType.js';
@@ -75,7 +76,7 @@
 			{shortName ? getShortName(item, $universe) : getFullName(item, $universe)}
 		</div>
 		{#if hasQuantity(item.type)}
-			<div>{item.quantity}</div>
+			<div>{getQuantityText(item.type, item.quantity)}</div>
 		{/if}
 	</div>
 </button>
