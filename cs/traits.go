@@ -63,6 +63,9 @@ type PRTSpec struct {
 	CanBuildDefenses                 bool             `json:"canBuildDefenses,omitempty"`
 	LivesOnStarbases                 bool             `json:"livesOnStarbases,omitempty"`
 	MinHabFloor                      int              `json:"minHabFloor,omitempty"`
+
+	// better starting fleets for races that start with the tech for them
+	startingFleetUpgrades []startingFleetUpgrade
 }
 
 type LRTSpec struct {
@@ -161,6 +164,14 @@ type StartingFleet struct {
 	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
 }
 
+// A startingFleetUpgrade swaps a starting fleet for a better one when the player starts the game with the tech
+// for it, like a Jack of All Trades starting at tech level 4 getting a privateer in place of a medium freighter.
+type startingFleetUpgrade struct {
+	replaces  string        // the name of the starting fleet to swap out
+	fleet     StartingFleet // the fleet the player gets instead, if they have the tech for its hull
+	component string        // a hull component the player must also have the tech for
+}
+
 type StealsResearch struct {
 	Energy        float64 `json:"energy,omitempty"`
 	Weapons       float64 `json:"weapons,omitempty"`
@@ -188,6 +199,7 @@ const (
 	StartingFleetHullMidgetMiner     StartingFleetHull = "Midget-Miner"
 	StartingFleetHullPrivateer       StartingFleetHull = "Privateer"
 	StartingFleetHullScout           StartingFleetHull = "Scout"
+	StartingFleetHullSmallFreighter  StartingFleetHull = "Small Freighter"
 )
 
 // clone this PRTSpec so we can combine it with an LRTSpec without modifying the original
@@ -291,7 +303,13 @@ func ssSpec() PRTSpec {
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
 		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Shadow Transport", StartingFleetHullSmallFreighter, 2, ShipDesignPurposeCloakedFreighter},
 		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+	}
+	// a scout hull has room for weapons so it can't use the transport cloak, but it gets a real cloak
+	// if the race starts with the energy tech for one
+	spec.startingFleetUpgrades = []startingFleetUpgrade{
+		{"Long Range Scout", StartingFleet{"Shadow Sleuth", StartingFleetHullScout, 3, ShipDesignPurposeCloakedScout}, StealthCloak.Name},
 	}
 
 	spec.BuiltInCloakUnits = 300
@@ -321,6 +339,7 @@ func wmSpec() PRTSpec {
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
 		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
 		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
+		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
 		{"Gadfly", StartingFleetHullMiniBomber, 1, ShipDesignPurposeBomber},
 	}
 
@@ -481,7 +500,7 @@ func itSpec() PRTSpec {
 			StarbaseDesignName: "Starbase",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+				{"Mayflower", StartingFleetHullColonyShip, 2, ShipDesignPurposeColonizer},
 				{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeStartingFighter},
 				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
 			}, Homeworld: true,
@@ -527,7 +546,7 @@ func arSpec() PRTSpec {
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
 		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+		{"Pinta", StartingFleetHullColonyShip, 1, ShipDesignPurposeColonizer},
 	}
 
 	spec.CanRemoteMineOwnPlanets = true
@@ -563,6 +582,9 @@ func joatSpec() PRTSpec {
 		{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
 		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
 		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
+	}
+	spec.startingFleetUpgrades = []startingFleetUpgrade{
+		{"Teamster", StartingFleet{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeStartingFighter}, ""},
 	}
 
 	spec.MaxPopulationOffset = .2

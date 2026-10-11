@@ -90,6 +90,12 @@ enum ShipDesignPurpose {
   
   // Starter colony ship
   SHIP_DESIGN_PURPOSE_STARTER_COLONY = 27;
+
+  // Scout with a cloak
+  SHIP_DESIGN_PURPOSE_CLOAKED_SCOUT = 28;
+
+  // Freighter with a cloak
+  SHIP_DESIGN_PURPOSE_CLOAKED_FREIGHTER = 29;
 }
 
 // Fleets are made up of ships, and each ship has a design. Players start with designs created
