@@ -11,8 +11,11 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestErrorLogInterceptorCancellation(t *testing.T) {
@@ -128,4 +131,79 @@ func TestResolveGamePlayer(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestWithPlayerRevision(t *testing.T) {
+	ctx := t.Context()
+	dbConn := db.NewConn()
+	cfg := config.Config{}
+	cfg.Database.Filename = ":memory:"
+	require.NoError(t, dbConn.Connect(ctx, &cfg))
+	t.Cleanup(func() { dbConn.Close() })
+	client := dbConn.NewReadWriteClient()
+	user, err := client.CreateUser(ctx, cs.NewUser("host", "", "", cs.RoleUser))
+	require.NoError(t, err)
+	fullGame, err := NewGameRunner(dbConn, cfg).HostGame(user.ID, cs.NewGameSettings().WithHost(cs.Humanoids()))
+	require.NoError(t, err)
+	game, err := client.GetGame(ctx, fullGame.ID)
+	require.NoError(t, err)
+	gamePlayer := &game.Players[0]
+	ctx = context.WithValue(ctx, keyDbRead, dbConn.NewReadClient())
+	ctx = context.WithValue(ctx, keyDbWrite, client)
+
+	called := 0
+	var handlerErr error
+	call := func(clientRevision string, readOnly bool) (string, error) {
+		req := connect.NewRequest(&struct{}{})
+		if clientRevision != "" {
+			req.Header().Set(playerRevisionHeader, clientRevision)
+		}
+		res, err := withPlayerRevision(ctx, req, func(context.Context, connect.AnyRequest) (connect.AnyResponse, error) {
+			called++
+			if handlerErr != nil {
+				return nil, handlerErr
+			}
+			return connect.NewResponse(&struct{}{}), nil
+		}, gamePlayer, readOnly)
+		if err != nil {
+			var connectErr *connect.Error
+			require.ErrorAs(t, err, &connectErr)
+			return connectErr.Meta().Get(playerRevisionHeader), err
+		}
+		return res.Header().Get(playerRevisionHeader), nil
+	}
+
+	// reads report the revision without changing it
+	revision, err := call("", true)
+	require.NoError(t, err)
+	assert.Equal(t, "0", revision)
+
+	// a change from a client with the current revision increments it
+	revision, err = call("0", false)
+	require.NoError(t, err)
+	assert.Equal(t, "1", revision)
+
+	// a change from another device that still has the old revision is rejected before the handler runs
+	called = 0
+	revision, err = call("0", false)
+	assert.Equal(t, connect.CodeAborted, connect.CodeOf(err))
+	assert.Equal(t, "1", revision)
+	assert.Zero(t, called)
+
+	// but that device can still read, and learns about the newer revision
+	revision, err = call("0", true)
+	require.NoError(t, err)
+	assert.Equal(t, "1", revision)
+
+	// failed changes don't increment the revision
+	handlerErr = connect.NewError(connect.CodeInvalidArgument, errors.New("invalid orders"))
+	revision, err = call("1", false)
+	assert.Equal(t, connect.CodeInvalidArgument, connect.CodeOf(err))
+	assert.Equal(t, "1", revision)
+	handlerErr = nil
+
+	// clients that don't send a revision aren't checked, but their changes still increment it
+	revision, err = call("", false)
+	require.NoError(t, err)
+	assert.Equal(t, "2", revision)
 }

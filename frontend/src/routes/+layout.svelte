@@ -2,8 +2,11 @@
 	import { page, updated } from '$app/state';
 	import { authGuard } from '#lib/authGuard.js';
 	import HomePage from '#lib/components/HomePage.svelte';
+	import StaleDataToast from '#lib/components/StaleDataToast.svelte';
 	import VersionToast from '#lib/components/VersionToast.svelte';
+	import { userClient } from '#lib/services/connect.js';
 	import { me } from '#lib/services/Stores.js';
+	import { versionUpdate, watchRelease } from '#lib/services/Version.js';
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
 
@@ -28,6 +31,14 @@
 			authGuard();
 		}
 	});
+
+	// a deploy updates the server and frontend separately, check for whichever we haven't seen
+	onMount(() =>
+		watchRelease(versionUpdate, {
+			frontend: () => updated.check(),
+			server: () => userClient.getMe({})
+		})
+	);
 </script>
 
 <svelte:head>
@@ -42,3 +53,4 @@
 {/if}
 
 <VersionToast frontendUpdated={updated.current} />
+<StaleDataToast />

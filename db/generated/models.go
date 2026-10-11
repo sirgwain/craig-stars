@@ -302,6 +302,7 @@ type Player struct {
 	AiDifficulty                 *cs.AIDifficulty
 	AcquiredTechs                *AcquiredTechs
 	Archived                     bool
+	Revision                     int64
 }
 
 type Race struct {

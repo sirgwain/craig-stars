@@ -13,8 +13,7 @@
 		<div class="alert alert-info" role="status">
 			<div>
 				<p>
-					A new version of CraigStars! is available{#if $versionUpdate.serverVersion}
-						({$versionUpdate.serverVersion}){/if}.
+					A new version of CraigStars! is available ({$versionUpdate.serverVersion}).
 				</p>
 				<p class="text-sm">Save your work before reloading.</p>
 			</div>
