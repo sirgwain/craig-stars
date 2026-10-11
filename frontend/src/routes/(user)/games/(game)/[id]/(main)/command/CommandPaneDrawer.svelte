@@ -127,7 +127,11 @@
 	}
 </script>
 
-<div class="w-full md:hidden select-none z-10" data-type="command-drawer" data-open={open}>
+<div
+	class="w-full desk:hidden phone-landscape:hidden select-none z-10"
+	data-type="command-drawer"
+	data-open={open}
+>
 	<div class={open ? 'fixed inset-0 flex flex-col justify-end' : ''}>
 		{#if open}
 			<!-- Backdrop -->

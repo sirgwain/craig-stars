@@ -12,10 +12,18 @@ import { Universe } from '#lib/services/Universe.js';
 import { onScannerContextPopup } from '#lib/components/game/tooltips/ScannerContextPopup.js';
 import Scanner from './Scanner.svelte';
 
-const state = vi.hoisted(() => ({ context: undefined as unknown }));
+const state = vi.hoisted(() => ({
+	context: undefined as unknown,
+	canvasProps: undefined as
+		{ transform?: { apply: (p: [number, number]) => [number, number] } } | undefined
+}));
 vi.mock('#lib/services/GameContext.js', () => ({ getGameContext: () => state.context }));
 // Exercise scanner gestures and hit testing without involving canvas rendering.
-vi.mock('./ScannerCanvas.svelte', () => ({ default: () => {} }));
+vi.mock('./ScannerCanvas.svelte', () => ({
+	default: (_anchor: unknown, props: typeof state.canvasProps) => {
+		state.canvasProps = props;
+	}
+}));
 vi.mock('#lib/components/game/tooltips/ScannerContextPopup.js', () => ({
 	onScannerContextPopup: vi.fn()
 }));
@@ -88,8 +96,31 @@ async function scannerWithSelectedWaypoint(addWaypoint = false) {
 		Object.defineProperties(event, { layerX: { value: layerX }, layerY: { value: layerY } });
 		overlay.dispatchEvent(event);
 	}
-	return { pointer, onSelectMapObject, onUpdateWaypointDest, onAddWaypoint };
+	return { pointer, onSelectMapObject, onUpdateWaypointDest, onAddWaypoint, scanner, root };
 }
+
+// The map is scaled to the scanner's shorter side, so turning a phone would otherwise leave the
+// view somewhere else on the map.
+it('keeps looking at the same part of the map when the scanner changes shape', async () => {
+	const { scanner, root } = await scannerWithSelectedWaypoint();
+	// a 200px square scanner shows the 100ly map at 2px per light year, centered on (50, 50)
+	const [x, y] = state.canvasProps!.transform!.apply([100, 100]);
+	expect(x).toBeCloseTo(100);
+	expect(y).toBeCloseTo(100);
+
+	// rotate to landscape
+	for (const el of [scanner, root]) {
+		el.style.width = '240px';
+		el.style.height = '160px';
+	}
+	window.dispatchEvent(new Event('resize'));
+	await tick();
+
+	// now 1.6px per light year, and (50, 50) is still in the middle
+	const [rx, ry] = state.canvasProps!.transform!.apply([80, 80]);
+	expect(rx).toBeCloseTo(120);
+	expect(ry).toBeCloseTo(80);
+});
 
 // Selecting what's under the selected waypoint can command a planet there, which would stop the
 // waypoint being dragged. So a press on it waits to see whether it's a click or a drag.

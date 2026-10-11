@@ -230,7 +230,7 @@
 		{/if}
 		<button
 			onclick={onCycleMapObject}
-			class="md:hidden btn btn-outline btn-sm normal-case btn-secondary"
+			class="desk:hidden btn btn-outline btn-sm normal-case btn-secondary"
 			title="cycle"><Icon src={ArrowPath} size="16" class="hover:stroke-accent inline" /></button
 		>
 

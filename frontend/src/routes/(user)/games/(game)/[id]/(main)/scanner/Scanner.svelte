@@ -266,8 +266,29 @@
 	}
 
 	// update clientWidth/height on resize
+	// The map is scaled to fit the scanner, so when the scanner changes shape, like a phone being
+	// rotated, we re-center on the part of the map the player was looking at.
 	function handleResize() {
-		clientRect = rect?.getBoundingClientRect() ?? { width: 100, height: 100 };
+		const next = rect?.getBoundingClientRect() ?? { width: 100, height: 100 };
+		if (next.width === clientRect.width && next.height === clientRect.height) {
+			return;
+		}
+		const center = transform
+			? create(VectorSchema, {
+					x: scaler.x.invert(transform.invertX(clientRect.width / 2)),
+					y: scaler.y.invert(transform.invertY(clientRect.height / 2))
+				})
+			: undefined;
+		clientRect = next;
+
+		// the zoom behavior is sized to the scanner, so swap in the new one
+		if (dragAndZoomEnabled) {
+			disableDragAndZoom();
+			enableDragAndZoom();
+		}
+		if (center) {
+			translateViewport(center);
+		}
 	}
 
 	function handleKeyDown(e: KeyboardEvent) {
@@ -692,7 +713,15 @@
 		// bind the v key to show the target with X
 		hotkeys('v', 'root', showTargetLocation);
 
+		// the scanner can change size without the window doing so, and a rotating phone can fire its
+		// resize before the layout settles
+		const resizeObserver = new ResizeObserver(handleResize);
+		if (rect) {
+			resizeObserver.observe(rect);
+		}
+
 		return () => {
+			resizeObserver.disconnect();
 			unsubscribeZoomTarget();
 		};
 	});

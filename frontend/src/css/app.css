@@ -7,6 +7,14 @@
 /* Preserve the app's compact type scale and manually selected dark mode. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * The game view's layouts. A window needs height as well as width for the command pane and summary
+ * to sit around the scanner, so a phone on its side gets just the command pane beside the scanner
+ * and pops the summary up on request.
+ */
+@custom-variant desk (@media (min-width: 48rem) and (min-height: 30rem));
+@custom-variant phone-landscape (@media (orientation: landscape) and (max-height: 29.99rem));
+
 @theme {
 	--text-*: initial;
 	--text-sm: 10px;

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { ArrowsPointingOut } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import { addError } from '#lib/services/Errors.js';
 	import type {
 		BattlePlanChangedEvent,
@@ -41,6 +43,7 @@
 	import CommandPaneDrawer from './command/CommandPaneDrawer.svelte';
 	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
+	import MapObjectSummaryDialog from './MapObjectSummaryDialog.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import MessagesPane from './MessagesPane.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
@@ -97,6 +100,7 @@
 	let showSplitFleetDialog = $state(false);
 	let showTransportTasksDialog = $state(false);
 	let showSearchDialog = $state(false);
+	let showSummaryDialog = $state(false);
 	let cargoTransferDialogEvent: CargoTransferDialogEvent | undefined = $state(undefined);
 	let mergeFleetsDialogEvent: MergeFleetsDialogEvent | undefined = $state(undefined);
 	let splitFleetDialogEvent: SplitFleetDialogEvent | undefined = $state(undefined);
@@ -531,10 +535,10 @@
 		</div>
 	{/if}
 	<!-- for small mobile displays we put the scanner on top and the command pane below it-->
-	<div class="flex flex-col grow min-h-0 md:flex-row">
-		<!-- for medium+ displays, command pane goes on the left -->
+	<div class="flex flex-col grow min-h-0 desk:flex-row phone-landscape:flex-row">
+		<!-- for medium+ displays, and a phone on its side, command pane goes on the left -->
 		<div
-			class="hidden overflow-x-hidden md:flex md:flex-col md:flex-none justify-between md:w-62 lg:w-120 overflow-y-auto md:max-h-[calc(100dvh-4rem)]"
+			class="hidden overflow-x-hidden desk:flex desk:flex-col desk:flex-none justify-between desk:w-62 desk:lg:w-120 overflow-y-auto desk:max-h-[calc(100dvh-4rem)] phone-landscape:flex phone-landscape:flex-col phone-landscape:flex-none phone-landscape:w-62 phone-landscape:max-h-[calc(100dvh-4rem)]"
 			style:max-height={toolbarFullWidth
 				? `calc(100dvh - 4.25rem - ${toolbarHeight}px)`
 				: undefined}
@@ -570,7 +574,7 @@
 					}}
 				/>
 			</div>
-			<div class="hidden lg:block lg:p-1 mx-2">
+			<div class="hidden desk:lg:block lg:p-1 mx-2">
 				<MapObjectSummary
 					onShowCargoTransferDialog={(e) => {
 						showCargoTransferDialog = true;
@@ -580,7 +584,7 @@
 			</div>
 		</div>
 
-		<div class="flex flex-col grow">
+		<div class="flex flex-col grow min-w-0">
 			<div class="flex flex-col grow border-gray-700 border-2 shadow-xs">
 				{#if !toolbarFullWidth}
 					{@render toolbar()}
@@ -595,10 +599,23 @@
 					{onSetRouteDest}
 				/>
 			</div>
-			<div class="hidden md:block">
+			<div class="hidden desk:block">
 				<MapObjectStatsBar />
 			</div>
-			<div class="hidden md:block md:w-full lg:hidden mb-2">
+			<!-- a phone on its side has no room for the summary, so it pops up from a button -->
+			<button
+				type="button"
+				class="hidden phone-landscape:flex flex-row items-center gap-2 w-full text-left pl-2 pr-1 py-1 bg-base-200 border-t border-base-300"
+				aria-label="show summary"
+				data-type="show-map-object-summary-button"
+				onclick={() => (showSummaryDialog = true)}
+			>
+				<div class="grow min-w-0 overflow-hidden"><MapObjectStatsBar large /></div>
+				<span class="btn btn-xs btn-outline btn-secondary flex-none">
+					<Icon src={ArrowsPointingOut} size="16" class="hover:stroke-accent" />
+				</span>
+			</button>
+			<div class="hidden desk:block desk:w-full desk:lg:hidden mb-2">
 				<MapObjectSummary
 					onShowCargoTransferDialog={(e) => {
 						showCargoTransferDialog = true;
@@ -608,7 +625,7 @@
 			</div>
 		</div>
 
-		<!-- for phone displays, use a drawer -->
+		<!-- for upright phone displays, use a drawer -->
 		<div class="flex flex-col">
 			<CommandPaneDrawer
 				{onNextMapObject}
@@ -645,6 +662,15 @@
 
 <div class="select-none">
 	<!-- dialog modals -->
+	<MapObjectSummaryDialog
+		show={showSummaryDialog}
+		onCancel={() => (showSummaryDialog = false)}
+		onShowCargoTransferDialog={(e) => {
+			showSummaryDialog = false;
+			showCargoTransferDialog = true;
+			cargoTransferDialogEvent = e;
+		}}
+	/>
 	<ProductionQueueDialog
 		show={showProductionQueueDialog}
 		onNext={() => onNextPlanet(true)}

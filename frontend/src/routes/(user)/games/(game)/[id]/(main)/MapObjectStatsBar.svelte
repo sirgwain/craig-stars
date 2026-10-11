@@ -5,6 +5,13 @@
 
 	const { highlightedMapObject, selectedMapObject, commandedMapObject } = getGameContext();
 
+	type Props = {
+		// bigger text, for where the bar is also something to tap
+		large?: boolean;
+	};
+
+	let { large = false }: Props = $props();
+
 	let to: MapObjectLike | undefined = $derived(
 		$highlightedMapObject ? $highlightedMapObject : $selectedMapObject
 	);
@@ -20,12 +27,16 @@
 	let dist = $derived(from && to ? distance(posOf(from), posOf(to)) : 0);
 </script>
 
-<div class="flex flex-row justify-start gap-3 h-4 text-sm">
+<div
+	class="flex flex-row justify-start gap-3 whitespace-nowrap {large
+		? 'h-6 text-base'
+		: 'h-4 text-sm'}"
+>
 	{#if to}
-		<div class="w-10">
+		<div class={large ? 'w-14' : 'w-10'}>
 			ID: {numOf(to)}
 		</div>
-		<div class="w-20">
+		<div class={large ? 'w-28' : 'w-20'}>
 			X: {posOf(to).x}, Y: {posOf(to).y}
 		</div>
 		<div>
