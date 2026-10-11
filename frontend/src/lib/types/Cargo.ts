@@ -74,22 +74,27 @@ export function population(cargo: Cargo | undefined): number {
 	return (cargo?.colonists ?? 0) * 100;
 }
 
-// if we are displaying cargo as a percent, don't let it be more than 100%
-export function cargoPercent(cargo: Cargo, capacity: number | undefined): Cargo {
+// The share of a hold each kind of cargo takes up, as exact percents. An overfull hold is capped at
+// 100% in total. The shares aren't rounded, so a full hold fills the whole bar and a small share
+// still shows.
+export type CargoPercent = {
+	ironium: number;
+	boranium: number;
+	germanium: number;
+	colonists: number;
+};
+
+export function cargoPercent(cargo: Cargo, capacity: number | undefined): CargoPercent {
+	const percent: CargoPercent = { ironium: 0, boranium: 0, germanium: 0, colonists: 0 };
 	if (capacity == 0 || capacity == undefined) {
-		return emptyCargo();
+		return percent;
 	}
 
-	const percent: Cargo = create(CargoSchema, {
-		ironium: Math.round(((cargo.ironium ?? 0) / capacity) * 100)
-	});
-	let total = percent.ironium ?? 0;
-	percent.boranium = Math.min(100 - total, Math.round(((cargo.boranium ?? 0) / capacity) * 100));
-	total += percent.boranium ?? 0;
-	percent.germanium = Math.min(100 - total, Math.round(((cargo.germanium ?? 0) / capacity) * 100));
-	total += percent.germanium ?? 0;
-	percent.colonists = Math.min(100 - total, Math.round(((cargo.colonists ?? 0) / capacity) * 100));
-
+	let remaining = 100;
+	for (const type of ['ironium', 'boranium', 'germanium', 'colonists'] as const) {
+		percent[type] = Math.min(remaining, Math.max(0, (cargo[type] / capacity) * 100));
+		remaining -= percent[type];
+	}
 	return percent;
 }
 

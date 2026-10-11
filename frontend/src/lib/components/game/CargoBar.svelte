@@ -12,7 +12,7 @@
 
 	let { value, capacity, canTransferCargo = false, onPointerDown }: Props = $props();
 
-	let percent: Cargo = $derived(cargoPercent(value ?? emptyCargo(), capacity));
+	let percent = $derived(cargoPercent(value ?? emptyCargo(), capacity));
 </script>
 
 <div
@@ -31,20 +31,12 @@
 	>
 		{totalCargo(value)} of {capacity ?? 0}kT
 	</div>
-	<div
-		style={`left: 0%; width: ${percent.ironium.toFixed()}%`}
-		class="ironium-bar h-full inline-block"
-	></div>
-	<div
-		style={`width: ${percent.boranium.toFixed()}%`}
-		class="boranium-bar h-full inline-block"
-	></div>
-	<div
-		style={`width: ${percent.germanium.toFixed()}%`}
-		class="germanium-bar h-full inline-block"
-	></div>
-	<div
-		style={`width: ${percent.colonists.toFixed()}%`}
-		class="colonists-bar h-full inline-block"
-	></div>
+	<!-- Each share keeps its exact width. Rounded to whole percents, three thirds left a 1% gap in a
+	     full hold, and a small share could vanish. -->
+	<div class="flex h-full" data-type="cargo-fill">
+		<div style={`width: ${percent.ironium}%`} class="ironium-bar h-full"></div>
+		<div style={`width: ${percent.boranium}%`} class="boranium-bar h-full"></div>
+		<div style={`width: ${percent.germanium}%`} class="germanium-bar h-full"></div>
+		<div style={`width: ${percent.colonists}%`} class="colonists-bar h-full"></div>
+	</div>
 </div>

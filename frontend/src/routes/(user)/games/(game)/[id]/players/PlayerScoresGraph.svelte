@@ -11,7 +11,6 @@
 	import type { PlayerScoreJson } from '#lib/types/cs-proto.js';
 	import { scaleOrdinal } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
-	import PlayerScoresGraphLabels from './PlayerScoresGraphLabels.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -92,41 +91,58 @@
 	);
 </script>
 
-<div class="border border-base-300 bg-base-100 size-full">
-	{#if highestValue === 0}
-		<div class="flex flex-row justify-center h-full">
-			<div class="my-auto">No Data</div>
-		</div>
-	{:else}
-		<LayerCake
-			x={xKey}
-			y={yKey}
-			z={zKey}
-			yDomain={[0, Math.ceil(highestValue + highestValue * 0.2)]}
-			xDomain={[0, turnsPassed]}
-			xRange={[0, 100]}
-			yRange={[100, 0]}
-			zScale={scaleOrdinal()}
-			zRange={seriesColors}
-			zDomain={seriesNames}
-			flatData={flatten(dataLong)}
-			data={dataLong}
-		>
-			<Html>
-				<AxisX />
-				<AxisY ticks={6} formatTick={(d) => `${d}`} />
-			</Html>
-			<ScaledSvg>
-				<MultiLine zIsColorCode={true} />
-			</ScaledSvg>
+<div class="flex flex-col size-full">
+	<div class="border border-base-300 bg-base-100 grow min-h-0">
+		{#if highestValue === 0}
+			<div class="flex flex-row justify-center h-full">
+				<div class="my-auto">No Data</div>
+			</div>
+		{:else}
+			<LayerCake
+				x={xKey}
+				y={yKey}
+				z={zKey}
+				yDomain={[0, Math.ceil(highestValue + highestValue * 0.2)]}
+				xDomain={[0, turnsPassed]}
+				xRange={[0, 100]}
+				yRange={[100, 0]}
+				zScale={scaleOrdinal()}
+				zRange={seriesColors}
+				zDomain={seriesNames}
+				flatData={flatten(dataLong)}
+				data={dataLong}
+			>
+				<Html>
+					<AxisX />
+					<!-- scores count planets, ships and so on, so there's no half of one -->
+					<AxisY ticks={6} wholeNumbers={true} formatTick={(d) => `${d}`} />
+				</Html>
+				<ScaledSvg>
+					<MultiLine zIsColorCode={true} />
+				</ScaledSvg>
 
-			<Html>
-				<PlayerScoresGraphLabels />
-				<!-- TODO: get this working so we can see values on our graphs 
+				<Html>
+					<!-- TODO: get this working so we can see values on our graphs 
 			 https://layercake.graphics/components/SharedTooltip.html.svelte
 			 -->
-				<!-- <SharedTooltip dataset={dataQuadTree} /> -->
-			</Html>
-		</LayerCake>
-	{/if}
+					<!-- <SharedTooltip dataset={dataQuadTree} /> -->
+				</Html>
+			</LayerCake>
+		{/if}
+	</div>
+	<!-- names on the lines run into each other, so each player's color is listed under the graph -->
+	<ul
+		class="flex flex-row flex-wrap justify-center gap-x-4 gap-y-1 mt-7 text-sm"
+		data-type="legend"
+	>
+		{#each dataLong as series (series.playerNum)}
+			<li class="flex flex-row items-center min-w-0 max-w-full">
+				<span
+					class="inline-block w-4 h-1 mr-1 shrink-0"
+					style={`background-color: ${$universe.getPlayerColor(series.playerNum)}`}
+				></span>
+				<span class="truncate" title={series.playerName}>{series.playerName}</span>
+			</li>
+		{/each}
+	</ul>
 </div>
