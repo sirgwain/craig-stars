@@ -35,18 +35,21 @@
 <svelte:window onkeydown={handleKeydown} onkeyup={handleKeyup} />
 
 <button
+	type="button"
 	class:btn-primary={modifier == 1}
 	class="btn btn-xs border-secondary normal-case rounded-full"
 	onclick={() => updateModifier(1)}
 	>x1
 </button>
 <button
+	type="button"
 	class:btn-primary={modifier == 10 || modifier == 1000}
 	class="btn btn-xs border-secondary normal-case rounded-full"
 	onclick={() => updateModifier(10)}
 	>x10
 </button>
 <button
+	type="button"
 	class:btn-primary={modifier == 100 || modifier == 1000}
 	class="btn btn-xs border-secondary normal-case rounded-full"
 	onclick={() => updateModifier(100)}

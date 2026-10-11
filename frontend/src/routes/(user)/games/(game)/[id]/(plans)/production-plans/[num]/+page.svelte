@@ -5,15 +5,18 @@
 	import { addError } from '#lib/services/Errors.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { notify } from '#lib/services/Notifications.js';
-	import type { ProductionPlan } from '#lib/types/cs-proto.js';
+	import { ProductionPlanSchema, type ProductionPlan } from '#lib/types/cs-proto.js';
+	import { clone } from '@bufbuild/protobuf';
 	import type { ConnectError } from '@connectrpc/connect';
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
 
 	const { game, player, universe, updateProductionPlan, readOnly } = getGameContext();
 	let num = parseInt(page.params.num || '0');
 
-	let plan: ProductionPlan | undefined = $derived(
-		$player.playerPlans.productionPlans.find((p) => p.num == num)
+	// edit a copy so the player's plan only changes on save
+	const savedPlan = $player.playerPlans.productionPlans.find((p) => p.num == num);
+	let plan: ProductionPlan | undefined = $state(
+		savedPlan && clone(ProductionPlanSchema, savedPlan)
 	);
 
 	let error = $state('');
