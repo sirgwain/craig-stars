@@ -2628,6 +2628,7 @@ func (t *turnGenerator) fleetBattle() {
 			}
 
 			// message each player
+			sharedWith := map[int]bool{}
 			for _, player := range playersAtPosition {
 				// player knows about the battle
 				player.BattleRecords = append(player.BattleRecords, *record)
@@ -2643,6 +2644,11 @@ func (t *turnGenerator) fleetBattle() {
 						// not sharing with this player
 						continue
 					}
+					if sharedWith[otherPlayer.Num] {
+						// another ally in this battle already shared it
+						continue
+					}
+					sharedWith[otherPlayer.Num] = true
 
 					// share the battle recording with this player
 					otherPlayer.BattleRecords = append(otherPlayer.BattleRecords, *record)

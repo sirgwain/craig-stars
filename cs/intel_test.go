@@ -179,3 +179,36 @@ func Test_discover_discoverPlanetStarbase(t *testing.T) {
 	assert.Equal(t, "", intel.Spec.StarbaseDesignName)
 	assert.Equal(t, 0, intel.Spec.StarbaseDesignNum)
 }
+
+// Map sharing allies see each other's planets, with exact population.
+func Test_discover_allyPlanetPopulation(t *testing.T) {
+	shared := []PlayerRelationship{{Relation: PlayerRelationFriend, ShareMap: true}, {Relation: PlayerRelationFriend, ShareMap: true}}
+	game := BuildScenario(TestScenario{
+		Players: []ScenarioPlayer{{Relations: shared}, {Relations: shared}},
+		Planets: []ScenarioPlanet{{Name: "Ally", Owner: 2, Position: Vector{1000, 1000}, Cargo: Cargo{Ironium: 50, Colonists: 2500}}},
+	})
+	assert.Equal(t, game.Planets[0].Cargo, game.Players[0].GetPlanetIntel(1).Cargo)
+}
+
+// A mineral packet is reported once a year, however many times we and our allies see it.
+func Test_discover_discoverMineralPacketOnce(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules).WithNum(1)
+	ally := NewPlayer(2, NewRace().WithSpec(&rules)).withSpec(&rules).WithNum(2)
+	thrower := NewPlayer(3, NewRace().WithSpec(&rules)).withSpec(&rules).WithNum(3)
+	shared := PlayerRelationship{Relation: PlayerRelationFriend, ShareMap: true}
+	player.Relations = []PlayerRelationship{shared, shared, {Relation: PlayerRelationEnemy}}
+	ally.Relations = []PlayerRelationship{shared, shared, {Relation: PlayerRelationEnemy}}
+	players := []*Player{player, ally, thrower}
+
+	target := NewPlanet().WithNum(1).WithPlayerNum(4)
+	packet := newMineralPacket(thrower, 1, 5, 5, Cargo{Ironium: 100}, Vector{}, target.Num)
+
+	// we both see the packet, and each sighting is shared with the other
+	newDiscovererWithAllies(testLogger, player, players).discoverMineralPacket(&rules, packet, thrower, target)
+	newDiscovererWithAllies(testLogger, ally, players).discoverMineralPacket(&rules, packet, thrower, target)
+
+	assert.Len(t, player.MineralPacketIntels, 1)
+	assert.Len(t, player.Messages, 1)
+	assert.Len(t, ally.MineralPacketIntels, 1)
+	assert.Len(t, ally.Messages, 1)
+}

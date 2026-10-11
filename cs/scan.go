@@ -414,7 +414,8 @@ func (scan *playerScanner) discoverAllies() error {
 			if planet.PlayerNum != player.Num {
 				continue
 			}
-			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true, planet.OwnedBy(scan.player.Num)); err != nil {
+			// allies sharing their map share exact population counts
+			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true, true); err != nil {
 				return err
 			}
 			if err := scan.discoverer.discoverPlanetCargo(planet); err != nil {

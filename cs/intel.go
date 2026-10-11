@@ -311,11 +311,10 @@ func (d *discover) discoverPlanetCargo(planet *Planet) error {
 
 	intel = player.PlanetIntels[planetIndex]
 
-	intel.Cargo = Cargo{
-		Ironium:   planet.Cargo.Ironium,
-		Boranium:  planet.Cargo.Boranium,
-		Germanium: planet.Cargo.Germanium,
-	}
+	// only the minerals, the population reading comes from scanning the planet
+	intel.Cargo.Ironium = planet.Cargo.Ironium
+	intel.Cargo.Boranium = planet.Cargo.Boranium
+	intel.Cargo.Germanium = planet.Cargo.Germanium
 
 	return nil
 }
@@ -465,6 +464,8 @@ func (d *discover) discoverMinefield(minefield *Minefield) {
 func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet) {
 	player := d.player
 	intel := player.GetMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
+	// packet intel is cleared every year, so no intel means this is the first time we've seen it this year
+	firstSighting := intel == nil
 	if intel == nil {
 		// discover this new mineralPacket
 		intel = newMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
@@ -475,7 +476,8 @@ func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPac
 			slog.Int("MineralPacket", mineralPacket.Num))
 	}
 
-	if player.Num != mineralPacket.PlayerNum {
+	// tell the player once a year, no matter how many of their allies also see it
+	if firstSighting && player.Num != mineralPacket.PlayerNum {
 		if target.PlayerNum == player.Num {
 			damage := mineralPacket.estimateDamage(rules, packetPlayer, target, player)
 			messager.mineralPacketDiscoveredTargettingPlayer(player, mineralPacket, target, damage)
