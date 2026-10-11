@@ -3024,42 +3024,48 @@ func (t *turnGenerator) fleetTransferOwner() {
 				token := &fleet.Tokens[i]
 				design := token.design
 
-				// give the player a copy of this design
-				newName := fmt.Sprintf("%s %s", player.Race.PluralName, design.Name)
-				targetPlayerDesign := targetPlayer.GetDesignByName(newName)
-				if targetPlayerDesign != nil {
-					if !targetPlayerDesign.SlotsEqual(design.Slots) {
-						// uh oh, design has been updated since the last time it was transferred to us...
-						// create a new design for the target player
-						num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)
-						newDesign := *design
-						newDesign.GameDBObject = GameDBObject{}
-						newDesign.OriginalPlayerNum = player.Num
-						newDesign.PlayerNum = targetPlayer.Num
-						newDesign.Num = num
-						// rev the version and append it to the name
-						newDesign.Version++
-						newDesign.Name = fmt.Sprintf("%s v%d", newName, newDesign.Version)
-						targetPlayerDesign = &newDesign
-						targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
+				// ships going back to the player who designed them use that player's own design again, if they still have it
+				var targetPlayerDesign *ShipDesign
+				if design.OriginalPlayerNum == targetPlayer.Num {
+					for _, original := range targetPlayer.Designs {
+						if original.OriginalPlayerNum == None && original.Hull == design.Hull && original.SlotsEqual(design.Slots) {
+							targetPlayerDesign = original
+							break
+						}
 					}
-				} else {
-					// create a new design for the target player
-					num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)
-					newDesign := *design
-					newDesign.GameDBObject = GameDBObject{}
-					newDesign.Name = newName
-					newDesign.OriginalPlayerNum = player.Num
-					newDesign.PlayerNum = targetPlayer.Num
-					newDesign.Num = num
-					targetPlayerDesign = &newDesign
-					targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
 				}
 
-				// make sure we don't update this spec
-				targetPlayerDesign.Spec.NumBuilt = 0
-				targetPlayerDesign.Spec.NumInstances = 0
+				if targetPlayerDesign == nil {
+					// give the player a copy of this design
+					newName := fmt.Sprintf("%s %s", player.Race.PluralName, design.Name)
+					targetPlayerDesign = targetPlayer.GetDesignByName(newName)
+					if targetPlayerDesign == nil || !targetPlayerDesign.SlotsEqual(design.Slots) {
+						// a new design for the target player
+						newDesign := *design
+						newDesign.GameDBObject = GameDBObject{}
+						newDesign.Name = newName
+						newDesign.OriginalPlayerNum = player.Num
+						newDesign.PlayerNum = targetPlayer.Num
+						newDesign.Num = targetPlayer.GetNextDesignNum(targetPlayer.Designs)
+						if targetPlayerDesign != nil {
+							// uh oh, design has been updated since the last time it was transferred to us...
+							// rev the version and append it to the name
+							newDesign.Version++
+							newDesign.Name = fmt.Sprintf("%s v%d", newName, newDesign.Version)
+						}
+						// the new owner hasn't built or been given any of these yet
+						newDesign.Spec.NumBuilt = 0
+						newDesign.Spec.NumInstances = 0
+						targetPlayerDesign = &newDesign
+						targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
+						t.game.addDesign(targetPlayerDesign)
+					}
 
+					// ships we were given count as built, so the design shows how many we have of how many we got
+					targetPlayerDesign.Spec.NumBuilt += token.Quantity
+				}
+
+				// the instance counts are redone for every design at the end of the turn
 				token.design = targetPlayerDesign
 				token.DesignNum = targetPlayerDesign.Num
 			}

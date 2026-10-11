@@ -47,4 +47,10 @@
 			<DesignStats spec={design.spec} {damage} />
 		</div>
 	</div>
+	{#if design.spec?.numBuilt}
+		<div class="mx-2">
+			{design.spec.numInstances} remaining of {design.spec.numBuilt}
+			{design.originalPlayerNum ? 'received' : 'built'}
+		</div>
+	{/if}
 </div>

@@ -62,18 +62,17 @@
 		</div>
 		<div class="card-actions justify-start">
 			<div class="grow">
-				{#if design.originalPlayerNum == None}
-					<div
-						class="tooltip"
-						data-tip={`${design.spec?.numInstances ?? 0} remaining of ${
-							design.spec?.numBuilt ?? 0
-						} built`}
-					>
-						<span class="btn rounded-lg border border-secondary normal-case">
-							{design.spec?.numInstances ?? 0} of {design.spec?.numBuilt ?? 0}
-						</span>
-					</div>
-				{/if}
+				<!-- for a design another player gave us, built is how many of them we were given -->
+				<div
+					class="tooltip"
+					data-tip={`${design.spec?.numInstances ?? 0} remaining of ${design.spec?.numBuilt ?? 0} ${
+						design.originalPlayerNum == None ? 'built' : 'received'
+					}`}
+				>
+					<span class="btn rounded-lg border border-secondary normal-case">
+						{design.spec?.numInstances ?? 0} of {design.spec?.numBuilt ?? 0}
+					</span>
+				</div>
 			</div>
 			<div class="flex flex-row join">
 				{#if !design.cannotDelete && !readOnly}
