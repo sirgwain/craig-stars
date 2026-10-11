@@ -1276,6 +1276,7 @@ func (ug *universeGenerator) generatePlayerIntel() error {
 			return err
 		}
 	}
+	sharePlayerIntel(ug.Players)
 
 	return nil
 }

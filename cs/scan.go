@@ -330,6 +330,7 @@ func (scan *playerScanner) scanMineralPackets(scanners []scanner) {
 
 		// PP races detect all packets in flight
 		if scan.player.Race.Spec.DetectAllPackets {
+			scan.discoveredPlayers[packet.PlayerNum] = true
 			scan.discoverer.discoverMineralPacket(scan.rules, packet, packetPlayer, target)
 			continue
 		}
@@ -341,6 +342,8 @@ func (scan *playerScanner) scanMineralPackets(scanners []scanner) {
 
 			// we only care about regular scanners for mineral packets
 			if scanner.RangeSquared(NoCloakFactor) >= scanner.Position.DistanceSquaredTo(packet.Position) {
+				// seeing anything of a player's tells us who they are
+				scan.discoveredPlayers[packet.PlayerNum] = true
 				scan.discoverer.discoverMineralPacket(scan.rules, packet, packetPlayer, target)
 				break
 			}
@@ -375,6 +378,7 @@ func (scan *playerScanner) scanMinefields(scanners []scanner) {
 			scannerRange := float64(scanner.Range) * cloakFactor
 			// we only care about regular scanners for wormholes
 			if scannerRange >= distanceToEdge {
+				scan.discoveredPlayers[minefield.PlayerNum] = true
 				scan.discoverer.discoverMinefield(minefield)
 				break
 			}
@@ -395,6 +399,9 @@ func (scan *playerScanner) scanSalvages(scanners []scanner) {
 
 			// we only care about regular scanners for mineral packets
 			if scanner.RangeSquared(NoCloakFactor) >= scanner.Position.DistanceSquaredTo(salvage.Position) {
+				if salvage.PlayerNum != Unowned {
+					scan.discoveredPlayers[salvage.PlayerNum] = true
+				}
 				scan.discoverer.discoverSalvage(salvage)
 				break
 			}
@@ -476,6 +483,33 @@ func (scan *playerScanner) discoverPlayers() {
 	for player, discovered := range scan.discoveredPlayers {
 		if discovered {
 			scan.discoverer.discoverPlayer(scan.players[player-1])
+		}
+	}
+}
+
+// sharePlayerIntel makes sure every player knows the players their map sharing allies know.
+// Players scan one at a time, so an ally who scans later in the year, or who learned of a player from
+// an ally of their own, would otherwise not pass that on until some later year.
+func sharePlayerIntel(players []*Player) {
+	for changed := true; changed; {
+		changed = false
+		for _, player := range players {
+			for _, ally := range players {
+				if ally.Num == player.Num || !ally.IsSharingMap(player.Num) {
+					continue
+				}
+				known := player.Intels.PlayerIntels
+				if !known[ally.Num-1].Seen {
+					player.discoverer.discoverPlayer(ally)
+					changed = true
+				}
+				for _, intel := range ally.Intels.PlayerIntels {
+					if intel.Seen && intel.Num != player.Num && !known[intel.Num-1].Seen {
+						player.discoverer.discoverPlayer(players[intel.Num-1])
+						changed = true
+					}
+				}
+			}
 		}
 	}
 }

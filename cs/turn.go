@@ -3349,6 +3349,9 @@ func (t *turnGenerator) scan() error {
 		player.SubmittedTurn = false
 	}
 
+	// now that everyone has scanned, allies share who they know about
+	sharePlayerIntel(t.game.Players)
+
 	return nil
 }
 
