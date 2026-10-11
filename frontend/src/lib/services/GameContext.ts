@@ -567,7 +567,9 @@ export async function createGameContext(
 				zoomToMapObject(fleets[prevIndex]);
 
 				const fleet = fleets[prevIndex];
-				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum !== None) {
+				if ((fleet.fleetOrders?.waypoints.length ?? 0) > 1) {
+					// commanding it selected the end of its route
+				} else if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum !== None) {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.PLANET,
 						targetNum: fleet.orbitingPlanetNum,
@@ -605,7 +607,9 @@ export async function createGameContext(
 				const fleet = fleets[nextIndex];
 				commandMapObject(fleets[nextIndex]);
 				zoomToMapObject(fleets[nextIndex]);
-				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
+				if ((fleet.fleetOrders?.waypoints.length ?? 0) > 1) {
+					// commanding it selected the end of its route
+				} else if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.PLANET,
 						targetNum: fleet.orbitingPlanetNum,
@@ -630,7 +634,22 @@ export async function createGameContext(
 		selectedWaypoint.update(() => wp);
 	}
 
+	// Command a mapobject because the player picked it. Like commandWithoutSelecting, and a fleet with
+	// a route also gets its last waypoint selected on the map, to match the waypoint that's selected
+	// for adding to. The view doesn't move.
 	function commandMapObject(mo: MapObjectLike) {
+		commandWithoutSelecting(mo);
+		if (mo.mapObject?.type === MapObjectType.FLEET) {
+			const waypoints = (mo as Fleet).fleetOrders?.waypoints ?? [];
+			if (waypoints.length > 1) {
+				selectWaypointMapObject(waypoints[waypoints.length - 1]);
+			}
+		}
+	}
+
+	// Command a mapobject without changing what's selected on the map, for when we're only
+	// refreshing the fleet or planet that's already commanded.
+	function commandWithoutSelecting(mo: MapObjectLike) {
 		commandedMapObject.update(() => mo);
 		mostRecentMapObject.update(() => mo);
 		if (mo.mapObject?.type === MapObjectType.PLANET) {
@@ -647,12 +666,10 @@ export async function createGameContext(
 			const cf = new CommandedFleet(mo as Fleet);
 			commandedFleet.update(() => cf);
 			commandedPlanet.update(() => undefined);
+			// select the end of the fleet's route, so new waypoints are added after it
 			selectedWaypoint.update(() => {
-				const fleet = mo as Fleet;
-				if (fleet?.fleetOrders?.waypoints && fleet.fleetOrders.waypoints.length) {
-					return fleet.fleetOrders.waypoints[fleet.fleetOrders.waypoints.length - 1];
-				}
-				return undefined;
+				const waypoints = (mo as Fleet).fleetOrders?.waypoints ?? [];
+				return waypoints[waypoints.length - 1];
 			});
 		}
 	}
@@ -746,14 +763,11 @@ export async function createGameContext(
 
 		// if we were commanding this fleet, recommand it to trigger reactivity
 		if (equal(cf, fleet)) {
-			commandMapObject(fleet);
-			// update the selected waypoint if we just updated the commandedFleet
-			if (
-				index > -1 &&
-				fleet.fleetOrders?.waypoints &&
-				fleet.fleetOrders.waypoints.length > index
-			) {
-				selectWaypoint(get(commandedFleet)!.fleetOrders.waypoints[index]);
+			commandWithoutSelecting(fleet);
+			// keep the same waypoint selected, or the last one if the one we had selected is gone
+			const waypoints = get(commandedFleet)!.fleetOrders.waypoints;
+			if (index > -1 && waypoints.length > 0) {
+				selectWaypoint(waypoints[Math.min(index, waypoints.length - 1)]);
 			}
 		}
 
@@ -1408,7 +1422,7 @@ export async function createGameContext(
 		// update the commanded fleet
 		const commandedFleet = Object.assign(new CommandedFleet(), updatedSource);
 		u.updateFleet(updatedSource);
-		commandMapObject(commandedFleet);
+		commandWithoutSelecting(commandedFleet);
 		if (equal(get(selectedMapObject), commandedFleet)) {
 			selectMapObject(commandedFleet);
 		}
@@ -1448,7 +1462,7 @@ export async function createGameContext(
 		const sourceFleet = fleets.find((f) => f.mapObject?.num == fleet.mapObject?.num);
 		if (sourceFleet) {
 			fleet = Object.assign(fleet, sourceFleet);
-			commandMapObject(fleet);
+			commandWithoutSelecting(fleet);
 		}
 
 		const u = get(universe);

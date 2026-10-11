@@ -15,7 +15,10 @@ vi.mock('#lib/services/GameContext.js', () => ({ getGameContext: () => state.con
 type Stage = 'full' | 'views' | 'menu';
 
 // render the toolbar in a container of the given width and report how it laid out
-async function layout(width: number, shareMap: boolean) {
+const deleteWaypoint = vi.fn();
+
+// a selected waypoint index above 0 is one that can be deleted
+async function layout(width: number, shareMap: boolean, selectedWaypointIndex = 0) {
 	const player = new CommandedPlayer();
 	player.num = 1;
 	if (shareMap) {
@@ -24,7 +27,10 @@ async function layout(width: number, shareMap: boolean) {
 	state.context = {
 		player: writable(player),
 		settings: writable(new PlayerSettings()),
-		universe: writable(new Universe())
+		universe: writable(new Universe()),
+		commandedFleet: writable({}),
+		currentSelectedWaypointIndex: writable(selectedWaypointIndex),
+		deleteWaypoint
 	};
 
 	const host = document.createElement('div');
@@ -52,7 +58,13 @@ async function layout(width: number, shareMap: boolean) {
 		: inToolbar('#normal-view')
 			? 'views'
 			: 'menu';
-	const result = { stage, overflow: navbar.scrollWidth - navbar.clientWidth };
+	const deleteButton = navbar.querySelector<HTMLElement>('#delete-waypoint');
+	deleteButton?.click();
+	const result = {
+		stage,
+		overflow: navbar.scrollWidth - navbar.clientWidth,
+		hasDelete: !!deleteButton
+	};
 	unmount();
 	host.remove();
 	return result;
@@ -92,6 +104,34 @@ describe('ScannerToolbar', () => {
 		// as it gets wider it only ever expands
 		expect(stages).toEqual([...stages].sort((a, b) => order(a) - order(b)));
 		expect(new Set(stages)).toEqual(new Set(['menu', 'views', 'full']));
+	});
+});
+
+// Deleting a waypoint from the fleet tile is fiddly on a phone, so the toolbar has a button for it.
+// It's only there while a waypoint that can be deleted is selected.
+describe('delete waypoint button', () => {
+	beforeAll(async () => {
+		// narrow enough that the cycle button for phones is shown
+		await page.viewport(390, 800);
+	});
+
+	it("is hidden for the fleet's current position", async () => {
+		deleteWaypoint.mockClear();
+		expect((await layout(390, false, 0)).hasDelete).toBe(false);
+		expect(deleteWaypoint).not.toHaveBeenCalled();
+	});
+
+	it('deletes the selected waypoint', async () => {
+		deleteWaypoint.mockClear();
+		expect((await layout(390, false, 2)).hasDelete).toBe(true);
+		expect(deleteWaypoint).toHaveBeenCalledOnce();
+	});
+
+	it.each([false, true])('fits on phones, shareMap=%s', async (shareMap) => {
+		for (let width = 340; width <= 1000; width += 6) {
+			const result = await layout(width, shareMap, 1);
+			expect(result.overflow, `overflowed at ${width} (${result.stage})`).toBeLessThanOrEqual(0);
+		}
 	});
 });
 

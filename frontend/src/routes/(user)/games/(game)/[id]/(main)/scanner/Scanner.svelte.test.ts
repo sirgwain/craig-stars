@@ -27,7 +27,7 @@ afterEach(() => {
 });
 
 // A scanner commanding a fleet at (10, 10) whose selected waypoint is in deep space at (20, 20).
-async function scannerWithSelectedWaypoint() {
+async function scannerWithSelectedWaypoint(addWaypoint = false) {
 	const fleet = new CommandedFleet(
 		create(FleetSchema, {
 			mapObject: { type: MapObjectType.FLEET, playerNum: 1, num: 1, position: { x: 10, y: 10 } },
@@ -43,7 +43,7 @@ async function scannerWithSelectedWaypoint() {
 		game: writable({ area: { x: 100, y: 100 } }),
 		player: writable(player),
 		universe: writable(universe),
-		settings: writable(new PlayerSettings()),
+		settings: writable(Object.assign(new PlayerSettings(), { addWaypoint })),
 		zoomTarget,
 		commandedFleet: writable(fleet),
 		currentSelectedWaypointIndex: writable(1),
@@ -53,8 +53,9 @@ async function scannerWithSelectedWaypoint() {
 	};
 	const onSelectMapObject = vi.fn();
 	const onUpdateWaypointDest = vi.fn();
+	const onAddWaypoint = vi.fn(async () => true);
 	const { container } = render(Scanner, {
-		onAddWaypoint: vi.fn(),
+		onAddWaypoint,
 		onUpdateWaypointDest,
 		onSelectWaypoint: vi.fn(),
 		onSelectMapObject,
@@ -87,7 +88,7 @@ async function scannerWithSelectedWaypoint() {
 		Object.defineProperties(event, { layerX: { value: layerX }, layerY: { value: layerY } });
 		overlay.dispatchEvent(event);
 	}
-	return { pointer, onSelectMapObject, onUpdateWaypointDest };
+	return { pointer, onSelectMapObject, onUpdateWaypointDest, onAddWaypoint };
 }
 
 // Selecting what's under the selected waypoint can command a planet there, which would stop the
@@ -171,97 +172,66 @@ it.each([
 	expect(onScannerContextPopup).not.toHaveBeenCalled();
 });
 
-it.each(['pointerup', 'pointercancel'])(
-	'does not re-enable the just-added guard after %s',
-	async (release) => {
-		const fleet = new CommandedFleet(
-			create(FleetSchema, {
-				mapObject: { type: MapObjectType.FLEET, playerNum: 1, num: 1, position: { x: 10, y: 10 } },
-				fleetOrders: { waypoints: [{ position: { x: 10, y: 10 } }, { position: { x: 20, y: 20 } }] }
-			})
-		);
-		const universe = new Universe();
-		universe.fleets = [fleet];
-		const player = new CommandedPlayer();
-		player.num = 1;
-		const settings = writable(Object.assign(new PlayerSettings(), { addWaypoint: true }));
-		const zoomTarget = writable({ mapObject: fleet.mapObject });
-		state.context = {
-			game: writable({ area: { x: 100, y: 100 } }),
-			player: writable(player),
-			universe: writable(universe),
-			settings,
-			zoomTarget,
-			commandedFleet: writable(fleet),
-			currentSelectedWaypointIndex: writable(1),
-			highlightMapObject: vi.fn(),
-			mostRecentMapObject: writable(undefined),
-			selectedWaypoint: writable(fleet.fleetOrders.waypoints[1])
-		};
-		let finishAdd!: (added: boolean) => void;
-		const pendingAdd = new Promise<boolean>((resolve) => {
-			finishAdd = resolve;
-		});
-		const onAddWaypoint = vi.fn(() => pendingAdd);
-		const onUpdateWaypointDest = vi.fn();
-		const { container } = render(Scanner, {
-			onAddWaypoint,
-			onUpdateWaypointDest,
-			onSelectWaypoint: vi.fn(),
-			onSelectMapObject: vi.fn(),
-			onSetPacketDest: vi.fn(),
-			onSetRouteDest: vi.fn()
-		});
-		const scanner = container.firstElementChild as HTMLElement;
-		scanner.style.width = '200px';
-		scanner.style.height = '200px';
-		const root = scanner.firstElementChild as HTMLElement;
-		root.style.width = '200px';
-		root.style.height = '200px';
-		window.dispatchEvent(new Event('resize'));
-		await tick();
-		zoomTarget.set({
-			mapObject: { ...fleet.mapObject, position: create(VectorSchema, { x: 50, y: 50 }) }
-		});
-		await tick();
-		const overlay = scanner.querySelector<HTMLElement>('[data-type="scanner-overlay"]')!;
-		const transform = zoomIdentity.translate(-50, -50).scale(1.5);
-		function pointer(type: string, x: number, y: number) {
-			const [layerX, layerY] = transform.apply([x * 2, y * 2]);
-			const event = new PointerEvent(type, {
-				bubbles: true,
-				pointerType: 'touch',
-				button: 0,
-				clientX: layerX,
-				clientY: layerY
-			});
-			Object.defineProperties(event, { layerX: { value: layerX }, layerY: { value: layerY } });
-			overlay.dispatchEvent(event);
-		}
+// In add waypoint mode a tap adds a waypoint. A drag still pans the map, so the waypoint is only
+// added once the pointer lifts without having moved.
+it('adds a waypoint on a tap in add waypoint mode', async () => {
+	const { pointer, onAddWaypoint } = await scannerWithSelectedWaypoint(true);
 
-		pointer('pointerdown', 20, 20);
-		expect(onAddWaypoint).toHaveBeenCalledOnce();
-		pointer('pointermove', 20, 20);
-		pointer('pointermove', 30, 30);
-		expect(onUpdateWaypointDest).not.toHaveBeenCalled();
-		pointer(release, 20, 20);
-		// Completing the old addition after pointer-up must not affect the next gesture.
-		finishAdd(true);
-		await pendingAdd;
-		await tick();
-		settings.update((s) => {
-			s.addWaypoint = false;
-			return s;
-		});
-		await tick();
-		pointer('pointerdown', 20, 20);
-		pointer('pointermove', 20, 20);
-		pointer('pointermove', 30, 30);
-		expect(onUpdateWaypointDest).toHaveBeenCalledWith(expect.anything(), false, false);
-		pointer('pointerup', 30, 30);
-		expect(onUpdateWaypointDest).toHaveBeenLastCalledWith(expect.anything(), false, true);
-	}
-);
+	pointer('pointerdown', 60, 60, 'touch');
+	expect(onAddWaypoint).not.toHaveBeenCalled();
+	pointer('pointerup', 60, 60, 'touch');
+	expect(onAddWaypoint).toHaveBeenCalledOnce();
+});
+
+// A held finger wobbles a pixel or two before it lifts, which is still a tap.
+it('adds a waypoint on a tap that wobbles a little', async () => {
+	const { pointer, onAddWaypoint } = await scannerWithSelectedWaypoint(true);
+
+	pointer('pointerdown', 60, 60, 'touch');
+	pointer('pointermove', 60.5, 60, 'touch');
+	pointer('pointerup', 60.5, 60, 'touch');
+	expect(onAddWaypoint).toHaveBeenCalledOnce();
+});
+
+it.each([
+	{ name: 'the map is dragged', then: 'pointermove' },
+	{ name: 'the touch is cancelled', then: 'pointercancel' }
+])('does not add a waypoint when $name', async ({ then }) => {
+	const { pointer, onAddWaypoint } = await scannerWithSelectedWaypoint(true);
+
+	pointer('pointerdown', 60, 60, 'touch');
+	pointer(then, 80, 80, 'touch');
+	pointer('pointerup', 80, 80, 'touch');
+	expect(onAddWaypoint).not.toHaveBeenCalled();
+});
+
+// Panning the map across a waypoint used to pick the waypoint up and drag it too.
+it('does not drag a waypoint the pointer passes over while panning', async () => {
+	const { pointer, onUpdateWaypointDest } = await scannerWithSelectedWaypoint();
+
+	pointer('pointerdown', 60, 60, 'touch');
+	pointer('pointermove', 40, 40, 'touch');
+	pointer('pointermove', 20, 20, 'touch');
+	pointer('pointermove', 10, 30, 'touch');
+	pointer('pointerup', 10, 30, 'touch');
+	expect(onUpdateWaypointDest).not.toHaveBeenCalled();
+});
+
+it('can drag a waypoint right after adding one', async () => {
+	const { pointer, onAddWaypoint, onUpdateWaypointDest } = await scannerWithSelectedWaypoint(true);
+
+	pointer('pointerdown', 60, 60, 'touch');
+	pointer('pointerup', 60, 60, 'touch');
+	expect(onAddWaypoint).toHaveBeenCalledOnce();
+	await tick();
+
+	pointer('pointerdown', 20, 20, 'touch');
+	pointer('pointermove', 30, 30, 'touch');
+	expect(onUpdateWaypointDest).toHaveBeenCalledWith(expect.anything(), false, false);
+	pointer('pointerup', 30, 30, 'touch');
+	expect(onUpdateWaypointDest).toHaveBeenLastCalledWith(expect.anything(), false, true);
+	expect(onAddWaypoint).toHaveBeenCalledOnce();
+});
 
 it('measures with the tape from a mapobject to the pointer', async () => {
 	const fleet = new CommandedFleet(

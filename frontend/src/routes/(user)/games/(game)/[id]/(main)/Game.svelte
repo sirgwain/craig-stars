@@ -407,13 +407,20 @@
 	// onSelectMapObject cycles through commanding MapObjects at a location, and then
 	// selecting non-commandable mapobjects
 	function onSelectMapObject(mo: MapObjectLike) {
-		if (
-			!$selectedMapObject ||
-			!equal(
+		const here = (other: MapObjectLike | undefined) =>
+			!!other &&
+			equal(other.mapObject?.position ?? emptyVector(), mo.mapObject?.position ?? emptyVector());
+		// Commanding a fleet with a route moves the selection to the end of its route. We're still
+		// cycling through what's here if that's the only reason the selection is somewhere else.
+		const route = $commandedFleet?.fleetOrders.waypoints ?? [];
+		const selectionOnRouteEnd =
+			route.length > 1 &&
+			!!$selectedMapObject &&
+			equal(
 				$selectedMapObject.mapObject?.position ?? emptyVector(),
-				mo.mapObject?.position ?? emptyVector()
-			)
-		) {
+				route[route.length - 1].position ?? emptyVector()
+			);
+		if (!here($selectedMapObject) && !(here($commandedMapObject) && selectionOnRouteEnd)) {
 			// nothing selected, or nothing selected at this location yet, select this object
 			selectMapObject(mo);
 			return;

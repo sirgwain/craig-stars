@@ -16,14 +16,19 @@
 		ArrowPath,
 		Envelope,
 		Funnel,
-		MagnifyingGlass
+		MagnifyingGlass,
+		Trash
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import MobileViewSettings from './toolbar/MobileViewSettings.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 	import ScannerToolbarFilter from './toolbar/ScannerToolbarFilter.svelte';
 
-	const { player, settings } = getGameContext();
+	const { player, settings, commandedFleet, currentSelectedWaypointIndex, deleteWaypoint } =
+		getGameContext();
+
+	// the fleet's current position can't be deleted, only the waypoints after it
+	let canDeleteWaypoint = $derived(!!$commandedFleet && $currentSelectedWaypointIndex > 0);
 
 	type Props = {
 		onShowSearch: () => void;
@@ -42,8 +47,8 @@
 	const viewCount = 5;
 	// toolbar padding and the dividers between groups
 	const paddingWidth = 34;
-	// add waypoint and messages
-	const actionsWidth = 80;
+	// add waypoint and messages, plus delete waypoint while a waypoint that can be deleted is selected
+	let actionsWidth = $derived(80 + (canDeleteWaypoint ? itemWidth : 0));
 	// the scanner percent box
 	const percentWidth = 72;
 	// the button that opens the menu of collapsed items
@@ -67,6 +72,11 @@
 	let showViews = $derived(
 		showFilters || toolbarWidth >= fixedWidth + menuWidth + itemWidth * viewCount
 	);
+
+	// On the narrowest phones there isn't room for the delete button and everything else. Search gives
+	// way while it's showing, since it's the one you don't need while editing waypoints.
+	const narrowWidth = 364;
+	let hideSearch = $derived(canDeleteWaypoint && toolbarWidth > 0 && toolbarWidth < narrowWidth);
 
 	// close the planets menu when we switch views (but leave the filter menu open so we can filter more than one thing)
 	settings.subscribe(closePlanetsMenu);
@@ -156,6 +166,23 @@
 					{/if}
 				</a>
 			</li>
+			<!-- only here while there's a waypoint to delete, so the toolbar isn't any busier than it needs to be -->
+			{#if canDeleteWaypoint}
+				<li class="size-10">
+					<a
+						href="#delete-waypoint"
+						id="delete-waypoint"
+						title="delete waypoint"
+						class="btn btn-ghost btn-xs size-full p-0"
+						onclick={(e) => {
+							e.preventDefault();
+							deleteWaypoint();
+						}}
+					>
+						<Icon src={Trash} class="size-6 stroke-error" />
+					</a>
+				</li>
+			{/if}
 		</ul>
 	</div>
 	<div class="flex-none w-px h-6 mx-1 bg-base-content/20"></div>
@@ -193,12 +220,14 @@
 	</div>
 
 	<div class="ml-auto flex-none" bind:clientWidth={navWidth}>
-		<button
-			onclick={onShowSearch}
-			class="btn btn-outline btn-sm normal-case btn-secondary"
-			title="search"
-			><Icon src={MagnifyingGlass} size="16" class="hover:stroke-accent inline" /></button
-		>
+		{#if !hideSearch}
+			<button
+				onclick={onShowSearch}
+				class="btn btn-outline btn-sm normal-case btn-secondary"
+				title="search"
+				><Icon src={MagnifyingGlass} size="16" class="hover:stroke-accent inline" /></button
+			>
+		{/if}
 		<button
 			onclick={onCycleMapObject}
 			class="md:hidden btn btn-outline btn-sm normal-case btn-secondary"
