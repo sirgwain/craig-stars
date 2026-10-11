@@ -1918,6 +1918,52 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 
 }
 
+// Designs keep count of the ships a player was given, and ships given back go back to their original design.
+func Test_turn_fleetTransferOwner_designs(t *testing.T) {
+	s := TwoPlayerScenario()
+	s.Players[0].Player = NewPlayer(1, NewRace().WithPluralName("Rabbitoids"))
+	s.Players[0].Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
+	s.Players[1].Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
+	s.Players[0].Fleets[0].Waypoints = []ScenarioWaypoint{{To: "Planet 1", Task: WaypointTaskTransferFleet, TransferToPlayer: 2}}
+	u := newTestUniverse(t, s)
+	player1, player2, fleet := u.Player(1), u.Player(2), u.FleetFor(1, "Long Range Scout #1")
+	original := fleet.Tokens[0].design
+	player1Designs, player2Designs := len(player1.Designs), len(player2.Designs)
+	originalBuilt := original.Spec.NumBuilt
+
+	// give the scout away
+	u.GenerateTurn()
+	given := fleet.Tokens[0].design
+	assert.Equal(t, player2.Num, fleet.PlayerNum)
+	assert.Equal(t, "Rabbitoids Long Range Scout", given.Name)
+	assert.Equal(t, 1, given.Spec.NumBuilt)
+	assert.Equal(t, 1, given.Spec.NumInstances)
+	assert.Equal(t, 0, original.Spec.NumInstances)
+	assert.Equal(t, originalBuilt, original.Spec.NumBuilt)
+	assert.Len(t, player2.Designs, player2Designs+1)
+
+	// and get it back, as our own design
+	fleet.Waypoints[0].Task = WaypointTaskTransferFleet
+	fleet.Waypoints[0].TransferToPlayer = 1
+	u.GenerateTurn()
+	assert.Equal(t, player1.Num, fleet.PlayerNum)
+	assert.Same(t, original, fleet.Tokens[0].design)
+	assert.Len(t, player1.Designs, player1Designs)
+	assert.Equal(t, 1, original.Spec.NumInstances)
+	assert.Equal(t, originalBuilt, original.Spec.NumBuilt)
+	assert.Equal(t, 0, given.Spec.NumInstances)
+	assert.Equal(t, 1, given.Spec.NumBuilt)
+
+	// giving it away again reuses the design the other player already has
+	fleet.Waypoints[0].Task = WaypointTaskTransferFleet
+	fleet.Waypoints[0].TransferToPlayer = 2
+	u.GenerateTurn()
+	assert.Same(t, given, fleet.Tokens[0].design)
+	assert.Len(t, player2.Designs, player2Designs+1)
+	assert.Equal(t, 2, given.Spec.NumBuilt)
+	assert.Equal(t, 1, given.Spec.NumInstances)
+}
+
 func Test_turn_fleetBattle(t *testing.T) {
 	s := TwoPlayerScenario()
 	s.Players[0].Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
