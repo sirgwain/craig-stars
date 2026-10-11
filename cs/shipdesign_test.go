@@ -185,7 +185,8 @@ func TestShipDesign_Validate(t *testing.T) {
 				Hull: Scout.Name,
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-					{HullComponent: TransportCloaking.Name, HullSlotIndex: 2, Quantity: 1},
+					// the general slot takes a cloak, but it could also take a weapon
+					{HullComponent: TransportCloaking.Name, HullSlotIndex: 3, Quantity: 1},
 				},
 			},
 			player:  NewPlayer(1, NewRace().WithPRT(SS).WithSpec(&rules)),
@@ -647,7 +648,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				ShipClass:          ShipClassBomber,
 				Engine:             AlphaDrive8.Engine,
 				NumEngines:         1,
-				Cost:               Cost{34, 24, 11, 62},
+				Cost:               Cost{35, 24, 12, 65},
 				TechLevel:          TechLevel{Weapons: 2, Propulsion: 7, Construction: 1},
 				Mass:               85,
 				Armor:              50,
@@ -1098,10 +1099,10 @@ func TestDesignShip(t *testing.T) {
 				fleetPurpose: FleetPurposeMineLayer,
 			},
 			want: map[string]int{
-				FuelMizer.Name:       1,
+				FuelMizer.Name:       3,
 				FuelTank.Name:        3,
 				MineDispenser80.Name: 19,
-				CowHideShield.Name:   4,
+				CowHideShield.Name:   3,
 			},
 			wantErr: false,
 		},
@@ -1116,7 +1117,7 @@ func TestDesignShip(t *testing.T) {
 				fleetPurpose: FleetPurposeBomber,
 			},
 			want: map[string]int{
-				TransGalacticSuperScoop.Name: 2,
+				TransGalacticSuperScoop.Name: 3,
 				FuelTank.Name:                2,
 				HushABoom.Name:               16,
 				LangstonShell.Name:           2,
@@ -1314,7 +1315,7 @@ func Test_designWarship(t *testing.T) {
 			},
 			want: map[string]int{
 				ArmageddonMissile.Name:   128,
-				CompletePhaseShield.Name: 40,
+				CompletePhaseShield.Name: 60,
 				Valanium.Name:            40,
 				Jammer30.Name:            8,
 				BattleNexus.Name:         4,

@@ -502,7 +502,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:           Cost{22, 43, 9, 42},
+				Cost:           Cost{23, 43, 10, 45},
 				FuelCapacity:   120,
 				Mass:           112,
 				Armor:          50,
@@ -540,7 +540,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:           Cost{44, 86, 18, 84},
+				Cost:           Cost{46, 86, 20, 90},
 				FuelCapacity:   240,
 				Mass:           224,
 				Armor:          100,

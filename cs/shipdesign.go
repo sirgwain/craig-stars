@@ -133,6 +133,8 @@ const (
 	ShipDesignPurposeStargater             ShipDesignPurpose = "Stargater"
 	ShipDesignPurposeFort                  ShipDesignPurpose = "Fort"
 	ShipDesignPurposeStarterColony         ShipDesignPurpose = "StarterColony"
+	ShipDesignPurposeCloakedScout          ShipDesignPurpose = "CloakedScout"
+	ShipDesignPurposeCloakedFreighter      ShipDesignPurpose = "CloakedFreighter"
 )
 
 func NewShipDesign(playerNum, num int) *ShipDesign {
@@ -222,7 +224,7 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 				return fmt.Errorf("hull component %q was not found in tech store", designSlot.HullComponent)
 			}
 
-			if hc.CloakUnarmedOnly && transportCloakName != "" {
+			if hc.CloakUnarmedOnly && transportCloakName == "" {
 				// track transport cloak
 				transportCloakName = hc.Name
 			}
@@ -815,7 +817,7 @@ func DesignShip(rules *Rules, player *Player, hull *TechHull, name string, num i
 	numCargoPods := 0
 	numBeamWeapons := 0
 	numTorpedoes := 0
-	var hasGate, hasDriver, hasScanner, hasColonyModule bool
+	var hasGate, hasDriver, hasScanner, hasColonyModule, hasCloak bool
 
 	maxNum := math.MinInt
 	for i, hullSlot := range hull.Slots {
@@ -860,6 +862,18 @@ func DesignShip(rules *Rules, player *Player, hull *TechHull, name string, num i
 				if !hasScanner && scanner != nil {
 					slot.HullComponent = scanner.Name
 					hasScanner = true
+				}
+			case ShipDesignPurposeCloakedScout:
+				scanner := cache.get(hullSlot, TechTagScanner)
+				if !hasScanner && scanner != nil {
+					slot.HullComponent = scanner.Name
+					hasScanner = true
+					break purposeSwitch
+				}
+				cloak := cache.get(hullSlot, TechTagCloak)
+				if !hasCloak && cloak != nil {
+					slot.HullComponent = cloak.Name
+					hasCloak = true
 				}
 			case ShipDesignPurposeStartingFighter: // everyone's favorite rinky dinky starter ships
 				scanner := cache.get(hullSlot, TechTagScanner)
@@ -915,6 +929,14 @@ func DesignShip(rules *Rules, player *Player, hull *TechHull, name string, num i
 					slot.HullComponent = colonyModule.Name
 					slot.Quantity = 1 // we only need 1 colonization module
 					hasColonyModule = true
+					break purposeSwitch
+				}
+				fallthrough
+			case ShipDesignPurposeCloakedFreighter:
+				cloak := cache.get(hullSlot, TechTagCloak)
+				if !hasCloak && cloak != nil {
+					slot.HullComponent = cloak.Name
+					hasCloak = true
 					break purposeSwitch
 				}
 				fallthrough

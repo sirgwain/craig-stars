@@ -82,6 +82,10 @@ const (
 	ShipDesignPurpose_SHIP_DESIGN_PURPOSE_FORT ShipDesignPurpose = 26
 	// Starter colony ship
 	ShipDesignPurpose_SHIP_DESIGN_PURPOSE_STARTER_COLONY ShipDesignPurpose = 27
+	// Scout with a cloak
+	ShipDesignPurpose_SHIP_DESIGN_PURPOSE_CLOAKED_SCOUT ShipDesignPurpose = 28
+	// Freighter with a cloak
+	ShipDesignPurpose_SHIP_DESIGN_PURPOSE_CLOAKED_FREIGHTER ShipDesignPurpose = 29
 )
 
 // Enum value maps for ShipDesignPurpose.
@@ -115,6 +119,8 @@ var (
 		25: "SHIP_DESIGN_PURPOSE_STARGATER",
 		26: "SHIP_DESIGN_PURPOSE_FORT",
 		27: "SHIP_DESIGN_PURPOSE_STARTER_COLONY",
+		28: "SHIP_DESIGN_PURPOSE_CLOAKED_SCOUT",
+		29: "SHIP_DESIGN_PURPOSE_CLOAKED_FREIGHTER",
 	}
 	ShipDesignPurpose_value = map[string]int32{
 		"SHIP_DESIGN_PURPOSE_UNSPECIFIED":             0,
@@ -145,6 +151,8 @@ var (
 		"SHIP_DESIGN_PURPOSE_STARGATER":               25,
 		"SHIP_DESIGN_PURPOSE_FORT":                    26,
 		"SHIP_DESIGN_PURPOSE_STARTER_COLONY":          27,
+		"SHIP_DESIGN_PURPOSE_CLOAKED_SCOUT":           28,
+		"SHIP_DESIGN_PURPOSE_CLOAKED_FREIGHTER":       29,
 	}
 )
 
@@ -1045,7 +1053,7 @@ const file_craig_stars_v1_shipdesign_proto_rawDesc = "" +
 	"ship_class\x18A \x01(\x0e2\x19.craig_stars.v1.ShipClassR\tshipClass\x1aK\n" +
 	"\x1dMineLayingRateByMineTypeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01*\xc6\b\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01*\x98\t\n" +
 	"\x11ShipDesignPurpose\x12#\n" +
 	"\x1fSHIP_DESIGN_PURPOSE_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19SHIP_DESIGN_PURPOSE_SCOUT\x10\x01\x12!\n" +
@@ -1075,7 +1083,9 @@ const file_craig_stars_v1_shipdesign_proto_rawDesc = "" +
 	"\"SHIP_DESIGN_PURPOSE_PACKET_THROWER\x10\x18\x12!\n" +
 	"\x1dSHIP_DESIGN_PURPOSE_STARGATER\x10\x19\x12\x1c\n" +
 	"\x18SHIP_DESIGN_PURPOSE_FORT\x10\x1a\x12&\n" +
-	"\"SHIP_DESIGN_PURPOSE_STARTER_COLONY\x10\x1bB\xc2\x01\n" +
+	"\"SHIP_DESIGN_PURPOSE_STARTER_COLONY\x10\x1b\x12%\n" +
+	"!SHIP_DESIGN_PURPOSE_CLOAKED_SCOUT\x10\x1c\x12)\n" +
+	"%SHIP_DESIGN_PURPOSE_CLOAKED_FREIGHTER\x10\x1dB\xc2\x01\n" +
 	"\x12com.craig_stars.v1B\x0fShipdesignProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

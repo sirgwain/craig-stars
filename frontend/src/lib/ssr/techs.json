@@ -225,7 +225,7 @@
 			"tech": {
 				"name": "Total Terraform ±3",
 				"cost": {
-					"resources": 100
+					"resources": 70
 				},
 				"requirements": {
 					"lrtsRequired": 2
@@ -242,7 +242,7 @@
 			"tech": {
 				"name": "Total Terraform ±5",
 				"cost": {
-					"resources": 100
+					"resources": 70
 				},
 				"requirements": {
 					"techLevel": {
@@ -263,7 +263,7 @@
 			"tech": {
 				"name": "Total Terraform ±7",
 				"cost": {
-					"resources": 100
+					"resources": 70
 				},
 				"requirements": {
 					"techLevel": {
@@ -284,7 +284,7 @@
 			"tech": {
 				"name": "Total Terraform ±10",
 				"cost": {
-					"resources": 100
+					"resources": 70
 				},
 				"requirements": {
 					"techLevel": {
@@ -305,7 +305,7 @@
 			"tech": {
 				"name": "Total Terraform ±15",
 				"cost": {
-					"resources": 100
+					"resources": 70
 				},
 				"requirements": {
 					"techLevel": {
@@ -326,7 +326,7 @@
 			"tech": {
 				"name": "Total Terraform ±20",
 				"cost": {
-					"resources": 100
+					"resources": 70
 				},
 				"requirements": {
 					"techLevel": {
@@ -347,7 +347,7 @@
 			"tech": {
 				"name": "Total Terraform ±25",
 				"cost": {
-					"resources": 100
+					"resources": 70
 				},
 				"requirements": {
 					"techLevel": {
@@ -368,7 +368,7 @@
 			"tech": {
 				"name": "Total Terraform ±30",
 				"cost": {
-					"resources": 100
+					"resources": 70
 				},
 				"requirements": {
 					"techLevel": {
@@ -802,7 +802,7 @@
 			"idealSpeed": 6,
 			"freeSpeed": 6,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 150, 275, 480, 576]
+			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 140, 275, 480, 576]
 		},
 		{
 			"tech": {
@@ -1028,7 +1028,7 @@
 			"idealSpeed": 10,
 			"freeSpeed": 1,
 			"maxSafeSpeed": 10,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 60, 70, 80, 90, 100]
+			"fuelUsage": [0, 0, 0, 0, 0, 0, 65, 75, 85, 95, 105]
 		},
 		{
 			"tech": {
@@ -1189,7 +1189,7 @@
 					"ironium": 5,
 					"boranium": 2,
 					"germanium": 13,
-					"resources": 11
+					"resources": 20
 				},
 				"requirements": {
 					"techLevel": {
@@ -1728,14 +1728,15 @@
 		},
 		{
 			"tech": {
-				"name": "Robo-Midget-Miner",
+				"name": "Robo-Midget Miner",
 				"cost": {
 					"ironium": 14,
 					"germanium": 4,
 					"resources": 50
 				},
 				"requirements": {
-					"lrtsRequired": 4
+					"lrtsRequired": 4,
+					"lrtsDenied": 128
 				},
 				"ranking": 10,
 				"category": "TECH_CATEGORY_MINE_ROBOT",
@@ -1830,9 +1831,9 @@
 			"tech": {
 				"name": "Alien Miner",
 				"cost": {
-					"ironium": 4,
-					"germanium": 1,
-					"resources": 10
+					"ironium": 8,
+					"germanium": 2,
+					"resources": 20
 				},
 				"requirements": {
 					"techLevel": {
@@ -2105,8 +2106,8 @@
 				"name": "Hush-a-Boom",
 				"cost": {
 					"ironium": 1,
-					"boranium": 2,
-					"resources": 2
+					"boranium": 5,
+					"resources": 5
 				},
 				"requirements": {
 					"techLevel": {
@@ -2502,7 +2503,7 @@
 				}
 			},
 			"hullSlotType": 4,
-			"mass": 6,
+			"mass": 2,
 			"scanner": true,
 			"scanRange": 185,
 			"scanRangePen": 50,
@@ -2954,10 +2955,10 @@
 			"tech": {
 				"name": "Mega Poly Shell",
 				"cost": {
-					"ironium": 14,
-					"boranium": 5,
-					"germanium": 5,
-					"resources": 52
+					"ironium": 18,
+					"boranium": 6,
+					"germanium": 6,
+					"resources": 65
 				},
 				"requirements": {
 					"techLevel": {
@@ -3438,7 +3439,7 @@
 		},
 		{
 			"tech": {
-				"name": "Anti-Matter Generator",
+				"name": "Anti-matter Generator",
 				"cost": {
 					"ironium": 8,
 					"boranium": 3,
@@ -3518,7 +3519,7 @@
 				"name": "Mine Dispenser 80",
 				"cost": {
 					"ironium": 2,
-					"boranium": 12,
+					"boranium": 14,
 					"germanium": 10,
 					"resources": 65
 				},
@@ -3599,9 +3600,9 @@
 				"name": "Heavy Dispenser 110",
 				"cost": {
 					"ironium": 2,
-					"boranium": 20,
+					"boranium": 30,
 					"germanium": 5,
-					"resources": 50
+					"resources": 70
 				},
 				"requirements": {
 					"techLevel": {
@@ -3808,7 +3809,7 @@
 				"requirements": {
 					"techLevel": {
 						"energy": 3,
-						"construction": 8
+						"construction": 9
 					}
 				},
 				"ranking": 30,
@@ -3952,8 +3953,8 @@
 			"tech": {
 				"name": "Jump Gate",
 				"cost": {
-					"germanium": 38,
-					"resources": 30
+					"germanium": 50,
+					"resources": 40
 				},
 				"requirements": {
 					"techLevel": {
@@ -4048,8 +4049,8 @@
 			"tech": {
 				"name": "Mini Gun",
 				"cost": {
-					"boranium": 6,
-					"resources": 6
+					"boranium": 16,
+					"resources": 10
 				},
 				"requirements": {
 					"techLevel": {
@@ -4067,7 +4068,7 @@
 			"hullSlotType": 2048,
 			"mass": 3,
 			"minefieldType": "MINEFIELD_TYPE_STANDARD",
-			"power": 16,
+			"power": 13,
 			"range": 2,
 			"initiative": 12,
 			"gatling": true,
@@ -4463,10 +4464,10 @@
 			"tech": {
 				"name": "Multi Contained Munition",
 				"cost": {
-					"ironium": 5,
-					"boranium": 32,
-					"germanium": 5,
-					"resources": 32
+					"ironium": 6,
+					"boranium": 40,
+					"germanium": 6,
+					"resources": 40
 				},
 				"requirements": {
 					"techLevel": {
@@ -4629,7 +4630,7 @@
 				}
 			},
 			"hullSlotType": 2048,
-			"mass": 1,
+			"mass": 2,
 			"minefieldType": "MINEFIELD_TYPE_STANDARD",
 			"power": 433,
 			"range": 2,
@@ -5136,10 +5137,10 @@
 			"tech": {
 				"name": "Langston Shell",
 				"cost": {
-					"ironium": 6,
-					"boranium": 1,
-					"germanium": 4,
-					"resources": 12
+					"ironium": 10,
+					"boranium": 2,
+					"germanium": 6,
+					"resources": 20
 				},
 				"requirements": {
 					"techLevel": {
@@ -5410,9 +5411,9 @@
 			"tech": {
 				"name": "Super Freighter",
 				"cost": {
-					"ironium": 35,
+					"ironium": 45,
 					"germanium": 21,
-					"resources": 100
+					"resources": 125
 				},
 				"requirements": {
 					"techLevel": {
@@ -5760,7 +5761,7 @@
 					}
 				},
 				{
-					"type": 76,
+					"type": 200,
 					"capacity": 2,
 					"position": {
 						"x": -0.5,
@@ -5768,7 +5769,7 @@
 					}
 				},
 				{
-					"type": 76,
+					"type": 200,
 					"capacity": 2,
 					"position": {
 						"x": -0.5,
@@ -6045,7 +6046,7 @@
 				"cost": {
 					"ironium": 50,
 					"boranium": 3,
-					"germanium": 3,
+					"germanium": 2,
 					"resources": 50
 				},
 				"requirements": {
@@ -6292,7 +6293,7 @@
 					}
 				},
 				{
-					"type": 72,
+					"type": 8264,
 					"capacity": 2,
 					"position": {
 						"x": 1,
@@ -6300,7 +6301,7 @@
 					}
 				},
 				{
-					"type": 8264,
+					"type": 72,
 					"capacity": 2,
 					"position": {
 						"x": 1,
@@ -6403,10 +6404,10 @@
 			"tech": {
 				"name": "Mini Bomber",
 				"cost": {
-					"ironium": 18,
+					"ironium": 20,
 					"boranium": 5,
-					"germanium": 9,
-					"resources": 32
+					"germanium": 10,
+					"resources": 35
 				},
 				"requirements": {
 					"techLevel": {
@@ -6581,7 +6582,7 @@
 			"slots": [
 				{
 					"type": 2,
-					"capacity": 2,
+					"capacity": 3,
 					"required": true,
 					"position": {
 						"x": -1.5
@@ -6645,7 +6646,8 @@
 					"resources": 20
 				},
 				"requirements": {
-					"lrtsRequired": 4
+					"lrtsRequired": 4,
+					"lrtsDenied": 128
 				},
 				"ranking": 210,
 				"category": "TECH_CATEGORY_SHIP_HULL"
@@ -6738,7 +6740,8 @@
 					"techLevel": {
 						"construction": 6
 					},
-					"lrtsRequired": 4
+					"lrtsRequired": 4,
+					"lrtsDenied": 128
 				},
 				"ranking": 230,
 				"category": "TECH_CATEGORY_SHIP_HULL"
@@ -6882,7 +6885,8 @@
 					"techLevel": {
 						"construction": 14
 					},
-					"lrtsRequired": 4
+					"lrtsRequired": 4,
+					"lrtsDenied": 128
 				},
 				"ranking": 250,
 				"category": "TECH_CATEGORY_SHIP_HULL"
@@ -7110,7 +7114,7 @@
 			"slots": [
 				{
 					"type": 2,
-					"capacity": 1,
+					"capacity": 3,
 					"required": true,
 					"position": {
 						"x": -1.5
@@ -7134,7 +7138,7 @@
 				},
 				{
 					"type": 384,
-					"capacity": 4,
+					"capacity": 3,
 					"position": {
 						"x": 0.5
 					}
@@ -7303,7 +7307,7 @@
 			"mass": 85,
 			"armor": 500,
 			"fuelCapacity": 700,
-			"cargoCapacity": 500,
+			"cargoCapacity": 300,
 			"cargoSlotPosition": {
 				"y": -0.5
 			},
@@ -7955,7 +7959,7 @@
 				},
 				{
 					"type": 128,
-					"capacity": 20,
+					"capacity": 30,
 					"position": {
 						"x": -1,
 						"y": 1
@@ -7963,7 +7967,7 @@
 				},
 				{
 					"type": 128,
-					"capacity": 20,
+					"capacity": 30,
 					"position": {
 						"x": 1,
 						"y": -1

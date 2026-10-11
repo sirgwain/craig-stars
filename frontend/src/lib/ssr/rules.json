@@ -506,6 +506,12 @@
 							"purpose": "Scout"
 						},
 						{
+							"name": "Shadow Transport",
+							"hullName": "Small Freighter",
+							"hullSetNumber": 2,
+							"purpose": "CloakedFreighter"
+						},
+						{
 							"name": "Santa Maria",
 							"hullName": "Colony Ship",
 							"purpose": "Colonizer"
@@ -577,6 +583,11 @@
 							"hullName": "Scout",
 							"hullSetNumber": 1,
 							"purpose": "FighterScout"
+						},
+						{
+							"name": "Stalwart Defender",
+							"hullName": "Destroyer",
+							"purpose": "StartingFighter"
 						},
 						{
 							"name": "Gadfly",
@@ -920,8 +931,9 @@
 							"purpose": "Scout"
 						},
 						{
-							"name": "Santa Maria",
+							"name": "Mayflower",
 							"hullName": "Colony Ship",
+							"hullSetNumber": 2,
 							"purpose": "Colonizer"
 						},
 						{
@@ -1007,8 +1019,9 @@
 							"purpose": "Scout"
 						},
 						{
-							"name": "Santa Maria",
+							"name": "Pinta",
 							"hullName": "Colony Ship",
+							"hullSetNumber": 1,
 							"purpose": "Colonizer"
 						}
 					],

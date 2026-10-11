@@ -774,7 +774,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 		designNames := map[string]bool{}
 		num := 1
 		for _, startingPlanet := range startingPlanetsForSize(&ug.Rules, ug.Size, player.Race.Spec.StartingPlanets) {
-			for _, startingFleet := range startingPlanet.StartingFleets {
+			for _, startingFleet := range ug.upgradeStartingFleets(player, startingPlanet.StartingFleets) {
 				if designNames[startingFleet.Name] {
 					// only create one design per name, i.e. Scout, Armed Probe
 					// multiple starting fleets will use the same design
@@ -915,7 +915,7 @@ func (ug *universeGenerator) generatePlayerStartingPlanets() error {
 			}
 
 			// generate some fleets on the homeworld
-			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
+			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, ug.upgradeStartingFleets(player, startingPlanet.StartingFleets)); err != nil {
 				return fmt.Errorf("generating fleets for planet %s during universe gen failed: %w", playerPlanet, err)
 			}
 		}
@@ -1043,6 +1043,30 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	ug.Universe.Starbases = append(ug.Universe.Starbases, &starbase)
 
 	return nil
+}
+
+// upgradeStartingFleets returns these starting fleets with each one swapped for its upgrade, if the player's race has
+// one and the player starts with the tech for it.
+func (ug *universeGenerator) upgradeStartingFleets(player *Player, startingFleets []StartingFleet) []StartingFleet {
+	techStore := ug.Rules.techs
+	fleets := slices.Clone(startingFleets)
+	for _, upgrade := range ug.Rules.PRTSpecs[player.Race.PRT].startingFleetUpgrades {
+		hull := techStore.GetHull(string(upgrade.fleet.HullName))
+		if hull == nil || !player.HasTech(&hull.Tech) {
+			continue
+		}
+		if upgrade.component != "" {
+			if hc := techStore.GetHullComponent(upgrade.component); hc == nil || !player.HasTech(&hc.Tech) {
+				continue
+			}
+		}
+		for i := range fleets {
+			if fleets[i].Name == upgrade.replaces {
+				fleets[i] = upgrade.fleet
+			}
+		}
+	}
+	return fleets
 }
 
 func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet, fleetNum *int, startingFleets []StartingFleet) error {

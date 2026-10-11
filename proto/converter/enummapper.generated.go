@@ -1586,6 +1586,10 @@ func ShipDesignPurposeToCSShipDesignPurpose(m craig_starsv1.ShipDesignPurpose) c
 		return cs.ShipDesignPurposeFort
 	case craig_starsv1.ShipDesignPurpose_SHIP_DESIGN_PURPOSE_STARTER_COLONY:
 		return cs.ShipDesignPurposeStarterColony
+	case craig_starsv1.ShipDesignPurpose_SHIP_DESIGN_PURPOSE_CLOAKED_SCOUT:
+		return cs.ShipDesignPurposeCloakedScout
+	case craig_starsv1.ShipDesignPurpose_SHIP_DESIGN_PURPOSE_CLOAKED_FREIGHTER:
+		return cs.ShipDesignPurposeCloakedFreighter
 	default:
 		return cs.ShipDesignPurpose("")
 	}
@@ -1649,6 +1653,10 @@ func CSShipDesignPurposeToShipDesignPurpose(m cs.ShipDesignPurpose) craig_starsv
 		return craig_starsv1.ShipDesignPurpose_SHIP_DESIGN_PURPOSE_FORT
 	case cs.ShipDesignPurposeStarterColony:
 		return craig_starsv1.ShipDesignPurpose_SHIP_DESIGN_PURPOSE_STARTER_COLONY
+	case cs.ShipDesignPurposeCloakedScout:
+		return craig_starsv1.ShipDesignPurpose_SHIP_DESIGN_PURPOSE_CLOAKED_SCOUT
+	case cs.ShipDesignPurposeCloakedFreighter:
+		return craig_starsv1.ShipDesignPurpose_SHIP_DESIGN_PURPOSE_CLOAKED_FREIGHTER
 	default:
 		return craig_starsv1.ShipDesignPurpose_SHIP_DESIGN_PURPOSE_UNSPECIFIED
 	}

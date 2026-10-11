@@ -548,3 +548,138 @@ func Test_universeGenerator_getStartingStarbaseDesigns(t *testing.T) {
 		})
 	}
 }
+
+// Races start with the same ships as the original game. Which hulls they get depends on the race's traits
+// and the tech it starts with, so races whose costly fields start high get better ships.
+func Test_universeGenerator_startingFleets(t *testing.T) {
+	allExtra := ResearchCost{ResearchCostExtra, ResearchCostExtra, ResearchCostExtra, ResearchCostExtra, ResearchCostExtra, ResearchCostExtra}
+	startHigh := func(race *Race) *Race {
+		race.ResearchCost = allExtra
+		race.TechsStartHigh = true
+		return race
+	}
+	type fleet struct {
+		name string
+		hull string
+	}
+	tests := []struct {
+		name string
+		race *Race
+		want []fleet
+		// components the named design must carry
+		wantComponents map[string][]string
+	}{
+		{
+			name: "SS gets a cloaked freighter, but a scout can't use the transport cloak",
+			race: NewRace().WithPRT(SS),
+			want: []fleet{
+				{"Long Range Scout", Scout.Name},
+				{"Shadow Transport", SmallFreighter.Name},
+				{"Santa Maria", ColonyShip.Name},
+			},
+			wantComponents: map[string][]string{"Shadow Transport": {TransportCloaking.Name}},
+		},
+		{
+			name: "SS with the energy tech for a cloak gets a cloaked scout",
+			race: startHigh(NewRace().WithPRT(SS)),
+			want: []fleet{
+				{"Shadow Sleuth", Scout.Name},
+				{"Shadow Transport", SmallFreighter.Name},
+				{"Santa Maria", ColonyShip.Name},
+			},
+			wantComponents: map[string][]string{
+				"Shadow Sleuth":    {StealthCloak.Name},
+				"Shadow Transport": {TransportCloaking.Name},
+			},
+		},
+		{
+			name: "WM without construction tech only gets a probe",
+			race: NewRace().WithPRT(WM),
+			want: []fleet{
+				{"Santa Maria", ColonyShip.Name},
+				{"Armed Probe", Scout.Name},
+			},
+		},
+		{
+			name: "WM with construction tech gets a destroyer and a bomber",
+			race: startHigh(NewRace().WithPRT(WM)),
+			want: []fleet{
+				{"Santa Maria", ColonyShip.Name},
+				{"Armed Probe", Scout.Name},
+				{"Stalwart Defender", Destroyer.Name},
+				{"Gadfly", MiniBomber.Name},
+			},
+		},
+		{
+			name: "JoaT gets a medium freighter",
+			race: NewRace().WithPRT(JoaT),
+			want: []fleet{
+				{"Long Range Scout", Scout.Name},
+				{"Santa Maria", ColonyShip.Name},
+				{"Teamster", MediumFreighter.Name},
+				{"Cotton Picker", MiniMiner.Name},
+				{"Armed Probe", Scout.Name},
+				{"Stalwart Defender", Destroyer.Name},
+			},
+		},
+		{
+			name: "JoaT starting at tech 4 gets a privateer in place of the medium freighter",
+			race: startHigh(NewRace().WithPRT(JoaT)),
+			want: []fleet{
+				{"Long Range Scout", Scout.Name},
+				{"Santa Maria", ColonyShip.Name},
+				{"Swashbuckler", Privateer.Name},
+				{"Cotton Picker", MiniMiner.Name},
+				{"Armed Probe", Scout.Name},
+				{"Stalwart Defender", Destroyer.Name},
+			},
+		},
+		{
+			name: "ARM gets two midget miners",
+			race: NewRace().WithPRT(IS).WithLRT(ARM),
+			want: []fleet{
+				{"Long Range Scout", Scout.Name},
+				{"Santa Maria", ColonyShip.Name},
+				{"Potato Bug", MidgetMiner.Name},
+				{"Potato Bug", MidgetMiner.Name},
+			},
+		},
+		{
+			name: "OBRM can't use midget miners, even with ARM",
+			race: NewRace().WithPRT(IS).WithLRT(ARM).WithLRT(OBRM),
+			want: []fleet{
+				{"Long Range Scout", Scout.Name},
+				{"Santa Maria", ColonyShip.Name},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := NewGamer()
+			game := newSeededGame(*NewGameSettings())
+			player := client.NewPlayer(1, *tt.race, &game.Rules)
+			player.Num = 1
+			universe, err := client.GenerateUniverse(game, []*Player{player})
+			assert.NoError(t, err)
+
+			got := []fleet{}
+			for _, f := range universe.Fleets {
+				design := f.Tokens[0].design
+				got = append(got, fleet{f.BaseName, design.Hull})
+				assert.NoError(t, design.Validate(&game.Rules, player), "design %s", design.Name)
+			}
+			assert.Equal(t, tt.want, got)
+
+			for name, components := range tt.wantComponents {
+				design := player.GetDesignByName(name)
+				if assert.NotNil(t, design, "design %s", name) {
+					slots := []string{}
+					for _, slot := range design.Slots {
+						slots = append(slots, slot.HullComponent)
+					}
+					assert.Subset(t, slots, components, "design %s", name)
+				}
+			}
+		})
+	}
+}

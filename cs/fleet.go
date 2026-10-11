@@ -184,7 +184,7 @@ const (
 
 func FleetPurposeFromShipDesignPurpose(purpose ShipDesignPurpose) FleetPurpose {
 	switch purpose {
-	case ShipDesignPurposeScout:
+	case ShipDesignPurposeScout, ShipDesignPurposeCloakedScout:
 		return FleetPurposeScout
 	case ShipDesignPurposeColonizer:
 		return FleetPurposeColonizer
@@ -194,7 +194,7 @@ func FleetPurposeFromShipDesignPurpose(purpose ShipDesignPurpose) FleetPurpose {
 		return FleetPurposeFighter
 	case ShipDesignPurposeTorpedoFighter, ShipDesignPurposeBeamFighter:
 		return FleetPurposeCapitalShip
-	case ShipDesignPurposeFreighter, ShipDesignPurposeFuelFreighter, ShipDesignPurposeMultiPurposeFreighter:
+	case ShipDesignPurposeFreighter, ShipDesignPurposeFuelFreighter, ShipDesignPurposeMultiPurposeFreighter, ShipDesignPurposeCloakedFreighter:
 		return FleetPurposeFreighter
 	case ShipDesignPurposeColonistFreighter:
 		return FleetPurposeColonistFreighter
