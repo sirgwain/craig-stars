@@ -2024,6 +2024,44 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 	assert.Equal(t, 1, len(fg.Salvages))
 }
 
+// An ally who wasn't at a battle gets one report of it, even if several of their allies fought in it.
+func Test_turn_fleetBattleSharedOnce(t *testing.T) {
+	friend := PlayerRelationship{Relation: PlayerRelationFriend, ShareMap: true}
+	enemy := PlayerRelationship{Relation: PlayerRelationEnemy}
+	u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
+		{
+			Relations: []PlayerRelationship{friend, friend, enemy, friend},
+			Designs:   Designs(DesignStalwartDefender),
+			Fleets:    []ScenarioFleet{{Name: "Warships 1", Design: "Stalwart Defender", Waypoints: []ScenarioWaypoint{{Warp: 5}}}},
+		},
+		{
+			Relations: []PlayerRelationship{friend, friend, enemy, friend},
+			Designs:   Designs(DesignStalwartDefender),
+			Fleets:    []ScenarioFleet{{Name: "Warships 2", Design: "Stalwart Defender", Waypoints: []ScenarioWaypoint{{Warp: 5}}}},
+		},
+		{
+			Relations: []PlayerRelationship{enemy, enemy, friend, enemy},
+			Designs:   Designs(DesignLongRangeScout),
+			Fleets:    []ScenarioFleet{{Name: "Scout 3", Design: "Long Range Scout", Waypoints: []ScenarioWaypoint{{Warp: 5}}}},
+		},
+		// allied with the first two players, but far from the battle
+		{Relations: []PlayerRelationship{friend, friend, enemy, friend}},
+	}})
+
+	u.Run((*turnGenerator).fleetBattle)
+
+	absentAlly := u.Player(4)
+	assert.Len(t, u.Player(1).BattleRecords, 1)
+	assert.Len(t, absentAlly.BattleRecords, 1)
+	allyMessages := 0
+	for _, message := range absentAlly.Messages {
+		if message.Type == PlayerMessageBattleAlly {
+			allyMessages++
+		}
+	}
+	assert.Equal(t, 1, allyMessages)
+}
+
 // test a fleet with repeat patrol orders
 // it should intercept and kill one fleet, then
 // return to base and target another
