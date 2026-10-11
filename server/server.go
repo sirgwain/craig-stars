@@ -140,10 +140,15 @@ func Start(config configpkg.Config) error {
 				// create a new user for this oauth user if it's discord
 				if user == nil {
 					if tokenUser.discordID() != "" {
-						if _, err = server.createNewDiscordUser(context.Background(), tokenUser); err != nil {
+						newUser, err := server.createNewDiscordUser(context.Background(), tokenUser)
+						if err != nil {
 							slog.Error("failed to load user from database during claims update", slog.Any("error", err), slog.String("user", claims.User.Name))
 							claims.User.SetBoolAttr(userRejected, true)
+							return claims
 						}
+						// the first token for a new user needs the database id, same as a returning user
+						tokenUser.setDatabaseID(newUser.ID)
+						tokenUser.SetRole(string(newUser.Role))
 					} else {
 						slog.Error("failed to load user from database during claims update", slog.Any("error", err), slog.String("user", claims.User.Name))
 						claims.User.SetBoolAttr(userRejected, true)

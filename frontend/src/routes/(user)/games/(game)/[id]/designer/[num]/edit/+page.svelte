@@ -3,16 +3,19 @@
 	import { page } from '$app/state';
 	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '#lib/components/game/design/ShipDesigner.svelte';
-	import { type ShipDesign } from '#lib/types/cs-proto.js';
+	import { ShipDesignSchema, type ShipDesign } from '#lib/types/cs-proto.js';
 	import { addError } from '#lib/services/Errors.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { techs } from '#lib/services/Stores.js';
+	import { clone } from '@bufbuild/protobuf';
 	import type { ConnectError } from '@connectrpc/connect';
 
 	const { game, universe, updateDesign, readOnly } = getGameContext();
 	let num = parseInt(page.params.num || '0');
 
-	let design: ShipDesign | undefined = $state($universe.getMyDesign(num));
+	// edit a copy so the universe's design only changes on save
+	const existing = $universe.getMyDesign(num);
+	let design: ShipDesign | undefined = $state(existing && clone(ShipDesignSchema, existing));
 	let hull = $derived(design && $techs.getHull(design.hull));
 	let error = $state('');
 

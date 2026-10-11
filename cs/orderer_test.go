@@ -2396,3 +2396,59 @@ func byHandFlow(transfers []ByHandCargoTransfer, from, to *Fleet) Cargo {
 	}
 	return flow
 }
+
+func Test_orders_SplitFleet_names(t *testing.T) {
+	player := testPlayer().WithNum(1)
+	scout := NewShipDesign(player.Num, 1).WithName("Long Range Scout").WithHull(Scout.Name).
+		WithSlots([]ShipDesignSlot{{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1}}).
+		WithSpec(&rules, player)
+	freighter := NewShipDesign(player.Num, 2).WithName("Teamster").WithHull(SmallFreighter.Name).
+		WithSlots([]ShipDesignSlot{{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1}}).
+		WithSpec(&rules, player)
+	player.Designs = append(player.Designs, scout, freighter)
+
+	tests := []struct {
+		name string
+		// rename the merged fleet before splitting
+		playerName     string
+		scoutsToDest   bool
+		wantSourceName string
+		wantDestName   string
+	}{
+		{name: "new fleet is named for its own design", wantSourceName: "Long Range Scout #1", wantDestName: "Teamster #2"},
+		{name: "source is renamed when its design leaves", scoutsToDest: true, wantSourceName: "Teamster #1", wantDestName: "Long Range Scout #2"},
+		{name: "a player's name carries over to the new fleet", playerName: "Strike Force", wantSourceName: "Strike Force", wantDestName: "Strike Force #2"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// a merged fleet, still named for the scout it started as
+			source := testLongRangeScout(player)
+			source.Tokens = []ShipToken{
+				{design: scout, DesignNum: scout.Num, Quantity: 1},
+				{design: freighter, DesignNum: freighter.Num, Quantity: 1},
+			}
+			source.Spec = ComputeFleetSpec(&rules, player, source)
+			source.Fuel = 0
+			source.Num = 1
+			source.Rename(scout.Name)
+			if tt.playerName != "" {
+				source.RenameByPlayer(tt.playerName)
+			}
+
+			sourceTokens := []ShipToken{{DesignNum: scout.Num, Quantity: 1}, {DesignNum: freighter.Num, Quantity: 0}}
+			destTokens := []ShipToken{{DesignNum: scout.Num, Quantity: 0}, {DesignNum: freighter.Num, Quantity: 1}}
+			if tt.scoutsToDest {
+				sourceTokens, destTokens = destTokens, sourceTokens
+			}
+
+			gotSource, gotDest, err := NewOrderer().SplitFleet(&rules, player, []*Fleet{source}, SplitFleetRequest{
+				Source:       source,
+				SourceTokens: sourceTokens,
+				DestTokens:   destTokens,
+			})
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantSourceName, gotSource.Name)
+			assert.Equal(t, tt.wantDestName, gotDest.Name)
+		})
+	}
+}

@@ -382,6 +382,25 @@ func (f *Fleet) Rename(name string) {
 	f.Name = fmt.Sprintf("%s #%d", f.BaseName, f.Num)
 }
 
+// resetDefaultName renames a fleet that is still named for a design whose ships all moved to another fleet.
+// Fleets named by the player keep their names.
+func (f *Fleet) resetDefaultName(other *Fleet) {
+	if len(f.Tokens) == 0 || f.Name != fmt.Sprintf("%s #%d", f.BaseName, f.Num) {
+		return
+	}
+	for _, token := range f.Tokens {
+		if token.design == nil || token.design.Name == f.BaseName {
+			return
+		}
+	}
+	for _, token := range other.Tokens {
+		if token.design != nil && token.design.Name == f.BaseName {
+			f.Rename(f.Tokens[0].design.Name)
+			return
+		}
+	}
+}
+
 // RenameByPlayer sets a player chosen name for the fleet. Unlike Rename, the fleet number
 // is not added to the name.
 // Names longer than MaxNameLength are cut short.

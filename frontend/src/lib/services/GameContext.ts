@@ -1398,9 +1398,16 @@ export async function createGameContext(
 		// and we have no response.dest, this means the original source was deleted
 		// and has become the source, i.e. we moved all tokens from source to dest, creating
 		// a new fleet. Weird edge case.
+		// the returned source is the existing dest if we moved every ship into it
+		const mergedIntoDest =
+			!!updatedSource &&
+			!!dest?.mapObject?.num &&
+			dest.mapObject.num === updatedSource.mapObject?.num;
 		if (updatedSource && src.mapObject.num !== updatedSource.mapObject?.num) {
 			u.removeFleets([src.mapObject.num]);
-			u.addFleets([updatedSource]);
+			if (!mergedIntoDest) {
+				u.addFleets([updatedSource]);
+			}
 		}
 
 		// update the commanded fleet
@@ -1420,7 +1427,7 @@ export async function createGameContext(
 			}
 		} else {
 			// if we had a dest and it was deleted, remove it
-			if (dest?.mapObject?.num) {
+			if (dest?.mapObject?.num && !mergedIntoDest) {
 				u.removeFleets([dest.mapObject.num]);
 			}
 		}

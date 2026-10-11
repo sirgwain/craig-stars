@@ -280,11 +280,20 @@ func (d *discover) discoverPlanetStarbase(planet *Planet) error {
 
 	intel = player.PlanetIntels[planetIndex]
 
-	// discover starbases on scan, but don't discover designs
 	intel.Spec.HasStarbase = planet.Spec.HasStarbase
 	intel.Spec.HasStargate = planet.Spec.HasStargate
 	intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
 	intel.Spec.DockCapacity = planet.Spec.DockCapacity
+
+	// we fought this starbase (or watched it die), so we know which design is in orbit now
+	if planet.Spec.HasStarbase && planet.Starbase != nil && planet.Starbase.Tokens[0].design != nil {
+		design := planet.Starbase.Tokens[0].design
+		intel.Spec.StarbaseDesignName = design.Name
+		intel.Spec.StarbaseDesignNum = design.Num
+	} else {
+		intel.Spec.StarbaseDesignName = ""
+		intel.Spec.StarbaseDesignNum = 0
+	}
 
 	return nil
 }

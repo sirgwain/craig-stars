@@ -514,9 +514,9 @@ func (gr *gameRunner) KickPlayer(gameID int64, playerNum int) error {
 					return fmt.Errorf("update open slot player %s for game %d: %w", player, gameID, err)
 				}
 
+				// the slot stays in the game, it's just open again
 				game.Players[i] = player
 				game.OpenPlayerSlots++
-				game.NumPlayers--
 
 			}
 		}
@@ -568,7 +568,8 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 								return err
 							}
 						}
-					} else {
+					} else if player.UserID == 0 {
+						// only unclaimed slots count as open
 						game.OpenPlayerSlots--
 					}
 				}

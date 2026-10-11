@@ -10,6 +10,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func createTestGameRunner(_ context.Context) GameRunner {
@@ -141,4 +142,38 @@ func Test_gameRunner_getGuestNum(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_gameRunner_KickPlayer_keepsNumPlayers(t *testing.T) {
+	ctx := t.Context()
+	dbConn := db.NewConn()
+	cfg := config.Config{}
+	cfg.Database.Filename = ":memory:"
+	require.NoError(t, dbConn.Connect(ctx, &cfg))
+	t.Cleanup(func() { dbConn.Close() })
+	client := dbConn.NewReadWriteClient()
+	host, err := client.CreateUser(ctx, cs.NewUser("host", "", "", cs.RoleUser))
+	require.NoError(t, err)
+	guest, err := client.CreateUser(ctx, cs.NewUser("joiner", "", "", cs.RoleUser))
+	require.NoError(t, err)
+
+	gr := NewGameRunner(dbConn, cfg)
+	fullGame, err := gr.HostGame(host.ID, cs.NewGameSettings().WithHost(cs.Humanoids()).WithOpenPlayerSlot())
+	require.NoError(t, err)
+	require.NoError(t, gr.JoinGame(fullGame.ID, guest.ID, "Joiner", cs.Humanoids()))
+
+	// kicking a player reopens their slot, it doesn't remove it
+	require.NoError(t, gr.KickPlayer(fullGame.ID, 2))
+	game, err := client.GetGame(ctx, fullGame.ID)
+	require.NoError(t, err)
+	assert.Equal(t, 2, game.NumPlayers)
+	assert.Equal(t, 1, game.OpenPlayerSlots)
+
+	// deleting a slot a player has joined doesn't change the open slot count
+	require.NoError(t, gr.JoinGame(fullGame.ID, guest.ID, "Joiner", cs.Humanoids()))
+	require.NoError(t, gr.DeletePlayerSlot(fullGame.ID, 2))
+	game, err = client.GetGame(ctx, fullGame.ID)
+	require.NoError(t, err)
+	assert.Equal(t, 1, game.NumPlayers)
+	assert.Equal(t, 0, game.OpenPlayerSlots)
 }

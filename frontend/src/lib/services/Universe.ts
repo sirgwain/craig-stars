@@ -329,7 +329,8 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	addDesign(design: ShipDesign): Universe {
-		this.designs = [...this.designs, design];
+		// never list the same design twice
+		this.designs = [...this.designs.filter((d) => d.num !== design.num), design];
 		return this;
 	}
 

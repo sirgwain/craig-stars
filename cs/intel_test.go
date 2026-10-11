@@ -148,3 +148,34 @@ func Test_discover_discoverDesignShipClass(t *testing.T) {
 	assert.Equal(t, ShipClassWarship, player.ShipDesignIntels[1].Spec.ShipClass)
 	assert.Equal(t, 0, len(player.ShipDesignIntels[1].Slots))
 }
+
+func Test_discover_discoverPlanetStarbase(t *testing.T) {
+	planet := NewPlanet().WithNum(1).WithPlayerNum(2)
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+	assert.NoError(t, player.initDefaultPlanetIntels([]*Planet{planet}))
+	intel := player.PlanetIntels[0]
+
+	// we last saw this planet with an older starbase
+	intel.Spec.HasStarbase = true
+	intel.Spec.StarbaseDesignName = "Old Fort"
+	intel.Spec.StarbaseDesignNum = 1
+
+	// fighting the upgraded starbase tells us which design is there now
+	design := &ShipDesign{PlayerNum: 2, Num: 3, Name: "Death Star"}
+	planet.Starbase = &Fleet{Tokens: []ShipToken{{DesignNum: design.Num, Quantity: 1, design: design}}}
+	planet.Spec.HasStarbase = true
+
+	d := newDiscoverer(testLogger, player)
+	assert.NoError(t, d.discoverPlanetStarbase(planet))
+	assert.True(t, intel.Spec.HasStarbase)
+	assert.Equal(t, "Death Star", intel.Spec.StarbaseDesignName)
+	assert.Equal(t, 3, intel.Spec.StarbaseDesignNum)
+
+	// a starbase destroyed in the battle is gone from our intel
+	planet.Starbase = nil
+	planet.Spec.HasStarbase = false
+	assert.NoError(t, d.discoverPlanetStarbase(planet))
+	assert.False(t, intel.Spec.HasStarbase)
+	assert.Equal(t, "", intel.Spec.StarbaseDesignName)
+	assert.Equal(t, 0, intel.Spec.StarbaseDesignNum)
+}
