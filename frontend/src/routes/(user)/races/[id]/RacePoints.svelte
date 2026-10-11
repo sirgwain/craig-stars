@@ -18,11 +18,24 @@
 		wasmClient.calculateRacePoints({ race }).then((res) => (points = res.points));
 	});
 	$effect(() => onPointsUpdated?.(points));
+
+	// once the page is scrolled the box shrinks into the corner, so it covers less of the form
+	const compactAfter = 60;
+	let scrollY = $state(0);
+	let compact = $derived(scrollY > compactAfter);
 </script>
 
-<div class="sticky top-16 z-10">
+<svelte:window bind:scrollY />
+
+<!-- The box stays under the menu and only the box itself takes clicks, not the row it sits in.
+     It shrinks with a transform so nothing on the page moves when it does. -->
+<div class="sticky top-16 z-5 pointer-events-none" data-type="race-points">
 	<div class="flex justify-end">
-		<div class="stats stats-horizontal shadow-sm border border-base-200">
+		<div
+			class="stats stats-horizontal shadow-sm border border-base-200 bg-base-100 pointer-events-auto origin-top-right transition-transform duration-200"
+			class:scale-50={compact}
+			data-compact={compact}
+		>
 			<div class="stat place-items-center">
 				<div class="stat-title">Points</div>
 				<div class="stat-figure"><Icon class="size-8 " src={User} /></div>
