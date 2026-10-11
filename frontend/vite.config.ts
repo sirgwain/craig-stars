@@ -38,7 +38,6 @@ export default defineConfig({
 				// Prebundle deps that tests reach through dynamic imports. Otherwise Vite finds them
 				// mid-run on a cold cache (like CI) and reloads the page, which breaks vi.mock.
 				optimizeDeps: {
-					exclude: ['layercake'],
 					include: [
 						'@connectrpc/connect-web',
 						'@connectrpc/connect',
@@ -47,7 +46,10 @@ export default defineConfig({
 						'd3-zoom',
 						'd3-scale',
 						'd3-quadtree',
-						'hotkeys-js'
+						'hotkeys-js',
+						'layercake',
+						'@steeze-ui/heroicons',
+						'@steeze-ui/svelte-icon'
 					]
 				},
 				test: {
