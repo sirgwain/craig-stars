@@ -19,7 +19,7 @@
 	} from '#lib/services/Events.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { commandable, equalsTarget, getMapObjectName } from '#lib/types/MapObject.js';
-	import { distance, emptyVector, equal as equalPosition } from '#lib/types/Vector.js';
+	import { distance, emptyVector } from '#lib/types/Vector.js';
 	import { slide } from 'svelte/transition';
 	import MapObjectSummary from '../MapObjectSummary.svelte';
 	import MapObjectSummaryCollapsed from '../MapObjectSummaryMini.svelte';
@@ -36,7 +36,7 @@
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
-	import { MapObjectType } from '#lib/types/cs-proto.js';
+	import { pickSummaryMapObject, summaryKey, type LastPicked } from './CommandPaneSummary';
 
 	const {
 		player,
@@ -86,38 +86,29 @@
 
 	let open = $state(false);
 
-	let summaryMapObject = $derived.by(() => {
-		if (!$selectedMapObject) {
-			return $commandedMapObject;
+	// track whether the player last picked something to command or something to select. Refreshes
+	// of the same mapobject don't count
+	let lastPicked: LastPicked = $state('selected');
+	let commandedKey = '';
+	let selectedKey = '';
+	$effect.pre(() => {
+		const key = summaryKey($selectedMapObject);
+		if (key !== selectedKey) {
+			selectedKey = key;
+			lastPicked = 'selected';
 		}
-
-		// don't update the summaryMapObject  when adding waypoints
-		if ($settings.addWaypoint) {
-			return $commandedMapObject;
-		}
-
-		// if we select a fleet, put it in the summary
-		if ($commandedMapObject && $selectedMapObject.mapObject?.type === MapObjectType.FLEET) {
-			return $selectedMapObject;
-		}
-
-		// if we are cycilng through our commandable fleets on a planet we own
-		// make sure we select the commandable fleet (because the planet will be selected, due to the way the desktop ui works)
-		if (
-			$commandedMapObject &&
-			equalPosition(
-				$selectedMapObject.mapObject?.position ?? emptyVector(),
-				$commandedMapObject.mapObject?.position ?? emptyVector()
-			) &&
-			$commandedMapObject.mapObject?.type === MapObjectType.FLEET &&
-			$selectedMapObject.mapObject?.type === MapObjectType.PLANET
-		) {
-			return $commandedMapObject;
-		}
-
-		// the selectedMapObject is different than the commanded map object, show it in the summary
-		return $selectedMapObject;
 	});
+	$effect.pre(() => {
+		const key = summaryKey($commandedMapObject);
+		if (key !== commandedKey) {
+			commandedKey = key;
+			lastPicked = 'commanded';
+		}
+	});
+
+	let summaryMapObject = $derived(
+		pickSummaryMapObject($selectedMapObject, $commandedMapObject, $settings.addWaypoint, lastPicked)
+	);
 
 	let dist = $derived(
 		$commandedMapObject && $selectedMapObject
