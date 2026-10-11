@@ -4,10 +4,11 @@
 	import type { PlayerMessage } from '#lib/types/cs-proto.js';
 	import {
 		MapObjectSchema,
+		MapObjectType,
 		PlayerMessageTargetType,
 		PlayerMessageType
 	} from '#lib/types/cs-proto.js';
-	import { getNextVisibleMessageNum } from '#lib/types/Message.js';
+	import { getMapObjectTarget, getNextVisibleMessageNum } from '#lib/types/Message.js';
 	import { create } from '@bufbuild/protobuf';
 	import {
 		ArrowLongLeft,
@@ -79,14 +80,39 @@
 			return true;
 		}
 
-		if (message.target?.targetType !== PlayerMessageTargetType.UNSPECIFIED) {
+		if (
+			message.type === PlayerMessageType.PLAYER_GAIN_TECH_LEVEL ||
+			message.type === PlayerMessageType.BATTLE_REPORTS ||
+			(message.type === PlayerMessageType.PLAYER_TECH_GAINED && message.spec?.techGained) ||
+			(message.type === PlayerMessageType.MYSTERY_TRADER_MET_WITH_REWARD &&
+				message.spec?.mysteryTrader?.tech)
+		) {
 			return true;
 		}
 
-		return (
-			message.type === PlayerMessageType.PLAYER_GAIN_TECH_LEVEL ||
-			message.type === PlayerMessageType.BATTLE_REPORTS
-		);
+		if (message.target?.targetType === PlayerMessageTargetType.UNSPECIFIED) {
+			return false;
+		}
+
+		// the target may be gone, i.e. a fleet that was merged into another fleet
+		const target = getMapObjectTarget(message);
+		if (target.targetType !== MapObjectType.UNSPECIFIED && !$universe.getMapObject(target)) {
+			// a fleet destroyed by mines still goes to its salvage or the minefield
+			const spec = message.spec;
+			if (spec?.mapObjectTarget?.targetType === MapObjectType.MINEFIELD) {
+				const hitPosition = spec.minefieldDamage?.position;
+				return !!(
+					(hitPosition && $universe.getSalvageAtPosition(hitPosition)) ||
+					$universe.getMinefield(
+						spec.mapObjectTarget.targetPlayerNum,
+						spec.mapObjectTarget.targetNum
+					)
+				);
+			}
+			return false;
+		}
+
+		return true;
 	}
 
 	const previous = (event: Event) => {
