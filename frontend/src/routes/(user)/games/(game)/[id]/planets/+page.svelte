@@ -117,16 +117,13 @@
 			key: 'owner',
 			title: 'Owner',
 			hidden: !$settings.showAllPlanets,
-			sortBy: (a, b) =>
-				$universe
-					.getPlayerPluralName(a.mapObject?.playerNum)
-					.localeCompare($universe.getPlayerPluralName(b.mapObject?.playerNum))
+			sortBy: planetsSortBy('owner', $universe)
 		},
 		{
 			key: 'reportAge',
 			title: 'Report Age',
 			hidden: !$settings.showAllPlanets,
-			sortBy: (a, b) => (a.reportAge ?? 0) - (b.reportAge ?? 0)
+			sortBy: planetsSortBy('reportAge')
 		},
 		{
 			key: 'starbase',

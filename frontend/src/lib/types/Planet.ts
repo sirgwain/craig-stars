@@ -1,5 +1,5 @@
 import { roundTo100 } from '#lib/services/Math.js';
-import type { DesignFinder } from '#lib/services/Universe.js';
+import type { DesignFinder, PlayerFinder } from '#lib/services/Universe.js';
 import type { ProductionPlanItem, ShipDesign } from '#lib/types/cs-proto.js';
 import {
 	CargoSchema,
@@ -22,7 +22,7 @@ import type { CS } from '#lib/wasm.js';
 import { clone, create, merge, type UnknownField } from '@bufbuild/protobuf';
 import { sortBy } from 'lodash-es';
 import { population } from './Cargo';
-import { Infinite, None, UnlimitedSpaceDock } from './Consts';
+import { Infinite, None, ReportAgeUnexplored, UnlimitedSpaceDock } from './Consts';
 import { enumToString } from './Enums';
 import { totalMinerals } from './Mineral';
 
@@ -339,7 +339,14 @@ const planetMineralsForSortKey: Record<
 
 // planetsSortBy returns a sortBy function for planets by key. This is used by the planets report page
 // and sorting when cycling through Planets
-export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) | undefined {
+export function planetsSortBy(
+	key: string,
+	// to sort owners by name
+	playerFinder?: PlayerFinder
+): ((a: Planet, b: Planet) => number) | undefined {
+	const byName = (a: Planet, b: Planet) =>
+		(a.mapObject?.name ?? '').localeCompare(b.mapObject?.name ?? '');
+
 	// mineral columns can sort by a single mineral, i.e. minerals.ironium
 	const [mineralKey, mineralType] = key.split('.') as [string, MineralType | undefined];
 	if (
@@ -353,9 +360,38 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 
 	switch (key) {
 		case 'name':
-			return (a, b) => (a.mapObject?.name ?? '').localeCompare(b.mapObject?.name ?? '');
+			return byName;
 		case 'owner':
-			return (a, b) => (a.mapObject?.playerNum ?? 0) - (b.mapObject?.playerNum ?? 0);
+			// by owner name with each owner's planets in name order, and planets nobody owns last
+			return (a, b) => {
+				const aNum = a.mapObject?.playerNum ?? None;
+				const bNum = b.mapObject?.playerNum ?? None;
+				if (aNum === bNum) {
+					return byName(a, b);
+				}
+				if (aNum === None || bNum === None) {
+					return aNum === None ? 1 : -1;
+				}
+				const owners = playerFinder
+					? playerFinder
+							.getPlayerPluralName(aNum)
+							.localeCompare(playerFinder.getPlayerPluralName(bNum))
+					: 0;
+				return owners || aNum - bNum;
+			};
+		case 'reportAge':
+			// newest reports first, and planets we've never explored last
+			return (a, b) => {
+				const aAge = a.mapObject?.reportAge ?? 0;
+				const bAge = b.mapObject?.reportAge ?? 0;
+				if (aAge === bAge) {
+					return byName(a, b);
+				}
+				if (aAge === ReportAgeUnexplored || bAge === ReportAgeUnexplored) {
+					return aAge === ReportAgeUnexplored ? 1 : -1;
+				}
+				return aAge - bAge;
+			};
 		case 'production':
 			return (a, b) => {
 				const aItem =
