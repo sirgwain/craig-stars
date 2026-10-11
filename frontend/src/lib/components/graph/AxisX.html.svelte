@@ -14,6 +14,7 @@
 		baseline?: boolean;
 		snapTicks?: boolean;
 		formatTick?: (d: unknown) => string;
+		tickClass?: (d: unknown) => string;
 		ticks?: number | Array<unknown> | undefined;
 		yTick?: number;
 	};
@@ -24,6 +25,7 @@
 		baseline = false,
 		snapTicks = false,
 		formatTick = (d) => `${d}`,
+		tickClass = () => 'text-base-content',
 		ticks = undefined,
 		yTick = 7
 	}: Props = $props();
@@ -54,7 +56,7 @@
 			class="tick tick-{i}"
 			style="left:{$xScale(tick) + (isBandwidth ? $xScale.bandwidth() / 2 : 0)}%;top:100%;"
 		>
-			<div class="text text-base-content" style="top:{yTick}px;">{formatTick(tick)}</div>
+			<div class="text {tickClass(tick)}" style="top:{yTick}px;">{formatTick(tick)}</div>
 		</div>
 	{/each}
 	{#if baseline === true}
