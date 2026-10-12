@@ -1204,6 +1204,17 @@ export async function createGameContext(
 
 		fleet.fleetOrders.waypoints = fleet.fleetOrders?.waypoints.filter((wp) => wp != sw);
 
+		// deleting B from A -> B -> A leaves the fleet going from A to A, so drop the second A as well
+		const previous = fleet.fleetOrders.waypoints[selectedWaypointIndex - 1];
+		const next = fleet.fleetOrders.waypoints[selectedWaypointIndex];
+		if (
+			next &&
+			previous.position?.x === next.position?.x &&
+			previous.position?.y === next.position?.y
+		) {
+			fleet.fleetOrders.waypoints.splice(selectedWaypointIndex, 1);
+		}
+
 		// deleting down to a single waypoint turns off repeat orders
 		// (the player can still turn it back on to repeat waypoint 0's task)
 		if (fleet.fleetOrders.waypoints.length <= 1) {
