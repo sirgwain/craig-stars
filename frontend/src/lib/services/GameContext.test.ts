@@ -284,6 +284,24 @@ it('discards queued saves and late responses after resetting the context', async
 	expect(get(context.currentSelectedWaypointIndex)).toBe(0);
 });
 
+// Deleting the middle of a round trip would leave the fleet travelling from a planet to itself.
+it('drops the return waypoint when deleting the middle of a round trip', async () => {
+	clients.fleetClient.updateFleetOrders.mockImplementation(async ({ fleetOrders }) =>
+		response(fleetOrders)
+	);
+	const { context } = await setup();
+	await context.addWaypoint(dest(20), false);
+	await context.addWaypoint(dest(30), false);
+	await context.addWaypoint(dest(20), false);
+	const waypoints = () => get(context.commandedFleet)!.fleetOrders.waypoints;
+	expect(waypoints().map((wp) => wp.position!.x)).toEqual([10, 20, 30, 20]);
+
+	context.selectWaypoint(waypoints()[2]);
+	await context.deleteWaypoint();
+	expect(waypoints().map((wp) => wp.position!.x)).toEqual([10, 20]);
+	expect(get(context.currentSelectedWaypointIndex)).toBe(1);
+});
+
 // A delete tapped while an add is still being calculated waits for the add, so it deletes the new
 // waypoint and not whichever waypoint was selected before.
 it('queues a deletion behind a pending waypoint calculation', async () => {
