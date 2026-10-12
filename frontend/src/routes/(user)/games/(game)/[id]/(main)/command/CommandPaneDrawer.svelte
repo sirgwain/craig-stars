@@ -21,6 +21,8 @@
 	import { MapObjectType } from '#lib/types/cs-proto.js';
 	import { commandable, getMapObjectName } from '#lib/types/MapObject.js';
 	import { distance, emptyVector } from '#lib/types/Vector.js';
+	import { PencilSquare } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import { slide } from 'svelte/transition';
 	import MapObjectSummary from '../MapObjectSummary.svelte';
 	import MapObjectSummaryCollapsed from '../MapObjectSummaryMini.svelte';
@@ -43,6 +45,8 @@
 		player,
 		settings,
 		universe,
+		readOnly,
+		editNote,
 		commandedFleet,
 		commandedMapObject,
 		commandedPlanet,
@@ -110,6 +114,12 @@
 	let summaryMapObject = $derived(
 		pickSummaryMapObject($selectedMapObject, $commandedMapObject, $settings.addWaypoint, lastPicked)
 	);
+
+	// notes are written about planets
+	let summaryPlanet = $derived(
+		summaryMapObject?.mapObject?.type === MapObjectType.PLANET ? summaryMapObject : undefined
+	);
+	let note = $derived($universe.getNote(summaryPlanet));
 
 	let dist = $derived(
 		$commandedMapObject && $selectedMapObject
@@ -321,6 +331,20 @@
 				</DisclosureHeader>
 
 				<MapObjectSummaryCollapsed mapObject={summaryMapObject} {onShowCargoTransferDialog} />
+				{#if summaryPlanet && (note || !$readOnly)}
+					<button
+						type="button"
+						class="flex flex-row items-center gap-1 mt-2 w-full text-sm text-left"
+						aria-label={note ? 'Edit note' : 'Add note'}
+						data-type="map-object-note-button"
+						onclick={() => editNote(summaryPlanet)}
+					>
+						<Icon src={PencilSquare} class={`size-4 flex-none ${note ? 'stroke-accent' : ''}`} />
+						<span class="truncate italic" data-type="map-object-note"
+							>{note?.text ?? 'Add note'}</span
+						>
+					</button>
+				{/if}
 			</div>
 		{/if}
 	</div>

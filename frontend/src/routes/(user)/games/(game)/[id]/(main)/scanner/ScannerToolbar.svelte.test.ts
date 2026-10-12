@@ -27,6 +27,7 @@ async function layout(width: number, shareMap: boolean, selectedWaypointIndex = 
 	state.context = {
 		player: writable(player),
 		settings: writable(new PlayerSettings()),
+		readOnly: writable(false),
 		universe: writable(new Universe()),
 		commandedFleet: writable({}),
 		currentSelectedWaypointIndex: writable(selectedWaypointIndex),
@@ -58,12 +59,17 @@ async function layout(width: number, shareMap: boolean, selectedWaypointIndex = 
 		: inToolbar('#normal-view')
 			? 'views'
 			: 'menu';
+	// add label is either in the toolbar or in the menu of collapsed items
+	const labelInToolbar = !!navbar.querySelector('[data-type="add-label"]:not(details a)');
+	const labelInMenu = !!navbar.querySelector('details [data-type="add-label"]');
 	const deleteButton = navbar.querySelector<HTMLElement>('#delete-waypoint');
 	deleteButton?.click();
 	const result = {
 		stage,
 		overflow: navbar.scrollWidth - navbar.clientWidth,
-		hasDelete: !!deleteButton
+		hasDelete: !!deleteButton,
+		labelInToolbar,
+		labelInMenu
 	};
 	unmount();
 	host.remove();
@@ -92,6 +98,18 @@ describe('ScannerToolbar', () => {
 		const result = await layout(width, shareMap);
 		expect(result.stage).toBe(stage);
 		expect(result.overflow).toBeLessThanOrEqual(0);
+	});
+
+	it.each([
+		{ width: 1024, inToolbar: true },
+		{ width: 820, inToolbar: true },
+		// there's only room for the planet views here, so add label moves into the menu
+		{ width: 520, inToolbar: false },
+		{ width: 400, inToolbar: false }
+	])('$width wide has add label in the toolbar: $inToolbar', async ({ width, inToolbar }) => {
+		const result = await layout(width, false);
+		expect(result.labelInToolbar).toBe(inToolbar);
+		expect(result.labelInMenu).toBe(!inToolbar);
 	});
 
 	it.each([false, true])('never overflows, shareMap=%s', async (shareMap) => {

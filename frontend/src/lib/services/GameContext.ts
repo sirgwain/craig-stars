@@ -13,6 +13,7 @@ import {
 	PlanetSchema,
 	PlayerMessageTargetType,
 	PlayerMessageType,
+	PlayerNoteSchema,
 	SalvageSchema,
 	type BattlePlan,
 	type CargoTransfers,
@@ -26,6 +27,7 @@ import {
 	type Planet,
 	type Player,
 	type PlayerMessage,
+	type PlayerNote,
 	type PlayerRelationship,
 	type ProductionPlan,
 	type Salvage,
@@ -63,6 +65,7 @@ import {
 	minefieldClient,
 	planetClient,
 	playerClient,
+	playerNoteClient,
 	productionPlanClient,
 	shipDesignClient,
 	transportPlanClient
@@ -157,6 +160,15 @@ export type GameContext = {
 
 	updatePlanetOrders: (planet: CommandedPlanet) => Promise<void>;
 	updateMinefieldOrders: (minefield: Minefield) => Promise<void>;
+
+	// notes
+	// the note being written in the note dialog, while it's open
+	editingNote: Readable<PlayerNote | undefined>;
+	editNote: (mo: MapObjectLike) => void;
+	editLabel: (label: PlayerNote | { x: number; y: number }) => void;
+	cancelEditNote: () => void;
+	savePlayerNote: (note: PlayerNote) => Promise<void>;
+	deletePlayerNote: (note: PlayerNote) => Promise<void>;
 	transferCargo: (
 		fleet: CommandedFleet,
 		dest: CargoDest,
@@ -217,6 +229,7 @@ export async function createGameContext(
 	const mostRecentMapObject = writable<MapObjectLike | undefined>();
 
 	const zoomTarget = writable<MapObjectLike | undefined>();
+	const editingNote = writable<PlayerNote | undefined>();
 
 	// Keep saves in order per fleet, while allowing local edits to draw immediately.
 	const fleetOrderSaves = new Map<string, Promise<void>>();
@@ -271,6 +284,7 @@ export async function createGameContext(
 		highlightedMapObject.set(undefined);
 		highlightedMapObjectPeers.set([]);
 		mostRecentMapObject.set(undefined);
+		editingNote.set(undefined);
 
 		const s = get(settings);
 		messageNum.set(getNextVisibleMessageNum(-1, false, p.messages, s));
@@ -1310,6 +1324,56 @@ export async function createGameContext(
 		}
 	}
 
+	// open the note dialog for the player's note about a map object, starting a new note if they
+	// haven't written one
+	function editNote(mo: MapObjectLike) {
+		if (!mo.mapObject) {
+			return;
+		}
+		const note = get(universe).getNote(mo);
+		editingNote.set(
+			note
+				? clone(PlayerNoteSchema, note)
+				: create(PlayerNoteSchema, { targetType: mo.mapObject.type, targetNum: mo.mapObject.num })
+		);
+	}
+
+	// open the note dialog for a label on the map, or for a new label at a position
+	function editLabel(label: PlayerNote | { x: number; y: number }) {
+		editingNote.set(
+			'$typeName' in label
+				? clone(PlayerNoteSchema, label)
+				: create(PlayerNoteSchema, {
+						position: { x: Math.round(label.x), y: Math.round(label.y) },
+						showOnMap: true
+					})
+		);
+	}
+
+	function cancelEditNote() {
+		editingNote.set(undefined);
+	}
+
+	async function savePlayerNote(note: PlayerNote): Promise<void> {
+		const { note: saved } = await playerNoteClient.savePlayerNote({ gameId, note });
+		if (saved) {
+			const u = get(universe);
+			u.updateNote(saved);
+			universe.set(u);
+		}
+	}
+
+	async function deletePlayerNote(note: PlayerNote): Promise<void> {
+		const noteId = note.gameDbObject?.id;
+		if (!noteId) {
+			return;
+		}
+		await playerNoteClient.deletePlayerNote({ gameId, noteId });
+		const u = get(universe);
+		u.removeNote(note);
+		universe.set(u);
+	}
+
 	async function updatePlanetOrders(planet: CommandedPlanet): Promise<void> {
 		const resp = await planetClient.updatePlanetOrders({
 			gameId,
@@ -1576,6 +1640,12 @@ export async function createGameContext(
 
 		updatePlanetOrders,
 		updateMinefieldOrders,
+		editingNote,
+		editNote,
+		editLabel,
+		cancelEditNote,
+		savePlayerNote,
+		deletePlayerNote,
 		transferCargo,
 		split,
 		splitAll,

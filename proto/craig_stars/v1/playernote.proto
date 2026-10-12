@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+
+// A private note a player writes for themselves. A note with a target_type is attached to a map
+// object. A note without one is a label at a position on the map.
+message PlayerNote {
+  GameDBObject game_db_object = 1;
+  int32 player_num = 2;
+  MapObjectType target_type = 3;
+  int32 target_num = 4;
+  int32 target_player_num = 5;
+  Vector position = 6;
+  string text = 7;
+  bool show_on_map = 8;
+}

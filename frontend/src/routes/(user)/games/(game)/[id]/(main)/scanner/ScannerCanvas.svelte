@@ -14,6 +14,7 @@
 	import {
 		buildFleets,
 		buildMinefields,
+		buildNotes,
 		buildPacketDests,
 		buildPlanets,
 		buildRouteDests,
@@ -74,6 +75,7 @@
 		colors ? buildFleets($universe, $player, $settings, $commandedFleet, colors) : []
 	);
 	let wormholeLinks = $derived(buildWormholeLinks($universe));
+	let notes = $derived(buildNotes($universe));
 
 	let view = $derived(
 		new ScannerView(
@@ -110,6 +112,7 @@
 					planetsByNum,
 					fleets,
 					wormholeLinks,
+					notes,
 					selectedMapObject: $selectedMapObject,
 					highlightedMapObject: $highlightedMapObject,
 					commandedMapObject: $commandedMapObject,

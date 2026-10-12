@@ -610,6 +610,19 @@ type Converter interface {
 	ConvertMineralPacket(source generated.MineralPacket) *cs.MineralPacket
 	ConvertMineralPackets(source []generated.MineralPacket) []*cs.MineralPacket
 
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap Position
+	ConvertGamePlayerNoteToCreateParams(source *cs.PlayerNote) generated.CreatePlayerNoteParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap Position
+	ConvertGamePlayerNoteToUpdateParams(source *cs.PlayerNote) generated.UpdatePlayerNoteParams
+
+	// goverter:map . GameDBObject
+	// goverter:map . Position
+	ConvertPlayerNote(source generated.PlayerNote) *cs.PlayerNote
+	ConvertPlayerNotes(source []generated.PlayerNote) []*cs.PlayerNote
+
 	// goverter:ignore Colonists
 	salvageCargo(source generated.Salvage) cs.Cargo
 

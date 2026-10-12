@@ -100,6 +100,10 @@ type ReadClient interface {
 	GetSalvageByNum(ctx context.Context, gameID int64, num int) (*cs.Salvage, error)
 	GetSalvagesForGame(ctx context.Context, gameID int64) ([]*cs.Salvage, error)
 	GetSalvagesForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Salvage, error)
+
+	GetPlayerNote(ctx context.Context, id int64) (*cs.PlayerNote, error)
+	GetPlayerNotesForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.PlayerNote, error)
+	GetPlayerNoteForTarget(ctx context.Context, gameID int64, playerNum int, target cs.MapObjectTarget) (*cs.PlayerNote, error)
 }
 
 type WriteClient interface {
@@ -159,6 +163,9 @@ type WriteClient interface {
 	SaveMineralPacket(ctx context.Context, mineralPacket *cs.MineralPacket) error
 
 	SaveSalvage(ctx context.Context, salvage *cs.Salvage) error
+
+	SavePlayerNote(ctx context.Context, note *cs.PlayerNote) error
+	DeletePlayerNote(ctx context.Context, id int64) error
 }
 
 // A database Client interface is used to make all calls that modify the database

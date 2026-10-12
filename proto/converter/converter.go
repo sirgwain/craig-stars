@@ -349,6 +349,10 @@ type Converter interface {
 
 	ConvertCSMysteryTraders(source []*cs.MysteryTrader) []*craig_starsv1.MysteryTrader
 
+	ConvertPlayerNote(source *craig_starsv1.PlayerNote) *cs.PlayerNote
+	ConvertCSPlayerNote(source *cs.PlayerNote) *craig_starsv1.PlayerNote
+	ConvertCSPlayerNotes(source []*cs.PlayerNote) []*craig_starsv1.PlayerNote
+
 	ConvertWormhole(source *craig_starsv1.Wormhole) *cs.Wormhole
 	ConvertCSWormhole(source *cs.Wormhole) *craig_starsv1.Wormhole
 	ConvertCSWormholes(source []*cs.Wormhole) []*craig_starsv1.Wormhole

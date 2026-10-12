@@ -42,6 +42,7 @@ vi.mock('#lib/services/GameContext.js', async () => {
 			wormholes: [],
 			mysteryTraders: [],
 			salvages: [],
+			notes: [],
 			getAllFleets: () => []
 		}),
 		settings: writable(new PlayerSettings()),

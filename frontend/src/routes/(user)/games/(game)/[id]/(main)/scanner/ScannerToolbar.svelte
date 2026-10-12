@@ -14,6 +14,7 @@
 		ArrowLongLeft,
 		ArrowLongRight,
 		ArrowPath,
+		ChatBubbleBottomCenterText,
 		Envelope,
 		Funnel,
 		MagnifyingGlass,
@@ -24,8 +25,14 @@
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 	import ScannerToolbarFilter from './toolbar/ScannerToolbarFilter.svelte';
 
-	const { player, settings, commandedFleet, currentSelectedWaypointIndex, deleteWaypoint } =
-		getGameContext();
+	const {
+		player,
+		settings,
+		readOnly,
+		commandedFleet,
+		currentSelectedWaypointIndex,
+		deleteWaypoint
+	} = getGameContext();
 
 	// the fleet's current position can't be deleted, only the waypoints after it
 	let canDeleteWaypoint = $derived(!!$commandedFleet && $currentSelectedWaypointIndex > 0);
@@ -49,6 +56,8 @@
 	const paddingWidth = 34;
 	// add waypoint and messages, plus delete waypoint while a waypoint that can be deleted is selected
 	let actionsWidth = $derived(80 + (canDeleteWaypoint ? itemWidth : 0));
+	// add label, which isn't there when we're only viewing
+	let labelWidth = $derived($readOnly ? 0 : itemWidth);
 	// the scanner percent box
 	const percentWidth = 72;
 	// the button that opens the menu of collapsed items
@@ -63,14 +72,23 @@
 	let filterMenusWidth = $derived(12 * (2 + (shareMap ? 1 : 0)));
 
 	// collapse into a menu in stages as the toolbar runs out of room: first the filters and
-	// scanner percent, then the planet views
+	// scanner percent, then add label, then the planet views
 	let fixedWidth = $derived(paddingWidth + actionsWidth + navWidth);
 	let showFilters = $derived(
 		toolbarWidth >=
-			fixedWidth + percentWidth + filterMenusWidth + itemWidth * (viewCount + filterCount)
+			fixedWidth +
+				labelWidth +
+				percentWidth +
+				filterMenusWidth +
+				itemWidth * (viewCount + filterCount)
 	);
 	let showViews = $derived(
 		showFilters || toolbarWidth >= fixedWidth + menuWidth + itemWidth * viewCount
+	);
+	// add label is the first thing to move into the menu, it's used less than the planet views
+	let showLabel = $derived(
+		!$readOnly &&
+			(showFilters || toolbarWidth >= fixedWidth + labelWidth + menuWidth + itemWidth * viewCount)
 	);
 
 	// On the narrowest phones there isn't room for the delete button and everything else. Search gives
@@ -81,6 +99,26 @@
 	// close the planets menu when we switch views (but leave the filter menu open so we can filter more than one thing)
 	settings.subscribe(closePlanetsMenu);
 </script>
+
+<!-- starts a mode where the next tap on the map adds a label there, or edits the label that was tapped -->
+{#snippet addLabel(classes: string, text = '')}
+	<a
+		href="#add-label"
+		data-type="add-label"
+		title="add or edit a map label"
+		class={classes}
+		onclick={(e) => {
+			e.preventDefault();
+			$settings.addLabel = !$settings.addLabel;
+		}}
+	>
+		<Icon
+			src={ChatBubbleBottomCenterText}
+			class={`size-6 ${$settings.addLabel ? 'stroke-accent' : 'stroke-current'}`}
+		/>
+		{text}
+	</a>
+{/snippet}
 
 <!-- the menu of everything that doesn't fit in the toolbar -->
 {#snippet collapsedMenu()}
@@ -116,6 +154,11 @@
 						<li>
 							<MobileViewSettings hideViews={showViews} />
 						</li>
+						{#if !$readOnly && !showLabel}
+							<li>
+								{@render addLabel('', 'Add map label')}
+							</li>
+						{/if}
 					</ul>
 				</details>
 			</li>
@@ -166,6 +209,12 @@
 					{/if}
 				</a>
 			</li>
+			<!-- on toolbars too narrow for it, add label is in the collapsed menu -->
+			{#if showLabel}
+				<li class="size-10">
+					{@render addLabel('btn btn-ghost btn-xs size-full p-0')}
+				</li>
+			{/if}
 			<!-- only here while there's a waypoint to delete, so the toolbar isn't any busier than it needs to be -->
 			{#if canDeleteWaypoint}
 				<li class="size-10">

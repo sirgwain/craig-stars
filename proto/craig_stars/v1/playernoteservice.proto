@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/playernote.proto";
+
+service PlayerNoteService {
+  rpc GetPlayerNotes(GetPlayerNotesRequest) returns (GetPlayerNotesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // SavePlayerNote creates or updates a note. A player has one note per map object, so saving a
+  // note for a map object that already has one replaces it.
+  rpc SavePlayerNote(SavePlayerNoteRequest) returns (SavePlayerNoteResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+  rpc DeletePlayerNote(DeletePlayerNoteRequest) returns (DeletePlayerNoteResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+}
+
+message GetPlayerNotesRequest {
+  int64 game_id = 1;
+}
+
+message GetPlayerNotesResponse {
+  repeated PlayerNote notes = 1;
+}
+
+message SavePlayerNoteRequest {
+  int64 game_id = 1;
+  PlayerNote note = 2;
+}
+
+message SavePlayerNoteResponse {
+  PlayerNote note = 1;
+}
+
+message DeletePlayerNoteRequest {
+  int64 game_id = 1;
+  int64 note_id = 2;
+}
+
+message DeletePlayerNoteResponse {}

@@ -5,6 +5,7 @@ import { MinefieldService } from '#lib/types/cs-proto.js';
 import { PlanetService } from '#lib/types/cs-proto.js';
 import {
 	BattlePlanService,
+	PlayerNoteService,
 	PlayerService,
 	ProductionPlanService,
 	TransportPlanService
@@ -35,6 +36,7 @@ export const gameClient = createClient(GameService, transport);
 export const minefieldClient = createClient(MinefieldService, transport);
 export const planetClient = createClient(PlanetService, transport);
 export const playerClient = createClient(PlayerService, transport);
+export const playerNoteClient = createClient(PlayerNoteService, transport);
 export const productionPlanClient = createClient(ProductionPlanService, transport);
 export const raceClient = createClient(RaceService, transport);
 export const shipDesignClient = createClient(ShipDesignService, transport);

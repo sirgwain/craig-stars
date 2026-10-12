@@ -16,6 +16,8 @@
 	import { MapObjectType } from '#lib/types/cs-proto.js';
 	import { getTokenDamage } from '#lib/types/Fleet.js';
 	import { getMapObjectName } from '#lib/types/MapObject.js';
+	import { PencilSquare } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import FleetSummary from './FleetSummary.svelte';
 	import MinefieldSummary from './MinefieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
@@ -25,7 +27,7 @@
 	import UnknownSummary from './UnknownSummary.svelte';
 	import WormholeSummary from './WormholeSummary.svelte';
 
-	const { universe, selectNextMapObject, selectedMapObject } = getGameContext();
+	const { universe, readOnly, selectNextMapObject, selectedMapObject, editNote } = getGameContext();
 
 	type Props = {
 		hideCycleButton?: boolean;
@@ -51,6 +53,8 @@
 			? ($selectedMapObject as Planet)
 			: undefined
 	);
+	// the player's private note about the selected planet
+	let note = $derived($universe.getNote(selectedPlanet));
 	let selectedFleet = $derived(
 		$selectedMapObject?.mapObject?.type === MapObjectType.FLEET
 			? ($selectedMapObject as Fleet)
@@ -99,6 +103,20 @@
 				</div>
 			{/if}
 			<div>
+				{#if selectedPlanet && (note || !$readOnly)}
+					<button
+						type="button"
+						title={note ? 'edit note' : 'add note'}
+						aria-label={note ? 'Edit note' : 'Add note'}
+						data-type="map-object-note-button"
+						onclick={() => editNote(selectedPlanet)}
+					>
+						<Icon
+							src={PencilSquare}
+							class={`size-4 hover:stroke-accent ${note ? 'stroke-accent' : ''}`}
+						/></button
+					>
+				{/if}
 				{#if selectedPlanet && selectedPlanet.spec?.planetStarbaseSpec?.hasStarbase}
 					<button
 						type="button"
@@ -124,6 +142,15 @@
 				{/if}
 			</div>
 		</div>
+		{#if selectedPlanet && note}
+			<button
+				type="button"
+				class="text-left text-sm italic whitespace-pre-line line-clamp-2 hover:text-accent"
+				title={note.text}
+				data-type="map-object-note"
+				onclick={() => editNote(selectedPlanet)}>{note.text}</button
+			>
+		{/if}
 		{#if selectedPlanet}
 			<PlanetSummary planet={selectedPlanet} />
 		{:else if selectedFleet}

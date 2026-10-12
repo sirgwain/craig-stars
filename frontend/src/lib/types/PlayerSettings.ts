@@ -17,6 +17,7 @@ export class PlayerSettings implements FilterOptions {
 	planetViewState = PlanetViewState.Normal;
 	addWaypoint = false;
 	fastestWaypoint = false;
+	addLabel = false;
 	setPacketDest = false;
 	setRouteDest = false;
 	showNames = false;
@@ -69,6 +70,7 @@ export class PlayerSettings implements FilterOptions {
 	// some state we don't want to persist on load
 	afterLoad() {
 		this.addWaypoint = false;
+		this.addLabel = false;
 		this.messageTypeFilter = new Set<number>();
 		this.messageTypeFilterArray.forEach((t) => this.messageTypeFilter.add(t));
 	}

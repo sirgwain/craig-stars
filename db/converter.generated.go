@@ -794,6 +794,32 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) generated.Player {
 	}
 	return generatedPlayer
 }
+func (c *GameConverter) ConvertGamePlayerNoteToCreateParams(source *cs.PlayerNote) generated.CreatePlayerNoteParams {
+	var generatedCreatePlayerNoteParams generated.CreatePlayerNoteParams
+	if source != nil {
+		generatedCreatePlayerNoteParams.GameID = (*source).GameDBObject.GameID
+		generatedCreatePlayerNoteParams.PlayerNum = IntToInt64((*source).PlayerNum)
+		generatedCreatePlayerNoteParams.TargetType = c.csMapObjectTypeToCsMapObjectType((*source).TargetType)
+		generatedCreatePlayerNoteParams.TargetNum = IntToInt64((*source).TargetNum)
+		generatedCreatePlayerNoteParams.TargetPlayerNum = IntToInt64((*source).TargetPlayerNum)
+		generatedCreatePlayerNoteParams.X = IntToFloat64((*source).Position.X)
+		generatedCreatePlayerNoteParams.Y = IntToFloat64((*source).Position.Y)
+		generatedCreatePlayerNoteParams.Text = (*source).Text
+		generatedCreatePlayerNoteParams.ShowOnMap = (*source).ShowOnMap
+	}
+	return generatedCreatePlayerNoteParams
+}
+func (c *GameConverter) ConvertGamePlayerNoteToUpdateParams(source *cs.PlayerNote) generated.UpdatePlayerNoteParams {
+	var generatedUpdatePlayerNoteParams generated.UpdatePlayerNoteParams
+	if source != nil {
+		generatedUpdatePlayerNoteParams.X = IntToFloat64((*source).Position.X)
+		generatedUpdatePlayerNoteParams.Y = IntToFloat64((*source).Position.Y)
+		generatedUpdatePlayerNoteParams.Text = (*source).Text
+		generatedUpdatePlayerNoteParams.ShowOnMap = (*source).ShowOnMap
+		generatedUpdatePlayerNoteParams.ID = (*source).GameDBObject.ID
+	}
+	return generatedUpdatePlayerNoteParams
+}
 func (c *GameConverter) ConvertGamePlayerToCreateParams(source *cs.Player) generated.CreatePlayerParams {
 	var generatedCreatePlayerParams generated.CreatePlayerParams
 	if source != nil {
@@ -1525,6 +1551,28 @@ func (c *GameConverter) ConvertPlayer(source generated.Player) cs.Player {
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	return csPlayer
 }
+func (c *GameConverter) ConvertPlayerNote(source generated.PlayerNote) *cs.PlayerNote {
+	var csPlayerNote cs.PlayerNote
+	csPlayerNote.GameDBObject = c.generatedPlayerNoteToCsGameDBObject(source)
+	csPlayerNote.PlayerNum = Int64ToInt(source.PlayerNum)
+	csPlayerNote.TargetType = c.csMapObjectTypeToCsMapObjectType(source.TargetType)
+	csPlayerNote.TargetNum = Int64ToInt(source.TargetNum)
+	csPlayerNote.TargetPlayerNum = Int64ToInt(source.TargetPlayerNum)
+	csPlayerNote.Position = c.generatedPlayerNoteToCsVectorGeneric(source)
+	csPlayerNote.Text = source.Text
+	csPlayerNote.ShowOnMap = source.ShowOnMap
+	return &csPlayerNote
+}
+func (c *GameConverter) ConvertPlayerNotes(source []generated.PlayerNote) []*cs.PlayerNote {
+	var pCsPlayerNoteList []*cs.PlayerNote
+	if source != nil {
+		pCsPlayerNoteList = make([]*cs.PlayerNote, len(source))
+		for i := 0; i < len(source); i++ {
+			pCsPlayerNoteList[i] = c.ConvertPlayerNote(source[i])
+		}
+	}
+	return pCsPlayerNoteList
+}
 func (c *GameConverter) ConvertPlayerStatus(source generated.GetPlayersStatusForGameRow) cs.Player {
 	var csPlayer cs.Player
 	csPlayer.GameDBObject = ExtendPlayerStatusGameDBObject(source)
@@ -1840,6 +1888,20 @@ func (c *GameConverter) generatedPlanetToCsPlanetOrders(source generated.Planet)
 	csPlanetOrders.PacketTargetNum = Int64ToInt(source.PacketTargetNum)
 	csPlanetOrders.PacketSpeed = Int64ToInt(source.PacketSpeed)
 	return csPlanetOrders
+}
+func (c *GameConverter) generatedPlayerNoteToCsGameDBObject(source generated.PlayerNote) cs.GameDBObject {
+	var csGameDBObject cs.GameDBObject
+	csGameDBObject.ID = source.ID
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
+	return csGameDBObject
+}
+func (c *GameConverter) generatedPlayerNoteToCsVectorGeneric(source generated.PlayerNote) cs.VectorGeneric[int] {
+	var csVectorGeneric cs.VectorGeneric[int]
+	csVectorGeneric.X = Float64ToInt(source.X)
+	csVectorGeneric.Y = Float64ToInt(source.Y)
+	return csVectorGeneric
 }
 func (c *GameConverter) generatedPlayerToCsIntels(source generated.Player) cs.Intels {
 	var csIntels cs.Intels

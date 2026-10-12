@@ -35,6 +35,7 @@
 	import { onMount } from 'svelte';
 	import CargoTranfserDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
 	import MergeFleetsDialog from '../dialogs/merge/MergeFleetsDialog.svelte';
+	import NoteDialog from '../dialogs/note/NoteDialog.svelte';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
 	import SplitFleetDialog from '../dialogs/split/SplitFleetDialog.svelte';
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
@@ -710,4 +711,5 @@
 		onOk={(e) => selectSearchResult(e)}
 		onCancel={() => (showSearchDialog = false)}
 	/>
+	<NoteDialog />
 </div>
