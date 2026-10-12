@@ -42,6 +42,7 @@ export default defineConfig({
 						'@connectrpc/connect-web',
 						'@connectrpc/connect',
 						'lodash-es',
+						'ts-enum-util',
 						'd3-selection',
 						'd3-zoom',
 						'd3-scale',

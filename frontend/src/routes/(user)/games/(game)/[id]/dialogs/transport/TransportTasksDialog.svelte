@@ -8,6 +8,7 @@
 	} from '#lib/services/Events.js';
 	import { emptyTransportTasks } from '#lib/types/Fleet.js';
 	import TransportTasks from '../../(plans)/transport-plans/TransportTasks.svelte';
+	import { untrack } from 'svelte';
 
 	type Props = {
 		show?: boolean;
@@ -20,12 +21,14 @@
 
 	let transportTasks: WaypointTransportTasks = $state(emptyTransportTasks());
 
-	$effect(() => {
+	$effect.pre(() => {
 		if (!show || !props) return;
-		// use the waypoint props transport tasks when opening the dialog
-		// this is a bit weird, but props.waypoint.transportTasks is also a "state" because it comes
-		// from the FleetWaypointsTile, so take a snapshot of it instead of just grabbing the existing state var
-		transportTasks = $state.snapshot(props.waypoint.transportTasks) ?? emptyTransportTasks();
+		const waypoint = props.waypoint;
+		// Start each edit with a copy before rendering the inputs. Changes to the source orders
+		// while the dialog is open must not overwrite the player's draft.
+		transportTasks = untrack(
+			() => $state.snapshot(waypoint.transportTasks) ?? emptyTransportTasks()
+		);
 	});
 
 	function ok() {
@@ -45,15 +48,12 @@
 	}
 </script>
 
-<div class="modal" class:modal-open={show}>
+<div data-type="dialog" data-id="Transport Orders" class="modal" class:modal-open={show}>
 	<div class="modal-box max-w-full max-h-max size-full lg:max-w-160 lg:max-h-128">
 		{#if show}
-			<div class="flex flex-row justify-center px-1 w-full">
-				<div class="flex flex-col grow">
-					<div class="text-xl font-semibold w-full text-center">Transport Orders</div>
-					<TransportTasks bind:transportTasks />
-				</div>
-				<div class="flex flex-col mt-7 ml-2 gap-2">
+			<div class="flex flex-col gap-2 px-1 w-full">
+				<div class="text-xl font-semibold w-full text-center">Transport Orders</div>
+				<div class="flex justify-end gap-2">
 					<button
 						onclick={(e) => {
 							e.preventDefault();
@@ -68,6 +68,7 @@
 						class="btn btn-outline btn-sm normal-case btn-secondary">Cancel</button
 					>
 				</div>
+				<TransportTasks bind:transportTasks />
 			</div>
 		{/if}
 	</div>

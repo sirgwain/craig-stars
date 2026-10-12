@@ -1,4 +1,4 @@
-import { fromJson } from '@bufbuild/protobuf';
+import { create, fromJson, toJson } from '@bufbuild/protobuf';
 import { expect, type Locator, type Page } from '@playwright/test';
 import {
 	UpdateFleetOrdersRequestSchema,
@@ -7,8 +7,147 @@ import {
 	type UpdateFleetOrdersResponseJson
 } from '../src/lib/protogen/craig_stars/v1/fleetservice_pb';
 import { StargateWarpSpeed } from '../src/lib/types/Consts';
+import { WaypointTask, WaypointTaskTransportAction } from '../src/lib/types/cs-proto';
 import { tapMapObject } from './helpers/scanner';
 import { test } from './setup';
+
+test(
+	'toggling the drawer preserves a fleet on a repeating round trip',
+	{ tag: '@safari' },
+	async ({ testGamePage }) => {
+		const { page, universe, gameId } = await testGamePage('Kitchen Sink');
+		const homeworld = universe.planets[0];
+		const target = universe.planets[1];
+		const drawer = page.locator('[data-type="command-drawer"]');
+		const toggle = drawer.getByRole('button', { name: 'show command pane button' });
+		const endpoint = '/craig_stars.v1.FleetService/UpdateFleetOrders';
+
+		await tapMapObject(page, homeworld);
+		await page.locator('#add-waypoint').tap();
+		const saved = page.waitForResponse((response) => response.url().endsWith(endpoint));
+		await tapMapObject(page, target);
+		const { fleet } = fromJson(
+			UpdateFleetOrdersResponseSchema,
+			(await (await saved).json()) as UpdateFleetOrdersResponseJson
+		);
+		// Seed the return leg and repeat flag to focus on drawer and waypoint selection.
+		const orders = fleet!.fleetOrders!;
+		orders.waypoints.push({ ...orders.waypoints[0], warpSpeed: 6 });
+		orders.repeatOrders = true;
+		const response = await page.request.post(`/api/grpc${endpoint}`, {
+			data: toJson(
+				UpdateFleetOrdersRequestSchema,
+				create(UpdateFleetOrdersRequestSchema, {
+					gameId,
+					fleetNum: fleet!.mapObject!.num,
+					fleetOrders: orders
+				})
+			)
+		});
+		expect(response.ok()).toBe(true);
+		await page.reload();
+		await tapMapObject(page, homeworld);
+		await toggle.tap();
+
+		const waypoints = drawer.locator('[data-type="command-tile"][data-id="Fleet Waypoints"]');
+		const waypointTarget = drawer
+			.locator('[data-type="command-tile"][data-id="Waypoint Task"]')
+			.getByRole('combobox')
+			.first();
+		await expect(waypoints.locator('li')).toHaveText([
+			homeworld.mapObject!.name,
+			target.mapObject!.name,
+			homeworld.mapObject!.name
+		]);
+		await expect(waypoints.getByRole('checkbox', { name: 'Repeat Orders' })).toBeChecked();
+
+		// Selecting the return waypoint shows the homeworld in the collapsed summary. It must
+		// not replace the commanded fleet, or reset a different selected waypoint, on a toggle.
+		await waypoints.getByRole('button', { name: target.mapObject!.name, exact: true }).tap();
+		await expect(waypointTarget.locator('option:checked')).toHaveText(target.mapObject!.name);
+		await waypoints
+			.getByRole('button', { name: homeworld.mapObject!.name, exact: true })
+			.last()
+			.tap();
+		for (const selected of [2, 1]) {
+			if (selected === 1) {
+				await waypoints.getByRole('button', { name: target.mapObject!.name, exact: true }).tap();
+			}
+			await expect(waypointTarget.locator('option:checked')).toHaveText(
+				selected === 1 ? target.mapObject!.name : homeworld.mapObject!.name
+			);
+			await toggle.tap();
+			await expect(drawer).toHaveAttribute('data-open', 'false');
+			await expect(toggle).toHaveCount(1);
+			await toggle.tap();
+			await expect(drawer).toHaveAttribute('data-open', 'true');
+			await expect(toggle).toHaveCount(1);
+			await expect(toggle).toHaveText(fleet!.mapObject!.name);
+			await expect(waypoints.locator('li').nth(selected)).toHaveClass(/bg-primary-focus/);
+			await expect(waypoints.getByRole('checkbox', { name: 'Repeat Orders' })).toBeChecked();
+			await expect(waypointTarget.locator('option:checked')).toHaveText(
+				selected === 1 ? target.mapObject!.name : homeworld.mapObject!.name
+			);
+		}
+	}
+);
+
+test('editing transport orders preserves the plan and keeps the command drawer open', async ({
+	testGamePage
+}) => {
+	const { page, universe, player } = await testGamePage('Kitchen Sink');
+	const plan = player.playerPlans!.transportPlans.find((p) => p.name === 'Load Colonists')!;
+	const drawer = page.locator('[data-type="command-drawer"]');
+	await tapMapObject(page, universe.planets[0]);
+	await drawer.getByRole('button', { name: 'show command pane button' }).tap();
+	const task = drawer.locator('[data-type="command-tile"][data-id="Waypoint Task"]');
+	const saveEndpoint = '/craig_stars.v1.FleetService/UpdateFleetOrders';
+	let saved = page.waitForResponse((response) => response.url().endsWith(saveEndpoint));
+	await task
+		.locator('[data-type="select-waypoint-task"]')
+		.selectOption(String(WaypointTask.TRANSPORT));
+	await saved;
+	saved = page.waitForResponse((response) => response.url().endsWith(saveEndpoint));
+	await task.getByRole('combobox').last().selectOption(String(plan.num));
+	await saved;
+
+	const dialog = page.locator('[data-type="dialog"][data-id="Transport Orders"]');
+	await task.getByRole('button', { name: 'Edit transport orders' }).tap();
+	await expect(dialog.locator('[name="actionColonists"]')).toHaveValue(
+		String(WaypointTaskTransportAction.LOAD_ALL)
+	);
+	await dialog.getByText('Transport Orders', { exact: true }).tap();
+	await expect(drawer).toHaveAttribute('data-open', 'true');
+
+	// Accepting the existing orders must preserve the applied plan.
+	saved = page.waitForResponse((response) => response.url().endsWith(saveEndpoint));
+	await dialog.getByRole('button', { name: 'OK', exact: true }).tap();
+	const { fleet } = fromJson(
+		UpdateFleetOrdersResponseSchema,
+		(await (await saved).json()) as UpdateFleetOrdersResponseJson
+	);
+	expect(fleet!.fleetOrders!.waypoints[0].transportTasks).toEqual(plan.tasks);
+	await expect(dialog).toBeHidden();
+	await expect(drawer).toHaveAttribute('data-open', 'true');
+
+	await task.getByRole('button', { name: 'Edit transport orders' }).tap();
+	await dialog
+		.locator('[name="actionColonists"]')
+		.selectOption(String(WaypointTaskTransportAction.UNLOAD_AMOUNT));
+	await dialog.locator('[name="amountColonists"]').fill('25');
+	await expect(drawer).toHaveAttribute('data-open', 'true');
+	await dialog.getByRole('button', { name: 'Cancel', exact: true }).tap();
+	await expect(drawer).toHaveAttribute('data-open', 'true');
+	await task.getByRole('button', { name: 'Edit transport orders' }).tap();
+	await expect(dialog.locator('[name="actionColonists"]')).toHaveValue(
+		String(WaypointTaskTransportAction.LOAD_ALL)
+	);
+	await dialog.getByRole('button', { name: 'Cancel', exact: true }).tap();
+	await drawer.getByRole('button', { name: 'Close command pane backdrop', exact: true }).tap({
+		position: { x: 10, y: page.viewportSize()!.height * 0.15 }
+	});
+	await expect(drawer).toHaveAttribute('data-open', 'false');
+});
 
 test('rapid waypoint taps update before a delayed save and persist in tap order', async ({
 	testGamePage
