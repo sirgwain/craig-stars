@@ -34,8 +34,10 @@ type PlayerNote struct {
 	Position        *Vector                `protobuf:"bytes,6,opt,name=position,proto3" json:"position,omitempty"`
 	Text            string                 `protobuf:"bytes,7,opt,name=text,proto3" json:"text,omitempty"`
 	ShowOnMap       bool                   `protobuf:"varint,8,opt,name=show_on_map,json=showOnMap,proto3" json:"show_on_map,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// tags the player has put on the map object this note is attached to
+	Tags          []string `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PlayerNote) Reset() {
@@ -124,11 +126,18 @@ func (x *PlayerNote) GetShowOnMap() bool {
 	return false
 }
 
+func (x *PlayerNote) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
 var File_craig_stars_v1_playernote_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_playernote_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcraig_stars/v1/playernote.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\"\xe2\x02\n" +
+	"\x1fcraig_stars/v1/playernote.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\"\xf6\x02\n" +
 	"\n" +
 	"PlayerNote\x12B\n" +
 	"\x0egame_db_object\x18\x01 \x01(\v2\x1c.craig_stars.v1.GameDBObjectR\fgameDbObject\x12\x1d\n" +
@@ -141,7 +150,8 @@ const file_craig_stars_v1_playernote_proto_rawDesc = "" +
 	"\x11target_player_num\x18\x05 \x01(\x05R\x0ftargetPlayerNum\x122\n" +
 	"\bposition\x18\x06 \x01(\v2\x16.craig_stars.v1.VectorR\bposition\x12\x12\n" +
 	"\x04text\x18\a \x01(\tR\x04text\x12\x1e\n" +
-	"\vshow_on_map\x18\b \x01(\bR\tshowOnMapB\xc2\x01\n" +
+	"\vshow_on_map\x18\b \x01(\bR\tshowOnMap\x12\x12\n" +
+	"\x04tags\x18\t \x03(\tR\x04tagsB\xc2\x01\n" +
 	"\x12com.craig_stars.v1B\x0fPlayernoteProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (

@@ -806,6 +806,7 @@ func (c *GameConverter) ConvertGamePlayerNoteToCreateParams(source *cs.PlayerNot
 		generatedCreatePlayerNoteParams.Y = IntToFloat64((*source).Position.Y)
 		generatedCreatePlayerNoteParams.Text = (*source).Text
 		generatedCreatePlayerNoteParams.ShowOnMap = (*source).ShowOnMap
+		generatedCreatePlayerNoteParams.Tags = GamePlayerNoteTagsToPlayerNoteTags((*source).Tags)
 	}
 	return generatedCreatePlayerNoteParams
 }
@@ -816,6 +817,7 @@ func (c *GameConverter) ConvertGamePlayerNoteToUpdateParams(source *cs.PlayerNot
 		generatedUpdatePlayerNoteParams.Y = IntToFloat64((*source).Position.Y)
 		generatedUpdatePlayerNoteParams.Text = (*source).Text
 		generatedUpdatePlayerNoteParams.ShowOnMap = (*source).ShowOnMap
+		generatedUpdatePlayerNoteParams.Tags = GamePlayerNoteTagsToPlayerNoteTags((*source).Tags)
 		generatedUpdatePlayerNoteParams.ID = (*source).GameDBObject.ID
 	}
 	return generatedUpdatePlayerNoteParams
@@ -976,6 +978,7 @@ func (c *GameConverter) ConvertGameRace(source *cs.Race) generated.Race {
 		generatedRace.ResearchCostElectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
 		generatedRace.ResearchCostBiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
 		generatedRace.TechsStartHigh = (*source).TechsStartHigh
+		generatedRace.Description = (*source).Description
 	}
 	return generatedRace
 }
@@ -1013,6 +1016,7 @@ func (c *GameConverter) ConvertGameRaceToCreateParams(source *cs.Race) generated
 		generatedCreateRaceParams.ResearchCostElectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
 		generatedCreateRaceParams.ResearchCostBiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
 		generatedCreateRaceParams.TechsStartHigh = (*source).TechsStartHigh
+		generatedCreateRaceParams.Description = (*source).Description
 	}
 	return generatedCreateRaceParams
 }
@@ -1050,6 +1054,7 @@ func (c *GameConverter) ConvertGameRaceToUpdateParams(source *cs.Race) generated
 		generatedUpdateRaceParams.ResearchCostElectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
 		generatedUpdateRaceParams.ResearchCostBiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
 		generatedUpdateRaceParams.TechsStartHigh = (*source).TechsStartHigh
+		generatedUpdateRaceParams.Description = (*source).Description
 		generatedUpdateRaceParams.ID = (*source).DBObject.ID
 	}
 	return generatedUpdateRaceParams
@@ -1129,6 +1134,7 @@ func (c *GameConverter) ConvertGameShipDesign(source *cs.ShipDesign) generated.S
 		generatedShipDesign.CannotDelete = (*source).CannotDelete
 		generatedShipDesign.OriginalPlayerNum = IntToNullInt64((*source).OriginalPlayerNum)
 		generatedShipDesign.MysteryTrader = (*source).MysteryTrader
+		generatedShipDesign.Description = (*source).Description
 	}
 	return generatedShipDesign
 }
@@ -1149,6 +1155,7 @@ func (c *GameConverter) ConvertGameShipDesignToCreateParams(source *cs.ShipDesig
 		generatedCreateShipDesignParams.Purpose = &pCsShipDesignPurpose
 		generatedCreateShipDesignParams.MysteryTrader = (*source).MysteryTrader
 		generatedCreateShipDesignParams.Spec = GameShipDesignSpecToShipDesignSpec((*source).Spec)
+		generatedCreateShipDesignParams.Description = (*source).Description
 	}
 	return generatedCreateShipDesignParams
 }
@@ -1169,6 +1176,7 @@ func (c *GameConverter) ConvertGameShipDesignToUpdateParams(source *cs.ShipDesig
 		generatedUpdateShipDesignParams.Purpose = &pCsShipDesignPurpose
 		generatedUpdateShipDesignParams.MysteryTrader = (*source).MysteryTrader
 		generatedUpdateShipDesignParams.Spec = GameShipDesignSpecToShipDesignSpec((*source).Spec)
+		generatedUpdateShipDesignParams.Description = (*source).Description
 		generatedUpdateShipDesignParams.ID = (*source).GameDBObject.ID
 	}
 	return generatedUpdateShipDesignParams
@@ -1353,6 +1361,7 @@ func (c *GameConverter) ConvertGetPlayerForGameRowToShipDesign(source generated.
 	generatedShipDesign.CannotDelete = NullBoolToBool(source.CannotDelete)
 	generatedShipDesign.OriginalPlayerNum = source.OriginalPlayerNum
 	generatedShipDesign.MysteryTrader = NullBoolToBool(source.MysteryTrader)
+	generatedShipDesign.Description = NullStringToString(source.Description)
 	return generatedShipDesign
 }
 func (c *GameConverter) ConvertGetPlayersWithDesignsForGameRowToShipDesign(source generated.GetPlayersWithDesignsForGameRow) generated.ShipDesign {
@@ -1373,6 +1382,7 @@ func (c *GameConverter) ConvertGetPlayersWithDesignsForGameRowToShipDesign(sourc
 	generatedShipDesign.CannotDelete = NullBoolToBool(source.CannotDelete)
 	generatedShipDesign.OriginalPlayerNum = source.OriginalPlayerNum
 	generatedShipDesign.MysteryTrader = NullBoolToBool(source.MysteryTrader)
+	generatedShipDesign.Description = NullStringToString(source.Description)
 	return generatedShipDesign
 }
 func (c *GameConverter) ConvertLightPlayer(source generated.GetLightPlayerForGameRow) cs.Player {
@@ -1560,6 +1570,7 @@ func (c *GameConverter) ConvertPlayerNote(source generated.PlayerNote) *cs.Playe
 	csPlayerNote.TargetPlayerNum = Int64ToInt(source.TargetPlayerNum)
 	csPlayerNote.Position = c.generatedPlayerNoteToCsVectorGeneric(source)
 	csPlayerNote.Text = source.Text
+	csPlayerNote.Tags = PlayerNoteTagsToGamePlayerNoteTags(source.Tags)
 	csPlayerNote.ShowOnMap = source.ShowOnMap
 	return &csPlayerNote
 }
@@ -1615,6 +1626,7 @@ func (c *GameConverter) ConvertRace(source generated.Race) cs.Race {
 	csRace.UserID = source.UserID
 	csRace.Name = source.Name
 	csRace.PluralName = source.PluralName
+	csRace.Description = source.Description
 	csRace.SpendLeftoverPointsOn = source.SpendLeftoverPointsOn
 	csRace.PRT = source.Prt
 	csRace.LRTs = c.csBitmaskToCsBitmask(source.Lrts)
@@ -1670,6 +1682,7 @@ func (c *GameConverter) ConvertShipDesign(source generated.ShipDesign) *cs.ShipD
 	csShipDesign.PlayerNum = Int64ToInt(source.PlayerNum)
 	csShipDesign.OriginalPlayerNum = NullInt64ToInt(source.OriginalPlayerNum)
 	csShipDesign.Name = source.Name
+	csShipDesign.Description = source.Description
 	csShipDesign.Version = Int64ToInt(source.Version)
 	csShipDesign.Hull = source.Hull
 	csShipDesign.HullSetNumber = Int64ToInt(source.HullSetNumber)

@@ -56,6 +56,7 @@ message ProductionQueueItem {
   int32 quantity = 4;
   Cost allocated = 5;
   map<string, string> tags = 6;
+  string note = 7;
 }
 
 message QueueItemCompletionEstimate {

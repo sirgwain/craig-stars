@@ -263,6 +263,7 @@ export class CommandedPlayerRace implements Race {
 	userId = BigInt(0);
 	name = '';
 	pluralName = '';
+	description = '';
 	spendLeftoverPointsOn = SpendLeftoverPointsOn.UNSPECIFIED;
 	prt = Prt.UNSPECIFIED;
 	lrts = 0;

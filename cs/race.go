@@ -3,6 +3,8 @@ package cs
 import (
 	"fmt"
 	"math"
+	"strings"
+	"unicode/utf8"
 )
 
 // A user can have multiple races stored in the database. Each time a game is created, a Race is copied
@@ -12,6 +14,7 @@ type Race struct {
 	UserID                int64                 `json:"userId,omitempty"`
 	Name                  string                `json:"name"`
 	PluralName            string                `json:"pluralName"`
+	Description           string                `json:"description,omitempty"`
 	SpendLeftoverPointsOn SpendLeftoverPointsOn `json:"spendLeftoverPointsOn"`
 	PRT                   PRT                   `json:"prt"`
 	LRTs                  Bitmask               `json:"lrts"`
@@ -1312,6 +1315,15 @@ func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (leftoverPoints 
 	// Also need to add rules vars for starting points caps
 	points := Clamp(0, race.ComputeRacePoints(startingPoints), 50)
 	return points, race.SpendLeftoverPointsOn
+}
+
+// Validate cleans up the text a player wrote for a race and returns an error if it can't be saved
+func (race *Race) Validate() error {
+	race.Description = strings.TrimSpace(race.Description)
+	if utf8.RuneCountInString(race.Description) > MaxDescriptionLength {
+		return fmt.Errorf("race description is longer than %d characters", MaxDescriptionLength)
+	}
+	return nil
 }
 
 // WithDefaults fills in defaults for fields a client left empty, like a race created

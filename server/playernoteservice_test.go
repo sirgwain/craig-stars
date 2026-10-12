@@ -111,4 +111,61 @@ func Test_playerNoteService(t *testing.T) {
 	_, err = service.DeletePlayerNote(ctx, connect.NewRequest(&craig_starsv1.DeletePlayerNoteRequest{GameId: game.ID, NoteId: label.GameDbObject.Id}))
 	require.NoError(t, err)
 	assert.Len(t, notes(ctx), 1)
+
+	// tags are saved with the note, and a planet can be tagged without writing anything
+	replaced.Tags = []string{" gate  hub ", "Target", "target"}
+	replaced, err = save(ctx, replaced)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"gate hub", "Target"}, replaced.Tags)
+	assert.Equal(t, []string{"gate hub", "Target"}, notes(ctx)[0].Tags)
+	tagged, err := save(ctx, &craig_starsv1.PlayerNote{
+		TargetType: craig_starsv1.MapObjectType_MAP_OBJECT_TYPE_PLANET,
+		TargetNum:  4,
+		Tags:       []string{"Target"},
+	})
+	require.NoError(t, err)
+	assert.Empty(t, tagged.Text)
+	assert.Len(t, notes(ctx), 2)
+
+	// a player can put a note on their own fleets
+	playerNum := game.Players[0].Num
+	fleets, err := client.GetFleetsForPlayer(ctx, game.ID, playerNum)
+	require.NoError(t, err)
+	var fleet *cs.Fleet
+	for _, f := range fleets {
+		if !f.Starbase {
+			fleet = f
+			break
+		}
+	}
+	require.NotNil(t, fleet)
+	fleetNote := &craig_starsv1.PlayerNote{
+		TargetType:      craig_starsv1.MapObjectType_MAP_OBJECT_TYPE_FLEET,
+		TargetNum:       int32(fleet.Num),
+		TargetPlayerNum: int32(playerNum),
+		Text:            "decoy",
+		Tags:            []string{"scouts"},
+	}
+	_, err = save(ctx, fleetNote)
+	require.NoError(t, err)
+	assert.Len(t, notes(ctx), 3)
+
+	// but not on a fleet that doesn't exist, or another player's
+	_, err = save(ctx, &craig_starsv1.PlayerNote{
+		TargetType:      craig_starsv1.MapObjectType_MAP_OBJECT_TYPE_FLEET,
+		TargetNum:       9999,
+		TargetPlayerNum: int32(playerNum),
+		Text:            "ghost",
+	})
+	assert.Equal(t, connect.CodeNotFound, connect.CodeOf(err))
+	_, err = save(otherCtx, fleetNote)
+	assert.Equal(t, connect.CodeInvalidArgument, connect.CodeOf(err))
+
+	// fleet nums are reused, so the note goes away with the fleet
+	require.NoError(t, client.DeleteFleet(ctx, fleet.ID))
+	got = notes(ctx)
+	require.Len(t, got, 2)
+	for _, note := range got {
+		assert.Equal(t, craig_starsv1.MapObjectType_MAP_OBJECT_TYPE_PLANET, note.TargetType)
+	}
 }

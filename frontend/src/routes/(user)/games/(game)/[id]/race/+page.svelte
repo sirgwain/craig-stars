@@ -17,6 +17,11 @@
 
 <div class="w-full mx-auto md:max-w-2xl pb-8">
 	<ItemTitle>{race.name}/{race.pluralName}</ItemTitle>
+	{#if race.description}
+		<p class="whitespace-pre-wrap wrap-break-word mb-2" data-type="race-description">
+			{race.description}
+		</p>
+	{/if}
 	<div
 		class="stats stats-vertical sm:stats-horizontal sm:flex shadow-sm border border-base-200 w-full sm:w-48 sm:mx-auto"
 	>

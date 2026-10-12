@@ -40,10 +40,12 @@ type Player struct {
 	Stats                     *PlayerStats         `json:"stats,omitempty"`
 	Spec                      PlayerSpec           `json:"-"`
 	TechsJustGained           []*Tech              `json:"-"`
-	leftoverResources         int
-	techLevelGained           bool
-	acquirablePartGained      bool
-	discoverer                discoverer
+	// notes written for the player during turn generation, to be saved with the game
+	NewNotes             []*PlayerNote `json:"-"`
+	leftoverResources    int
+	techLevelGained      bool
+	acquirablePartGained bool
+	discoverer           discoverer
 }
 
 // a player and all mapobjects the player owns

@@ -28,6 +28,13 @@ export const NoGate = -1;
 export const Infinite = -1;
 // the longest name a player can give a fleet, design, race or plan
 export const MaxNameLength = 80;
+// the longest description a player can write for a design or race
+export const MaxDescriptionLength = 1000;
+// the longest note on a production queue item
+export const MaxQueueItemNoteLength = 200;
+// the longest tag a player can make, and the most tags they can put on one map object
+export const MaxTagLength = 30;
+export const MaxTags = 20;
 export const MaxGameNameLength = 100;
 export const InfiniteGate = 2147483647; /* math.MaxInt32 */
 export const ReportAgeUnexplored = -1;

@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"math"
 	"slices"
+	"strings"
+	"unicode/utf8"
 )
 
 // The producer interface performs planetary production
@@ -52,8 +54,10 @@ type ProductionQueueItem struct {
 	Quantity  int           `json:"quantity"`
 	Allocated Cost          `json:"allocated,omitzero"`
 	Tags      Tags          `json:"tags,omitzero"`
-	index     int           // used for holding a place in the queue while estimating
-	design    *ShipDesign
+	// a reminder the player wrote about what this item is for. They are told when the item is built.
+	Note   string `json:"note,omitempty"`
+	index  int    // used for holding a place in the queue while estimating
+	design *ShipDesign
 }
 
 func (item *ProductionQueueItem) SetDesign(design *ShipDesign) {
@@ -165,6 +169,7 @@ type productionResult struct {
 	defenses          int
 	terraformResults  []TerraformResult
 	messages          []PlayerMessage
+	notes             []builtNote // notes on the items built this year, ships carry their own
 }
 
 // for logging and for estimating, keep track of each item built
@@ -181,6 +186,30 @@ type itemBuilt struct {
 type builtShip struct {
 	ShipToken
 	tags Tags
+	note string
+}
+
+// builtNote is the note on a queue item that built something other than ships this year
+type builtNote struct {
+	queueItemType QueueItemType
+	designNum     int
+	numBuilt      int
+	note          string
+}
+
+// the longest note a player can write on a production queue item
+const QueueItemNoteMaxLength = 200
+
+// cleanProductionQueueNotes trims the notes on a queue from a player and returns an error if one
+// is too long
+func cleanProductionQueueNotes(queue []ProductionQueueItem) error {
+	for i := range queue {
+		queue[i].Note = strings.TrimSpace(queue[i].Note)
+		if utf8.RuneCountInString(queue[i].Note) > QueueItemNoteMaxLength {
+			return fmt.Errorf("production queue note is longer than %d characters", QueueItemNoteMaxLength)
+		}
+	}
+	return nil
 }
 
 // productionStatus is the outcome of building one queue item
@@ -287,6 +316,10 @@ func (p *producer) produce() (productionResult, error) {
 
 			// record ship buildings/packets for later
 			p.updateProductionResult(item, built.numBuilt, cost, &result)
+			if item.Note != "" && !item.Type.IsAuto() && item.Type != QueueItemTypeShipToken {
+				// auto items build every year, a note about them each time would be noise
+				result.notes = append(result.notes, builtNote{queueItemType: item.Type, designNum: item.DesignNum, numBuilt: built.numBuilt, note: item.Note})
+			}
 			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: built.numBuilt, status: built.status})
 		} else if built.status == productionStatusSkippedAuto || built.status == productionStatusMineralBlockedAuto {
 			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, skipped: true, status: built.status})
@@ -637,7 +670,7 @@ func (p *producer) updateProductionResult(item ProductionQueueItem, numBuilt int
 	case QueueItemTypeGermaniumMineralPacket:
 		result.packets.Germanium += p.player.Race.Spec.MineralsPerSingleMineralPacket * numBuilt
 	case QueueItemTypeShipToken:
-		result.tokens = append(result.tokens, builtShip{ShipToken: ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum}, tags: item.Tags})
+		result.tokens = append(result.tokens, builtShip{ShipToken: ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum}, tags: item.Tags, note: item.Note})
 	case QueueItemTypeStarbase:
 		p.installStarbase(item.design, result)
 	case QueueItemTypePlanetaryScanner:

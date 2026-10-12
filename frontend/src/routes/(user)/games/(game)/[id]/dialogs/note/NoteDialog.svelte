@@ -6,8 +6,15 @@
 	const { editingNote, cancelEditNote } = getGameContext();
 </script>
 
-<div class="modal" class:modal-open={!!$editingNote} data-type="note-dialog">
-	<div class="modal-box max-w-full max-h-max size-full md:max-w-lg md:h-auto">
+<!-- On a phone the dialog sits at the top and stays short, so all of it is above the keyboard -->
+<div
+	class="modal modal-top md:modal-middle"
+	class:modal-open={!!$editingNote}
+	data-type="note-dialog"
+>
+	<div
+		class="modal-box w-full max-w-full max-h-dvh pt-[max(1rem,env(safe-area-inset-top))] md:max-w-lg md:pt-6"
+	>
 		{#if $editingNote}
 			{#key $editingNote}
 				<Note note={$editingNote} onClose={cancelEditNote} />

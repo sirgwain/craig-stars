@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TagBadge from '#lib/components/game/TagBadge.svelte';
 	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
 	import type { Waypoint } from '#lib/types/cs-proto.js';
 	import type {
@@ -16,8 +17,10 @@
 	} from '#lib/types/Fleet.js';
 	import CommandTile from './CommandTile.svelte';
 	import { emptyVector } from '#lib/types/Vector.js';
+	import { PencilSquare } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 
-	const { commandedFleet, player, universe } = getGameContext();
+	const { commandedFleet, player, universe, readOnly, editNote } = getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;
@@ -35,6 +38,9 @@
 		onSplitAll,
 		onBattlePlanChanged
 	}: Props = $props();
+
+	// A fleet in transit can't be selected on the map, only its waypoints, so its notes are edited here
+	let note = $derived($universe.getNote(fleet));
 
 	function split() {
 		if (!onShowSplitFleetDialog || !$commandedFleet) {
@@ -134,6 +140,24 @@
 					: 'none'}
 			</div>
 		</div>
+		{#if note || !$readOnly}
+			<button
+				type="button"
+				class="flex flex-row items-center gap-1 w-full my-1 overflow-hidden text-left cursor-pointer hover:text-accent"
+				title={note?.text || undefined}
+				aria-label={note ? 'Edit notes and tags' : 'Add notes and tags'}
+				data-type="fleet-note-button"
+				onclick={() => editNote(fleet)}
+			>
+				<Icon src={PencilSquare} class={`size-4 flex-none ${note ? 'stroke-accent' : ''}`} />
+				{#each note?.tags ?? [] as tag (tag)}
+					<TagBadge {tag} class="flex-none" />
+				{/each}
+				<span class="truncate italic" data-type="fleet-note"
+					>{note ? note.text : 'Add notes or tags'}</span
+				>
+			</button>
+		{/if}
 		<div class="flex justify-between">
 			<button onclick={split} class="btn btn-outline btn-sm normal-case btn-secondary">Split</button
 			>

@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"slices"
+	"strings"
 	"testing"
 
 	"log/slog"
@@ -3173,4 +3174,55 @@ func Test_turn_mysteryTraderMeetMaxTechNoReward(t *testing.T) {
 	assert.True(t, u.Fleet("Long Range Scout #1").Delete)
 	assert.True(t, u.Game.MysteryTraders[0].rewardedPlayer(1))
 	assert.Len(t, u.Messages(1, PlayerMessageMysteryTraderMetWithoutReward), 1)
+}
+
+func Test_turn_productionQueueNotes(t *testing.T) {
+	s := TestScenario{Players: []ScenarioPlayer{{
+		Player:  NewPlayer(1, NewRace()),
+		Designs: Designs(ShipDesign{Name: "Starbase", Hull: SpaceStation.Name}, DesignSmallFreighter),
+	}}, Planets: []ScenarioPlanet{{
+		Name: "Home", Owner: 1, Cargo: Cargo{Colonists: 1000}, Starbase: "Starbase",
+		ProductionQueue: []ScenarioProductionQueueItem{
+			{Type: QueueItemTypeMine, Quantity: 2, Note: "for the germ shortage"},
+			{Type: QueueItemTypeAutoFactories, Quantity: 1, Note: "auto items don't remind"},
+			{Type: QueueItemTypeShipToken, Design: "Small Freighter", Quantity: 2, Note: "colonizing Xyz"},
+			{Type: QueueItemTypeFactory, Quantity: 1},
+		},
+	}}}
+	u := newTestUniverse(t, s)
+	player, planet := u.Player(1), u.Game.Planets[0]
+	planet.Spec.ResourcesPerYearAvailable = 10000
+	planet.Cargo.Ironium, planet.Cargo.Boranium, planet.Cargo.Germanium = 10000, 10000, 10000
+	u.RunE((*turnGenerator).planetProduction)
+
+	// the mines remind the player with their own message, the factories had no note
+	notes := u.Messages(1, PlayerMessagePlanetBuiltNote)
+	require.Len(t, notes, 1)
+	assert.Equal(t, QueueItemTypeMine, notes[0].Spec.QueueItemType)
+	assert.Equal(t, 2, notes[0].Spec.Amount)
+	assert.Equal(t, "for the germ shortage", notes[0].Spec.Note)
+	assert.Equal(t, planet.Num, notes[0].TargetNum)
+
+	// the ships carry the note in the built message, and it stays with the new fleet
+	built := u.Messages(1, PlayerMessageFleetBuilt)
+	require.Len(t, built, 1)
+	assert.Equal(t, "colonizing Xyz", built[0].Spec.Note)
+	require.Len(t, player.NewNotes, 1)
+	note := player.NewNotes[0]
+	assert.Equal(t, "colonizing Xyz", note.Text)
+	assert.Equal(t, MapObjectTypeFleet, note.TargetType)
+	assert.Equal(t, built[0].TargetNum, note.TargetNum)
+	assert.Equal(t, 1, note.TargetPlayerNum)
+	assert.NoError(t, note.Validate(u.Game.Area))
+}
+
+func Test_cleanProductionQueueNotes(t *testing.T) {
+	queue := []ProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1, Note: "  more mines \n"}}
+	require.NoError(t, cleanProductionQueueNotes(queue))
+	assert.Equal(t, "more mines", queue[0].Note)
+
+	queue[0].Note = strings.Repeat("é", QueueItemNoteMaxLength)
+	assert.NoError(t, cleanProductionQueueNotes(queue))
+	queue[0].Note += "!"
+	assert.Error(t, cleanProductionQueueNotes(queue))
 }

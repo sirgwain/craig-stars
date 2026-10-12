@@ -29,7 +29,7 @@ test('navigation hotkeys follow the current route', async ({ testGamePage }) => 
 	const { page, gameId } = await testGamePage('Kitchen Sink');
 	await expect(page.locator('[data-type="game-link"]').first()).toBeVisible();
 
-	for (const report of ['planets', 'fleets', 'designs', 'messages', 'battles']) {
+	for (const report of ['planets', 'fleets', 'notes', 'designs', 'messages', 'battles']) {
 		await page.keyboard.press('F3');
 		await expect(page).toHaveURL(new RegExp(`/games/${gameId}/${report}$`));
 	}
@@ -287,7 +287,7 @@ test('fleets report page', async ({ newGamePage }) => {
 	await page.getByRole('button', { name: 'ID', exact: true }).click();
 	await page.getByRole('button', { name: 'Location' }).click();
 	await page.getByRole('button', { name: 'Destination' }).click();
-	await page.getByRole('button', { name: 'ETA' }).click();
+	await page.getByRole('button', { name: 'ETA', exact: true }).click();
 	await page.getByRole('button', { name: 'Fuel' }).click();
 	await page.getByRole('button', { name: 'Cargo' }).click();
 	await page.getByText('Composition').click();

@@ -32,6 +32,8 @@ message Race {
   ResearchCost research_cost = 24;
   bool techs_start_high = 25;
   // RaceSpec spec = 26;
+  // the player's own notes on the race, never shown to other players
+  string description = 27;
 }
 
 // Primary Race Trait

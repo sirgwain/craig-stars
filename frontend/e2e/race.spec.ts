@@ -26,7 +26,19 @@ test('edit race', async ({ newRacePage }) => {
 	await page.locator('input[name="EnergyResearchCost"]').first().click();
 	await page.locator('[data-type="grav-left-button"]').click();
 
+	await page.getByRole('textbox', { name: 'Description' }).fill('slow start, strong late');
+
 	// save button is good, click it
 	await expect(page.getByRole('button', { name: 'Save' })).toBeEnabled();
+	const saved = page.waitForResponse(
+		(response) => response.url().includes('RaceService/UpdateRace') && response.status() === 200
+	);
 	await page.getByRole('button', { name: 'Save' }).click();
+	await saved;
+
+	// the description is saved with the race and shown in the list of races
+	await page.goto('/races');
+	await expect(page.locator('[data-type="race-description"]').first()).toHaveText(
+		'slow start, strong late'
+	);
 });

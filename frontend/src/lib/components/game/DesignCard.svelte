@@ -54,6 +54,11 @@
 				</div>
 			</div>
 		</h2>
+		{#if design.description}
+			<p class="text-sm opacity-80 line-clamp-2 wrap-break-word" data-type="design-description">
+				{design.description}
+			</p>
+		{/if}
 		<div class="flex flex-col sm:flex-row justify-between">
 			<div class="mr-2">
 				<Cost cost={design.spec?.cost} />

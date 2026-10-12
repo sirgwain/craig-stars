@@ -159,6 +159,7 @@ enum PlayerMessageType {
   PLAYER_MESSAGE_TYPE_FLEET_FOLLOWED_FLEET = 124;
   PLAYER_MESSAGE_TYPE_PLANET_CLIMATE_CHANGE = 125;
   PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED = 126;
+  PLAYER_MESSAGE_TYPE_PLANET_BUILT_NOTE = 127;
 }
 
 enum CargoTransferStatus {
@@ -204,6 +205,7 @@ message PlayerMessageSpec {
   bool has_mass_driver = 28;
   bool planet_emptied = 29;
   string error = 30;
+  string note = 31;
 }
 
 message PlayerMessageSpecComet {

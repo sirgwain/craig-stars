@@ -91,3 +91,12 @@ func (c *client) DeleteShipDesign(ctx context.Context, id int64) error {
 	_, err := c.writer.DeleteShipDesign(ctx, id)
 	return err
 }
+
+// update only the description of a shipDesign, leaving the rest of the design alone
+func (c *client) UpdateShipDesignDescription(ctx context.Context, id int64, description string) error {
+	_, err := c.writer.UpdateShipDesignDescription(ctx, generated.UpdateShipDesignDescriptionParams{
+		ID:          id,
+		Description: description,
+	})
+	return err
+}

@@ -17,6 +17,7 @@ type ShipDesign struct {
 	PlayerNum         int               `json:"playerNum"`
 	OriginalPlayerNum int               `json:"originalPlayerNum"`
 	Name              string            `json:"name"`
+	Description       string            `json:"description,omitempty"`
 	Version           int               `json:"version"`
 	Hull              string            `json:"hull"`
 	HullSetNumber     int               `json:"hullSetNumber"`
@@ -191,6 +192,10 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	}
 	if utf8.RuneCountInString(sd.Name) > MaxNameLength {
 		return fmt.Errorf("design name is longer than %d characters", MaxNameLength)
+	}
+	sd.Description = strings.TrimSpace(sd.Description)
+	if utf8.RuneCountInString(sd.Description) > MaxDescriptionLength {
+		return fmt.Errorf("design description is longer than %d characters", MaxDescriptionLength)
 	}
 	hull := rules.techs.GetHull(sd.Hull)
 	if hull == nil {

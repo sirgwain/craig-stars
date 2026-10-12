@@ -16,7 +16,7 @@
 		type Waypoint,
 		type WaypointDest
 	} from '#lib/types/cs-proto.js';
-	import { filterFleet } from '#lib/types/Filter.js';
+	import { filterFleet, filterNote } from '#lib/types/Filter.js';
 	import { emptyMapObject, type MapObjectLike, type Position } from '#lib/types/MapObject.js';
 	import { distance, emptyVector, equal } from '#lib/types/Vector.js';
 	import { clone, create } from '@bufbuild/protobuf';
@@ -38,6 +38,7 @@
 		commandedFleet,
 		currentSelectedWaypointIndex,
 		editLabel,
+		editNote,
 		highlightMapObject,
 		mostRecentMapObject,
 		selectedWaypoint,
@@ -107,7 +108,7 @@
 	let pendingAdd: { found: MapObjectLike | undefined; position: Position } | undefined;
 
 	// Add label mode works the same way, a tap places a label and a drag still pans the map.
-	let pendingLabel: Position | undefined;
+	let pendingLabel: { found: MapObjectLike | undefined; position: Position } | undefined;
 	// a tap this close to a label (in css pixels) edits it instead of adding another
 	const labelTapRadius = 20;
 
@@ -534,7 +535,7 @@
 		if ($settings.addLabel) {
 			// wait for the pointer to lift, this could be the start of a pan
 			pressedAt = clientPoint(event);
-			pendingLabel = position;
+			pendingLabel = { found, position };
 			return;
 		}
 
@@ -605,7 +606,7 @@
 		if (pendingLabel) {
 			if (!movedSincePress(event)) {
 				// a tap in add label mode
-				placeLabel(pendingLabel);
+				placeLabel(pendingLabel.found, pendingLabel.position);
 			}
 		} else if (draggingWaypoint) {
 			dragWaypointDone(position, found);
@@ -690,8 +691,9 @@
 		}
 	}
 
-	// Open the note dialog for the label that was tapped, or for a new label where the map was tapped.
-	function placeLabel(position: Position) {
+	// Open the note dialog for what was tapped: a label, a map object that can have a note, or a new
+	// label on empty space.
+	function placeLabel(found: MapObjectLike | undefined, position: Position) {
 		const x = clamp(Number(position.x ?? 0), 0, $game.area.x);
 		const y = clamp(Number(position.y ?? 0), 0, $game.area.y);
 		const pixelsPerLy = pixelsPerLightYear.x * (transform?.k ?? 1);
@@ -699,7 +701,8 @@
 		let nearest: PlayerNote | undefined;
 		let nearestDistance = labelTapRadius;
 		for (const note of $universe.notes) {
-			if (note.targetType !== MapObjectType.UNSPECIFIED) {
+			// only labels that are on the map can be tapped
+			if (note.targetType !== MapObjectType.UNSPECIFIED || !filterNote(note, $settings)) {
 				continue;
 			}
 			const d = Math.hypot((note.position?.x ?? 0) - x, (note.position?.y ?? 0) - y) * pixelsPerLy;
@@ -710,6 +713,26 @@
 		}
 
 		$settings.addLabel = false;
+
+		// like adding a waypoint, a tap on a map object picks the object rather than the spot under it
+		let mo = found;
+		if (
+			mo?.mapObject?.type === MapObjectType.FLEET &&
+			!filterFleet($player, mo as Fleet, $settings, $universe)
+		) {
+			// this fleet is filtered out, the player can't see what they tapped
+			mo = undefined;
+		}
+		if (mo?.mapObject && $universe.canHaveNote(mo)) {
+			const moPosition = mo.mapObject.position;
+			const d = Math.hypot((moPosition?.x ?? 0) - x, (moPosition?.y ?? 0) - y) * pixelsPerLy;
+			if (!nearest || d <= nearestDistance) {
+				// they asked for a note on the map, so a new one starts out shown there
+				editNote(mo, true);
+				return;
+			}
+		}
+
 		editLabel(nearest ?? { x, y });
 	}
 

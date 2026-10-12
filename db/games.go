@@ -360,6 +360,28 @@ func (c *client) UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) erro
 		}
 	}
 
+	// notes turn generation wrote for the players' new fleets. Deleting a fleet deletes its note, so
+	// a fleet that reuses a num starts without one.
+	for _, player := range fullGame.Players {
+		for _, note := range player.NewNotes {
+			note.GameID = fullGame.ID
+			// a player has one note per map object, don't let a stale one fail the turn
+			if _, err := c.writer.DeletePlayerNoteForTarget(ctx, generated.DeletePlayerNoteForTargetParams{
+				GameID:          note.GameID,
+				PlayerNum:       int64(note.PlayerNum),
+				TargetType:      note.TargetType,
+				TargetNum:       int64(note.TargetNum),
+				TargetPlayerNum: int64(note.TargetPlayerNum),
+			}); err != nil {
+				return fmt.Errorf("delete stale player note: %w", err)
+			}
+			if err := c.SavePlayerNote(ctx, note); err != nil {
+				return fmt.Errorf("save player note: %w", err)
+			}
+		}
+		player.NewNotes = nil
+	}
+
 	// save fleets
 	remainingStarbases := make([]*cs.Fleet, 0, len(fullGame.Starbases))
 

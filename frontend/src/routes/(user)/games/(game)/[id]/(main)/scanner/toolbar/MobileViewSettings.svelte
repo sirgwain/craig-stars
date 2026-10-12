@@ -13,6 +13,7 @@
 	import FilterMyDesigns from './FilterMyDesigns.svelte';
 	import FilterAllyDesigns from './FilterAllyDesigns.svelte';
 	import FilterEnemyDesigns from './FilterEnemyDesigns.svelte';
+	import FilterNotes from './FilterNotes.svelte';
 	import FilterPlanetNames from './FilterPlanetNames.svelte';
 	import FilterPlayerColors from './FilterPlayerColors.svelte';
 	import ScannerPercent from './ScannerPercent.svelte';
@@ -72,6 +73,9 @@
 		</div>
 		<div class="size-10">
 			<FilterPlanetNames />
+		</div>
+		<div class="size-10">
+			<FilterNotes />
 		</div>
 		<div class="size-10">
 			<FilterFleetCounts />

@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
+	"strings"
+	"unicode/utf8"
 
 	"log/slog"
 
@@ -166,6 +168,37 @@ func (s *shipDesignService) UpdateShipDesign(ctx context.Context, req *connect.R
 	slog.Info("updated player design", slog.Int64("GameID", design.GameID), slog.Int("PlayerNum", player.Num), slog.String("DesignName", design.Name))
 
 	return connect.NewResponse(&craig_starsv1.UpdateShipDesignResponse{
+		Design: converter.C.ConvertCSShipDesign(design),
+	}), nil
+}
+
+// UpdateShipDesignDescription changes only the description of a design. Unlike the rest of a
+// design, the description can be changed while the design is in use.
+func (s *shipDesignService) UpdateShipDesignDescription(ctx context.Context, req *connect.Request[craig_starsv1.UpdateShipDesignDescriptionRequest]) (*connect.Response[craig_starsv1.UpdateShipDesignDescriptionResponse], error) {
+	dbClient := contextDb(ctx)
+	dbWriteClient := contextDbWrite(ctx)
+	game := contextGame(ctx)
+	gamePlayer := contextGamePlayer(ctx)
+
+	design, err := dbClient.GetShipDesignByNum(ctx, game.ID, gamePlayer.Num, int(req.Msg.Num))
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	if design == nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("design not found"))
+	}
+
+	design.Description = strings.TrimSpace(req.Msg.Description)
+	if utf8.RuneCountInString(design.Description) > cs.MaxDescriptionLength {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("design description is longer than %d characters", cs.MaxDescriptionLength))
+	}
+
+	if err := dbWriteClient.UpdateShipDesignDescription(ctx, design.ID, design.Description); err != nil {
+		slog.Error("update player design description", slog.Any("error", err), slog.Int64("GameID", game.ID), slog.Int("PlayerNum", gamePlayer.Num), slog.String("DesignName", design.Name))
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	return connect.NewResponse(&craig_starsv1.UpdateShipDesignDescriptionResponse{
 		Design: converter.C.ConvertCSShipDesign(design),
 	}), nil
 }

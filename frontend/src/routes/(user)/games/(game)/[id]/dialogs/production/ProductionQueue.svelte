@@ -40,7 +40,7 @@
 	import { clamp } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
-	import { Infinite } from '#lib/types/Consts.js';
+	import { Infinite, MaxQueueItemNoteLength } from '#lib/types/Consts.js';
 
 	// used to load the Genesis Device tech
 	const GenesisDevice = 'Genesis Device';
@@ -775,6 +775,26 @@
 					</div>
 				</div>
 			</div>
+			<label class="flex flex-row items-center gap-2 px-1 pt-2">
+				<span class="shrink-0">Note</span>
+				<input
+					type="text"
+					class="input input-sm grow min-w-0"
+					placeholder={selectedQueueItem
+						? 'What is this for? You are reminded when it is built.'
+						: 'Select an item in the queue to write a note about it'}
+					maxlength={MaxQueueItemNoteLength}
+					disabled={!selectedQueueItem}
+					autocomplete="off"
+					data-type="queue-item-note-input"
+					value={selectedQueueItem?.note ?? ''}
+					oninput={(e) => {
+						if (selectedQueueItem) {
+							selectedQueueItem.note = e.currentTarget.value;
+						}
+					}}
+				/>
+			</label>
 			<div class="flex justify-between p-1 pt-2">
 				<div class="w-1/2 mr-14">
 					<label>

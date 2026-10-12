@@ -1857,7 +1857,18 @@ func (t *turnGenerator) planetProduction() error {
 			if err != nil {
 				return err
 			}
-			messager.fleetBuilt(player, planet, fleet, token.Quantity, routeTarget)
+			messager.fleetBuilt(player, planet, fleet, token.Quantity, routeTarget, token.note)
+			if token.note != "" {
+				// the note about what these ships are for stays with the fleet
+				player.NewNotes = append(player.NewNotes, &PlayerNote{
+					GameID:          player.GameID,
+					PlayerNum:       player.Num,
+					TargetType:      MapObjectTypeFleet,
+					TargetNum:       fleet.Num,
+					TargetPlayerNum: fleet.PlayerNum,
+					Text:            token.note,
+				})
+			}
 		}
 
 		// yeet packets
@@ -1875,6 +1886,15 @@ func (t *turnGenerator) planetProduction() error {
 			for _, starbase := range result.starbases {
 				messager.planetBuiltStarbase(player, planet, starbase)
 			}
+		}
+
+		// remind the player what they were building these for
+		for _, note := range result.notes {
+			name := ""
+			if design := player.GetDesign(note.designNum); design != nil {
+				name = design.Name
+			}
+			messager.planetBuiltNote(player, planet, note.queueItemType, name, note.numBuilt, note.note)
 		}
 
 		// planetary scanner
@@ -3051,6 +3071,8 @@ func (t *turnGenerator) fleetTransferOwner() {
 						newDesign := *design
 						newDesign.GameDBObject = GameDBObject{}
 						newDesign.Name = newName
+						// the description is the designer's private note
+						newDesign.Description = ""
 						newDesign.OriginalPlayerNum = player.Num
 						newDesign.PlayerNum = targetPlayer.Num
 						newDesign.Num = targetPlayer.GetNextDesignNum(targetPlayer.Designs)

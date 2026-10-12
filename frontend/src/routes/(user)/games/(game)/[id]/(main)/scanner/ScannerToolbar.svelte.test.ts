@@ -114,7 +114,7 @@ describe('ScannerToolbar', () => {
 
 	it.each([false, true])('never overflows, shareMap=%s', async (shareMap) => {
 		const stages: Stage[] = [];
-		for (let width = 340; width <= 1000; width += 6) {
+		for (let width = 340; width <= 1040; width += 6) {
 			const result = await layout(width, shareMap);
 			expect(result.overflow, `overflowed at ${width} (${result.stage})`).toBeLessThanOrEqual(0);
 			stages.push(result.stage);
@@ -146,7 +146,7 @@ describe('delete waypoint button', () => {
 	});
 
 	it.each([false, true])('fits on phones, shareMap=%s', async (shareMap) => {
-		for (let width = 340; width <= 1000; width += 6) {
+		for (let width = 340; width <= 1040; width += 6) {
 			const result = await layout(width, shareMap, 1);
 			expect(result.overflow, `overflowed at ${width} (${result.stage})`).toBeLessThanOrEqual(0);
 		}

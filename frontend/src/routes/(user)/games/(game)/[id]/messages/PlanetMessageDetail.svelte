@@ -14,7 +14,7 @@
 	} from '#lib/types/cs-proto.js';
 	import { absSum, getHabValue, getTerraformHabValueString } from '#lib/types/Hab.js';
 	import { getLongHabName } from '#lib/types/Tech.js';
-	import { getFullName } from '#lib/types/QueueItemType.js';
+	import { getFullName, getQuantityText } from '#lib/types/QueueItemType.js';
 	import { create } from '@bufbuild/protobuf';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
@@ -238,6 +238,10 @@
 {:else if message.type === PlayerMessageType.PLANET_BUILT_INVALID_MINERAL_PACKET_NO_TARGET}
 	You have attempted to build a mineral packet on {planetName}, but you have failed to specify a
 	planet to target. The order has been canceled.
+{:else if message.type === PlayerMessageType.PLANET_BUILT_NOTE}
+	{@const item = create(ProductionQueueItemSchema, { type: message.spec?.queueItemType })}
+	{planetName} has built {getQuantityText(item.type, message.spec?.amount ?? 1)} x {message.spec
+		?.name || getFullName(item, $universe)}. (Note: {message.spec?.note})
 {:else if message.type === PlayerMessageType.PLANET_BUILT_SCANNER}
 	{planetName} has built a new {message.spec?.name} planetary scanner.
 {:else if message.type === PlayerMessageType.PLANET_BUILT_STARBASE}

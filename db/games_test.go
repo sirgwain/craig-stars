@@ -6,6 +6,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSaveGame(t *testing.T) {
@@ -225,4 +226,42 @@ func TestUpdateFullGame(t *testing.T) {
 
 	assert.Equal(t, fg.Name, updated.Name)
 
+}
+
+func TestUpdateFullGameNewNotes(t *testing.T) {
+	c := connectTestDB()
+
+	fg := c.createTestFullGame(t.Context())
+	require.NoError(t, c.UpdateFullGame(t.Context(), fg))
+
+	player := fg.Players[0]
+	var fleet *cs.Fleet
+	for _, f := range fg.Fleets {
+		if f.PlayerNum == player.Num {
+			fleet = f
+			break
+		}
+	}
+	require.NotNil(t, fleet)
+
+	newNote := func(text string) *cs.PlayerNote {
+		return &cs.PlayerNote{PlayerNum: player.Num, TargetType: cs.MapObjectTypeFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num, Text: text}
+	}
+
+	// notes written during turn generation are saved with the game
+	player.NewNotes = []*cs.PlayerNote{newNote("for colonizing")}
+	require.NoError(t, c.UpdateFullGame(t.Context(), fg))
+	assert.Empty(t, player.NewNotes)
+	notes, err := c.GetPlayerNotesForPlayer(t.Context(), fg.ID, player.Num)
+	require.NoError(t, err)
+	require.Len(t, notes, 1)
+	assert.Equal(t, "for colonizing", notes[0].Text)
+
+	// a stale note about the same fleet is replaced, rather than failing the turn
+	player.NewNotes = []*cs.PlayerNote{newNote("for mining")}
+	require.NoError(t, c.UpdateFullGame(t.Context(), fg))
+	notes, err = c.GetPlayerNotesForPlayer(t.Context(), fg.ID, player.Num)
+	require.NoError(t, err)
+	require.Len(t, notes, 1)
+	assert.Equal(t, "for mining", notes[0].Text)
 }

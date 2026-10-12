@@ -6,9 +6,11 @@
 	import { getHullIcon } from '#lib/techicon.js';
 	import type { ShipDesign } from '#lib/types/cs-proto.js';
 	import type { CommandedFleet } from '#lib/types/Fleet.js';
+	import { PencilSquare } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import CommandTile from './CommandTile.svelte';
 
-	const { universe } = getGameContext();
+	const { universe, readOnly, editNote } = getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;
@@ -25,6 +27,8 @@
 		}
 	});
 
+	let note = $derived($universe.getNote(fleet));
+
 	function rename() {
 		let name = prompt('Enter fleet name', fleet.baseName);
 		if (!name || name === '') {
@@ -37,6 +41,23 @@
 </script>
 
 <CommandTile title={hideTitle ? '' : fleet.mapObject.name}>
+	{#snippet actions()}
+		{#if !hideTitle && (note || !$readOnly)}
+			<button
+				type="button"
+				class="flex cursor-pointer"
+				title={note?.text || (note ? 'edit notes and tags' : 'add notes and tags')}
+				aria-label={note ? 'Edit notes and tags' : 'Add notes and tags'}
+				data-type="fleet-title-note-button"
+				onclick={() => editNote(fleet)}
+			>
+				<Icon
+					src={PencilSquare}
+					class={`size-4 hover:stroke-accent ${note ? 'stroke-accent' : ''}`}
+				/>
+			</button>
+		{/if}
+	{/snippet}
 	<div class="grid grid-cols-2">
 		<div class="avatar border border-secondary p-2 bg-black m-auto relative">
 			{#if fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}

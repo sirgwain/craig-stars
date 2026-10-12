@@ -85,6 +85,11 @@
 						class="cs-link text-2xl inline-block max-w-[20rem] truncate align-bottom"
 						href="/races/{row.id}">{cell}</a
 					>
+					{#if row.description}
+						<div class="text-sm opacity-70 max-w-[20rem] truncate" data-type="race-description">
+							{row.description}
+						</div>
+					{/if}
 				{:else if column.key == 'prt'}
 					{getLabelForPRT(row.prt)}
 				{:else if column.key == 'createdAt'}

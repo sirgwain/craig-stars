@@ -597,6 +597,7 @@ func (c *ProtoConverter) ConvertCSPlayerNote(source *cs.PlayerNote) *v1.PlayerNo
 		craig_starsv1PlayerNote.Position = CSVectorToVector((*source).Position)
 		craig_starsv1PlayerNote.Text = (*source).Text
 		craig_starsv1PlayerNote.ShowOnMap = (*source).ShowOnMap
+		craig_starsv1PlayerNote.Tags = (*source).Tags
 		pCraig_starsv1PlayerNote = &craig_starsv1PlayerNote
 	}
 	return pCraig_starsv1PlayerNote
@@ -640,6 +641,7 @@ func (c *ProtoConverter) ConvertCSProductionQueueItem(source cs.ProductionQueueI
 	craig_starsv1ProductionQueueItem.Quantity = IntToInt32(source.Quantity)
 	craig_starsv1ProductionQueueItem.Allocated = CSCostToCost(source.Allocated)
 	craig_starsv1ProductionQueueItem.Tags = c.csTagsToMapStringString(source.Tags)
+	craig_starsv1ProductionQueueItem.Note = source.Note
 	return &craig_starsv1ProductionQueueItem
 }
 func (c *ProtoConverter) ConvertCSRace(source cs.Race) *v1.Race {
@@ -669,6 +671,7 @@ func (c *ProtoConverter) ConvertCSRace(source cs.Race) *v1.Race {
 	craig_starsv1Race.NumMines = IntToInt32(source.NumMines)
 	craig_starsv1Race.ResearchCost = c.csResearchCostToPCraig_starsv1ResearchCost(source.ResearchCost)
 	craig_starsv1Race.TechsStartHigh = source.TechsStartHigh
+	craig_starsv1Race.Description = source.Description
 	return &craig_starsv1Race
 }
 func (c *ProtoConverter) ConvertCSRaceSpec(source cs.RaceSpec) *v1.RaceSpec {
@@ -902,6 +905,7 @@ func (c *ProtoConverter) ConvertCSShipDesign(source *cs.ShipDesign) *v1.ShipDesi
 		}
 		craig_starsv1ShipDesign.Purpose = CSShipDesignPurposeToShipDesignPurpose((*source).Purpose)
 		craig_starsv1ShipDesign.Spec = c.ConvertCSShipDesignSpec((*source).Spec)
+		craig_starsv1ShipDesign.Description = (*source).Description
 		pCraig_starsv1ShipDesign = &craig_starsv1ShipDesign
 	}
 	return pCraig_starsv1ShipDesign
@@ -1841,6 +1845,7 @@ func (c *ProtoConverter) ConvertPlayerNote(source *v1.PlayerNote) *cs.PlayerNote
 		csPlayerNote.TargetPlayerNum = Int32ToInt((*source).TargetPlayerNum)
 		csPlayerNote.Position = c.ConvertVector((*source).Position)
 		csPlayerNote.Text = (*source).Text
+		csPlayerNote.Tags = (*source).Tags
 		csPlayerNote.ShowOnMap = (*source).ShowOnMap
 		pCsPlayerNote = &csPlayerNote
 	}
@@ -1919,6 +1924,7 @@ func (c *ProtoConverter) ConvertProductionQueueItem(source *v1.ProductionQueueIt
 		csProductionQueueItem.Quantity = Int32ToInt((*source).Quantity)
 		csProductionQueueItem.Allocated = c.ConvertCost((*source).Allocated)
 		csProductionQueueItem.Tags = c.mapStringStringToCsTags((*source).Tags)
+		csProductionQueueItem.Note = (*source).Note
 	}
 	return csProductionQueueItem
 }
@@ -1939,6 +1945,7 @@ func (c *ProtoConverter) ConvertRaceP(source *v1.Race) *cs.Race {
 		csRace.UserID = (*source).UserId
 		csRace.Name = (*source).Name
 		csRace.PluralName = (*source).PluralName
+		csRace.Description = (*source).Description
 		csRace.SpendLeftoverPointsOn = SpendLeftoverPointsOnToCSSpendLeftoverPointsOn((*source).SpendLeftoverPointsOn)
 		csRace.PRT = PRTToCSPRT((*source).Prt)
 		csRace.LRTs = Int32ToBitmask((*source).Lrts)
@@ -2068,6 +2075,7 @@ func (c *ProtoConverter) ConvertShipDesignP(source *v1.ShipDesign) *cs.ShipDesig
 		csShipDesign.PlayerNum = Int32ToInt((*source).PlayerNum)
 		csShipDesign.OriginalPlayerNum = Int32ToInt((*source).OriginalPlayerNum)
 		csShipDesign.Name = (*source).Name
+		csShipDesign.Description = (*source).Description
 		csShipDesign.Version = Int32ToInt((*source).Version)
 		csShipDesign.Hull = (*source).Hull
 		csShipDesign.HullSetNumber = Int32ToInt((*source).HullSetNumber)
@@ -2807,6 +2815,7 @@ func (c *ProtoConverter) csPlayerMessageSpecToPCraig_starsv1PlayerMessageSpec(so
 	craig_starsv1PlayerMessageSpec.HasMassDriver = source.HasMassDriver
 	craig_starsv1PlayerMessageSpec.PlanetEmptied = source.PlanetEmptied
 	craig_starsv1PlayerMessageSpec.Error = source.Error
+	craig_starsv1PlayerMessageSpec.Note = source.Note
 	return &craig_starsv1PlayerMessageSpec
 }
 func (c *ProtoConverter) csPlayerMessageToPCraig_starsv1PlayerMessage(source cs.PlayerMessage) *v1.PlayerMessage {
@@ -3759,6 +3768,7 @@ func (c *ProtoConverter) pCraig_starsv1PlayerMessageSpecToCsPlayerMessageSpec(so
 		csPlayerMessageSpec.MineralPacketDamage = c.pCraig_starsv1MineralPacketDamageToPCsMineralPacketDamage((*source).MineralPacketDamage)
 		csPlayerMessageSpec.MysteryTrader = c.ConvertPlayerMessageSpecMysteryTrader((*source).MysteryTrader)
 		csPlayerMessageSpec.Name = (*source).Name
+		csPlayerMessageSpec.Note = (*source).Note
 		csPlayerMessageSpec.NextField = cs.TechField((*source).NextField)
 		csPlayerMessageSpec.PlanetEmptied = (*source).PlanetEmptied
 		csPlayerMessageSpec.PrevAmount = Int32ToInt((*source).PrevAmount)

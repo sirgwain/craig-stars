@@ -3,10 +3,12 @@
 
 	type Props = {
 		title?: string;
+		// small buttons right after the title
+		actions?: Snippet;
 		children?: Snippet;
 	};
 
-	let { title = '', children }: Props = $props();
+	let { title = '', actions, children }: Props = $props();
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -17,16 +19,19 @@
 	oncontextmenu={(e) => e.preventDefault()}
 >
 	<div class="card-body p-3 gap-0">
-		<button class="w-full">
-			<div class="flex flex-row items-center mb-1">
-				<div
-					class="flex-1 min-w-0 truncate text-center text-lg font-semibold text-secondary"
-					{title}
-				>
+		<!-- actions sit right beside the title, and the two are centered together -->
+		<div class="flex flex-row items-center justify-center gap-1.5 mb-1">
+			<button class="min-w-0" class:w-full={!actions}>
+				<div class="truncate text-center text-lg font-semibold text-secondary" {title}>
 					{title}
 				</div>
-			</div>
-		</button>
+			</button>
+			{#if actions}
+				<div class="flex-none flex flex-row items-center">
+					{@render actions()}
+				</div>
+			{/if}
+		</div>
 		{@render children?.()}
 	</div>
 </div>

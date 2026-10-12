@@ -208,6 +208,9 @@
 	{#if routeTarget}
 		It will be routed to {routeTarget.mapObject?.name}.
 	{/if}
+	{#if message.spec?.note}
+		(Note: {message.spec.note})
+	{/if}
 {:else if message.type === PlayerMessageType.FLEET_DIEOFF}
 	Due to the rigors of warp acceleration, {-(message.spec?.amount ?? 0)} of your colonists on {message
 		.target?.targetName}

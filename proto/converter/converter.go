@@ -231,6 +231,7 @@ type Converter interface {
 	// goverter:ignore Designs
 	// goverter:ignore Spec
 	// goverter:ignore TechsJustGained
+	// goverter:ignore NewNotes
 	ConvertPlayer(source *craig_starsv1.Player) *cs.Player
 
 	// goverter:ignore ScoreHistory

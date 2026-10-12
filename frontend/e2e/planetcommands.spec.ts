@@ -59,15 +59,15 @@ test('production queue change', async ({ newGamePage }) => {
 	await productionQueueDialog.getByRole('button', { name: 'Mine', exact: true }).click();
 	await productionQueueDialog.getByRole('button', { name: 'x100' }).click();
 	await productionQueueDialog.getByRole('button', { name: 'Add' }).click();
-	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Factory 11Mine 100');
+	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Factory 11 Mine 100');
 
 	// move mine up
 	await productionQueueDialog.getByRole('button', { name: 'Item Up' }).click();
-	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Mine 100Factory 11');
+	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Mine 100 Factory 11');
 
 	// move mine down
 	await productionQueueDialog.getByRole('button', { name: 'Item Down' }).click();
-	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Factory 11Mine 100');
+	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Factory 11 Mine 100');
 
 	// remove mine
 	await productionQueueDialog.getByRole('button', { name: 'Remove' }).click();
@@ -79,14 +79,14 @@ test('production queue change', async ({ newGamePage }) => {
 	await productionQueueDialog.getByRole('button', { name: 'Long Range Scout' }).click();
 	await productionQueueDialog.getByRole('button', { name: 'Add' }).click();
 	await expect(productionQueueDialog).toContainText(
-		'-- Top of the Queue -- Long Range Scout 1Factory 11'
+		'-- Top of the Queue -- Long Range Scout 1 Factory 11'
 	);
 
 	// save it
 	await productionQueueDialog.getByRole('button', { name: 'Ok' }).click();
 
 	// production queue tile should update
-	await expect(productionTile).toContainText('Long Range Scout 1Factory 11');
+	await expect(productionTile).toContainText('Long Range Scout 1 Factory 11');
 
 	await submitTurn(page);
 
@@ -131,7 +131,7 @@ test('production queue starbases add ships and packets', async ({ testGamePage }
 	// it's priced as an upgrade from the station, not the orbital fort
 	await productionQueueDialog.getByRole('button', { name: 'Flinger', exact: true }).click();
 	await productionQueueDialog.getByRole('button', { name: 'Add' }).click();
-	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Station 1Flinger 1');
+	await expect(productionQueueDialog).toContainText('-- Top of the Queue -- Station 1 Flinger 1');
 	await expect(productionQueueDialog).toContainText(
 		'Cost of Flinger x 1 Ironium 24kT Boranium 20kT Germanium 20kT Resources 70'
 	);
@@ -141,8 +141,81 @@ test('production queue starbases add ships and packets', async ({ testGamePage }
 	await packet.click();
 	await productionQueueDialog.getByRole('button', { name: 'Add' }).click();
 	await expect(productionQueueDialog).toContainText(
-		'-- Top of the Queue -- Station 1Flinger 1Mixed Mineral Packet 1'
+		'-- Top of the Queue -- Station 1 Flinger 1 Mixed Mineral Packet 1'
 	);
 	await productionQueueDialog.getByRole('button', { name: 'Ok' }).click();
-	await expect(productionTile).toContainText('Station 1Flinger 1Mixed');
+	await expect(productionTile).toContainText('Station 1 Flinger 1 Mixed');
+});
+
+test('production queue notes', async ({ newGamePage }) => {
+	const { page, id: gameId } = newGamePage;
+	apiErrorsFailTest(page);
+
+	const productionTile = page.locator('[data-type="command-tile"][data-id="Production"]').first();
+	const productionQueueDialog = page.locator('[data-type="dialog"][data-id="Production Queue"]');
+	const noteInput = productionQueueDialog.locator('[data-type="queue-item-note-input"]');
+	const report = page.locator('[data-type="notes-report"]');
+
+	await test.step('write notes on queue items', async () => {
+		await productionTile.getByRole('button', { name: 'Change' }).click();
+		await productionQueueDialog.getByRole('button', { name: 'Clear' }).click();
+		// there is nothing to write a note about yet
+		await expect(noteInput).toBeDisabled();
+
+		await productionQueueDialog.getByRole('button', { name: 'Long Range Scout' }).click();
+		await productionQueueDialog.getByRole('button', { name: 'Add' }).click();
+		await noteInput.fill('scouting the north');
+
+		await productionQueueDialog.getByRole('button', { name: 'Mine', exact: true }).click();
+		await productionQueueDialog.getByRole('button', { name: 'Add' }).click();
+		// each item has its own note
+		await expect(noteInput).toHaveValue('');
+		await noteInput.fill('germanium is short');
+
+		const saved = page.waitForResponse((resp) => resp.url().includes('UpdatePlanetOrders'));
+		await productionQueueDialog.getByRole('button', { name: 'Ok' }).click();
+		await saved;
+		await expect(productionTile.locator('[data-type="queue-item-note"]')).toHaveText([
+			'scouting the north',
+			'germanium is short'
+		]);
+	});
+
+	await test.step('the notes report lists them', async () => {
+		await page.goto(`/games/${gameId}/notes`);
+		await expect(report.locator('[data-type="note-text"]')).toHaveText([
+			'scouting the north',
+			'germanium is short'
+		]);
+		// edit one from the report
+		await report.getByRole('button', { name: 'Queue' }).first().click();
+		await productionQueueDialog.getByRole('button', { name: /Mine/ }).last().click();
+		await expect(noteInput).toHaveValue('germanium is short');
+		await noteInput.fill('germanium is very short');
+		await productionQueueDialog.getByRole('button', { name: 'Ok' }).click();
+		await expect(report.locator('[data-type="note-text"]')).toHaveText([
+			'scouting the north',
+			'germanium is very short'
+		]);
+	});
+
+	await test.step('the player is reminded when the items are built', async () => {
+		await page.goto(`/games/${gameId}`);
+		await submitTurn(page);
+		await page.goto(`/games/${gameId}/messages`);
+		await expect(page.getByText('(Note: scouting the north)')).toBeVisible();
+		await expect(page.getByText('(Note: germanium is very short)')).toBeVisible();
+	});
+
+	await test.step('the note stays with the new fleet', async () => {
+		await page.goto(`/games/${gameId}/notes`);
+		await expect(report.locator('[data-type="note-text"]')).toHaveText(['scouting the north']);
+		await expect(report).toContainText('Fleet');
+		// go to the fleet from the report
+		await report.getByRole('button', { name: /Long Range Scout/ }).click();
+		await expect(page).toHaveURL(new RegExp(`/games/${gameId}$`));
+		await expect(page.locator('[data-type="map-object-note"]:visible').first()).toHaveText(
+			'scouting the north'
+		);
+	});
 });

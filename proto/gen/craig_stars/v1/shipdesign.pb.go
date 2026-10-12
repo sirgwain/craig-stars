@@ -201,8 +201,10 @@ type ShipDesign struct {
 	Slots             []*ShipDesignSlot      `protobuf:"bytes,11,rep,name=slots,proto3" json:"slots,omitempty"`
 	Purpose           ShipDesignPurpose      `protobuf:"varint,12,opt,name=purpose,proto3,enum=craig_stars.v1.ShipDesignPurpose" json:"purpose,omitempty"`
 	Spec              *ShipDesignSpec        `protobuf:"bytes,13,opt,name=spec,proto3" json:"spec,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// the player's own notes on what the design is for, never shown to other players
+	Description   string `protobuf:"bytes,14,opt,name=description,proto3" json:"description,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ShipDesign) Reset() {
@@ -324,6 +326,13 @@ func (x *ShipDesign) GetSpec() *ShipDesignSpec {
 		return x.Spec
 	}
 	return nil
+}
+
+func (x *ShipDesign) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
 }
 
 type ShipDesignSlot struct {
@@ -946,7 +955,7 @@ var File_craig_stars_v1_shipdesign_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_shipdesign_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcraig_stars/v1/shipdesign.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x19craig_stars/v1/tech.proto\"\x8e\x04\n" +
+	"\x1fcraig_stars/v1/shipdesign.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x19craig_stars/v1/tech.proto\"\xb0\x04\n" +
 	"\n" +
 	"ShipDesign\x12B\n" +
 	"\x0egame_db_object\x18\x01 \x01(\v2\x1c.craig_stars.v1.GameDBObjectR\fgameDbObject\x12\x10\n" +
@@ -963,7 +972,8 @@ const file_craig_stars_v1_shipdesign_proto_rawDesc = "" +
 	" \x01(\bR\rmysteryTrader\x124\n" +
 	"\x05slots\x18\v \x03(\v2\x1e.craig_stars.v1.ShipDesignSlotR\x05slots\x12;\n" +
 	"\apurpose\x18\f \x01(\x0e2!.craig_stars.v1.ShipDesignPurposeR\apurpose\x122\n" +
-	"\x04spec\x18\r \x01(\v2\x1e.craig_stars.v1.ShipDesignSpecR\x04spec\"{\n" +
+	"\x04spec\x18\r \x01(\v2\x1e.craig_stars.v1.ShipDesignSpecR\x04spec\x12 \n" +
+	"\vdescription\x18\x0e \x01(\tR\vdescription\"{\n" +
 	"\x0eShipDesignSlot\x12%\n" +
 	"\x0ehull_component\x18\x01 \x01(\tR\rhullComponent\x12&\n" +
 	"\x0fhull_slot_index\x18\x02 \x01(\x05R\rhullSlotIndex\x12\x1a\n" +

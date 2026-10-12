@@ -45,12 +45,14 @@ INSERT INTO
         x,
         y,
         text,
-        show_on_map
+        show_on_map,
+        tags
     )
 VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
+        ?,
         ?,
         ?,
         ?,
@@ -69,7 +71,8 @@ SET
     x = ?,
     y = ?,
     text = ?,
-    show_on_map = ?
+    show_on_map = ?,
+    tags = ?
 WHERE
     id = ?;
 
@@ -77,3 +80,12 @@ WHERE
 DELETE FROM player_notes
 WHERE
     id = ?;
+
+-- name: DeletePlayerNoteForTarget :execrows
+DELETE FROM player_notes
+WHERE
+    game_id = ?
+    AND player_num = ?
+    AND target_type = ?
+    AND target_num = ?
+    AND target_player_num = ?;

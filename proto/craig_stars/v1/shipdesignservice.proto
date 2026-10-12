@@ -17,6 +17,10 @@ service ShipDesignService {
   rpc UpdateShipDesign(UpdateShipDesignRequest) returns (UpdateShipDesignResponse) {
     option idempotency_level = IDEMPOTENT;
   }
+  // designs that are in use can't be changed, but their description can
+  rpc UpdateShipDesignDescription(UpdateShipDesignDescriptionRequest) returns (UpdateShipDesignDescriptionResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
   rpc DeleteShipDesign(DeleteShipDesignRequest) returns (DeleteShipDesignResponse);
 }
 
@@ -46,6 +50,14 @@ message UpdateShipDesignRequest {
   ShipDesign design = 2;
 }
 message UpdateShipDesignResponse {
+  ShipDesign design = 1;
+}
+message UpdateShipDesignDescriptionRequest {
+  int64 game_id = 1;
+  int32 num = 2;
+  string description = 3;
+}
+message UpdateShipDesignDescriptionResponse {
   ShipDesign design = 1;
 }
 message DeleteShipDesignRequest {

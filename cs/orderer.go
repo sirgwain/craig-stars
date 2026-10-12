@@ -99,6 +99,9 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 
 // update a planet orders
 func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error {
+	if err := cleanProductionQueueNotes(orders.ProductionQueue); err != nil {
+		return err
+	}
 	planet.PlanetOrders = orders
 	o.updatePlanetSpec(rules, player, planet)
 	planet.MarkDirty()

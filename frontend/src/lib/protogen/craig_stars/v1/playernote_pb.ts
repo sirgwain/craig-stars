@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file craig_stars/v1/playernote.proto.
  */
 export const file_craig_stars_v1_playernote: GenFile = /*@__PURE__*/
-  fileDesc("Ch9jcmFpZ19zdGFycy92MS9wbGF5ZXJub3RlLnByb3RvEg5jcmFpZ19zdGFycy52MSKGAgoKUGxheWVyTm90ZRI0Cg5nYW1lX2RiX29iamVjdBgBIAEoCzIcLmNyYWlnX3N0YXJzLnYxLkdhbWVEQk9iamVjdBISCgpwbGF5ZXJfbnVtGAIgASgFEjIKC3RhcmdldF90eXBlGAMgASgOMh0uY3JhaWdfc3RhcnMudjEuTWFwT2JqZWN0VHlwZRISCgp0YXJnZXRfbnVtGAQgASgFEhkKEXRhcmdldF9wbGF5ZXJfbnVtGAUgASgFEigKCHBvc2l0aW9uGAYgASgLMhYuY3JhaWdfc3RhcnMudjEuVmVjdG9yEgwKBHRleHQYByABKAkSEwoLc2hvd19vbl9tYXAYCCABKAhiBnByb3RvMw", [file_craig_stars_v1_common]);
+  fileDesc("Ch9jcmFpZ19zdGFycy92MS9wbGF5ZXJub3RlLnByb3RvEg5jcmFpZ19zdGFycy52MSKUAgoKUGxheWVyTm90ZRI0Cg5nYW1lX2RiX29iamVjdBgBIAEoCzIcLmNyYWlnX3N0YXJzLnYxLkdhbWVEQk9iamVjdBISCgpwbGF5ZXJfbnVtGAIgASgFEjIKC3RhcmdldF90eXBlGAMgASgOMh0uY3JhaWdfc3RhcnMudjEuTWFwT2JqZWN0VHlwZRISCgp0YXJnZXRfbnVtGAQgASgFEhkKEXRhcmdldF9wbGF5ZXJfbnVtGAUgASgFEigKCHBvc2l0aW9uGAYgASgLMhYuY3JhaWdfc3RhcnMudjEuVmVjdG9yEgwKBHRleHQYByABKAkSEwoLc2hvd19vbl9tYXAYCCABKAgSDAoEdGFncxgJIAMoCWIGcHJvdG8z", [file_craig_stars_v1_common]);
 
 /**
  * A private note a player writes for themselves. A note with a target_type is attached to a map
@@ -60,6 +60,13 @@ export type PlayerNote = Message<"craig_stars.v1.PlayerNote"> & {
    * @generated from field: bool show_on_map = 8;
    */
   showOnMap: boolean;
+
+  /**
+   * tags the player has put on the map object this note is attached to
+   *
+   * @generated from field: repeated string tags = 9;
+   */
+  tags: string[];
 };
 
 /**
@@ -108,6 +115,13 @@ export type PlayerNoteJson = {
    * @generated from field: bool show_on_map = 8;
    */
   showOnMap?: boolean;
+
+  /**
+   * tags the player has put on the map object this note is attached to
+   *
+   * @generated from field: repeated string tags = 9;
+   */
+  tags?: string[];
 };
 
 /**
