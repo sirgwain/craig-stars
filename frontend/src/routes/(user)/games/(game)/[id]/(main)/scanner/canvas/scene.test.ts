@@ -418,6 +418,19 @@ describe('notes', () => {
 		expect(buildNotes(universe)[1].planetNum).toBeUndefined();
 	});
 
+	it('leaves out notes the filters hide', () => {
+		const universe = universeWithNotes([
+			{ targetType: MapObjectType.PLANET, targetNum: 3, text: 'plain', showOnMap: true },
+			{ position: { x: 10, y: 20 }, text: 'the front', showOnMap: true }
+		]);
+		const texts = (options: Parameters<typeof buildNotes>[1]) =>
+			buildNotes(universe, options).map((n) => n.text);
+
+		expect(texts({ showNotes: false })).toEqual([]);
+		expect(texts({ hiddenNoteKinds: ['label'] })).toEqual(['plain']);
+		expect(texts({ hiddenNoteKinds: ['untagged'] })).toEqual(['the front']);
+	});
+
 	it("leaves out notes that aren't shown on the map", () => {
 		const universe = universeWithNotes([
 			{ targetType: MapObjectType.PLANET, targetNum: 3, text: 'private' }

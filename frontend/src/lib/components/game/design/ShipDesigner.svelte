@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
 	import FormError from '#lib/components/FormError.svelte';
+	import TextAreaInput from '#lib/components/TextAreaInput.svelte';
 	import TextInput from '#lib/components/TextInput.svelte';
 	import Hull from '#lib/components/game/design/Hull.svelte';
 	import TechAvatar from '#lib/components/tech/TechAvatar.svelte';
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { techs } from '#lib/services/Stores.js';
-	import { HullSlotTypeNone, MaxNameLength } from '#lib/types/Consts.js';
+	import { HullSlotTypeNone, MaxDescriptionLength, MaxNameLength } from '#lib/types/Consts.js';
 	import { canLearnTech } from '#lib/types/Player.js';
 	import { canFillSlot, hullAllowed } from '#lib/types/Tech.js';
 	import { hasRequiredLevels } from '#lib/types/TechLevel.js';
@@ -44,6 +45,7 @@
 
 	// Local runes state for frequently bound fields
 	let name: string = $state(design.name);
+	let description: string = $state(design.description);
 	let hullSetNumber: number = $state(design.hullSetNumber);
 	let slots: ShipDesignSlot[] = $state(design.slots);
 
@@ -53,6 +55,7 @@
 	// Keep parent prop in sync with local state
 	$effect(() => {
 		design.name = name;
+		design.description = description;
 		design.hullSetNumber = hullSetNumber;
 		design.slots = slots;
 	});
@@ -233,6 +236,15 @@
 						bind:value={name}
 						required
 						maxlength={MaxNameLength}
+						titleClass="cs-label-text w-16 text-right"
+					/>
+					<TextAreaInput
+						name="description"
+						title="Notes"
+						bind:value={description}
+						maxlength={MaxDescriptionLength}
+						rows={2}
+						placeholder="What this design is for, only you can see it"
 						titleClass="cs-label-text w-16 text-right"
 					/>
 				</div>

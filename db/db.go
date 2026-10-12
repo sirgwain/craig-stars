@@ -149,6 +149,7 @@ type WriteClient interface {
 	UpdatePlayerSalvageIntels(ctx context.Context, player *cs.Player) error
 	UpdatePlayerUserID(ctx context.Context, player *cs.Player) error
 
+	UpdateShipDesignDescription(ctx context.Context, id int64, description string) error
 	DeleteShipDesign(ctx context.Context, id int64) error
 	SaveShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) error
 

@@ -520,7 +520,7 @@ func (q *Queries) GetPlayer(ctx context.Context, id int64) (Player, error) {
 const GetPlayerForGame = `-- name: GetPlayerForGame :many
 SELECT
     p.id, p.created_at, p.updated_at, p.game_id, p.user_id, p.name, p.num, p.ready, p.ai_controlled, p.submitted_turn, p.color, p.default_hull_set, p.tech_levels_energy, p.tech_levels_weapons, p.tech_levels_propulsion, p.tech_levels_construction, p.tech_levels_electronics, p.tech_levels_biotechnology, p.tech_levels_spent_energy, p.tech_levels_spent_weapons, p.tech_levels_spent_propulsion, p.tech_levels_spent_construction, p.tech_levels_spent_electronics, p.tech_levels_spent_biotechnology, p.research_amount, p.research_spent_last_year, p.next_research_field, p.researching, p.battle_plans, p.production_plans, p.transport_plans, p.relations, p.cargo_transfers, p.messages, p.battle_records, p.player_intels, p.score_intels, p.planet_intels, p.fleet_intels, p.ship_design_intels, p.mineral_packet_intels, p.minefield_intels, p.wormhole_intels, p.mystery_trader_intels, p.salvage_intels, p.race, p.stats, p.score_history, p.achieved_victory_conditions, p.victor, p.guest, p.ai_difficulty, p.acquired_techs, p.archived, p.revision,
-    d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
+    d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader, d.description
 FROM
     players p
     LEFT JOIN ship_designs d ON p.game_id = d.game_id
@@ -555,6 +555,7 @@ type GetPlayerForGameRow struct {
 	CannotDelete      sql.NullBool
 	OriginalPlayerNum sql.NullInt64
 	MysteryTrader     sql.NullBool
+	Description       sql.NullString
 }
 
 func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGameParams) ([]GetPlayerForGameRow, error) {
@@ -638,6 +639,7 @@ func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGamePara
 			&i.CannotDelete,
 			&i.OriginalPlayerNum,
 			&i.MysteryTrader,
+			&i.Description,
 		); err != nil {
 			return nil, err
 		}
@@ -1094,7 +1096,7 @@ func (q *Queries) GetPlayersStatusForGame(ctx context.Context, gameID int64) ([]
 const GetPlayersWithDesignsForGame = `-- name: GetPlayersWithDesignsForGame :many
 SELECT
     p.id, p.created_at, p.updated_at, p.game_id, p.user_id, p.name, p.num, p.ready, p.ai_controlled, p.submitted_turn, p.color, p.default_hull_set, p.tech_levels_energy, p.tech_levels_weapons, p.tech_levels_propulsion, p.tech_levels_construction, p.tech_levels_electronics, p.tech_levels_biotechnology, p.tech_levels_spent_energy, p.tech_levels_spent_weapons, p.tech_levels_spent_propulsion, p.tech_levels_spent_construction, p.tech_levels_spent_electronics, p.tech_levels_spent_biotechnology, p.research_amount, p.research_spent_last_year, p.next_research_field, p.researching, p.battle_plans, p.production_plans, p.transport_plans, p.relations, p.cargo_transfers, p.messages, p.battle_records, p.player_intels, p.score_intels, p.planet_intels, p.fleet_intels, p.ship_design_intels, p.mineral_packet_intels, p.minefield_intels, p.wormhole_intels, p.mystery_trader_intels, p.salvage_intels, p.race, p.stats, p.score_history, p.achieved_victory_conditions, p.victor, p.guest, p.ai_difficulty, p.acquired_techs, p.archived, p.revision,
-    d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
+    d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader, d.description
 FROM
     players p
     LEFT JOIN ship_designs d ON p.game_id = d.game_id
@@ -1124,6 +1126,7 @@ type GetPlayersWithDesignsForGameRow struct {
 	CannotDelete      sql.NullBool
 	OriginalPlayerNum sql.NullInt64
 	MysteryTrader     sql.NullBool
+	Description       sql.NullString
 }
 
 func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameID int64) ([]GetPlayersWithDesignsForGameRow, error) {
@@ -1207,6 +1210,7 @@ func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameID int64
 			&i.CannotDelete,
 			&i.OriginalPlayerNum,
 			&i.MysteryTrader,
+			&i.Description,
 		); err != nil {
 			return nil, err
 		}

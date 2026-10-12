@@ -1,5 +1,5 @@
 import { Universe } from '#lib/services/Universe.js';
-import { MapObjectType, PlanetSchema, PlayerNoteSchema } from '#lib/types/cs-proto.js';
+import { FleetSchema, MapObjectType, PlanetSchema, PlayerNoteSchema } from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
 import { flushSync, mount, unmount } from 'svelte';
 import { writable } from 'svelte/store';
@@ -19,8 +19,14 @@ afterEach(() => {
 	vi.clearAllMocks();
 });
 
-function open(noteData: Parameters<typeof create<typeof PlayerNoteSchema>>[1], readOnly = false) {
+type NoteData = Parameters<typeof create<typeof PlayerNoteSchema>>[1];
+
+function open(noteData: NoteData, readOnly = false, otherNotes: NoteData[] = []) {
 	const universe = new Universe();
+	universe.fleets = [
+		create(FleetSchema, { mapObject: { type: MapObjectType.FLEET, num: 4, name: 'Scout #4' } })
+	];
+	universe.setNotes(otherNotes.map((n) => create(PlayerNoteSchema, n)));
 	universe.allPlanets = [
 		create(PlanetSchema, { mapObject: { type: MapObjectType.PLANET, num: 1, name: 'Alpha' } })
 	];
@@ -50,6 +56,18 @@ function open(noteData: Parameters<typeof create<typeof PlayerNoteSchema>>[1], r
 			textarea.dispatchEvent(new Event('input', { bubbles: true }));
 			flushSync();
 		},
+		search: (text: string) => {
+			const input = target.querySelector<HTMLInputElement>('[data-type="tag-search"]')!;
+			input.value = text;
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			flushSync();
+		},
+		enter: () => {
+			target
+				.querySelector<HTMLInputElement>('[data-type="tag-search"]')!
+				.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+			flushSync();
+		},
 		click: (type: string) => {
 			target.querySelector<HTMLButtonElement>(`[data-type="${type}"]`)!.click();
 			flushSync();
@@ -59,7 +77,7 @@ function open(noteData: Parameters<typeof create<typeof PlayerNoteSchema>>[1], r
 
 it('saves a new note on a planet', async () => {
 	const note = open({ targetType: MapObjectType.PLANET, targetNum: 1 });
-	expect(note.target.querySelector('h2')?.textContent).toBe('Note: Alpha');
+	expect(note.target.querySelector('h2')?.textContent).toBe('Notes: Alpha');
 	// there's nothing to delete yet
 	expect(note.target.querySelector('[data-type="note-delete"]')).toBeNull();
 
@@ -72,6 +90,73 @@ it('saves a new note on a planet', async () => {
 		expect.objectContaining({ targetNum: 1, text: 'colonize next', showOnMap: true })
 	);
 	await vi.waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+});
+
+it('tags a planet without writing a note', () => {
+	const note = open({ targetType: MapObjectType.PLANET, targetNum: 1 }, false, [
+		{ targetType: MapObjectType.PLANET, targetNum: 2, tags: ['Target', 'gate hub'] },
+		{ targetType: MapObjectType.PLANET, targetNum: 3, tags: ['target'] }
+	]);
+	const toggles = () =>
+		[...note.target.querySelectorAll<HTMLButtonElement>('[data-type="tag-toggle"]')].map(
+			(b) => `${b.dataset.id}:${b.ariaPressed}`
+		);
+	// tags used on other planets can be toggled, the most used first
+	expect(toggles()).toEqual(['Target:false', 'gate hub:false']);
+
+	note.target
+		.querySelector<HTMLButtonElement>('[data-type="tag-toggle"][data-id="Target"]')!
+		.click();
+	flushSync();
+	expect(toggles()).toEqual(['Target:true', 'gate hub:false']);
+
+	// typing filters the tags and offers to create a new one
+	note.search('ga');
+	expect(toggles()).toEqual(['gate hub:false']);
+	expect(note.target.querySelector('[data-type="tag-create"]')?.textContent).toContain('ga');
+	note.search(' my  colony ');
+	expect(toggles()).toEqual([]);
+	note.click('tag-create');
+	expect(toggles()).toEqual(['Target:true', 'gate hub:false', 'my colony:true']);
+
+	// a tag that only differs by case is the same tag, enter toggles it off again
+	note.search('TARGET');
+	expect(note.target.querySelector('[data-type="tag-create"]')).toBeNull();
+	note.enter();
+	expect(toggles()).toEqual(['Target:false', 'gate hub:false', 'my colony:true']);
+	expect(savePlayerNote).not.toHaveBeenCalled();
+
+	note.click('note-save');
+	expect(savePlayerNote).toHaveBeenCalledWith(
+		expect.objectContaining({ targetNum: 1, text: '', tags: ['my colony'], showOnMap: false })
+	);
+});
+
+it('deletes a note when its text and tags are cleared', () => {
+	const note = open({
+		gameDbObject: { id: 7n },
+		targetType: MapObjectType.PLANET,
+		targetNum: 1,
+		tags: ['Target']
+	});
+
+	note.target.querySelector<HTMLButtonElement>('[data-type="tag-toggle"]')!.click();
+	flushSync();
+	note.click('note-save');
+
+	expect(savePlayerNote).not.toHaveBeenCalled();
+	expect(deletePlayerNote).toHaveBeenCalledOnce();
+});
+
+it("doesn't tag labels or show fleet notes on the map", () => {
+	const label = open({ position: { x: 10, y: 20 } });
+	expect(label.target.querySelector('[data-type="tag-picker"]')).toBeNull();
+	cleanup();
+
+	const fleet = open({ targetType: MapObjectType.FLEET, targetNum: 4, targetPlayerNum: 1 });
+	expect(fleet.target.querySelector('h2')?.textContent).toBe('Notes: Scout #4');
+	expect(fleet.target.querySelector('[data-type="tag-picker"]')).not.toBeNull();
+	expect(fleet.target.querySelector('input[type="checkbox"]')).toBeNull();
 });
 
 it('always shows labels on the map', () => {

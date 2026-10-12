@@ -1,5 +1,13 @@
 import type { DesignFinder } from '#lib/services/Universe.js';
-import { ShipClass, WaypointTask, type Fleet, type Minefield, type ShipDesign } from './cs-proto';
+import {
+	MapObjectType,
+	ShipClass,
+	WaypointTask,
+	type Fleet,
+	type Minefield,
+	type PlayerNote,
+	type ShipDesign
+} from './cs-proto';
 import type { CommandedPlayer } from './Player';
 
 export type FilterOptions = {
@@ -15,7 +23,40 @@ export type FilterOptions = {
 	showMinefields?: boolean;
 	// whose minefields to show when minefields are shown
 	showMinefieldsOf?: MinefieldOwner[];
+	showNotes?: boolean;
+	// the kinds of note to hide while notes are shown
+	hiddenNoteKinds?: string[];
 };
+
+// labels placed on the map, and notes without tags, are filtered as kinds of their own
+export const NoteKindLabel = 'label';
+export const NoteKindUntagged = 'untagged';
+
+// the kind a tag is filtered as. Tags that differ only by case are the same tag.
+export function noteKindOfTag(tag: string): string {
+	return `tag:${tag.toLowerCase()}`;
+}
+
+// the kinds a note belongs to, one for each of its tags
+export function noteKinds(note: Pick<PlayerNote, 'targetType' | 'tags'>): string[] {
+	if (note.targetType === MapObjectType.UNSPECIFIED) {
+		return [NoteKindLabel];
+	}
+	return note.tags.length ? note.tags.map(noteKindOfTag) : [NoteKindUntagged];
+}
+
+// true if this note should be drawn on the map with these filters. A note with several tags is shown
+// while any of them is.
+export function filterNote(
+	note: Pick<PlayerNote, 'targetType' | 'tags'>,
+	options: FilterOptions
+): boolean {
+	if (!(options.showNotes ?? true)) {
+		return false;
+	}
+	const hidden = options.hiddenNoteKinds ?? [];
+	return hidden.length === 0 || noteKinds(note).some((kind) => !hidden.includes(kind));
+}
 
 // whose minefield it is, from our point of view
 export type MinefieldOwner = 'mine' | 'friends' | 'neutrals' | 'enemies';

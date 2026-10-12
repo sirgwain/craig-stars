@@ -52,6 +52,7 @@ func TestUpdateRace(t *testing.T) {
 
 	race.Name = "Test2"
 	race.PluralName = "Testers"
+	race.Description = "quick start, weak late game"
 	if err := c.SaveRace(t.Context(), race); err != nil {
 		t.Errorf("update race %s", err)
 		return
@@ -66,6 +67,7 @@ func TestUpdateRace(t *testing.T) {
 
 	assert.Equal(t, race.Name, updated.Name)
 	assert.Equal(t, race.PluralName, updated.PluralName)
+	assert.Equal(t, "quick start, weak late game", updated.Description)
 
 }
 

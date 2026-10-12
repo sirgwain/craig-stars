@@ -79,4 +79,13 @@
 			<div class="shrink-0 pl-1">{getQuantityText(item.type, item.quantity)}</div>
 		{/if}
 	</div>
+	{#if item.note}
+		<div
+			class="truncate pl-2 text-sm not-italic opacity-70"
+			title={item.note}
+			data-type="queue-item-note"
+		>
+			{item.note}
+		</div>
+	{/if}
 </button>

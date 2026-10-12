@@ -44,6 +44,12 @@
 	const onSubmit = async () => {
 		if (id === 'new') {
 			const { race: created } = await raceClient.createRace({ race });
+			if (created) {
+				// this page stays open after the first save, further saves update the race we just created
+				race.id = created.id;
+				race.userId = created.userId;
+				id = `${created.id}`;
+			}
 			await goto(`/races/${created?.id}`);
 		} else {
 			await raceClient.updateRace({ race });

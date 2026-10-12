@@ -39,10 +39,16 @@ import type { CommandedPlayer } from '#lib/types/Player.js';
 import { create, type UnknownField } from '@bufbuild/protobuf';
 import { groupBy } from 'lodash-es';
 
-// notes are attached to planets, which are identified by their num alone
+// notes are attached to planets, which are identified by their num alone, or to the player's own fleets
 function noteTargetKey(type: MapObjectType, num: number): string {
 	return `${type}-${num}`;
 }
+
+// a tag the player has used, and how many map objects have it
+export type TagCount = {
+	tag: string;
+	count: number;
+};
 
 export type PlayerDesigns = {
 	designs: ShipDesign[];
@@ -99,6 +105,8 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	// the player's private notes, on planets or as labels on the map
 	notes: PlayerNote[] = [];
 	notesByTarget: Record<string, PlayerNote> = {};
+	// every tag the player has put on a map object, most used first
+	tags: TagCount[] = [];
 
 	constructor() {
 		this.$typeName = 'craig_stars.v1.PlayerUniverse';
@@ -171,11 +179,44 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	public setNotes(notes: PlayerNote[]) {
 		this.notes = notes;
 		this.notesByTarget = {};
+		// tags that differ only by case are the same tag, the first spelling wins
+		const tags = new Map<string, TagCount>();
 		for (const note of notes) {
 			if (note.targetType !== MapObjectType.UNSPECIFIED) {
 				this.notesByTarget[noteTargetKey(note.targetType, note.targetNum)] = note;
 			}
+			for (const tag of note.tags) {
+				const existing = tags.get(tag.toLowerCase());
+				if (existing) {
+					existing.count++;
+				} else {
+					tags.set(tag.toLowerCase(), { tag, count: 1 });
+				}
+			}
 		}
+		this.tags = [...tags.values()].sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+	}
+
+	// Fleet nums are reused, so the server deletes a fleet's note along with the fleet. Do the same
+	// here so the note doesn't show up on the next fleet to get that num.
+	public pruneFleetNotes() {
+		const nums = new Set(this.fleets.map((f) => f.mapObject?.num));
+		if (this.notes.some((n) => n.targetType === MapObjectType.FLEET && !nums.has(n.targetNum))) {
+			this.setNotes(
+				this.notes.filter((n) => n.targetType !== MapObjectType.FLEET || nums.has(n.targetNum))
+			);
+		}
+	}
+
+	// notes can be written about planets and the player's own fleets
+	canHaveNote(mo: MapObjectLike | undefined): boolean {
+		const type = mo?.mapObject?.type;
+		return (
+			type === MapObjectType.PLANET ||
+			(type === MapObjectType.FLEET &&
+				mo?.mapObject?.playerNum === this.playerNum &&
+				!(mo as Fleet).starbase)
+		);
 	}
 
 	// add a saved note, replacing the one it's an update of
@@ -191,7 +232,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	// the note the player wrote about this map object, if any
 	getNote(mo: MapObjectLike | undefined): PlayerNote | undefined {
-		if (!mo?.mapObject) {
+		if (!mo?.mapObject || !this.canHaveNote(mo)) {
 			return undefined;
 		}
 		return this.notesByTarget[noteTargetKey(mo.mapObject.type, mo.mapObject.num)];
@@ -592,6 +633,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	removeFleets(fleetNums: number[]) {
 		this.fleets = this.fleets.filter((f) => fleetNums.indexOf(f.mapObject?.num ?? 0) == -1);
+		this.pruneFleetNotes();
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}

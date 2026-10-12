@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import Breadcrumb from '#lib/components/game/Breadcrumb.svelte';
 	import Design from '#lib/components/game/design/Design.svelte';
+	import DesignDescriptionEditor from '#lib/components/game/design/DesignDescriptionEditor.svelte';
 	import { getGameContext } from '#lib/services/GameContext.js';
 
 	const { game, universe, readOnly } = getGameContext();
@@ -22,6 +23,10 @@
 	</Breadcrumb>
 
 	<div class="grow h-full px-1 md:p-0">
-		<Design {design} />
+		<Design {design}>
+			{#snippet description()}
+				<DesignDescriptionEditor {design} />
+			{/snippet}
+		</Design>
 	</div>
 {/if}

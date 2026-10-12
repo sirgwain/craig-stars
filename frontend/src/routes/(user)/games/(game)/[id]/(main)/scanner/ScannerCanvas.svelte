@@ -75,7 +75,7 @@
 		colors ? buildFleets($universe, $player, $settings, $commandedFleet, colors) : []
 	);
 	let wormholeLinks = $derived(buildWormholeLinks($universe));
-	let notes = $derived(buildNotes($universe));
+	let notes = $derived(buildNotes($universe, $settings));
 
 	let view = $derived(
 		new ScannerView(

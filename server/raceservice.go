@@ -65,6 +65,9 @@ func (s *raceService) CreateRace(ctx context.Context, req *connect.Request[craig
 
 	// Convert proto race to CS race
 	race := converter.C.ConvertRaceP(req.Msg.Race).WithDefaults()
+	if err := race.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
 	race.UserID = user.ID
 
 	if err := dbWriteClient.SaveRace(ctx, race); err != nil {
@@ -85,6 +88,9 @@ func (s *raceService) UpdateRace(ctx context.Context, req *connect.Request[craig
 
 	// Convert proto race to CS race
 	race := converter.C.ConvertRaceP(req.Msg.Race).WithDefaults()
+	if err := race.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
 
 	// Load existing race for validation
 	existingRace, err := dbClient.GetRace(ctx, race.ID)
@@ -99,6 +105,8 @@ func (s *raceService) UpdateRace(ctx context.Context, req *connect.Request[craig
 	if existingRace.UserID != user.ID {
 		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("user does not own race"))
 	}
+	// a race stays with the user who created it, whatever the client sent
+	race.UserID = user.ID
 
 	if err := dbWriteClient.SaveRace(ctx, race); err != nil {
 		slog.Error("update race in database", slog.Any("error", err), slog.Int64("ID", race.ID))

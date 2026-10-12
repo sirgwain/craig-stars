@@ -216,6 +216,7 @@ const (
 	PlayerMessageType_PLAYER_MESSAGE_TYPE_FLEET_FOLLOWED_FLEET                               PlayerMessageType = 124
 	PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_CLIMATE_CHANGE                              PlayerMessageType = 125
 	PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED                          PlayerMessageType = 126
+	PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_BUILT_NOTE                                  PlayerMessageType = 127
 )
 
 // Enum value maps for PlayerMessageType.
@@ -348,6 +349,7 @@ var (
 		124: "PLAYER_MESSAGE_TYPE_FLEET_FOLLOWED_FLEET",
 		125: "PLAYER_MESSAGE_TYPE_PLANET_CLIMATE_CHANGE",
 		126: "PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED",
+		127: "PLAYER_MESSAGE_TYPE_PLANET_BUILT_NOTE",
 	}
 	PlayerMessageType_value = map[string]int32{
 		"PLAYER_MESSAGE_TYPE_UNSPECIFIED":                                        0,
@@ -477,6 +479,7 @@ var (
 		"PLAYER_MESSAGE_TYPE_FLEET_FOLLOWED_FLEET":                               124,
 		"PLAYER_MESSAGE_TYPE_PLANET_CLIMATE_CHANGE":                              125,
 		"PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED":                          126,
+		"PLAYER_MESSAGE_TYPE_PLANET_BUILT_NOTE":                                  127,
 	}
 )
 
@@ -682,6 +685,7 @@ type PlayerMessageSpec struct {
 	HasMassDriver       bool                            `protobuf:"varint,28,opt,name=has_mass_driver,json=hasMassDriver,proto3" json:"has_mass_driver,omitempty"`
 	PlanetEmptied       bool                            `protobuf:"varint,29,opt,name=planet_emptied,json=planetEmptied,proto3" json:"planet_emptied,omitempty"`
 	Error               string                          `protobuf:"bytes,30,opt,name=error,proto3" json:"error,omitempty"`
+	Note                string                          `protobuf:"bytes,31,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -922,6 +926,13 @@ func (x *PlayerMessageSpec) GetPlanetEmptied() bool {
 func (x *PlayerMessageSpec) GetError() string {
 	if x != nil {
 		return x.Error
+	}
+	return ""
+}
+
+func (x *PlayerMessageSpec) GetNote() string {
+	if x != nil {
+		return x.Note
 	}
 	return ""
 }
@@ -1449,7 +1460,7 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"\x04text\x18\x03 \x01(\tR\x04text\x12\x1d\n" +
 	"\n" +
 	"battle_num\x18\x04 \x01(\x05R\tbattleNum\x125\n" +
-	"\x04spec\x18\x05 \x01(\v2!.craig_stars.v1.PlayerMessageSpecR\x04spec\"\x99\f\n" +
+	"\x04spec\x18\x05 \x01(\v2!.craig_stars.v1.PlayerMessageSpecR\x04spec\"\xad\f\n" +
 	"\x11PlayerMessageSpec\x12K\n" +
 	"\x11map_object_target\x18\x01 \x01(\v2\x1f.craig_stars.v1.MapObjectTargetR\x0fmapObjectTarget\x12\x16\n" +
 	"\x06amount\x18\x02 \x01(\x05R\x06amount\x12\x18\n" +
@@ -1484,7 +1495,8 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"\bdistance\x18\x1b \x01(\x01R\bdistance\x12&\n" +
 	"\x0fhas_mass_driver\x18\x1c \x01(\bR\rhasMassDriver\x12%\n" +
 	"\x0eplanet_emptied\x18\x1d \x01(\bR\rplanetEmptied\x12\x14\n" +
-	"\x05error\x18\x1e \x01(\tR\x05error\"\xc9\x02\n" +
+	"\x05error\x18\x1e \x01(\tR\x05error\x12\x12\n" +
+	"\x04note\x18\x1f \x01(\tR\x04note\"\xc9\x02\n" +
 	"\x16PlayerMessageSpecComet\x12-\n" +
 	"\x04size\x18\x01 \x01(\x0e2\x19.craig_stars.v1.CometSizeR\x04size\x12>\n" +
 	"\x0eminerals_added\x18\x02 \x01(\v2\x17.craig_stars.v1.MineralR\rmineralsAdded\x12_\n" +
@@ -1550,7 +1562,7 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"$PLAYER_MESSAGE_TARGET_TYPE_MINEFIELD\x10\x04\x12-\n" +
 	")PLAYER_MESSAGE_TARGET_TYPE_MYSTERY_TRADER\x10\x05\x12-\n" +
 	")PLAYER_MESSAGE_TARGET_TYPE_MINERAL_PACKET\x10\x06\x12%\n" +
-	"!PLAYER_MESSAGE_TARGET_TYPE_BATTLE\x10\a*\xeb1\n" +
+	"!PLAYER_MESSAGE_TARGET_TYPE_BATTLE\x10\a*\x962\n" +
 	"\x11PlayerMessageType\x12#\n" +
 	"\x1fPLAYER_MESSAGE_TYPE_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18PLAYER_MESSAGE_TYPE_INFO\x10\x01\x12\x1d\n" +
@@ -1679,7 +1691,8 @@ const file_craig_stars_v1_message_proto_rawDesc = "" +
 	"+PLAYER_MESSAGE_TYPE_PLANET_REMOTE_TERRAFORM\x10{\x12,\n" +
 	"(PLAYER_MESSAGE_TYPE_FLEET_FOLLOWED_FLEET\x10|\x12-\n" +
 	")PLAYER_MESSAGE_TYPE_PLANET_CLIMATE_CHANGE\x10}\x121\n" +
-	"-PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED\x10~*\xf4\x02\n" +
+	"-PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED\x10~\x12)\n" +
+	"%PLAYER_MESSAGE_TYPE_PLANET_BUILT_NOTE\x10\x7f*\xf4\x02\n" +
 	"\x13CargoTransferStatus\x12%\n" +
 	"!CARGO_TRANSFER_STATUS_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bCARGO_TRANSFER_STATUS_OWNED\x10\x01\x12\x1f\n" +

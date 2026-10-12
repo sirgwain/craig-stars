@@ -116,6 +116,8 @@ message ShipDesign {
   repeated ShipDesignSlot slots = 11;
   ShipDesignPurpose purpose = 12;
   ShipDesignSpec spec = 13;
+  // the player's own notes on what the design is for, never shown to other players
+  string description = 14;
 }
 
 message ShipDesignSlot {

@@ -60,6 +60,7 @@ type PlayerMessageSpec struct {
 	MineralPacketDamage *MineralPacketDamage            `json:"mineralPacketDamage,omitempty"`
 	MysteryTrader       *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
 	Name                string                          `json:"name,omitempty"`
+	Note                string                          `json:"note,omitempty"`
 	NextField           TechField                       `json:"nextField,omitempty"`
 	PlanetEmptied       bool                            `json:"planetEmptied,omitempty"`
 	PrevAmount          int                             `json:"prevAmount,omitempty"`
@@ -245,6 +246,7 @@ const (
 	PlayerMessageFleetFollowedFleet
 	PlayerMessagePlanetClimateChange
 	PlayerMessagePlanetColonizeContested
+	PlayerMessagePlanetBuiltNote
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -396,7 +398,7 @@ func (m *messageClient) fleetBombedPlanet(player *Player, fleet *Fleet, planet *
 		withSpec(PlayerMessageSpec{Bombing: &bombing}.withTargetPlanet(planet)))
 }
 
-func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet, numBuilt int, routeTarget *MapObject) {
+func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet, numBuilt int, routeTarget *MapObject, note string) {
 	var target MapObjectTarget
 	if routeTarget != nil {
 		target = MapObjectTarget{
@@ -408,7 +410,7 @@ func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet,
 		}
 	}
 	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetBuilt, fleet).
-		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt, RouteTarget: &target}.withTargetPlanet(planet)))
+		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt, RouteTarget: &target, Note: note}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetColonizeNonPlanet(player *Player, fleet *Fleet) {
@@ -769,6 +771,12 @@ func (m *messageClient) planetBuiltMines(player *Player, planet *Planet, numBuil
 func (m *messageClient) planetBuiltScanner(player *Player, planet *Planet, scanner string) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetBuiltScanner, planet).
 		withSpec(PlayerMessageSpec{Name: scanner}))
+}
+
+// tell the player an item they wrote a note on was built, name is the design for a starbase
+func (m *messageClient) planetBuiltNote(player *Player, planet *Planet, itemType QueueItemType, name string, numBuilt int, note string) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetBuiltNote, planet).
+		withSpec(PlayerMessageSpec{QueueItemType: itemType, Name: name, Amount: numBuilt, Note: note}))
 }
 
 func (m *messageClient) planetBuiltGenesisDevice(player *Player, planet *Planet) {

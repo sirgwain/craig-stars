@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { MaxNameLength } from '#lib/types/Consts.js';
+	import { MaxDescriptionLength, MaxNameLength } from '#lib/types/Consts.js';
 	import EnumSelect from '#lib/components/EnumSelect.svelte';
 	import LRTsDescriptions from '#lib/components/game/race/LRTsDescriptions.svelte';
 	import PRTDescription from '#lib/components/game/race/PRTDescription.svelte';
 	import SectionHeader from '#lib/components/SectionHeader.svelte';
+	import TextAreaInput from '#lib/components/TextAreaInput.svelte';
 	import TextInput from '#lib/components/TextInput.svelte';
 	import { Prt, type Race, SpendLeftoverPointsOn } from '#lib/types/cs-proto.js';
 	import { getLabelForPRT } from '#lib/types/Race.js';
@@ -59,6 +60,13 @@
 
 <TextInput name="name" bind:value={race.name} maxlength={MaxNameLength} />
 <TextInput name="pluralName" bind:value={race.pluralName} maxlength={MaxNameLength} />
+<TextAreaInput
+	name="description"
+	bind:value={race.description}
+	maxlength={MaxDescriptionLength}
+	rows={2}
+	placeholder="Notes on how to play this race, only you can see them"
+/>
 <EnumSelect
 	name="spendLeftoverPointsOn"
 	enumType={SpendLeftoverPointsOn}

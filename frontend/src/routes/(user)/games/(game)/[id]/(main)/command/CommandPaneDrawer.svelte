@@ -37,6 +37,7 @@
 	import PlanetMineralsOnHandTile from './PlanetMineralsOnHandTile.svelte';
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
+	import TagBadge from '#lib/components/game/TagBadge.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 	import { pickSummaryMapObject, summaryKey, type LastPicked } from './CommandPaneSummary';
@@ -115,11 +116,11 @@
 		pickSummaryMapObject($selectedMapObject, $commandedMapObject, $settings.addWaypoint, lastPicked)
 	);
 
-	// notes are written about planets
-	let summaryPlanet = $derived(
-		summaryMapObject?.mapObject?.type === MapObjectType.PLANET ? summaryMapObject : undefined
+	// notes are written about planets and the player's own fleets
+	let noteTarget = $derived(
+		summaryMapObject && $universe.canHaveNote(summaryMapObject) ? summaryMapObject : undefined
 	);
-	let note = $derived($universe.getNote(summaryPlanet));
+	let note = $derived($universe.getNote(noteTarget));
 
 	let dist = $derived(
 		$commandedMapObject && $selectedMapObject
@@ -331,17 +332,20 @@
 				</DisclosureHeader>
 
 				<MapObjectSummaryCollapsed mapObject={summaryMapObject} {onShowCargoTransferDialog} />
-				{#if summaryPlanet && (note || !$readOnly)}
+				{#if noteTarget && (note || !$readOnly)}
 					<button
 						type="button"
-						class="flex flex-row items-center gap-1 mt-2 w-full text-sm text-left"
-						aria-label={note ? 'Edit note' : 'Add note'}
+						class="flex flex-row items-center gap-1 mt-2 w-full overflow-hidden text-sm text-left"
+						aria-label={note ? 'Edit notes and tags' : 'Add notes and tags'}
 						data-type="map-object-note-button"
-						onclick={() => editNote(summaryPlanet)}
+						onclick={() => editNote(noteTarget)}
 					>
 						<Icon src={PencilSquare} class={`size-4 flex-none ${note ? 'stroke-accent' : ''}`} />
+						{#each note?.tags ?? [] as tag (tag)}
+							<TagBadge {tag} class="flex-none" />
+						{/each}
 						<span class="truncate italic" data-type="map-object-note"
-							>{note?.text ?? 'Add note'}</span
+							>{note ? note.text : 'Add notes or tags'}</span
 						>
 					</button>
 				{/if}

@@ -8,6 +8,7 @@
 	import FilterIdleFleets from './FilterIdleFleets.svelte';
 	import FilterMinefields from './FilterMinefields.svelte';
 	import FilterMyDesigns from './FilterMyDesigns.svelte';
+	import FilterNotes from './FilterNotes.svelte';
 	import FilterPlanetNames from './FilterPlanetNames.svelte';
 	import FilterPlayerColors from './FilterPlayerColors.svelte';
 	import FilterScanners from './FilterScanners.svelte';
@@ -31,7 +32,8 @@
 			<FilterAllyScanners />
 		</div>
 	{/if}
-	<div class="px-1">
+	<!-- no padding, the buttons beside it have their own and landscape iPads only just fit the toolbar -->
+	<div>
 		<ScannerPercent />
 	</div>
 	<div class="size-10">
@@ -39,6 +41,9 @@
 	</div>
 	<div class="size-10">
 		<FilterPlanetNames />
+	</div>
+	<div class="size-10">
+		<FilterNotes />
 	</div>
 	<div class="size-10">
 		<FilterFleetCounts />

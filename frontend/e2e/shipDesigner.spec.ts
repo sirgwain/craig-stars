@@ -44,6 +44,7 @@ test('ship designer - create', async ({ newGamePage }) => {
 	).toBeVisible();
 
 	await page.getByRole('textbox', { name: 'Name' }).fill('My Freighter');
+	await page.getByRole('textbox', { name: 'Notes' }).fill('early colony supply runs');
 
 	// start waiting for post response
 	const response = page.waitForResponse(
@@ -65,4 +66,31 @@ test('ship designer - create', async ({ newGamePage }) => {
 
 	// should route to designer page
 	await page.waitForURL(`/games/${id}/designer/${design.num}`);
+	await expect(page.getByRole('textbox', { name: 'Design notes' })).toHaveValue(
+		'early colony supply runs'
+	);
+});
+
+test('ship designer - notes on a design that is in use', async ({ testGamePage }) => {
+	const { page, gameId, universe } = await testGamePage('Kitchen Sink');
+	apiErrorsFailTest(page);
+	const design = universe.designs.find((d) => d.playerNum === 1 && d.spec?.numInstances);
+	if (!design) {
+		throw new Error('failed to find a design with ships');
+	}
+
+	await page.goto(`/games/${gameId}/designer/${design.num}`);
+	const notes = page.getByRole('textbox', { name: 'Design notes' });
+	await notes.fill('fast scout for the early game');
+	await page.getByRole('button', { name: 'Save notes' }).click();
+	await expect(page.getByRole('button', { name: 'Save notes' })).toBeHidden();
+
+	await page.reload();
+	await expect(notes).toHaveValue('fast scout for the early game');
+
+	// the notes are shown with the design in the list of designs
+	await page.goto(`/games/${gameId}/designer`);
+	await expect(page.locator('[data-type="design-description"]')).toHaveText(
+		'fast scout for the early game'
+	);
 });

@@ -59,12 +59,14 @@ INSERT INTO
         slots,
         purpose,
         mystery_trader,
-        spec
+        spec,
+        description
     )
 VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
+        ?,
         ?,
         ?,
         ?,
@@ -96,7 +98,16 @@ SET
     slots = ?,
     purpose = ?,
     mystery_trader = ?,
-    spec = ?
+    spec = ?,
+    description = ?
+WHERE
+    id = ?;
+
+-- name: UpdateShipDesignDescription :execrows
+UPDATE ship_designs
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    description = ?
 WHERE
     id = ?;
 

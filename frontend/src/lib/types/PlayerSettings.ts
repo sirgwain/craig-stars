@@ -26,6 +26,9 @@ export class PlayerSettings implements FilterOptions {
 	showAllyScanners = true;
 	showMinefields = true;
 	showMinefieldsOf: MinefieldOwner[] = [...MinefieldOwners];
+	showNotes = true;
+	// the kinds of note that aren't drawn on the map while notes are shown, see noteKinds()
+	hiddenNoteKinds: string[] = [];
 	showMessagePane = false;
 	showPlayerColors = false;
 	scannerPercent = 100;
@@ -95,6 +98,11 @@ export class PlayerSettings implements FilterOptions {
 		if (this.showMinefields && this.showMinefieldsOf.length === 0) {
 			this.showMinefieldsOf = [...MinefieldOwners];
 		}
+	}
+	// hide these kinds of note, or hide all notes
+	setHiddenNoteKinds(hidden: string[], showNotes = true) {
+		this.hiddenNoteKinds = hidden;
+		this.showNotes = showNotes;
 	}
 	isMessageVisible(type: PlayerMessageType) {
 		return !this.messageTypeFilter.has(Number(type));

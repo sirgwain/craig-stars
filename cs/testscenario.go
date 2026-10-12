@@ -107,6 +107,7 @@ type ScenarioProductionQueueItem struct {
 	Quantity  int
 	Allocated Cost
 	Tags      Tags
+	Note      string
 }
 
 type ScenarioMineralPacket struct {
@@ -443,7 +444,7 @@ func (pb *scenarioPlayerBuilder) addPlanetOrders(planet *Planet, source Scenario
 	}
 
 	for _, sq := range source.ProductionQueue {
-		q := ProductionQueueItem{Type: sq.Type, Quantity: sq.Quantity, Allocated: sq.Allocated, Tags: maps.Clone(sq.Tags)}
+		q := ProductionQueueItem{Type: sq.Type, Quantity: sq.Quantity, Allocated: sq.Allocated, Tags: maps.Clone(sq.Tags), Note: sq.Note}
 		if sq.Design != "" {
 			q.DesignNum = pb.design(context, sq.Design).Num
 		}

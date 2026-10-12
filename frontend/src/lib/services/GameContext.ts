@@ -148,6 +148,7 @@ export type GameContext = {
 
 	createDesign: (design: ShipDesign) => Promise<ShipDesign>;
 	updateDesign: (design: ShipDesign) => Promise<ShipDesign>;
+	updateDesignDescription: (num: number, description: string) => Promise<ShipDesign>;
 	deleteDesign: (num: number) => Promise<void>;
 
 	// fleet waypoint updates
@@ -164,7 +165,7 @@ export type GameContext = {
 	// notes
 	// the note being written in the note dialog, while it's open
 	editingNote: Readable<PlayerNote | undefined>;
-	editNote: (mo: MapObjectLike) => void;
+	editNote: (mo: MapObjectLike, showOnMap?: boolean) => void;
 	editLabel: (label: PlayerNote | { x: number; y: number }) => void;
 	cancelEditNote: () => void;
 	savePlayerNote: (note: PlayerNote) => Promise<void>;
@@ -932,6 +933,7 @@ export async function createGameContext(
 		await updatePlayer(player);
 		const u = get(universe);
 		u.fleets = fleets;
+		u.pruneFleetNotes();
 		u.starbases = starbases;
 		universe.set(u);
 	}
@@ -1019,11 +1021,26 @@ export async function createGameContext(
 		return updated!;
 	}
 
+	// designs that are in use can't be changed, but their description can
+	async function updateDesignDescription(num: number, description: string): Promise<ShipDesign> {
+		const { design: updated } = await shipDesignClient.updateShipDesignDescription({
+			gameId,
+			num,
+			description
+		});
+		const u = get(universe);
+		u.updateDesign(updated!);
+		universe.set(u);
+
+		return updated!;
+	}
+
 	async function deleteDesign(num: number): Promise<void> {
 		const { planets, fleets, starbases } = await shipDesignClient.deleteShipDesign({ gameId, num });
 		const u = get(universe);
 		// replace our fleets and starbases (but keep intel issue #146)
 		u.fleets = fleets;
+		u.pruneFleetNotes();
 		u.starbases = starbases;
 		u.planets = planets;
 		u.resetAllPlanets();
@@ -1325,16 +1342,26 @@ export async function createGameContext(
 	}
 
 	// open the note dialog for the player's note about a map object, starting a new note if they
-	// haven't written one
-	function editNote(mo: MapObjectLike) {
+	// haven't written one. showOnMap is for a new note, an existing note keeps its setting.
+	function editNote(mo: MapObjectLike, showOnMap = false) {
 		if (!mo.mapObject) {
+			return;
+		}
+		if (!get(universe).canHaveNote(mo)) {
 			return;
 		}
 		const note = get(universe).getNote(mo);
 		editingNote.set(
 			note
 				? clone(PlayerNoteSchema, note)
-				: create(PlayerNoteSchema, { targetType: mo.mapObject.type, targetNum: mo.mapObject.num })
+				: create(PlayerNoteSchema, {
+						targetType: mo.mapObject.type,
+						targetNum: mo.mapObject.num,
+						// planets are identified by num alone, whoever owns them
+						targetPlayerNum: mo.mapObject.type === MapObjectType.FLEET ? mo.mapObject.playerNum : 0,
+						// only planet notes are drawn on the map
+						showOnMap: showOnMap && mo.mapObject.type === MapObjectType.PLANET
+					})
 		);
 	}
 
@@ -1630,6 +1657,7 @@ export async function createGameContext(
 
 		createDesign,
 		updateDesign,
+		updateDesignDescription,
 		deleteDesign,
 
 		addWaypoint,

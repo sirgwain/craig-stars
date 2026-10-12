@@ -17,6 +17,8 @@ var c Converter
 // goverter:output:package github.com/sirgwain/craig-stars/db
 // goverter:output:file ./converter.generated.go
 // goverter:extend AcquiredTechsToGameAcquiredTechs
+// goverter:extend PlayerNoteTagsToGamePlayerNoteTags
+// goverter:extend GamePlayerNoteTagsToPlayerNoteTags
 // goverter:extend BattlePlansToGameBattlePlans
 // goverter:extend BattleRecordsToGameBattleRecords
 // goverter:extend CargoTransfersToGameCargoTransfers
@@ -304,6 +306,7 @@ type Converter interface {
 	// goverter:ignore Designs
 	// goverter:ignore Spec
 	// goverter:ignore TechsJustGained
+	// goverter:ignore NewNotes
 	ConvertPlayer(source generated.Player) cs.Player
 
 	// goverter:map . GameDBObject | ExtendLightPlayerGameDBObject
@@ -315,6 +318,7 @@ type Converter interface {
 	// goverter:ignore Designs
 	// goverter:ignore Spec
 	// goverter:ignore TechsJustGained
+	// goverter:ignore NewNotes
 	ConvertLightPlayer(source generated.GetLightPlayerForGameRow) cs.Player
 
 	// goverter:map . GameDBObject | ExtendPlayerStatusGameDBObject
@@ -718,6 +722,17 @@ func IntToNullFloat64(source int) sql.NullFloat64 {
 		Valid:   true,
 		Float64: float64(source),
 	}
+}
+
+func PlayerNoteTagsToGamePlayerNoteTags(source *generated.PlayerNoteTags) []string {
+	if source == nil || len(*source) == 0 {
+		return nil
+	}
+	return ([]string)(*source)
+}
+
+func GamePlayerNoteTagsToPlayerNoteTags(source []string) *generated.PlayerNoteTags {
+	return (*generated.PlayerNoteTags)(&source)
 }
 
 func TagsToGameTags(source *generated.Tags) cs.Tags {

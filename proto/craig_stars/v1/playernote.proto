@@ -15,4 +15,6 @@ message PlayerNote {
   Vector position = 6;
   string text = 7;
   bool show_on_map = 8;
+  // tags the player has put on the map object this note is attached to
+  repeated string tags = 9;
 }

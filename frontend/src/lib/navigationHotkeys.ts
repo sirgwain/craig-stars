@@ -21,6 +21,9 @@ export const bindNavigationHotkeys = (gameId: bigint) => {
 				goto(`/games/${gameId}/fleets`);
 				break;
 			case `/games/${gameId}/fleets`:
+				goto(`/games/${gameId}/notes`);
+				break;
+			case `/games/${gameId}/notes`:
 				goto(`/games/${gameId}/designs`);
 				break;
 			case `/games/${gameId}/designs`:

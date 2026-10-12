@@ -4,6 +4,7 @@
 	import { ConnectError } from '@connectrpc/connect';
 	import hotkeys from 'hotkeys-js';
 	import { onMount, untrack } from 'svelte';
+	import TagPicker from './TagPicker.svelte';
 
 	const { universe, readOnly, savePlayerNote, deletePlayerNote } = getGameContext();
 
@@ -20,20 +21,22 @@
 	// the dialog edits a copy, the note itself only changes when it's saved
 	let text = $state(untrack(() => note.text));
 	let showOnMap = $state(untrack(() => note.showOnMap));
+	let tags = $state(untrack(() => [...note.tags]));
 	let saving = $state(false);
 	let error = $state('');
 	let textarea: HTMLTextAreaElement | undefined = $state();
 
 	// labels aren't attached to anything, they only exist on the map
 	let isLabel = $derived(note.targetType === MapObjectType.UNSPECIFIED);
+	// fleets move, so only notes on planets can be drawn on the map
+	let isPlanet = $derived(note.targetType === MapObjectType.PLANET);
 	let exists = $derived(!!note.gameDbObject?.id);
-	let title = $derived(
-		isLabel
-			? exists
-				? 'Map Label'
-				: 'New Map Label'
-			: `Note: ${$universe.getPlanet(note.targetNum)?.mapObject?.name ?? 'Planet'}`
+	let targetName = $derived(
+		note.targetType === MapObjectType.FLEET
+			? ($universe.getMyFleet(note.targetNum)?.mapObject?.name ?? 'Fleet')
+			: ($universe.getPlanet(note.targetNum)?.mapObject?.name ?? 'Planet')
 	);
+	let title = $derived(isLabel ? (exists ? 'Map Label' : 'New Map Label') : `Notes: ${targetName}`);
 
 	async function run(action: () => Promise<void>) {
 		saving = true;
@@ -52,7 +55,7 @@
 		if (saving || $readOnly) {
 			return;
 		}
-		if (!text.trim()) {
+		if (!text.trim() && (isLabel || !tags.length)) {
 			// clearing a note removes it
 			if (exists) {
 				remove();
@@ -61,7 +64,15 @@
 			}
 			return;
 		}
-		run(() => savePlayerNote({ ...note, text, showOnMap: isLabel || showOnMap }));
+		run(() =>
+			savePlayerNote({
+				...note,
+				text,
+				tags: isLabel ? [] : tags,
+				// only the text is shown on the map
+				showOnMap: isLabel || (isPlanet && showOnMap && !!text.trim())
+			})
+		);
 	}
 
 	function remove() {
@@ -97,7 +108,7 @@
 	});
 </script>
 
-<div class="flex flex-col gap-2 h-full" data-type="note">
+<div class="flex flex-col gap-2" data-type="note" role="presentation" onkeydown={onKeyDown}>
 	<h2 class="text-lg font-semibold text-secondary truncate">{title}</h2>
 
 	{#if error}
@@ -107,15 +118,18 @@
 	<textarea
 		bind:this={textarea}
 		bind:value={text}
-		onkeydown={onKeyDown}
 		maxlength={maxLength}
 		readonly={$readOnly}
-		rows={isLabel ? 2 : 6}
+		rows={isLabel ? 2 : 3}
 		aria-label={title}
-		placeholder={isLabel ? 'A label only you can see, i.e. "the front"' : 'A note only you can see'}
-		class="textarea textarea-bordered w-full grow md:grow-0 text-base"></textarea>
+		placeholder={isLabel ? 'A label only you can see, i.e. "the front"' : 'Notes only you can see'}
+		class="textarea textarea-bordered w-full text-base"></textarea>
 
 	{#if !isLabel}
+		<div class="text-sm font-semibold">Tags</div>
+		<TagPicker bind:tags known={$universe.tags} disabled={$readOnly} />
+	{/if}
+	{#if isPlanet}
 		<label class="label cursor-pointer justify-start gap-2">
 			<input
 				type="checkbox"
@@ -123,7 +137,7 @@
 				bind:checked={showOnMap}
 				disabled={$readOnly}
 			/>
-			<span>Show on map</span>
+			<span>Show note on map</span>
 		</label>
 	{/if}
 

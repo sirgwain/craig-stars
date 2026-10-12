@@ -318,6 +318,7 @@ type PlayerNote struct {
 	Y               float64
 	Text            string
 	ShowOnMap       bool
+	Tags            *PlayerNoteTags
 }
 
 type Race struct {
@@ -355,6 +356,7 @@ type Race struct {
 	ResearchCostElectronics   cs.ResearchCostLevel
 	ResearchCostBiotechnology cs.ResearchCostLevel
 	TechsStartHigh            bool
+	Description               string
 }
 
 type Salvage struct {
@@ -391,6 +393,7 @@ type ShipDesign struct {
 	CannotDelete      bool
 	OriginalPlayerNum sql.NullInt64
 	MysteryTrader     bool
+	Description       string
 }
 
 type User struct {

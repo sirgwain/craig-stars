@@ -235,9 +235,12 @@ type Race struct {
 	MineCost              int32                  `protobuf:"varint,22,opt,name=mine_cost,json=mineCost,proto3" json:"mine_cost,omitempty"`
 	NumMines              int32                  `protobuf:"varint,23,opt,name=num_mines,json=numMines,proto3" json:"num_mines,omitempty"`
 	ResearchCost          *ResearchCost          `protobuf:"bytes,24,opt,name=research_cost,json=researchCost,proto3" json:"research_cost,omitempty"`
-	TechsStartHigh        bool                   `protobuf:"varint,25,opt,name=techs_start_high,json=techsStartHigh,proto3" json:"techs_start_high,omitempty"` // RaceSpec spec = 26;
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	TechsStartHigh        bool                   `protobuf:"varint,25,opt,name=techs_start_high,json=techsStartHigh,proto3" json:"techs_start_high,omitempty"`
+	// RaceSpec spec = 26;
+	// the player's own notes on the race, never shown to other players
+	Description   string `protobuf:"bytes,27,opt,name=description,proto3" json:"description,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Race) Reset() {
@@ -443,6 +446,13 @@ func (x *Race) GetTechsStartHigh() bool {
 		return x.TechsStartHigh
 	}
 	return false
+}
+
+func (x *Race) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
 }
 
 type RaceSpec struct {
@@ -1661,7 +1671,7 @@ var File_craig_stars_v1_race_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_race_proto_rawDesc = "" +
 	"\n" +
-	"\x19craig_stars/v1/race.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe3\a\n" +
+	"\x19craig_stars/v1/race.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x85\b\n" +
 	"\x04Race\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x129\n" +
 	"\n" +
@@ -1696,7 +1706,8 @@ const file_craig_stars_v1_race_proto_rawDesc = "" +
 	"\tmine_cost\x18\x16 \x01(\x05R\bmineCost\x12\x1b\n" +
 	"\tnum_mines\x18\x17 \x01(\x05R\bnumMines\x12A\n" +
 	"\rresearch_cost\x18\x18 \x01(\v2\x1c.craig_stars.v1.ResearchCostR\fresearchCost\x12(\n" +
-	"\x10techs_start_high\x18\x19 \x01(\bR\x0etechsStartHigh\"\x9e!\n" +
+	"\x10techs_start_high\x18\x19 \x01(\bR\x0etechsStartHigh\x12 \n" +
+	"\vdescription\x18\x1b \x01(\tR\vdescription\"\x9e!\n" +
 	"\bRaceSpec\x12V\n" +
 	"\x14miniaturization_spec\x18\x01 \x01(\v2#.craig_stars.v1.MiniaturizationSpecR\x13miniaturizationSpec\x12>\n" +
 	"\fscanner_spec\x18\x02 \x01(\v2\x1b.craig_stars.v1.ScannerSpecR\vscannerSpec\x122\n" +

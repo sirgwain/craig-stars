@@ -956,6 +956,8 @@ func PlayerMessageTypeToCSPlayerMessageType(m craig_starsv1.PlayerMessageType) c
 		return cs.PlayerMessagePlanetClimateChange
 	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED:
 		return cs.PlayerMessagePlanetColonizeContested
+	case craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_BUILT_NOTE:
+		return cs.PlayerMessagePlanetBuiltNote
 	default:
 		return cs.PlayerMessageType(0)
 	}
@@ -1217,6 +1219,8 @@ func CSPlayerMessageTypeToPlayerMessageType(m cs.PlayerMessageType) craig_starsv
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_CLIMATE_CHANGE
 	case cs.PlayerMessagePlanetColonizeContested:
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_COLONIZE_CONTESTED
+	case cs.PlayerMessagePlanetBuiltNote:
+		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_PLANET_BUILT_NOTE
 	default:
 		return craig_starsv1.PlayerMessageType_PLAYER_MESSAGE_TYPE_UNSPECIFIED
 	}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onShipDesignTooltip } from '#lib/components/game/tooltips/ShipDesignTooltip.js';
 	import Cycle from '#lib/components/icons/Cycle.svelte';
+	import TagBadge from '#lib/components/game/TagBadge.svelte';
 	import Starbase from '#lib/components/icons/Starbase.svelte';
 	import type { ShowCargoTransferDialogProps } from '#lib/services/Events.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
@@ -53,8 +54,11 @@
 			? ($selectedMapObject as Planet)
 			: undefined
 	);
-	// the player's private note about the selected planet
-	let note = $derived($universe.getNote(selectedPlanet));
+	// the player's private note and tags, for planets and their own fleets
+	let noteTarget = $derived(
+		$selectedMapObject && $universe.canHaveNote($selectedMapObject) ? $selectedMapObject : undefined
+	);
+	let note = $derived($universe.getNote(noteTarget));
 	let selectedFleet = $derived(
 		$selectedMapObject?.mapObject?.type === MapObjectType.FLEET
 			? ($selectedMapObject as Fleet)
@@ -103,13 +107,13 @@
 				</div>
 			{/if}
 			<div>
-				{#if selectedPlanet && (note || !$readOnly)}
+				{#if noteTarget && (note || !$readOnly)}
 					<button
 						type="button"
-						title={note ? 'edit note' : 'add note'}
-						aria-label={note ? 'Edit note' : 'Add note'}
+						title={note ? 'edit notes and tags' : 'add notes and tags'}
+						aria-label={note ? 'Edit notes and tags' : 'Add notes and tags'}
 						data-type="map-object-note-button"
-						onclick={() => editNote(selectedPlanet)}
+						onclick={() => editNote(noteTarget)}
 					>
 						<Icon
 							src={PencilSquare}
@@ -142,14 +146,26 @@
 				{/if}
 			</div>
 		</div>
-		{#if selectedPlanet && note}
+		{#if noteTarget && note}
 			<button
 				type="button"
-				class="text-left text-sm italic whitespace-pre-line line-clamp-2 hover:text-accent"
+				class="flex flex-col gap-0.5 text-left text-sm hover:text-accent"
 				title={note.text}
-				data-type="map-object-note"
-				onclick={() => editNote(selectedPlanet)}>{note.text}</button
+				onclick={() => editNote(noteTarget)}
 			>
+				{#if note.tags.length}
+					<span class="flex flex-row flex-wrap gap-1" data-type="map-object-tags">
+						{#each note.tags as tag (tag)}
+							<TagBadge {tag} />
+						{/each}
+					</span>
+				{/if}
+				{#if note.text}
+					<span class="italic whitespace-pre-line line-clamp-2" data-type="map-object-note"
+						>{note.text}</span
+					>
+				{/if}
+			</button>
 		{/if}
 		{#if selectedPlanet}
 			<PlanetSummary planet={selectedPlanet} />

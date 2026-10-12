@@ -140,3 +140,23 @@ func TestDeleteShipDesigns(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 }
+
+func TestUpdateShipDesignDescription(t *testing.T) {
+	c := connectTestDB()
+
+	game, player := c.createTestGameWithPlayer(t.Context())
+
+	design := &cs.ShipDesign{GameDBObject: cs.GameDBObject{GameID: game.ID}, Num: 1, PlayerNum: player.Num, Name: "name", Description: "escort for the bombers"}
+	assert.Nil(t, c.SaveShipDesign(t.Context(), design))
+
+	got, err := c.GetShipDesign(t.Context(), design.ID)
+	assert.Nil(t, err)
+	assert.Equal(t, "escort for the bombers", got.Description)
+
+	// only the description changes
+	assert.Nil(t, c.UpdateShipDesignDescription(t.Context(), design.ID, "retired"))
+	got, err = c.GetShipDesign(t.Context(), design.ID)
+	assert.Nil(t, err)
+	assert.Equal(t, "retired", got.Description)
+	assert.Equal(t, "name", got.Name)
+}

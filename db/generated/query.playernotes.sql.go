@@ -24,12 +24,14 @@ INSERT INTO
         x,
         y,
         text,
-        show_on_map
+        show_on_map,
+        tags
     )
 VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
+        ?,
         ?,
         ?,
         ?,
@@ -52,6 +54,7 @@ type CreatePlayerNoteParams struct {
 	Y               float64
 	Text            string
 	ShowOnMap       bool
+	Tags            *PlayerNoteTags
 }
 
 func (q *Queries) CreatePlayerNote(ctx context.Context, arg CreatePlayerNoteParams) (int64, error) {
@@ -65,6 +68,7 @@ func (q *Queries) CreatePlayerNote(ctx context.Context, arg CreatePlayerNotePara
 		arg.Y,
 		arg.Text,
 		arg.ShowOnMap,
+		arg.Tags,
 	)
 	if err != nil {
 		return 0, err
@@ -86,9 +90,41 @@ func (q *Queries) DeletePlayerNote(ctx context.Context, id int64) (int64, error)
 	return result.RowsAffected()
 }
 
+const DeletePlayerNoteForTarget = `-- name: DeletePlayerNoteForTarget :execrows
+DELETE FROM player_notes
+WHERE
+    game_id = ?
+    AND player_num = ?
+    AND target_type = ?
+    AND target_num = ?
+    AND target_player_num = ?
+`
+
+type DeletePlayerNoteForTargetParams struct {
+	GameID          int64
+	PlayerNum       int64
+	TargetType      cs.MapObjectType
+	TargetNum       int64
+	TargetPlayerNum int64
+}
+
+func (q *Queries) DeletePlayerNoteForTarget(ctx context.Context, arg DeletePlayerNoteForTargetParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, DeletePlayerNoteForTarget,
+		arg.GameID,
+		arg.PlayerNum,
+		arg.TargetType,
+		arg.TargetNum,
+		arg.TargetPlayerNum,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const GetPlayerNote = `-- name: GetPlayerNote :one
 SELECT
-    id, created_at, updated_at, game_id, player_num, target_type, target_num, target_player_num, x, y, text, show_on_map
+    id, created_at, updated_at, game_id, player_num, target_type, target_num, target_player_num, x, y, text, show_on_map, tags
 FROM
     player_notes
 WHERE
@@ -112,13 +148,14 @@ func (q *Queries) GetPlayerNote(ctx context.Context, id int64) (PlayerNote, erro
 		&i.Y,
 		&i.Text,
 		&i.ShowOnMap,
+		&i.Tags,
 	)
 	return i, err
 }
 
 const GetPlayerNoteForTarget = `-- name: GetPlayerNoteForTarget :one
 SELECT
-    id, created_at, updated_at, game_id, player_num, target_type, target_num, target_player_num, x, y, text, show_on_map
+    id, created_at, updated_at, game_id, player_num, target_type, target_num, target_player_num, x, y, text, show_on_map, tags
 FROM
     player_notes
 WHERE
@@ -159,13 +196,14 @@ func (q *Queries) GetPlayerNoteForTarget(ctx context.Context, arg GetPlayerNoteF
 		&i.Y,
 		&i.Text,
 		&i.ShowOnMap,
+		&i.Tags,
 	)
 	return i, err
 }
 
 const GetPlayerNotesForPlayer = `-- name: GetPlayerNotesForPlayer :many
 SELECT
-    id, created_at, updated_at, game_id, player_num, target_type, target_num, target_player_num, x, y, text, show_on_map
+    id, created_at, updated_at, game_id, player_num, target_type, target_num, target_player_num, x, y, text, show_on_map, tags
 FROM
     player_notes
 WHERE
@@ -202,6 +240,7 @@ func (q *Queries) GetPlayerNotesForPlayer(ctx context.Context, arg GetPlayerNote
 			&i.Y,
 			&i.Text,
 			&i.ShowOnMap,
+			&i.Tags,
 		); err != nil {
 			return nil, err
 		}
@@ -223,7 +262,8 @@ SET
     x = ?,
     y = ?,
     text = ?,
-    show_on_map = ?
+    show_on_map = ?,
+    tags = ?
 WHERE
     id = ?
 `
@@ -233,6 +273,7 @@ type UpdatePlayerNoteParams struct {
 	Y         float64
 	Text      string
 	ShowOnMap bool
+	Tags      *PlayerNoteTags
 	ID        int64
 }
 
@@ -242,6 +283,7 @@ func (q *Queries) UpdatePlayerNote(ctx context.Context, arg UpdatePlayerNotePara
 		arg.Y,
 		arg.Text,
 		arg.ShowOnMap,
+		arg.Tags,
 		arg.ID,
 	)
 	if err != nil {

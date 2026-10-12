@@ -59,15 +59,15 @@
 	// add label, which isn't there when we're only viewing
 	let labelWidth = $derived($readOnly ? 0 : itemWidth);
 	// the scanner percent box
-	const percentWidth = 72;
+	const percentWidth = 64;
 	// the button that opens the menu of collapsed items
 	const menuWidth = 62;
 	let toolbarWidth = $state(0);
 	// search/previous/next, plus cycle on small screens
 	let navWidth = $state(0);
-	// 8 filters, plus 2 ally filters when anyone shares their map with us
+	// 9 filters, plus 2 ally filters when anyone shares their map with us
 	let shareMap = $derived($player.relations.some((r) => r.shareMap));
-	let filterCount = $derived(8 + (shareMap ? 2 : 0));
+	let filterCount = $derived(9 + (shareMap ? 2 : 0));
 	// the dropdowns beside the design filters
 	let filterMenusWidth = $derived(12 * (2 + (shareMap ? 1 : 0)));
 

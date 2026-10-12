@@ -46,6 +46,9 @@ const (
 	// ShipDesignServiceUpdateShipDesignProcedure is the fully-qualified name of the ShipDesignService's
 	// UpdateShipDesign RPC.
 	ShipDesignServiceUpdateShipDesignProcedure = "/craig_stars.v1.ShipDesignService/UpdateShipDesign"
+	// ShipDesignServiceUpdateShipDesignDescriptionProcedure is the fully-qualified name of the
+	// ShipDesignService's UpdateShipDesignDescription RPC.
+	ShipDesignServiceUpdateShipDesignDescriptionProcedure = "/craig_stars.v1.ShipDesignService/UpdateShipDesignDescription"
 	// ShipDesignServiceDeleteShipDesignProcedure is the fully-qualified name of the ShipDesignService's
 	// DeleteShipDesign RPC.
 	ShipDesignServiceDeleteShipDesignProcedure = "/craig_stars.v1.ShipDesignService/DeleteShipDesign"
@@ -57,6 +60,8 @@ type ShipDesignServiceClient interface {
 	GetShipDesigns(context.Context, *connect.Request[v1.GetShipDesignsRequest]) (*connect.Response[v1.GetShipDesignsResponse], error)
 	CreateShipDesign(context.Context, *connect.Request[v1.CreateShipDesignRequest]) (*connect.Response[v1.CreateShipDesignResponse], error)
 	UpdateShipDesign(context.Context, *connect.Request[v1.UpdateShipDesignRequest]) (*connect.Response[v1.UpdateShipDesignResponse], error)
+	// designs that are in use can't be changed, but their description can
+	UpdateShipDesignDescription(context.Context, *connect.Request[v1.UpdateShipDesignDescriptionRequest]) (*connect.Response[v1.UpdateShipDesignDescriptionResponse], error)
 	DeleteShipDesign(context.Context, *connect.Request[v1.DeleteShipDesignRequest]) (*connect.Response[v1.DeleteShipDesignResponse], error)
 }
 
@@ -98,6 +103,13 @@ func NewShipDesignServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithIdempotency(connect.IdempotencyIdempotent),
 			connect.WithClientOptions(opts...),
 		),
+		updateShipDesignDescription: connect.NewClient[v1.UpdateShipDesignDescriptionRequest, v1.UpdateShipDesignDescriptionResponse](
+			httpClient,
+			baseURL+ShipDesignServiceUpdateShipDesignDescriptionProcedure,
+			connect.WithSchema(shipDesignServiceMethods.ByName("UpdateShipDesignDescription")),
+			connect.WithIdempotency(connect.IdempotencyIdempotent),
+			connect.WithClientOptions(opts...),
+		),
 		deleteShipDesign: connect.NewClient[v1.DeleteShipDesignRequest, v1.DeleteShipDesignResponse](
 			httpClient,
 			baseURL+ShipDesignServiceDeleteShipDesignProcedure,
@@ -109,11 +121,12 @@ func NewShipDesignServiceClient(httpClient connect.HTTPClient, baseURL string, o
 
 // shipDesignServiceClient implements ShipDesignServiceClient.
 type shipDesignServiceClient struct {
-	getShipDesign    *connect.Client[v1.GetShipDesignRequest, v1.GetShipDesignResponse]
-	getShipDesigns   *connect.Client[v1.GetShipDesignsRequest, v1.GetShipDesignsResponse]
-	createShipDesign *connect.Client[v1.CreateShipDesignRequest, v1.CreateShipDesignResponse]
-	updateShipDesign *connect.Client[v1.UpdateShipDesignRequest, v1.UpdateShipDesignResponse]
-	deleteShipDesign *connect.Client[v1.DeleteShipDesignRequest, v1.DeleteShipDesignResponse]
+	getShipDesign               *connect.Client[v1.GetShipDesignRequest, v1.GetShipDesignResponse]
+	getShipDesigns              *connect.Client[v1.GetShipDesignsRequest, v1.GetShipDesignsResponse]
+	createShipDesign            *connect.Client[v1.CreateShipDesignRequest, v1.CreateShipDesignResponse]
+	updateShipDesign            *connect.Client[v1.UpdateShipDesignRequest, v1.UpdateShipDesignResponse]
+	updateShipDesignDescription *connect.Client[v1.UpdateShipDesignDescriptionRequest, v1.UpdateShipDesignDescriptionResponse]
+	deleteShipDesign            *connect.Client[v1.DeleteShipDesignRequest, v1.DeleteShipDesignResponse]
 }
 
 // GetShipDesign calls craig_stars.v1.ShipDesignService.GetShipDesign.
@@ -136,6 +149,11 @@ func (c *shipDesignServiceClient) UpdateShipDesign(ctx context.Context, req *con
 	return c.updateShipDesign.CallUnary(ctx, req)
 }
 
+// UpdateShipDesignDescription calls craig_stars.v1.ShipDesignService.UpdateShipDesignDescription.
+func (c *shipDesignServiceClient) UpdateShipDesignDescription(ctx context.Context, req *connect.Request[v1.UpdateShipDesignDescriptionRequest]) (*connect.Response[v1.UpdateShipDesignDescriptionResponse], error) {
+	return c.updateShipDesignDescription.CallUnary(ctx, req)
+}
+
 // DeleteShipDesign calls craig_stars.v1.ShipDesignService.DeleteShipDesign.
 func (c *shipDesignServiceClient) DeleteShipDesign(ctx context.Context, req *connect.Request[v1.DeleteShipDesignRequest]) (*connect.Response[v1.DeleteShipDesignResponse], error) {
 	return c.deleteShipDesign.CallUnary(ctx, req)
@@ -147,6 +165,8 @@ type ShipDesignServiceHandler interface {
 	GetShipDesigns(context.Context, *connect.Request[v1.GetShipDesignsRequest]) (*connect.Response[v1.GetShipDesignsResponse], error)
 	CreateShipDesign(context.Context, *connect.Request[v1.CreateShipDesignRequest]) (*connect.Response[v1.CreateShipDesignResponse], error)
 	UpdateShipDesign(context.Context, *connect.Request[v1.UpdateShipDesignRequest]) (*connect.Response[v1.UpdateShipDesignResponse], error)
+	// designs that are in use can't be changed, but their description can
+	UpdateShipDesignDescription(context.Context, *connect.Request[v1.UpdateShipDesignDescriptionRequest]) (*connect.Response[v1.UpdateShipDesignDescriptionResponse], error)
 	DeleteShipDesign(context.Context, *connect.Request[v1.DeleteShipDesignRequest]) (*connect.Response[v1.DeleteShipDesignResponse], error)
 }
 
@@ -184,6 +204,13 @@ func NewShipDesignServiceHandler(svc ShipDesignServiceHandler, opts ...connect.H
 		connect.WithIdempotency(connect.IdempotencyIdempotent),
 		connect.WithHandlerOptions(opts...),
 	)
+	shipDesignServiceUpdateShipDesignDescriptionHandler := connect.NewUnaryHandler(
+		ShipDesignServiceUpdateShipDesignDescriptionProcedure,
+		svc.UpdateShipDesignDescription,
+		connect.WithSchema(shipDesignServiceMethods.ByName("UpdateShipDesignDescription")),
+		connect.WithIdempotency(connect.IdempotencyIdempotent),
+		connect.WithHandlerOptions(opts...),
+	)
 	shipDesignServiceDeleteShipDesignHandler := connect.NewUnaryHandler(
 		ShipDesignServiceDeleteShipDesignProcedure,
 		svc.DeleteShipDesign,
@@ -200,6 +227,8 @@ func NewShipDesignServiceHandler(svc ShipDesignServiceHandler, opts ...connect.H
 			shipDesignServiceCreateShipDesignHandler.ServeHTTP(w, r)
 		case ShipDesignServiceUpdateShipDesignProcedure:
 			shipDesignServiceUpdateShipDesignHandler.ServeHTTP(w, r)
+		case ShipDesignServiceUpdateShipDesignDescriptionProcedure:
+			shipDesignServiceUpdateShipDesignDescriptionHandler.ServeHTTP(w, r)
 		case ShipDesignServiceDeleteShipDesignProcedure:
 			shipDesignServiceDeleteShipDesignHandler.ServeHTTP(w, r)
 		default:
@@ -225,6 +254,10 @@ func (UnimplementedShipDesignServiceHandler) CreateShipDesign(context.Context, *
 
 func (UnimplementedShipDesignServiceHandler) UpdateShipDesign(context.Context, *connect.Request[v1.UpdateShipDesignRequest]) (*connect.Response[v1.UpdateShipDesignResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("craig_stars.v1.ShipDesignService.UpdateShipDesign is not implemented"))
+}
+
+func (UnimplementedShipDesignServiceHandler) UpdateShipDesignDescription(context.Context, *connect.Request[v1.UpdateShipDesignDescriptionRequest]) (*connect.Response[v1.UpdateShipDesignDescriptionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("craig_stars.v1.ShipDesignService.UpdateShipDesignDescription is not implemented"))
 }
 
 func (UnimplementedShipDesignServiceHandler) DeleteShipDesign(context.Context, *connect.Request[v1.DeleteShipDesignRequest]) (*connect.Response[v1.DeleteShipDesignResponse], error) {

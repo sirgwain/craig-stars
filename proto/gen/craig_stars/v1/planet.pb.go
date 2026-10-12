@@ -297,6 +297,7 @@ type ProductionQueueItem struct {
 	Quantity                    int32                        `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	Allocated                   *Cost                        `protobuf:"bytes,5,opt,name=allocated,proto3" json:"allocated,omitempty"`
 	Tags                        map[string]string            `protobuf:"bytes,6,rep,name=tags,proto3" json:"tags,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Note                        string                       `protobuf:"bytes,7,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -371,6 +372,13 @@ func (x *ProductionQueueItem) GetTags() map[string]string {
 		return x.Tags
 	}
 	return nil
+}
+
+func (x *ProductionQueueItem) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
 }
 
 type QueueItemCompletionEstimate struct {
@@ -941,7 +949,7 @@ const file_craig_stars_v1_planet_proto_rawDesc = "" +
 	"\bdefenses\x18\r \x01(\x05R\bdefenses\x12\x1c\n" +
 	"\thomeworld\x18\x0e \x01(\bR\thomeworld\x12\x18\n" +
 	"\ascanner\x18\x0f \x01(\bR\ascanner\x12.\n" +
-	"\x04spec\x18\x10 \x01(\v2\x1a.craig_stars.v1.PlanetSpecR\x04spec\"\xa5\x03\n" +
+	"\x04spec\x18\x10 \x01(\v2\x1a.craig_stars.v1.PlanetSpecR\x04spec\"\xb9\x03\n" +
 	"\x13ProductionQueueItem\x12p\n" +
 	"\x1equeue_item_completion_estimate\x18\x01 \x01(\v2+.craig_stars.v1.QueueItemCompletionEstimateR\x1bqueueItemCompletionEstimate\x121\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1d.craig_stars.v1.QueueItemTypeR\x04type\x12\x1d\n" +
@@ -949,7 +957,8 @@ const file_craig_stars_v1_planet_proto_rawDesc = "" +
 	"design_num\x18\x03 \x01(\x05R\tdesignNum\x12\x1a\n" +
 	"\bquantity\x18\x04 \x01(\x05R\bquantity\x122\n" +
 	"\tallocated\x18\x05 \x01(\v2\x14.craig_stars.v1.CostR\tallocated\x12A\n" +
-	"\x04tags\x18\x06 \x03(\v2-.craig_stars.v1.ProductionQueueItem.TagsEntryR\x04tags\x1a7\n" +
+	"\x04tags\x18\x06 \x03(\v2-.craig_stars.v1.ProductionQueueItem.TagsEntryR\x04tags\x12\x12\n" +
+	"\x04note\x18\a \x01(\tR\x04note\x1a7\n" +
 	"\tTagsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbe\x01\n" +

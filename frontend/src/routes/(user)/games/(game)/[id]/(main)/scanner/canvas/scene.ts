@@ -16,7 +16,13 @@ import {
 	type Waypoint
 } from '#lib/types/cs-proto.js';
 import type { CommandedFleet } from '#lib/types/Fleet.js';
-import { filterFleet, filterMinefield, getVisibleShipCount } from '#lib/types/Filter.js';
+import {
+	filterFleet,
+	filterMinefield,
+	filterNote,
+	getVisibleShipCount,
+	type FilterOptions
+} from '#lib/types/Filter.js';
 import {
 	equal,
 	owned,
@@ -674,10 +680,10 @@ export function noteMapText(text: string): string {
 	return line.length > noteMaxLength ? `${line.slice(0, noteMaxLength - 1).trimEnd()}…` : line;
 }
 
-export function buildNotes(universe: Universe): NoteDraw[] {
+export function buildNotes(universe: Universe, options: FilterOptions = {}): NoteDraw[] {
 	const notes: NoteDraw[] = [];
 	for (const note of universe.notes) {
-		if (!note.showOnMap) {
+		if (!note.showOnMap || !note.text || !filterNote(note, options)) {
 			continue;
 		}
 		if (note.targetType === MapObjectType.UNSPECIFIED) {

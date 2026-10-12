@@ -11,6 +11,9 @@ import (
 // the longest name a player can give a fleet or design
 const MaxNameLength = 80
 
+// the longest description a player can write for a design or race
+const MaxDescriptionLength = 1000
+
 // warpspeed for using a stargate vs moving with warp drive
 const StargateWarpSpeed = 11
 

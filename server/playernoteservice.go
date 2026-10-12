@@ -35,7 +35,7 @@ func (s *playerNoteService) GetPlayerNotes(ctx context.Context, req *connect.Req
 	}), nil
 }
 
-// SavePlayerNote creates a note, or updates the text of an existing one
+// SavePlayerNote creates a note, or updates the text and tags of an existing one
 func (s *playerNoteService) SavePlayerNote(ctx context.Context, req *connect.Request[craig_starsv1.SavePlayerNoteRequest]) (*connect.Response[craig_starsv1.SavePlayerNoteResponse], error) {
 	dbClient := contextDb(ctx)
 	dbWriteClient := contextDbWrite(ctx)
@@ -68,6 +68,17 @@ func (s *playerNoteService) SavePlayerNote(ctx context.Context, req *connect.Req
 
 	if err := note.Validate(game.Area); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	if existing == nil && note.TargetType == cs.MapObjectTypeFleet {
+		// a note for a fleet that doesn't exist would end up on the next fleet to get that num
+		fleet, err := dbClient.GetFleetByNum(ctx, game.ID, gamePlayer.Num, note.TargetNum)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get fleet from db"))
+		}
+		if fleet == nil {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("fleet not found"))
+		}
 	}
 
 	if existing == nil && note.HasTarget() {
