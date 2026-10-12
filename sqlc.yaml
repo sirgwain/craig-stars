@@ -295,3 +295,8 @@ sql:
               import: "github.com/sirgwain/craig-stars/cs"
               type: MysteryTraderRewardType
               pointer: true
+          # player_notes
+          - column: player_notes.target_type
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: MapObjectType

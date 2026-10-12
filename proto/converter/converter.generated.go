@@ -585,6 +585,32 @@ func (c *ProtoConverter) ConvertCSPlayerMessageSpecMysteryTrader(source *cs.Play
 	}
 	return pCraig_starsv1PlayerMessageSpecMysteryTrader
 }
+func (c *ProtoConverter) ConvertCSPlayerNote(source *cs.PlayerNote) *v1.PlayerNote {
+	var pCraig_starsv1PlayerNote *v1.PlayerNote
+	if source != nil {
+		var craig_starsv1PlayerNote v1.PlayerNote
+		craig_starsv1PlayerNote.GameDbObject = CSGameDBObjectToGameDBObject((*source).GameDBObject)
+		craig_starsv1PlayerNote.PlayerNum = IntToInt32((*source).PlayerNum)
+		craig_starsv1PlayerNote.TargetType = CSMapObjectTypeToMapObjectType((*source).TargetType)
+		craig_starsv1PlayerNote.TargetNum = IntToInt32((*source).TargetNum)
+		craig_starsv1PlayerNote.TargetPlayerNum = IntToInt32((*source).TargetPlayerNum)
+		craig_starsv1PlayerNote.Position = CSVectorToVector((*source).Position)
+		craig_starsv1PlayerNote.Text = (*source).Text
+		craig_starsv1PlayerNote.ShowOnMap = (*source).ShowOnMap
+		pCraig_starsv1PlayerNote = &craig_starsv1PlayerNote
+	}
+	return pCraig_starsv1PlayerNote
+}
+func (c *ProtoConverter) ConvertCSPlayerNotes(source []*cs.PlayerNote) []*v1.PlayerNote {
+	var pCraig_starsv1PlayerNoteList []*v1.PlayerNote
+	if source != nil {
+		pCraig_starsv1PlayerNoteList = make([]*v1.PlayerNote, len(source))
+		for i := 0; i < len(source); i++ {
+			pCraig_starsv1PlayerNoteList[i] = c.ConvertCSPlayerNote(source[i])
+		}
+	}
+	return pCraig_starsv1PlayerNoteList
+}
 func (c *ProtoConverter) ConvertCSPlayerResearchSpec(source cs.PlayerResearchSpec) *v1.PlayerResearchSpec {
 	var craig_starsv1PlayerResearchSpec v1.PlayerResearchSpec
 	craig_starsv1PlayerResearchSpec.ResourcesPerYear = IntToInt32(source.ResourcesPerYear)
@@ -1803,6 +1829,22 @@ func (c *ProtoConverter) ConvertPlayerMessageSpecMysteryTrader(source *v1.Player
 		pCsPlayerMessageSpecMysteryTrader = &csPlayerMessageSpecMysteryTrader
 	}
 	return pCsPlayerMessageSpecMysteryTrader
+}
+func (c *ProtoConverter) ConvertPlayerNote(source *v1.PlayerNote) *cs.PlayerNote {
+	var pCsPlayerNote *cs.PlayerNote
+	if source != nil {
+		var csPlayerNote cs.PlayerNote
+		csPlayerNote.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
+		csPlayerNote.PlayerNum = Int32ToInt((*source).PlayerNum)
+		csPlayerNote.TargetType = MapObjectTypeToCSMapObjectType((*source).TargetType)
+		csPlayerNote.TargetNum = Int32ToInt((*source).TargetNum)
+		csPlayerNote.TargetPlayerNum = Int32ToInt((*source).TargetPlayerNum)
+		csPlayerNote.Position = c.ConvertVector((*source).Position)
+		csPlayerNote.Text = (*source).Text
+		csPlayerNote.ShowOnMap = (*source).ShowOnMap
+		pCsPlayerNote = &csPlayerNote
+	}
+	return pCsPlayerNote
 }
 func (c *ProtoConverter) ConvertPlayerOrders(source *v1.PlayerOrders) cs.PlayerOrders {
 	var csPlayerOrders cs.PlayerOrders

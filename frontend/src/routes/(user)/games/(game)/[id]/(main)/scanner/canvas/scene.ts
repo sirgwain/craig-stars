@@ -12,6 +12,7 @@ import {
 	type Fleet,
 	type Minefield,
 	type Planet,
+	type PlayerNote,
 	type Waypoint
 } from '#lib/types/cs-proto.js';
 import type { CommandedFleet } from '#lib/types/Fleet.js';
@@ -654,4 +655,39 @@ export function buildWormholeLinks(universe: Universe): WormholeLink[] {
 		});
 	}
 	return links;
+}
+
+// the longest note text drawn on the map, the rest is in the note dialog
+export const noteMaxLength = 24;
+
+export type NoteDraw = {
+	note: PlayerNote;
+	position: Position;
+	text: string;
+	// the planet this note is drawn under. Labels aren't attached to a planet.
+	planetNum?: number;
+};
+
+// the first line of a note, shortened to fit on the map
+export function noteMapText(text: string): string {
+	const line = text.trim().split('\n')[0].trim();
+	return line.length > noteMaxLength ? `${line.slice(0, noteMaxLength - 1).trimEnd()}…` : line;
+}
+
+export function buildNotes(universe: Universe): NoteDraw[] {
+	const notes: NoteDraw[] = [];
+	for (const note of universe.notes) {
+		if (!note.showOnMap) {
+			continue;
+		}
+		if (note.targetType === MapObjectType.UNSPECIFIED) {
+			notes.push({ note, position: note.position ?? emptyVector(), text: noteMapText(note.text) });
+		} else if (note.targetType === MapObjectType.PLANET) {
+			const position = universe.getPlanet(note.targetNum)?.mapObject?.position;
+			if (position) {
+				notes.push({ note, position, text: noteMapText(note.text), planetNum: note.targetNum });
+			}
+		}
+	}
+	return notes;
 }

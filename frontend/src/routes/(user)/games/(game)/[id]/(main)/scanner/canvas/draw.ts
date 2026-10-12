@@ -22,6 +22,7 @@ import {
 	type DestLine,
 	type FleetDraw,
 	type MinefieldDraw,
+	type NoteDraw,
 	type PlanetDraw,
 	type ScannerCircle,
 	type WaypointPath,
@@ -32,6 +33,9 @@ import { fixedScannerColors, type ScannerColors } from './colors';
 
 const nameFont = 'bold 12px Arial, Helvetica, sans-serif';
 const countFont = 'bold 10px Arial, Helvetica, sans-serif';
+const noteFont = 'italic 12px Arial, Helvetica, sans-serif';
+// the height of a line of name text
+const nameHeight = 14;
 // gap in pixels between an icon and the text/arrow drawn above or below it
 const gap = 2;
 const fleetSize = 8;
@@ -57,6 +61,7 @@ export type ScannerFrame = {
 	planetsByNum: Map<number, PlanetDraw>;
 	fleets: FleetDraw[];
 	wormholeLinks: WormholeLink[];
+	notes: NoteDraw[];
 	selectedMapObject: MapObjectLike | undefined;
 	highlightedMapObject: MapObjectLike | undefined;
 	commandedMapObject: MapObjectLike | undefined;
@@ -85,6 +90,7 @@ export function drawScanner(ctx: CanvasRenderingContext2D, view: ScannerView, fr
 	drawWormholeLinks(ctx, view, frame);
 	drawSalvages(ctx, view, frame);
 	drawNames(ctx, view, frame);
+	drawNotes(ctx, view, frame);
 	drawSelection(ctx, view, frame);
 	drawLocator(ctx, view, frame);
 }
@@ -958,6 +964,48 @@ function drawNames(ctx: CanvasRenderingContext2D, view: ScannerView, frame: Scan
 				drawName(draw);
 			}
 		}
+	}
+}
+
+// the player's notes on planets go under the planet's name, labels are centered where they were placed
+function drawNotes(ctx: CanvasRenderingContext2D, view: ScannerView, frame: ScannerFrame) {
+	if (!frame.notes.length) {
+		return;
+	}
+	const s = view.iconScale;
+	const selectedPlanet = selectedPlanetDraw(frame);
+	const named = (num: number) =>
+		frame.settings.showNames ||
+		[frame.highlightedMapObject, frame.selectedMapObject].some(
+			(mo) => mo?.mapObject?.type === MapObjectType.PLANET && mo.mapObject.num === num
+		);
+
+	ctx.font = noteFont;
+	ctx.textAlign = 'center';
+	ctx.fillStyle = frame.colors.note;
+
+	for (const note of frame.notes) {
+		const p = view.anchor(note.position);
+		if (!view.visible(p, 100)) {
+			continue;
+		}
+		// keep notes near the edge of the scanner readable instead of cutting them off
+		const half = ctx.measureText(note.text).width / 2 + gap;
+		const x =
+			view.visible(p, 0) && half * 2 < view.width
+				? Math.min(Math.max(p.x, half), view.width - half)
+				: p.x;
+		const draw = note.planetNum ? frame.planetsByNum.get(note.planetNum) : undefined;
+		if (!draw) {
+			ctx.textBaseline = 'middle';
+			ctx.fillText(note.text, x, p.y);
+			continue;
+		}
+		// make room for the selection arrow and the planet's name
+		const arrow = draw === selectedPlanet ? selectionArrowHeight(s) + gap : 0;
+		const name = named(note.planetNum ?? 0) ? nameHeight : 0;
+		ctx.textBaseline = 'top';
+		ctx.fillText(note.text, x, p.y + planetExtents(draw, view).bottom + gap + arrow + name);
 	}
 }
 

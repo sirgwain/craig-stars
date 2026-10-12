@@ -5,7 +5,7 @@
 	import Menu from '#lib/components/Menu.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '#lib/navigationHotkeys.js';
 	import { setAsPlayerNum, setReadOnly } from '#lib/services/asPlayerInterceptor.js';
-	import { gameClient, playerClient } from '#lib/services/connect.js';
+	import { gameClient, playerClient, playerNoteClient } from '#lib/services/connect.js';
 	import { FullGame } from '#lib/services/FullGame.js';
 	import { resetPlayerRevisions } from '#lib/services/revisionInterceptor.js';
 	import { createGameContext, gameKey, type GameContext } from '#lib/services/GameContext.js';
@@ -150,6 +150,7 @@
 		const p: CommandedPlayer = new CommandedPlayer();
 		if (fg.state != GameState.SETUP) {
 			const playerResp = playerClient.getPlayer({ gameId });
+			const notesResp = playerNoteClient.getPlayerNotes({ gameId });
 			const { universe } = await playerClient.getUniverse({ gameId });
 			const { player } = await playerResp;
 
@@ -158,6 +159,7 @@
 			}
 			// configure the universe for the player after the player is loaded
 			u.setData(player.num, universe);
+			u.setNotes((await notesResp).notes);
 
 			// update the player
 			Object.assign(p, player);

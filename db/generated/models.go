@@ -305,6 +305,21 @@ type Player struct {
 	Revision                     int64
 }
 
+type PlayerNote struct {
+	ID              int64
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	GameID          int64
+	PlayerNum       int64
+	TargetType      cs.MapObjectType
+	TargetNum       int64
+	TargetPlayerNum int64
+	X               float64
+	Y               float64
+	Text            string
+	ShowOnMap       bool
+}
+
 type Race struct {
 	ID                        int64
 	CreatedAt                 time.Time

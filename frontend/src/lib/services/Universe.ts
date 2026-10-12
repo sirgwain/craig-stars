@@ -20,6 +20,7 @@ import {
 	type MysteryTrader,
 	type Planet,
 	type PlayerIntel,
+	type PlayerNote,
 	type Salvage,
 	type ScoreIntel,
 	type Wormhole
@@ -37,6 +38,11 @@ import { planetsSortBy } from '#lib/types/Planet.js';
 import type { CommandedPlayer } from '#lib/types/Player.js';
 import { create, type UnknownField } from '@bufbuild/protobuf';
 import { groupBy } from 'lodash-es';
+
+// notes are attached to planets, which are identified by their num alone
+function noteTargetKey(type: MapObjectType, num: number): string {
+	return `${type}-${num}`;
+}
 
 export type PlayerDesigns = {
 	designs: ShipDesign[];
@@ -89,6 +95,10 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	mapObjectsByPosition: Record<string, MapObjectLike[]> = {};
 	myMapObjectsByPosition: Record<string, MapObjectLike[]> = {};
 	allPlanets: Planet[] = [];
+
+	// the player's private notes, on planets or as labels on the map
+	notes: PlayerNote[] = [];
+	notesByTarget: Record<string, PlayerNote> = {};
 
 	constructor() {
 		this.$typeName = 'craig_stars.v1.PlayerUniverse';
@@ -156,6 +166,35 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 		return this;
+	}
+
+	public setNotes(notes: PlayerNote[]) {
+		this.notes = notes;
+		this.notesByTarget = {};
+		for (const note of notes) {
+			if (note.targetType !== MapObjectType.UNSPECIFIED) {
+				this.notesByTarget[noteTargetKey(note.targetType, note.targetNum)] = note;
+			}
+		}
+	}
+
+	// add a saved note, replacing the one it's an update of
+	public updateNote(note: PlayerNote) {
+		const id = note.gameDbObject?.id;
+		this.setNotes([...this.notes.filter((n) => n.gameDbObject?.id !== id), note]);
+	}
+
+	public removeNote(note: PlayerNote) {
+		const id = note.gameDbObject?.id;
+		this.setNotes(this.notes.filter((n) => n.gameDbObject?.id !== id));
+	}
+
+	// the note the player wrote about this map object, if any
+	getNote(mo: MapObjectLike | undefined): PlayerNote | undefined {
+		if (!mo?.mapObject) {
+			return undefined;
+		}
+		return this.notesByTarget[noteTargetKey(mo.mapObject.type, mo.mapObject.num)];
 	}
 
 	public resetAllPlanets() {

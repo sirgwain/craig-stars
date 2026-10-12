@@ -39,6 +39,7 @@ export function readScannerColors(canvas: HTMLCanvasElement) {
 		myPacket: color('scanner-owned-packet', '#0900ff'),
 		commandedFleet: color('scanner-commanded-fleet', '#ffff00'),
 		name: color('scanner-name', '#ffffff'),
+		note: color('scanner-note', '#ffd75e'),
 		selection: color('scanner-selection', '#ffffff'),
 		mineralAxis: color('scanner-mineral-axis', '#c0c0c0'),
 		warpLine: color('scanner-warp-line', '#ffffff'),

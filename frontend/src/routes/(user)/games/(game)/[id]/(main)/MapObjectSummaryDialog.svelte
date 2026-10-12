@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { clickOutside } from '#lib/clickOutside.js';
 	import type { OnCancel, ShowCargoTransferDialogProps } from '#lib/services/Events.js';
+	import { getGameContext } from '#lib/services/GameContext.js';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import MapObjectSummary from './MapObjectSummary.svelte';
@@ -13,12 +14,19 @@
 	} & ShowCargoTransferDialogProps;
 
 	let { show = false, onCancel, onShowCargoTransferDialog }: Props = $props();
+
+	const { editingNote } = getGameContext();
 </script>
 
 <div class="modal" class:modal-open={show} data-type="map-object-summary-dialog">
 	<div
 		class="modal-box max-w-full max-h-max size-full p-2 flex flex-col gap-1"
-		use:clickOutside={onCancel}
+		use:clickOutside={() => {
+			// the note dialog opens over this one, taps in it aren't taps outside
+			if (!$editingNote) {
+				onCancel();
+			}
+		}}
 	>
 		{#if show}
 			<div class="flex flex-row justify-end">

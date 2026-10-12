@@ -1,8 +1,10 @@
-import type { Universe } from '#lib/services/Universe.js';
+import { Universe } from '#lib/services/Universe.js';
 import {
 	FleetSchema,
+	GameDBObjectSchema,
 	MapObjectType,
 	PlanetSchema,
+	PlayerNoteSchema,
 	Prt,
 	WormholeSchema
 } from '#lib/types/cs-proto.js';
@@ -11,7 +13,14 @@ import { PlanetViewState, PlayerSettings } from '#lib/types/PlayerSettings.js';
 import { create } from '@bufbuild/protobuf';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readScannerColors } from './colors';
-import { buildFleets, buildPlanets, buildWaypointPaths, packetColor } from './scene';
+import {
+	buildFleets,
+	buildNotes,
+	buildPlanets,
+	buildWaypointPaths,
+	noteMapText,
+	packetColor
+} from './scene';
 
 vi.mock('../Scanner', () => ({ getEnemiesAndFriends: () => ({ enemies: false, friends: false }) }));
 
@@ -375,4 +384,72 @@ it('keeps the path from before a drag while a waypoint is dragged', () => {
 		{ commanded: true, dragOrigin: true, waypoints: before },
 		{ commanded: true, dragging: true, waypoints: fleet.fleetOrders?.waypoints }
 	]);
+});
+
+describe('notes', () => {
+	const planet = create(PlanetSchema, {
+		mapObject: { type: MapObjectType.PLANET, num: 3, name: 'Alpha', position: { x: 50, y: 60 } }
+	});
+
+	function universeWithNotes(notes: Parameters<typeof create<typeof PlayerNoteSchema>>[1][]) {
+		const universe = new Universe();
+		universe.allPlanets = [];
+		universe.allPlanets[2] = planet;
+		universe.setNotes(
+			notes.map((n, i) => {
+				const note = create(PlayerNoteSchema, n);
+				note.gameDbObject = create(GameDBObjectSchema, { id: BigInt(i + 1) });
+				return note;
+			})
+		);
+		return universe;
+	}
+
+	it('draws planet notes at the planet and labels where they were placed', () => {
+		const universe = universeWithNotes([
+			{ targetType: MapObjectType.PLANET, targetNum: 3, text: 'germ rich', showOnMap: true },
+			{ position: { x: 10, y: 20 }, text: 'the front', showOnMap: true }
+		]);
+
+		expect(buildNotes(universe)).toMatchObject([
+			{ text: 'germ rich', position: { x: 50, y: 60 }, planetNum: 3 },
+			{ text: 'the front', position: { x: 10, y: 20 } }
+		]);
+		expect(buildNotes(universe)[1].planetNum).toBeUndefined();
+	});
+
+	it("leaves out notes that aren't shown on the map", () => {
+		const universe = universeWithNotes([
+			{ targetType: MapObjectType.PLANET, targetNum: 3, text: 'private' }
+		]);
+
+		expect(buildNotes(universe)).toEqual([]);
+		// the note is still there for the planet's summary
+		expect(universe.getNote(planet)?.text).toBe('private');
+	});
+
+	it('replaces and removes notes by id', () => {
+		const universe = universeWithNotes([
+			{ targetType: MapObjectType.PLANET, targetNum: 3, text: 'old' }
+		]);
+		const updated = create(PlayerNoteSchema, {
+			gameDbObject: { id: 1n },
+			targetType: MapObjectType.PLANET,
+			targetNum: 3,
+			text: 'new'
+		});
+
+		universe.updateNote(updated);
+		expect(universe.notes).toHaveLength(1);
+		expect(universe.getNote(planet)?.text).toBe('new');
+
+		universe.removeNote(updated);
+		expect(universe.notes).toEqual([]);
+		expect(universe.getNote(planet)).toBeUndefined();
+	});
+
+	it('shows the first line of a note, shortened to fit', () => {
+		expect(noteMapText('  staging point\nfor the northern fleet')).toBe('staging point');
+		expect(noteMapText('a very long label that goes on and on')).toBe('a very long label that…');
+	});
 });

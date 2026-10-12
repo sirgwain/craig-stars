@@ -11,6 +11,7 @@
 		WaypointDestSchema,
 		WaypointSchema,
 		type Fleet,
+		type PlayerNote,
 		type Vector,
 		type Waypoint,
 		type WaypointDest
@@ -36,6 +37,7 @@
 		settings,
 		commandedFleet,
 		currentSelectedWaypointIndex,
+		editLabel,
 		highlightMapObject,
 		mostRecentMapObject,
 		selectedWaypoint,
@@ -104,6 +106,11 @@
 	// added when the pointer lifts without having moved.
 	let pendingAdd: { found: MapObjectLike | undefined; position: Position } | undefined;
 
+	// Add label mode works the same way, a tap places a label and a drag still pans the map.
+	let pendingLabel: Position | undefined;
+	// a tap this close to a label (in css pixels) edits it instead of adding another
+	const labelTapRadius = 20;
+
 	// A press on the commanded fleet's waypoint is either the start of a drag or a click. We only know
 	// which once the pointer moves or lifts, so the click waits for pointer up.
 	// a finger wobbles more than a mouse while it's held still
@@ -137,6 +144,7 @@
 		pressedWaypoint = undefined;
 		pendingSelect = undefined;
 		pendingAdd = undefined;
+		pendingLabel = undefined;
 		clearTimeout(longPressTimer);
 		longPressTimer = undefined;
 	}
@@ -523,6 +531,13 @@
 			return;
 		}
 
+		if ($settings.addLabel) {
+			// wait for the pointer to lift, this could be the start of a pan
+			pressedAt = clientPoint(event);
+			pendingLabel = position;
+			return;
+		}
+
 		if (
 			found?.mapObject?.type === MapObjectType.FLEET &&
 			!filterFleet($player, found as Fleet, $settings, $universe)
@@ -587,7 +602,12 @@
 		// the map can pan again, whatever this press was
 		enableDragAndZoom();
 
-		if (draggingWaypoint) {
+		if (pendingLabel) {
+			if (!movedSincePress(event)) {
+				// a tap in add label mode
+				placeLabel(pendingLabel);
+			}
+		} else if (draggingWaypoint) {
 			dragWaypointDone(position, found);
 		} else if (pendingAdd && !movedSincePress(event)) {
 			// a tap in add waypoint mode
@@ -661,10 +681,36 @@
 			// deleting a waypoint shouldn't end add waypoint mode either
 			return;
 		}
+		if ($settings.addLabel && !elem.closest('[data-type="add-label"]')) {
+			$settings.addLabel = false;
+		}
 		if ($settings.addWaypoint) {
 			$settings.addWaypoint = false;
 			$settings.fastestWaypoint = false;
 		}
+	}
+
+	// Open the note dialog for the label that was tapped, or for a new label where the map was tapped.
+	function placeLabel(position: Position) {
+		const x = clamp(Number(position.x ?? 0), 0, $game.area.x);
+		const y = clamp(Number(position.y ?? 0), 0, $game.area.y);
+		const pixelsPerLy = pixelsPerLightYear.x * (transform?.k ?? 1);
+
+		let nearest: PlayerNote | undefined;
+		let nearestDistance = labelTapRadius;
+		for (const note of $universe.notes) {
+			if (note.targetType !== MapObjectType.UNSPECIFIED) {
+				continue;
+			}
+			const d = Math.hypot((note.position?.x ?? 0) - x, (note.position?.y ?? 0) - y) * pixelsPerLy;
+			if (d <= nearestDistance) {
+				nearest = note;
+				nearestDistance = d;
+			}
+		}
+
+		$settings.addLabel = false;
+		editLabel(nearest ?? { x, y });
 	}
 
 	// if the shift key is held, add a waypoint instead of selecting a mapobject
@@ -757,6 +803,7 @@
 	class:cursor-grab={waypointHighlighted}
 	class:cursor-cell={shouldAddWaypoint ||
 		(!!$commandedFleet && $settings.addWaypoint) ||
+		$settings.addLabel ||
 		$settings.setPacketDest ||
 		$settings.setRouteDest}
 	class={`grow bg-black overflow-hidden p-[${padding}px] select-none touch-none overscroll-contain`}
