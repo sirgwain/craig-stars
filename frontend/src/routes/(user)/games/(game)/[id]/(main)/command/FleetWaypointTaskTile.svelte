@@ -197,6 +197,7 @@
 					<div>
 						<button
 							type="button"
+							aria-label="Edit transport orders"
 							onclick={() =>
 								onShowTransportTasksDialog?.({
 									fleet: $commandedFleet,
@@ -208,7 +209,7 @@
 						>
 					</div>
 					<select
-						class="select select-outline select-sm select-secondary w-12 sm:w-full text-secondary"
+						class="select select-outline select-sm select-secondary w-36 text-secondary"
 						onchange={(e) => {
 							applyTransportPlan(
 								$player.playerPlans.transportPlans.find(

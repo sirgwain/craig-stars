@@ -18,6 +18,7 @@
 		SplitAllProps
 	} from '#lib/services/Events.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
+	import { MapObjectType } from '#lib/types/cs-proto.js';
 	import { commandable, getMapObjectName } from '#lib/types/MapObject.js';
 	import { distance, emptyVector } from '#lib/types/Vector.js';
 	import { slide } from 'svelte/transition';
@@ -119,13 +120,33 @@
 			: 0
 	);
 
+	// true if the summary is showing the selected waypoint of the commanded fleet, i.e. the planet a
+	// fleet was just sent back to. Planets are only keyed by num, so don't compare the owner.
+	let summaryIsSelectedWaypoint = $derived.by(() => {
+		const target = $commandedFleet ? $selectedWaypoint?.mapObjectTarget : undefined;
+		const mo = summaryMapObject?.mapObject;
+		return (
+			!!target &&
+			!!mo &&
+			mo.type === target.targetType &&
+			mo.num === target.targetNum &&
+			(mo.type === MapObjectType.PLANET || mo.playerNum === target.targetPlayerNum)
+		);
+	});
+
 	// The drawer opens on whatever is commanded, even when the summary is showing something else the
-	// player selected. A summary of something commandable gets commanded first.
+	// player selected. A summary of something commandable gets commanded first, unless it's where the
+	// commanded fleet's selected waypoint is. Picking a waypoint doesn't mean leaving the fleet.
 	function toggleDrawer() {
-		open = !open;
-		if (summaryMapObject && commandable($player.num, summaryMapObject)) {
+		if (
+			!open &&
+			summaryMapObject &&
+			commandable($player.num, summaryMapObject) &&
+			!summaryIsSelectedWaypoint
+		) {
 			commandMapObject(summaryMapObject);
 		}
+		open = !open;
 	}
 </script>
 
@@ -137,19 +158,33 @@
 	<div class={open ? 'fixed inset-0 flex flex-col justify-end' : ''}>
 		{#if open}
 			<!-- Backdrop -->
-			<div class="absolute inset-0 bg-black/40"></div>
+			<button
+				type="button"
+				aria-label="Close command pane backdrop"
+				class="absolute inset-0 bg-black/40"
+				onclick={() => (open = false)}
+			></button>
 
 			<div
 				transition:slide={{ duration: 250 }}
-				use:clickOutside={() => (open = false)}
-				class="bg-base-200 border-t border-base-300 rounded-t-2xl h-[80vh] shadow-lg relative z-5 p-4"
+				use:clickOutside={(event) => {
+					// Dialogs open over the drawer; their controls and backdrops aren't outside taps.
+					if (
+						event.target instanceof Element &&
+						event.target.closest('.modal-open, dialog[open]')
+					) {
+						return;
+					}
+					open = false;
+				}}
+				class="bg-base-200 border-t border-base-300 rounded-t-2xl h-[80dvh] shadow-lg relative z-5 p-4"
 			>
 				<DisclosureHeader {open} onToggle={toggleDrawer}>
 					<div class="w-full min-w-0 truncate text-center pb-1">
 						{$commandedMapObject?.mapObject?.name}
 					</div>
 				</DisclosureHeader>
-				<div class="overflow-y-auto max-h-[calc(80vh-3.5rem)] overflow-x-hidden">
+				<div class="overflow-y-auto max-h-[calc(80dvh-3.5rem)] overflow-x-hidden">
 					<div class="flex flex-col gap-1 justify-stretch">
 						{#if $commandedPlanet}
 							<div id="planet-summary-tile">

@@ -63,6 +63,14 @@ test('command drawer opens and closes', async ({ testGamePage }) => {
 
 	await toggleDrawer(page, false);
 	await expect(drawer(page).locator('#planet-production-tile')).toBeHidden();
+
+	// The header remains an easy outside target while the drawer is open.
+	await toggleDrawer(page, true);
+	await page.locator('header label[for="menu"]').tap();
+	await expect(drawer(page)).toHaveAttribute('data-open', 'false');
+	await expect(
+		page.locator('header').getByRole('link', { name: 'Research', exact: true })
+	).toBeVisible();
 });
 
 /**

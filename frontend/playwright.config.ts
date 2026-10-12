@@ -49,6 +49,19 @@ export default defineConfig({
 				trace: 'on-first-retry',
 				storageState: '.auth/user.json'
 			}
+		},
+		{
+			// Run Safari regressions on an iPhone as well as the default mobile browser.
+			name: 'mobile-safari-tests',
+			testMatch: '**/*.mobile.spec.ts',
+			grep: /@safari/,
+			use: {
+				...devices['iPhone 13'],
+				baseURL: `http://localhost:${port}`,
+				headless: true,
+				trace: 'on-first-retry',
+				storageState: '.auth/user.json'
+			}
 		}
 	],
 

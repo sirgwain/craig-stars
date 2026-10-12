@@ -74,6 +74,9 @@
 		...(otherMapObjectsHere[MapObjectType.MINEFIELD] ?? []),
 		...everythingElse
 	]);
+	// Control the select itself: Safari can reset to Space when waypoint options change,
+	// even when the matching option's selected attribute remains true.
+	let selectedIndex = $derived(Math.max(0, allObjects.findIndex(isTarget)));
 </script>
 
 <select
@@ -81,19 +84,18 @@
 		? `color: ${getDisplayColor(target.targetPlayerNum, $player, $universe, $settings)};`
 		: ''}
 	onchange={(e) => onSelectChange(parseInt(e.currentTarget.value))}
+	value={selectedIndex}
 	class={`select select-outline select-secondary select-sm text-sm ${rest.class ?? ''}`}
 >
 	<!-- allow for the non target -->
 	<optgroup label="Space">
-		<option selected={!target?.targetType} value={0}
-			>{`Space (${position?.x ?? 0}, ${position?.y ?? 0})`}</option
-		>
+		<option value={0}>{`Space (${position?.x ?? 0}, ${position?.y ?? 0})`}</option>
 	</optgroup>
 
 	{#if otherMapObjectsHere[MapObjectType.PLANET]}
 		<optgroup label="Planets">
 			{#each otherMapObjectsHere[MapObjectType.PLANET] as mo, index (key(mo))}
-				<option selected={isTarget(mo)} value={1 + index}>{mo.mapObject?.name}</option>
+				<option value={1 + index}>{mo.mapObject?.name}</option>
 			{/each}
 		</optgroup>
 	{/if}
@@ -106,7 +108,6 @@
 						style={mo.mapObject?.playerNum != $player.num
 							? `color: ${getDisplayColor(mo.mapObject?.playerNum, $player, $universe, $settings)};`
 							: ''}
-						selected={isTarget(mo)}
 						value={1 + index + (otherMapObjectsHere[MapObjectType.PLANET]?.length ?? 0)}
 						>{getMapObjectName(mo)}</option
 					>
@@ -119,7 +120,6 @@
 		<optgroup label="Minefields">
 			{#each otherMapObjectsHere[MapObjectType.MINEFIELD] as mo, index (key(mo))}
 				<option
-					selected={isTarget(mo)}
 					value={1 +
 						index +
 						(otherMapObjectsHere[MapObjectType.PLANET]?.length ?? 0) +
@@ -133,7 +133,6 @@
 		<optgroup label="Other">
 			{#each everythingElse as mo, index (key(mo))}
 				<option
-					selected={isTarget(mo)}
 					value={1 +
 						index +
 						(otherMapObjectsHere[MapObjectType.PLANET]?.length ?? 0) +
