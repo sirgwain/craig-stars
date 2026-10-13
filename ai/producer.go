@@ -1,12 +1,36 @@
 package ai
 
 import (
+	"cmp"
 	"fmt"
 	"log/slog"
 	"math"
+	"slices"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
+
+// fleet purposes from most to least important when they share a shipyard
+var fleetBuildPriority = []cs.FleetPurpose{
+	cs.FleetPurposeScout,
+	cs.FleetPurposeColonizer,
+	cs.FleetPurposeMiner,
+	cs.FleetPurposeColonistFreighter,
+	cs.FleetPurposeMineLayer,
+	cs.FleetPurposeCapitalShip,
+	cs.FleetPurposeBomber,
+}
+
+const (
+	terraformDevelopment = .5  // development a world needs before terraforming goes ahead of the rest
+	terraformShare       = .25 // share of its resources that then goes to terraforming
+)
+
+// the tag value of the mines and factories built ahead of everything else
+const purposeEconomy = "Economy"
+
+// the share of a planet's resources spent on mines ahead of an order that is short of minerals
+const economyMineShare = .25
 
 func (ai *aiPlayer) produce() error {
 	type shipBuild struct {
@@ -15,7 +39,25 @@ func (ai *aiPlayer) produce() error {
 	}
 
 	// Allocate ship production for each requested fleet purpose.
-	for fleetPurpose, quantity := range ai.requests.fleetBuilds {
+	if demand, planned := ai.requests.fleetBuilds[cs.FleetPurposeColonizer]; planned {
+		if err := ai.trimColonyOrders(demand); err != nil {
+			return err
+		}
+	}
+	purposes := make([]cs.FleetPurpose, 0, len(ai.requests.fleetBuilds))
+	for purpose := range ai.requests.fleetBuilds {
+		purposes = append(purposes, purpose)
+	}
+	// Each order goes to the top of its queue, so handle the most important
+	// purposes last. Unlisted purposes are handled first.
+	slices.SortFunc(purposes, func(a, b cs.FleetPurpose) int {
+		if d := slices.Index(fleetBuildPriority, b) - slices.Index(fleetBuildPriority, a); d != 0 {
+			return d
+		}
+		return cmp.Compare(a, b)
+	})
+	for _, fleetPurpose := range purposes {
+		quantity := ai.requests.fleetBuilds[fleetPurpose]
 		if quantity <= 0 {
 			continue
 		}
@@ -114,6 +156,59 @@ func (ai *aiPlayer) produce() error {
 			return err
 		}
 
+		if ai.enabled("packets-first") {
+			// Ship orders go on top of the queue every turn. A packet is cheap,
+			// so launch it first rather than leave it waiting behind them.
+			slices.SortStableFunc(planet.ProductionQueue, func(a, b cs.ProductionQueueItem) int {
+				switch {
+				case a.Type.IsPacket() && !b.Type.IsPacket():
+					return -1
+				case b.Type.IsPacket() && !a.Type.IsPacket():
+					return 1
+				}
+				return 0
+			})
+		}
+
+		if err := ai.reserveEconomyProduction(planet); err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+// Keep only colonies we can still use. Finish a partially paid ship, but do not
+// keep producing its unstarted siblings after the destination disappears.
+func (ai *aiPlayer) trimColonyOrders(demand int) error {
+	remaining := max(0, demand)
+	for _, planet := range ai.Planets {
+		changed := false
+		queue := make([]cs.ProductionQueueItem, 0, len(planet.ProductionQueue))
+		for _, item := range planet.ProductionQueue {
+			if item.Type == cs.QueueItemTypeShipToken && item.GetTag(cs.TagPurpose) == string(cs.FleetPurposeColonizer) {
+				keep := 0
+				if design := ai.GetDesign(item.DesignNum); design != nil && design.Spec.Colonizer {
+					keep = min(remaining, item.Quantity)
+				}
+				if item.Allocated != (cs.Cost{}) {
+					keep = max(1, keep)
+				}
+				remaining = max(0, remaining-keep)
+				changed = changed || keep != item.Quantity
+				item.Quantity = keep
+				if keep == 0 {
+					continue
+				}
+			}
+			queue = append(queue, item)
+		}
+		if changed {
+			planet.ProductionQueue = queue
+			if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -166,17 +261,17 @@ func (ai *aiPlayer) isPlanetReadyToBuildFleet(planet *cs.Planet, purpose cs.Flee
 	}
 
 	// don't build colonizers or freighters on this planet if it doesn't have the pop to move them
-	if purpose == cs.FleetPurposeColonistFreighter &&
-		planet.Spec.PopulationDensity >= ai.config.colonistTransportDensity {
-		return true
+	if purpose == cs.FleetPurposeColonistFreighter {
+		return ai.exportableColonists(planet, ai.config.colonistTransportDensity) >= minColonistLoad
 	}
-	if purpose == cs.FleetPurposeColonizer &&
-		planet.Spec.PopulationDensity >= ai.config.colonizerPopulationDensity {
+	if purpose == cs.FleetPurposeColonizer {
+		return ai.exportableColonists(planet, ai.config.colonizerPopulationDensity) >= minColonistLoad
+	}
+	if purpose == cs.FleetPurposeMiner {
 		return true
 	}
 
-	// don't build certain things unless we meet some requirements
-	planetaryStructuresBuilt := min(float64(planet.Mines)/float64(planet.Spec.MaxMines), float64(planet.Factories)/float64(planet.Spec.MaxFactories))
+	planetaryStructuresBuilt := ai.infrastructureDevelopment(planet)
 
 	// bombers require the planet to be very mature
 	if purpose == cs.FleetPurposeBomber {
@@ -216,15 +311,26 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 				return nil
 			}
 			existingDesign := ai.GetDesign(planet.Spec.StarbaseDesignNum)
-			if len(existingDesign.Slots) == 0 && existingDesign != ai.fuelDepotDesign {
+			if existingDesign != nil && len(existingDesign.Slots) == 0 && existingDesign != ai.fuelDepotDesign {
 				// Bigger starbase allows bigger population
 				ai.addStarbaseToTopOfQueue(planet, ai.fuelDepotDesign)
 			} else {
-				ai.upgradeStarbase(planet, ai.config.minYearsToQueueStarbasePeaceTime)
+				return ai.upgradeStarbase(planet, ai.config.minYearsToQueueStarbasePeaceTime)
 			}
 			return nil
 		} else {
-			planetaryStructuresBuilt := min(float64(planet.Mines)/float64(planet.Spec.MaxMines), float64(planet.Factories)/float64(planet.Spec.MaxFactories))
+			planetaryStructuresBuilt := ai.infrastructureDevelopment(planet)
+			if ai.doctrine.outposts && !planet.Spec.HasStarbase && ai.outpostDesign != nil && planetaryStructuresBuilt >= outpostDevelopment {
+				// the stargate or mass driver matters more than the dock, so don't wait
+				yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.outpostDesign)
+				if err != nil {
+					return err
+				}
+				if yearsToBuild <= outpostYears {
+					ai.addStarbaseToTopOfQueue(planet, ai.outpostDesign)
+				}
+				return nil
+			}
 			if planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
 				return nil
 			}
@@ -239,7 +345,7 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 	if targeted || attackShipsInOrbit {
 		// this planet is being threatened
 		if planet.Spec.HasStarbase {
-			ai.upgradeStarbase(planet, timeToWait)
+			return ai.upgradeStarbase(planet, timeToWait)
 		} else {
 			yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.fortDesign)
 			if err != nil {
@@ -252,7 +358,7 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 		}
 	} else {
 		if planet.Spec.HasStarbase {
-			ai.upgradeStarbase(planet, timeToWait)
+			return ai.upgradeStarbase(planet, timeToWait)
 		} else {
 			yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.fuelDepotDesign)
 			if err != nil {
@@ -283,7 +389,8 @@ func (ai *aiPlayer) upgradeStarbase(planet *cs.Planet, timeToWait int) error {
 
 		return err
 	}
-	if existingDesign.Purpose == cs.ShipDesignPurposeFort || existingDesign.Purpose == cs.ShipDesignPurposeFuelDepot || existingDesign.Purpose == cs.ShipDesignPurposeStarbaseUnarmed {
+	if existingDesign.Purpose == cs.ShipDesignPurposeFort || existingDesign.Purpose == cs.ShipDesignPurposeFuelDepot || existingDesign.Purpose == cs.ShipDesignPurposeStarbaseUnarmed ||
+		existingDesign.Purpose == cs.ShipDesignPurposeStargater || existingDesign.Purpose == cs.ShipDesignPurposePacketThrower {
 		// try and upgrade our fort/fuel depot to a quarter filled out starbase
 		yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.starbaseQuarterDesign)
 		if err != nil {
@@ -336,6 +443,60 @@ func (ai *aiPlayer) addItemToTopOfQueue(planet *cs.Planet, quantity int) {
 	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
 }
 
+// A ship or starbase that is short of minerals stops everything behind it in
+// the queue, including the mines that would supply those minerals. When the
+// next order is stuck like that, build mines ahead of it.
+func (ai *aiPlayer) reserveEconomyProduction(planet *cs.Planet) error {
+	queue := slices.DeleteFunc(slices.Clone(planet.ProductionQueue), func(item cs.ProductionQueueItem) bool {
+		return item.GetTag(cs.TagPurpose) == purposeEconomy
+	})
+
+	if !ai.Race.Spec.InnateMining && planet.Mines < planet.Spec.MaxMines && ai.nextOrderShortOfMinerals(planet, queue) {
+		// mines only cost resources, so they are never the item that gets stuck
+		resources := economyMineShare * float64(planet.Spec.ResourcesPerYearAvailable)
+		item := cs.ProductionQueueItem{Type: cs.QueueItemTypeAutoMines, Quantity: max(1, int(resources)/max(1, ai.Race.MineCost))}
+		item.WithTag(cs.TagPurpose, purposeEconomy)
+		queue = append([]cs.ProductionQueueItem{item}, queue...)
+	}
+
+	// A more habitable world grows faster and holds more, which pays for every
+	// year after. Once a world has most of its factories and mines, put a
+	// share of its resources into terraforming without waiting for the rest.
+	if ai.enabled("terraform-early") && planet.Spec.CanTerraform && !ai.Race.Spec.Instaforming &&
+		ai.infrastructureDevelopment(planet) >= terraformDevelopment && ai.infrastructureDevelopment(planet) < 1 {
+		resources := terraformShare * float64(planet.Spec.ResourcesPerYearAvailable)
+		item := cs.ProductionQueueItem{Type: cs.QueueItemTypeAutoMaxTerraform, Quantity: max(1, int(resources)/max(1, ai.game.Rules.TerraformCost.Resources))}
+		item.WithTag(cs.TagPurpose, purposeEconomy)
+		queue = append([]cs.ProductionQueueItem{item}, queue...)
+	}
+
+	if slices.EqualFunc(queue, planet.ProductionQueue, func(a, b cs.ProductionQueueItem) bool {
+		return a.Type == b.Type && a.Quantity == b.Quantity && a.DesignNum == b.DesignNum && a.GetTag(cs.TagPurpose) == b.GetTag(cs.TagPurpose)
+	}) {
+		return nil
+	}
+	planet.ProductionQueue = queue
+	return ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders)
+}
+
+// nextOrderShortOfMinerals returns true if the first ship or starbase in the
+// queue needs more of some mineral than the planet has and will mine this year
+func (ai *aiPlayer) nextOrderShortOfMinerals(planet *cs.Planet, queue []cs.ProductionQueueItem) bool {
+	for _, item := range queue {
+		if item.Type != cs.QueueItemTypeShipToken && item.Type != cs.QueueItemTypeStarbase {
+			continue
+		}
+		design := ai.GetDesign(item.DesignNum)
+		if design == nil {
+			return false
+		}
+		needed := design.Spec.Cost.Subtract(item.Allocated).ToMineral()
+		available := planet.Cargo.ToMineral().Add(planet.Spec.MiningOutput)
+		return needed.Ironium > available.Ironium || needed.Boranium > available.Boranium || needed.Germanium > available.Germanium
+	}
+	return false
+}
+
 // add one or more ships to the top of a planet's production queue
 func (ai *aiPlayer) addShipToTopOfQueue(planet *cs.Planet, purpose cs.FleetPurpose, design *cs.ShipDesign, quantity int) {
 	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeShipToken, Quantity: quantity, DesignNum: design.Num}
@@ -369,7 +530,7 @@ func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet) (int, error) {
 	}
 
 	// get the years to build one of these
-	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
+	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Cargo.ToMineral(), yearlyAvailableToSpend)
 
 	// make our conditionals easier
 	if yearsToBuild == cs.Infinite {
@@ -399,7 +560,7 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	}
 
 	// calculate how long it take to build
-	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
+	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Cargo.ToMineral(), yearlyAvailableToSpend)
 	// ai.log.Debug().
 	// 	Int64("GameID", ai.GameID).
 	// 	Int("PlayerNum", ai.Num).
@@ -411,4 +572,16 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	}
 
 	return yearsToBuild, nil
+}
+
+// Ignore installations the race does not use and avoid NaN for empty colonies.
+func (ai *aiPlayer) infrastructureDevelopment(planet *cs.Planet) float64 {
+	development := 1.0
+	if !ai.Race.Spec.InnateResources {
+		development = min(development, float64(planet.Factories)/float64(max(1, planet.Spec.MaxFactories)))
+	}
+	if !ai.Race.Spec.InnateMining {
+		development = min(development, float64(planet.Mines)/float64(max(1, planet.Spec.MaxMines)))
+	}
+	return development
 }

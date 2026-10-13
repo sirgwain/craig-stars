@@ -2,6 +2,9 @@ package ai
 
 import (
 	"testing"
+
+	"github.com/sirgwain/craig-stars/cs"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetRandomRaces(t *testing.T) {
@@ -25,4 +28,15 @@ func TestGetRandomRaces(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStandardRacesAreLegal(t *testing.T) {
+	rules := cs.NewRules()
+	seen := map[cs.PRT]bool{}
+	for _, race := range Races {
+		assert.GreaterOrEqual(t, race.ComputeRacePoints(rules.RaceStartingPoints), 0, "%s costs more race points than a player gets", race.PRT)
+		assert.False(t, seen[race.PRT], "more than one race for %s", race.PRT)
+		seen[race.PRT] = true
+	}
+	assert.Len(t, seen, len(cs.PRTs))
 }

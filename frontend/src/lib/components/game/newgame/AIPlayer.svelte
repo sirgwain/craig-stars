@@ -14,7 +14,11 @@
 		name="type"
 		bind:value={player.aiDifficulty}
 		enumType={AiDifficulty}
-		typeFilter={(t) => t === AiDifficulty.CHEATER || t === AiDifficulty.NORMAL}
+		typeFilter={(t) =>
+			t === AiDifficulty.EASY ||
+			t === AiDifficulty.NORMAL ||
+			t === AiDifficulty.HARD ||
+			t === AiDifficulty.CHEATER}
 		title="Difficulty"
 	/>
 </div>

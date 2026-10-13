@@ -1,8 +1,12 @@
 package cs
 
 import (
+	"cmp"
 	"fmt"
 	"math"
+	"slices"
+
+	"golang.org/x/exp/maps"
 )
 
 // The CostCalculator interface is used to calculate costs of single items or starbase upgrades
@@ -87,7 +91,10 @@ func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec Miniatur
 	// apply any tech cost offsets multiplicatively,
 	// using jank rounding to simulate OG Stars!' int calculations
 	var costMulti float64 = 1
-	for tag := range tech.Tags {
+	// multiply in a fixed order: floating point results depend on it
+	tags := maps.Keys(tech.Tags)
+	slices.Sort(tags)
+	for _, tag := range tags {
 		costMulti *= 1 + costOffset[tag]
 	}
 	techCost = techCost.Add(MultiplyCost(techCost, costMulti-1).Round(roundHalfTowards0))
@@ -162,7 +169,8 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	// to see if they are present on the old base
 	// and remove any duplicates
 	if len(oldComponents) > 0 && len(newComponents) > 0 {
-		for item, newQuantity := range newComponents {
+		for _, item := range sortedComponents(newComponents) {
+			newQuantity := newComponents[item]
 			oldQuantity := oldComponents[item]
 			switch {
 			case newQuantity == oldQuantity:
@@ -187,7 +195,8 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	if len(oldComponents) == 0 {
 		// every item in our old base is also present in the new one;
 		// we can just tally up all our costs for the new stuff and be done for the day
-		for item, leftoverQty := range newComponents {
+		for _, item := range sortedComponents(newComponents) {
+			leftoverQty := newComponents[item]
 			if item.Tech.Category == TechCategoryOrbital {
 				cost = cost.Add(MultiplyCost(getItemCost(item.Tech), leftoverQty))
 			} else {
@@ -199,7 +208,7 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		// We have some leftovers to take care of...
 		// Loop through any remaining items from the old base and add them to our category list
 		// everything from the new base is already present, so this just ensures everything gets from both
-		for item := range oldComponents {
+		for _, item := range sortedComponents(oldComponents) {
 			oldComponentsByCategory[item.Tech.Category] = append(oldComponentsByCategory[item.Tech.Category], item)
 			categories[item.Tech.Category] = true
 		}
@@ -212,7 +221,9 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	// Now, all that's left to do are the cost calcs!
 
 	// Tally up costs per category present on either base
-	for category := range categories {
+	sortedCategories := maps.Keys(categories)
+	slices.Sort(sortedCategories)
+	for _, category := range sortedCategories {
 		oldCost := CostFloat64{}
 		newCost := CostFloat64{}
 
@@ -293,4 +304,23 @@ func (c *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 		costTally = MultiplyCost(costTally, raceSpec.StarbaseCostFactor)
 	}
 	return costTally.Round(math.Ceil).ToCost(), nil
+}
+
+// sortedComponents returns the components in a fixed order. Costs are summed
+// as floating point numbers and rounded at the end, so the order they are
+// added in can change the result by one.
+func sortedComponents(components map[*TechHullComponent]int) []*TechHullComponent {
+	sorted := maps.Keys(components)
+	slices.SortFunc(sorted, func(a, b *TechHullComponent) int {
+		switch {
+		case a == nil && b == nil:
+			return 0
+		case a == nil:
+			return -1
+		case b == nil:
+			return 1
+		}
+		return cmp.Compare(a.Name, b.Name)
+	})
+	return sorted
 }

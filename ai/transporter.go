@@ -7,9 +7,7 @@ import (
 
 // transport resources and people from planet to planet
 func (ai *aiPlayer) transport() error {
-	ai.transportColonists()
-
-	return nil
+	return ai.transportColonists()
 }
 
 func (ai *aiPlayer) transportColonists() error {
@@ -19,7 +17,7 @@ func (ai *aiPlayer) transportColonists() error {
 	// transport from planets that are fully terraformed and above the growth rate
 	for _, planet := range ai.Planets {
 		if planet.Spec.PopulationDensity >= ai.config.colonistTransportDensity {
-			if !planet.Spec.CanTerraform {
+			if ai.exportableColonists(planet, ai.config.colonistTransportDensity) >= minColonistLoad {
 				feedersByNum[planet.Num] = planet
 			}
 		} else {
@@ -45,7 +43,7 @@ func (ai *aiPlayer) transportColonists() error {
 
 	for _, fleet := range fleetMakeup.getFleetsMatchingMakeup(ai, ai.Fleets) {
 		// don't use colonizer fleets as transports
-		if !fleet.Spec.Colonizer {
+		if !fleet.Spec.Colonizer && fleet.GetTag(cs.TagPurpose) == string(cs.FleetPurposeColonistFreighter) {
 			if len(fleet.Waypoints) <= 1 {
 				// this fleet is over a feeder, great!
 				if _, found := feedersByNum[fleet.OrbitingPlanetNum]; found {
@@ -105,24 +103,13 @@ func (ai *aiPlayer) transportColonists() error {
 					// don't load more than 25% of the target planet
 					// it will grow slower after 25%
 					// MaxPopulation is in colonists, cargo is in kT (100 colonists per kT)
-					colonistsToLoad := min(int(float64(planet.Spec.MaxPopulation)*ai.config.colonistTransportDensity)/100, fleet.Spec.CargoCapacity)
-
-					// load colonists but only if taking these colonists doesn't reduce our pop too much
-					// take into account how much we're going to grow
-					popNextYear := orbiting.PopNextYear()
-					newDensity := float64(popNextYear-colonistsToLoad*100) / float64(orbiting.Spec.MaxPopulation)
-					if newDensity < ai.config.colonistTransportDensity {
-						ai.log.Debug("Fleet cannot load colonists",
-							slog.String("fleet", fleet.Name),
-							slog.String("planet", orbiting.Name),
-							slog.Int64("GameID", ai.GameID),
-							slog.Int("PlayerNum", ai.Num),
-							slog.Int("ColonistsAvailable", popNextYear),
-							slog.Int("ColonistsNeeded", colonistsToLoad*100),
-							slog.Int("DensityAfterLoad", int(newDensity)))
-
+					deficit := max(0, int(float64(planet.Spec.MaxPopulation)*ai.config.colonistTransportDensity)/100-planet.Cargo.Colonists)
+					colonistsToLoad := min(deficit, fleet.Spec.CargoCapacity-fleet.Cargo.Total(), ai.exportableColonists(orbiting, ai.config.colonistTransportDensity))
+					// a tiny load isn't worth the trip
+					if colonistsToLoad < min(minColonistLoad, fleet.Spec.CargoCapacity) || colonistsToLoad <= 0 {
 						continue
 					}
+
 					if err := ai.client.TransferByHand(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}); err != nil {
 						// something went wrong, skip this planet
 						ai.log.Error("transferring colonists from planet returned error, skipping", slog.Any("error", err))

@@ -83,3 +83,17 @@ func Test_fleet_getFleetsMatchingMakeup(t *testing.T) {
 		})
 	}
 }
+
+func TestFleetAssemblyLeavesActiveFleetAlone(t *testing.T) {
+	player := cs.NewPlayer(1, cs.NewRace())
+	player.Designs = []*cs.ShipDesign{cs.NewShipDesign(1, 1).WithPurpose(cs.ShipDesignPurposeScout)}
+	active := cs.NewFleet(player, 1, "Scout", []cs.Waypoint{{}, {}})
+	active.Tokens = []cs.ShipToken{{DesignNum: 1, Quantity: 1}}
+	active.SetTag(cs.TagPurpose, string(cs.FleetPurposeScout))
+	ai := &aiPlayer{Player: player}
+	makeup := fleet{purpose: cs.FleetPurposeScout, ships: []fleetShip{{purpose: cs.ShipDesignPurposeScout, quantity: 1}}}
+	assembled, _, err := makeup.mergeFromIdleFleets(ai, []*cs.Fleet{active})
+	assert.NoError(t, err)
+	assert.Nil(t, assembled)
+	assert.Len(t, active.Waypoints, 2)
+}

@@ -10,7 +10,8 @@ import (
 // get a ship design for a purpose
 func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetPurpose cs.FleetPurpose) (updated *cs.ShipDesign, err error) {
 
-	existing, found := ai.designsByPurpose[purpose]
+	existing := ai.designsByPurpose[purpose]
+	found := existing != nil
 	if found && existing.ID == 0 {
 		// we already created a new design for this purpose, just use it
 		return existing, nil
@@ -20,8 +21,21 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	switch purpose {
 	case cs.ShipDesignPurposeScout:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeScout))
+	case cs.ShipDesignPurposeMiner:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeMiner))
+	case cs.ShipDesignPurposeDamageMineLayer:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeMineLayer))
+		if hull == nil && ai.HasTech(&cs.Frigate.Tech) {
+			hull = &cs.Frigate
+		}
 	case cs.ShipDesignPurposeColonizer:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeColonizer))
+		// HE and AR colony modules only fit their own colony hulls
+		if ai.Race.PRT != cs.HE && ai.Race.PRT != cs.AR {
+			if privateer := ai.techStore.GetHull(cs.Privateer.Name); privateer != nil && ai.HasTech(&privateer.Tech) {
+				hull = privateer
+			}
+		}
 	case cs.ShipDesignPurposeFuelFreighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFuelTransport))
 		if hull != nil {
@@ -60,14 +74,20 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 		return existing, nil
 	}
 
-	updated, err = cs.DesignShip(&ai.game.Rules, ai.Player, hull, name, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, purpose, fleetPurpose)
+	layout := purpose
+	if purpose == cs.ShipDesignPurposeScout && ai.doctrine.cloakedScouts {
+		layout = cs.ShipDesignPurposeCloakedScout
+	}
+	updated, err = cs.DesignShip(&ai.game.Rules, ai.Player, hull, name, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, layout, fleetPurpose)
 	if err != nil {
 		return existing, fmt.Errorf("cs.DesignShip returned error: %w", err)
 	}
+	// a cloaked scout still does a scout's job
+	updated.Purpose = purpose
 	// no need to compute ship design specs as functions already compute it before returning
 
 	// if we tried to build a bomber with no bombs, ignore it
-	if purpose == cs.ShipDesignPurposeBomber && !updated.Spec.Bomber {
+	if (purpose == cs.ShipDesignPurposeBomber && !updated.Spec.Bomber) || (purpose == cs.ShipDesignPurposeColonizer && !updated.Spec.Colonizer) || (purpose == cs.ShipDesignPurposeMiner && updated.Spec.MiningRate == 0) || (purpose == cs.ShipDesignPurposeDamageMineLayer && len(updated.Spec.MineLayingRateByMineType) == 0) {
 		return nil, nil
 	}
 
@@ -132,6 +152,22 @@ func (ai *aiPlayer) designStarbases() error {
 	ai.starbaseDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 	if err != nil {
 		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
+	}
+
+	if ai.doctrine.outposts {
+		// the cheap orbital fort hull can carry the one part an outpost is for
+		purpose = cs.ShipDesignPurposeStargater
+		if ai.Race.PRT == cs.PP {
+			purpose = cs.ShipDesignPurposePacketThrower
+		}
+		ai.outpostDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
+		if err != nil {
+			return fmt.Errorf("unable to design ship %v: %w", purpose, err)
+		}
+		if ai.outpostDesign != nil && ai.outpostDesign.Spec.Stargate == "" && ai.outpostDesign.Spec.MassDriver == "" {
+			// no gate or driver to put on it yet
+			ai.outpostDesign = nil
+		}
 	}
 
 	return nil
