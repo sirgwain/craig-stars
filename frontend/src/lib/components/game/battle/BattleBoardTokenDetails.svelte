@@ -1,6 +1,6 @@
 <script lang="ts">
 	import TechAvatar from '#lib/components/tech/TechAvatar.svelte';
-	import { designFinderKey, getGameContext, playerFinderKey } from '#lib/services/GameContext.js';
+	import { designFinderKey, playerFinderKey } from '#lib/services/GameContext.js';
 	import { techs } from '#lib/services/Stores.js';
 	import type { DesignFinder, PlayerFinder } from '#lib/services/Universe.js';
 	import type { Battle, PhaseToken } from '#lib/types/Battle.js';
@@ -16,10 +16,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { getContext } from 'svelte';
 	import { onShipDesignTooltip } from '../tooltips/ShipDesignTooltip';
-	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 	import BattleSpeed from '../BattleSpeed.svelte';
-
-	const { player, universe, settings } = getGameContext();
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
@@ -28,9 +25,11 @@
 		battle: Battle;
 		phase: number;
 		token: PhaseToken | undefined;
+		// side color of a player's tokens
+		colorOf: (playerNum: number | undefined) => string;
 	};
 
-	let { battle, phase, token }: Props = $props();
+	let { battle, phase, token, colorOf }: Props = $props();
 
 	let design = $derived(token && designFinder.getDesign(token.playerNum, token.designNum));
 	let raceName = $derived(token && playerFinder.getPlayerIntel(token.playerNum)?.racePluralName);
@@ -68,10 +67,7 @@
 						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 					</div>
 					<div class="flex flex-row justify-center">
-						<div
-							class="border"
-							style={`border-color: ${getDisplayColor(design.playerNum, $player, $universe, $settings)};`}
-						>
+						<div class="border" style={`border-color: ${colorOf(design.playerNum)};`}>
 							<TechAvatar tech={$techs.getHull(design.hull)} hullSetNumber={design.hullSetNumber} />
 						</div>
 					</div>
