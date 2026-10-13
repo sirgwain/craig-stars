@@ -711,12 +711,11 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		for _, token := range mergingFleet.Tokens {
 			existingToken := fleet.getTokenByDesign(token.DesignNum)
 			if existingToken == nil {
-				// we don't have a token for this design yet, so add it
+				// we don't have a token for this design yet, so add it, damage and all
 				fleet.Tokens = append(fleet.Tokens, token)
-				existingToken = &fleet.Tokens[len(fleet.Tokens)-1]
-			} else {
-				existingToken.Quantity += token.Quantity
+				continue
 			}
+			existingToken.Quantity += token.Quantity
 
 			if token.QuantityDamaged > 0 {
 				mergingTokenTotalDamage := token.QuantityDamaged * int(token.Damage)
