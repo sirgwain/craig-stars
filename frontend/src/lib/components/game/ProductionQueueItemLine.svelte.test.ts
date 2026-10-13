@@ -44,3 +44,27 @@ it('colors items that can never be built', () => {
 	// an auto item with nothing to build is skipped
 	expect(colors(QueueItemType.AUTO_MINES, Infinite, Infinite)).toEqual(['skipped']);
 });
+
+it('tells the queue about clicks and double clicks', () => {
+	state.context = { universe: writable(new Universe()) };
+	const item = create(ProductionQueueItemSchema, { type: QueueItemType.MINE, quantity: 5 });
+	const onQueueItemClicked = vi.fn();
+	const onQueueItemDoubleClicked = vi.fn();
+	const { container, unmount } = render(ProductionQueueItemLine, {
+		index: 2,
+		item,
+		selected: true,
+		onQueueItemClicked,
+		onQueueItemDoubleClicked
+	});
+	const button = container.querySelector('button')!;
+	expect(button.classList.contains('bg-primary')).toBe(true);
+
+	button.click();
+	expect(onQueueItemClicked).toHaveBeenCalledWith(2, item);
+	expect(onQueueItemDoubleClicked).not.toHaveBeenCalled();
+
+	button.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+	expect(onQueueItemDoubleClicked).toHaveBeenCalledWith(2, item);
+	unmount();
+});

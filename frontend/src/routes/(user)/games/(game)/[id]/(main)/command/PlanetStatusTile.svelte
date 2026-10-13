@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onPointerKeyDown, onPointerKeyUp } from '#lib/services/Events.js';
-	import InnateScannerTooltip from '#lib/components/game/tooltips/InnateScannerTooltip.svelte';
+	import InnateScannerTooltip, {
+		type InnateScannerTooltipProps
+	} from '#lib/components/game/tooltips/InnateScannerTooltip.svelte';
 	import type { PopulationTooltipProps } from '#lib/components/game/tooltips/PopulationTooltip.svelte';
 	import PopulationTooltip from '#lib/components/game/tooltips/PopulationTooltip.svelte';
 	import ResourcesTooltip, {
@@ -44,7 +46,9 @@
 	function onScannerTooltip(e: PointerEvent) {
 		e.preventDefault();
 		if ($player.race.spec.innateScanner) {
-			showTooltip(e.x, e.y, InnateScannerTooltip);
+			showTooltip<InnateScannerTooltipProps>(e.x, e.y, InnateScannerTooltip, {
+				scanRangePen: planet.spec.scanRangePen
+			});
 		} else {
 			onTechTooltip(e, $techs.getTech(planet.spec.scanner));
 		}

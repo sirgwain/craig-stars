@@ -43,6 +43,7 @@ export class PlayerSettings implements FilterOptions {
 	sortBattlesKey = 'num';
 	sortBattlesDescending = false;
 	searchQuery = '';
+	showUnusedDesignsOnly = false;
 
 	// filters
 	showIdleFleetsOnly = false;

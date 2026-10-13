@@ -27,6 +27,7 @@
 	import { getTokenDamage } from '#lib/types/Fleet.js';
 	import { owned, ownedBy, type MapObjectLike } from '#lib/types/MapObject.js';
 	import {
+		CommandedPlanet,
 		getGrowth,
 		planetMineralSortKeys,
 		planetsSortBy,
@@ -34,8 +35,6 @@
 	} from '#lib/types/Planet.js';
 	import { emptyVector } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
-	import { Check } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
 
 	const {
@@ -49,7 +48,8 @@
 		zoomToMapObject,
 		nextMapObject,
 		previousMapObject,
-		updatePlanetOrders
+		updatePlanetOrders,
+		readOnly
 	} = getGameContext();
 
 	// filterable planets
@@ -230,6 +230,21 @@
 	function onProductionQueueDialog(planet: Planet) {
 		commandMapObject(planet);
 		showProductionQueueDialog = true;
+	}
+
+	async function onContributesOnlyLeftoverToResearchChanged(
+		planet: Planet,
+		input: HTMLInputElement
+	) {
+		const updated = new CommandedPlanet(planet);
+		updated.planetOrders.contributesOnlyLeftoverToResearch = input.checked;
+		try {
+			await updatePlanetOrders(updated);
+		} catch (e) {
+			// the order didn't save, show what the planet is still doing
+			input.checked = !!planet.planetOrders?.contributesOnlyLeftoverToResearch;
+			throw e;
+		}
 	}
 
 	function onPopulationTooltip(e: PointerEvent, planet: Planet) {
@@ -516,9 +531,15 @@
 				{:else if column.key == 'resources'}
 					{row.spec?.resourcesPerYearAvailable ?? 0} / {row.spec?.resourcesPerYear ?? 0}
 				{:else if column.key == 'contributesOnlyLeftoverToResearch'}
-					{#if planet.planetOrders?.contributesOnlyLeftoverToResearch}
-						<Icon src={Check} size="24" class="stroke-success" />
-					{/if}
+					<input
+						type="checkbox"
+						class="checkbox checkbox-sm checkbox-success"
+						aria-label={`${planet.mapObject?.name} contributes only leftover resources to research`}
+						data-type="contributes-only-leftover-to-research"
+						disabled={$readOnly}
+						checked={planet.planetOrders?.contributesOnlyLeftoverToResearch ?? false}
+						onchange={(e) => onContributesOnlyLeftoverToResearchChanged(planet, e.currentTarget)}
+					/>
 				{:else if column.key == 'driverDest'}
 					{@const targetPlanet = planet.planetOrders?.packetTargetNum
 						? $universe.getPlanet(planet.planetOrders.packetTargetNum)

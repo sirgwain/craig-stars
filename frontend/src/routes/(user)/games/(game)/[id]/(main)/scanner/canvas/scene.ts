@@ -291,8 +291,8 @@ export type PlanetDraw = {
 // the planet value view's flag pole height and maximum disc radius, in pixels
 const valueFlagHeight = 20;
 const valueMaxRadius = 10;
-// Population view circles grow a pixel each time the population passes one of these, in
-// hundreds of colonists, from vrgPopRad in Stars!
+// Population view circles are a pixel bigger at each of these populations, in hundreds of
+// colonists, from vrgPopRad in Stars!
 const popRadiusThresholds = [
 	25, 50, 100, 200, 400, 800, 1000, 1500, 2250, 3000, 4000, 5000, 6000, 7500, 9000, 11000, 14000,
 	18000, 25000
@@ -486,17 +486,11 @@ function setPlanetValue(
 		terraformable = value >= 0 && !instantTerraform;
 	}
 
-	// the radius grows 1px per 11% of value, or per 5% of negative value, and the inner disc
-	// is 2px smaller, but never smaller than 1px
-	const outerRadius = Math.min(
-		value >= 0 ? Math.trunc(value / 11) + 2 : Math.trunc(-value / 5) + 2,
-		valueMaxRadius
-	);
-	let innerRadius = outerRadius - 2;
-	if (innerRadius < 3) {
-		innerRadius++;
-	}
-	innerRadius = Math.max(innerRadius, 1);
+	// Stars! grows the radius a pixel per 11% of value, or per 5% of negative value. We aren't
+	// limited to whole pixels, so the radius grows smoothly between the same smallest and largest
+	// sizes. The inner disc leaves a ring a pixel wide on small planets and two wide on large ones.
+	const outerRadius = Math.min(value >= 0 ? value / 11 + 2 : -value / 5 + 2, valueMaxRadius);
+	const innerRadius = Math.max(Math.min(outerRadius - 1, 3), outerRadius - 2);
 
 	draw.value = {
 		outerRadius,
@@ -524,7 +518,8 @@ function setPlanetValue(
 
 /**
  * The population view, ported from the scanViewPopulation case of DrawScanner in Stars!
- * The radius steps up through popRadiusThresholds, colored by who owns the planet.
+ * The radius grows through popRadiusThresholds, colored by who owns the planet. Stars! steps up a
+ * whole pixel at each threshold, we grow smoothly from one to the next.
  */
 function setPopulation(
 	draw: PlanetDraw,
@@ -553,7 +548,12 @@ function setPopulation(
 		ring = colors.planet.popFriendRing;
 	}
 
-	draw.pop = { radius: steps + 2, fill, ring };
+	// how far the population is from the last threshold it passed to the next one
+	const from = steps > 0 ? popRadiusThresholds[steps - 1] : 0;
+	const to = popRadiusThresholds[steps];
+	const partial = to === undefined ? 0 : (pop - from) / (to - from);
+
+	draw.pop = { radius: steps + partial + 2, fill, ring };
 }
 
 export type FleetDraw = {

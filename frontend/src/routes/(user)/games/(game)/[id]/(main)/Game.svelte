@@ -442,6 +442,10 @@
 		let selectedIndex = selectables.findIndex((mo) => mapObjectEqual($selectedMapObject, mo));
 
 		if (commandables.length === 0) {
+			// nothing of ours is here, i.e. an enemy planet, cycle through what is
+			if (selectables.length > 0) {
+				selectMapObject(selectables[(selectedIndex + 1) % selectables.length]);
+			}
 			return;
 		}
 

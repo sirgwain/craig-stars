@@ -22,6 +22,7 @@
 	import { CommandedPlanet } from '#lib/types/Planet.js';
 	import {
 		getAutoAlchemyDescription,
+		getCompletionDescription,
 		getFullName,
 		hasQuantity,
 		isAuto
@@ -173,6 +174,12 @@
 		selectedQueueItem = item;
 		await updateSelectedQueueItemCost();
 		await updateSelectedAvailableItemCost();
+	}
+
+	// double clicking a queue item removes it, the same as selecting it and pressing Remove
+	async function onQueueItemDoubleClicked(index: number, item: ProductionQueueItem) {
+		await onQueueItemClicked(index, item);
+		await removeItem();
 	}
 
 	const contributesOnlyLeftoverToResearchChecked: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -433,44 +440,6 @@
 		onCancel?.();
 	}
 
-	function getCompletionDescription(item: ProductionQueueItem) {
-		const skipped =
-			isAuto(item.type) &&
-			item.queueItemCompletionEstimate?.yearsToBuildOne === Infinite &&
-			item.queueItemCompletionEstimate.yearsToBuildAll === Infinite;
-		if (skipped) {
-			return 'Skipped';
-		}
-
-		const yearsToBuildOne = item.queueItemCompletionEstimate?.yearsToBuildOne ?? 1;
-		const yearsToBuildAll = isAuto(item.type)
-			? item.queueItemCompletionEstimate?.yearsToSkipAuto
-			: item.queueItemCompletionEstimate?.yearsToBuildAll;
-		if (yearsToBuildOne === yearsToBuildAll) {
-			if (yearsToBuildAll == 1) {
-				return '1 year';
-			}
-			if (yearsToBuildAll === Infinite) {
-				return 'never';
-			}
-			return `${yearsToBuildAll} years`;
-		}
-		if (yearsToBuildAll && yearsToBuildOne != yearsToBuildAll) {
-			if (yearsToBuildAll === Infinite) {
-				return `${yearsToBuildOne} to ???`;
-			}
-			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
-		}
-
-		if (yearsToBuildOne == 1) {
-			return '1 year';
-		}
-		if (yearsToBuildOne === Infinite) {
-			return 'never';
-		}
-		return `${yearsToBuildOne} years`;
-	}
-
 	async function resetQueue() {
 		contributesOnlyLeftoverToResearch = planet.planetOrders.contributesOnlyLeftoverToResearch;
 		queueItems = [
@@ -724,6 +693,7 @@
 											hasFollowingItem={index < queueItems.length - 1}
 											{index}
 											{onQueueItemClicked}
+											{onQueueItemDoubleClicked}
 											selected={queueItem === selectedQueueItem}
 										/>
 									</li>

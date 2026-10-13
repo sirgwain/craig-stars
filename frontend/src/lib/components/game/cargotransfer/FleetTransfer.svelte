@@ -55,7 +55,7 @@
 
 	<div class="col-span-2 mt-10 sm:mt-5"></div>
 
-	<div class="sm:text-right mr-1 h-8 select-none">Ironium</div>
+	<div class="sm:text-right mr-1 h-8 select-none text-ironium">Ironium</div>
 	<div class="my-auto">
 		<MineralBar
 			value={cargo.ironium + transferAmount.ironium}
@@ -66,7 +66,7 @@
 				onFransferIronium?.(value - (cargo.ironium + transferAmount.ironium))}
 		/>
 	</div>
-	<div class="sm:text-right mr-1 h-8 select-none">Boranium</div>
+	<div class="sm:text-right mr-1 h-8 select-none text-boranium">Boranium</div>
 	<div class="my-auto">
 		<MineralBar
 			value={cargo.boranium + transferAmount.boranium}
@@ -77,7 +77,7 @@
 				onTransferBoranium?.(value - (cargo.boranium + transferAmount.boranium))}
 		/>
 	</div>
-	<div class="sm:text-right mr-1 h-8 select-none">Germanium</div>
+	<div class="sm:text-right mr-1 h-8 select-none text-germanium">Germanium</div>
 	<div class="my-auto">
 		<MineralBar
 			value={cargo.germanium + transferAmount.germanium}

@@ -25,6 +25,7 @@
 		selected?: boolean;
 		shortName?: boolean;
 		onQueueItemClicked?: (index: number, queueItem: ProductionQueueItem) => void;
+		onQueueItemDoubleClicked?: (index: number, queueItem: ProductionQueueItem) => void;
 	};
 
 	let {
@@ -33,7 +34,8 @@
 		hasFollowingItem = false,
 		selected = false,
 		shortName = false,
-		onQueueItemClicked
+		onQueueItemClicked,
+		onQueueItemDoubleClicked
 	}: Props = $props();
 	let autoAlchemy = $derived(!hasQuantity(item.type));
 
@@ -56,6 +58,7 @@
 	type="button"
 	title={autoAlchemy ? getAutoAlchemyDescription(hasFollowingItem) : undefined}
 	onclick={() => onQueueItemClicked?.(index, item)}
+	ondblclick={() => onQueueItemDoubleClicked?.(index, item)}
 	oncontextmenu={(e) => onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 	class:italic={isAuto(item.type)}
 	class:text-queue-item-this-year={!estimate.skipped &&

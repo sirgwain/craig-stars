@@ -71,19 +71,19 @@
 		fleet.fleetOrders.waypoints.slice(1).map((wp1) => wp1.estFuelUsage)
 	);
 
-	// Like Stars!, travel time and fuel are for the trip up to the selected waypoint, or to the next
-	// waypoint when the fleet's current position is selected
+	// travel time and fuel are shown for the leg into the selected waypoint and for the whole trip up
+	// to it, or to the next waypoint when the fleet's current position is selected
 	let tripIndex = $derived(previousWaypoint ? selectedWaypointIndex : 1);
-	let travelYears = $derived(fleet.getYearsToWaypoint(tripIndex));
+	const formatYears = (years: number | undefined) =>
+		years === undefined ? 'Never' : years === 1 ? '1 year' : `${years} years`;
+	let legTravelTime = $derived(formatYears(fleet.getYearsForLeg(tripIndex)));
+	let totalTravelTime = $derived(formatYears(fleet.getYearsToWaypoint(tripIndex)));
 
 	// the most fuel the trip needs at once, which starts over wherever the fleet refuels
 	let fuelUsage = $derived(fleet.getFuelUsageToWaypoint($player, $universe, tripIndex));
 	let runOutOfFuel = $derived(fuelUsage > fleet.fuel);
 	// the fleet runs dry before it finishes the leg to the selected waypoint
 	let runOutOfFuelOnLeg = $derived(fleet.getFuelOnArrival($player, $universe, tripIndex) < 0);
-	let travelTime = $derived(
-		travelYears === undefined ? 'Never' : travelYears === 1 ? '1 year' : `${travelYears} years`
-	);
 
 	function onRepeatOrdersChanged(repeat: boolean) {
 		fleet.fleetOrders.repeatOrders = repeat;
@@ -174,7 +174,11 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
-				<span>{travelTime}</span>
+				<span>{legTravelTime}</span>
+			</div>
+			<div class="flex justify-between mt-1">
+				<span class="text-tile-item-title">Total Travel Time</span>
+				<span>{totalTravelTime}</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Leg Fuel Usage</span>
@@ -210,7 +214,7 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
-				<span>{travelTime}</span>
+				<span>{legTravelTime}</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Est Fuel Usage</span>
