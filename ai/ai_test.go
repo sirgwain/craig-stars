@@ -75,18 +75,18 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 			name:      "Tech 10 WM - beam BCs very good",
 			race:      cs.NewRace().WithPRT(cs.WM),
 			techLevel: cs.TechLevel{Energy: 10, Weapons: 10, Propulsion: 10, Construction: 10, Electronics: 10, Biotechnology: 10},
-			year:      27,
+			year:      22, // WM starts attacking five years early
 			want: []fleetShip{
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 5},
 				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 14},
-				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 3}, // 19/5
+				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 4}, // one for every 6 of 19, rounded up
 			},
 		},
 		{
 			name:      "Tech 12 WM - Jihad BCs",
 			race:      cs.NewRace().WithPRT(cs.WM).WithLRT(cs.RS),
 			techLevel: cs.TechLevel{Energy: 6, Weapons: 12, Propulsion: 9, Construction: 10, Electronics: 11, Biotechnology: 7},
-			year:      30,
+			year:      25, // WM starts attacking five years early
 			want: []fleetShip{
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 7},
 				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 16},
@@ -102,7 +102,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 40},
 				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 36},
 				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 24},
-				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 20}, // 100/5
+				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 17}, // one for every 6 of 100, rounded up
 			},
 		},
 		{
@@ -113,7 +113,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 			want: []fleetShip{
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 40},
 				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 60},
-				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 20}, // 100/5
+				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 17}, // one for every 6 of 100, rounded up
 			},
 		},
 	}

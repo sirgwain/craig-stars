@@ -25,6 +25,7 @@ func Test_aiPlayer_transportColonists_fullFreighter(t *testing.T) {
 	feeder := ai.Planets[0]
 	feeder.Spec.PopulationDensity = 1
 	feeder.Spec.CanTerraform = false
+	feeder.Cargo.Colonists = feeder.Spec.MaxPopulation / 100
 
 	needer := cs.NewPlanet()
 	needer.Num = feeder.Num + 1

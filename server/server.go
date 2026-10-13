@@ -84,6 +84,12 @@ func Start(config configpkg.Config) error {
 		}
 	}
 
+	if viper.GetBool("ai-mode") {
+		if err := createAIGames(dbConn, config); err != nil {
+			return err
+		}
+	}
+
 	discordNotifier := newDiscordNotifier(dbConn, config)
 
 	// create a server

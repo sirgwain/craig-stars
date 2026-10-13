@@ -894,11 +894,10 @@ func (gr *gameRunner) generateUniverse(fullGame *cs.FullGame) error {
 	}
 
 	// ai processing
+	fullGame.Universe = universe
 	gr.processAITurns(fullGame)
 
 	fullGame.State = cs.GameStateWaitingForPlayers
-	fullGame.Universe = universe
-
 	return nil
 }
 

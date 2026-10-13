@@ -212,3 +212,98 @@ func Test_aiPlayer_produce_partialFleetsAtDifferentPlanets(t *testing.T) {
 	assert.Equal(t, map[int]int{2: 1}, queuedScoutShips(ai.Planets[1]))
 	assert.Empty(t, queuedScoutShips(ai.Planets[2]))
 }
+
+func TestProductionDropsUnneededColonyOrders(t *testing.T) {
+	ai := newProductionTestAI()
+	design := cs.NewShipDesign(1, 3).WithPurpose(cs.ShipDesignPurposeColonizer)
+	design.Spec.Colonizer = true
+	ai.Designs = append(ai.Designs, design)
+	ai.addShipToTopOfQueue(ai.Planets[0], cs.FleetPurposeColonizer, design, 12)
+	ai.Planets[0].ProductionQueue[0].Allocated = cs.Cost{Resources: 5}
+	ai.addShipToTopOfQueue(ai.Planets[1], cs.FleetPurposeColonizer, design, 12)
+	ai.addFleetBuildRequest(cs.FleetPurposeColonizer, 0)
+	assert.NoError(t, ai.produce())
+	assert.Equal(t, 1, ai.Planets[0].ProductionQueue[0].Quantity)
+	assert.False(t, ai.isFleetInQueue(ai.Planets[1], cs.FleetPurposeColonizer))
+}
+
+func TestInfrastructureEstimateUsesMineralsInStock(t *testing.T) {
+	ai := newProductionTestAI()
+	planet := ai.Planets[0]
+	planet.Spec.MiningOutput = cs.Mineral{}
+	planet.Spec.ResourcesPerYearAvailable = 1000
+	planet.Cargo = cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000}
+	years, err := ai.getYearsToBuild(planet)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, years)
+}
+
+func TestMinesGoAheadOfAnOrderShortOfMinerals(t *testing.T) {
+	ai := newProductionTestAI()
+	planet := ai.Planets[0]
+	planet.Spec.MaxMines = 100
+	planet.Spec.ResourcesPerYearAvailable = 200
+	design := ai.Designs[0]
+	design.Spec.Cost = cs.Cost{Ironium: 50, Resources: 20}
+	planet.ProductionQueue = nil
+	ai.addShipToTopOfQueue(planet, cs.FleetPurposeScout, design, 1)
+
+	// enough ironium in stock and from this year's mining: leave the queue alone
+	planet.Cargo.Ironium = 30
+	planet.Spec.MiningOutput = cs.Mineral{Ironium: 20}
+	assert.NoError(t, ai.reserveEconomyProduction(planet))
+	assert.Len(t, planet.ProductionQueue, 1)
+
+	// short of ironium: the ship would stop the queue, so mines go first
+	planet.Cargo.Ironium = 10
+	assert.NoError(t, ai.reserveEconomyProduction(planet))
+	assert.Len(t, planet.ProductionQueue, 2)
+	assert.Equal(t, cs.QueueItemTypeAutoMines, planet.ProductionQueue[0].Type)
+	assert.Equal(t, 10, planet.ProductionQueue[0].Quantity)
+
+	// running again replaces the reservation rather than stacking another
+	assert.NoError(t, ai.reserveEconomyProduction(planet))
+	assert.Len(t, planet.ProductionQueue, 2)
+
+	// and it is removed once the order can be paid for
+	planet.Cargo.Ironium = 100
+	assert.NoError(t, ai.reserveEconomyProduction(planet))
+	assert.Len(t, planet.ProductionQueue, 1)
+	assert.Equal(t, cs.QueueItemTypeShipToken, planet.ProductionQueue[0].Type)
+}
+
+func TestPacketsGoAheadOfShips(t *testing.T) {
+	ai := newProductionTestAI()
+	planet := ai.Planets[0]
+	planet.ProductionQueue = []cs.ProductionQueueItem{{Type: cs.QueueItemTypeIroniumMineralPacket, Quantity: 1}}
+	ai.addShipToTopOfQueue(planet, cs.FleetPurposeScout, ai.Designs[0], 1)
+	ai.addShipToTopOfQueue(planet, cs.FleetPurposeColonistFreighter, ai.Designs[1], 2)
+
+	assert.NoError(t, ai.produce())
+	assert.Equal(t, cs.QueueItemTypeIroniumMineralPacket, planet.ProductionQueue[0].Type)
+}
+
+func TestTerraformingStartsOnceAWorldIsHalfDeveloped(t *testing.T) {
+	ai := newProductionTestAI()
+	planet := ai.Planets[0]
+	planet.ProductionQueue = nil
+	planet.Spec.CanTerraform = true
+	planet.Spec.MaxFactories, planet.Spec.MaxMines = 100, 100
+	planet.Spec.ResourcesPerYearAvailable = 800
+
+	planet.Factories, planet.Mines = 40, 40
+	assert.NoError(t, ai.reserveEconomyProduction(planet))
+	assert.Empty(t, planet.ProductionQueue, "factories and mines come first on a young world")
+
+	planet.Factories, planet.Mines = 60, 60
+	assert.NoError(t, ai.reserveEconomyProduction(planet))
+	if assert.Len(t, planet.ProductionQueue, 1) {
+		assert.Equal(t, cs.QueueItemTypeAutoMaxTerraform, planet.ProductionQueue[0].Type)
+		assert.Equal(t, 800/4/ai.game.Rules.TerraformCost.Resources, planet.ProductionQueue[0].Quantity)
+	}
+
+	// a finished world terraforms through its normal plan
+	planet.Factories, planet.Mines = 100, 100
+	assert.NoError(t, ai.reserveEconomyProduction(planet))
+	assert.Empty(t, planet.ProductionQueue)
+}

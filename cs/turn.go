@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"cmp"
 	"fmt"
 	"log/slog"
 	"math"
@@ -2474,7 +2475,13 @@ func (t *turnGenerator) randomPlanetaryChange() {
 func (t *turnGenerator) fleetBattle() {
 	battleNum := 1
 
-	for _, mos := range t.game.mapObjectsByPosition {
+	// battles share the random number generator, so resolve them in a stable order
+	positions := maps.Keys(t.game.mapObjectsByPosition)
+	slices.SortFunc(positions, func(a, b Vector) int {
+		return cmp.Or(cmp.Compare(a.X, b.X), cmp.Compare(a.Y, b.Y))
+	})
+	for _, position := range positions {
+		mos := t.game.mapObjectsByPosition[position]
 		playersAtPosition := map[int]*Player{}
 		fleets := make([]*Fleet, 0, len(mos))
 		var planet *Planet
@@ -2503,7 +2510,10 @@ func (t *turnGenerator) fleetBattle() {
 			fleets = record.fleets
 
 			// first discover each other and the planet
-			for _, player := range playersAtPosition {
+			playerNums := maps.Keys(playersAtPosition)
+			slices.Sort(playerNums)
+			for _, playerNum := range playerNums {
+				player := playersAtPosition[playerNum]
 
 				// discover other players at the battle
 				for _, otherplayer := range playersAtPosition {
@@ -2665,7 +2675,10 @@ func (t *turnGenerator) fleetBattle() {
 
 			// check for tech trades
 			tt := newTechTrader()
-			for playerNum, survived := range survivingPlayers {
+			survivingPlayerNums := maps.Keys(survivingPlayers)
+			slices.Sort(survivingPlayerNums)
+			for _, playerNum := range survivingPlayerNums {
+				survived := survivingPlayers[playerNum]
 				if !survived {
 					continue // dead fleets tell no tales...
 				}

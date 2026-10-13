@@ -75,8 +75,8 @@ var config *Config
 
 func GetConfig() *Config {
 	if config == nil {
-		if viper.GetBool("test-mode") {
-			// test mode uses a temporary file-based db, no discord auth
+		if viper.GetBool("test-mode") || viper.GetBool("ai-mode") {
+			// test and ai modes use a temporary file-based db, no discord auth
 			testConfig := getTestModeConfig()
 			config = &testConfig
 			slog.Debug("Config (test mode)", slog.Any("config", config))
@@ -125,9 +125,9 @@ func GetConfig() *Config {
 	return config
 }
 
-// CleanupTestDatabase removes the temporary database file if in test mode
+// CleanupTestDatabase removes the temporary database file if in test or ai mode
 func CleanupTestDatabase() {
-	if config != nil && viper.GetBool("test-mode") {
+	if config != nil && (viper.GetBool("test-mode") || viper.GetBool("ai-mode")) {
 		if config.Database.Filename != "" && config.Database.Filename != ":memory:?cache=shared" {
 			if err := os.Remove(config.Database.Filename); err != nil {
 				slog.Warn("Failed to cleanup test database file", "file", config.Database.Filename, "error", err)

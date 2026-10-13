@@ -16,6 +16,7 @@ type aiPlayer struct {
 	game                   *cs.Game
 	techStore              *cs.TechStore
 	config                 playerConfig
+	doctrine               doctrine
 	client                 cs.Orderer
 	planetsByNum           map[int]*cs.Planet
 	fleetsByNum            map[int]*cs.Fleet
@@ -32,6 +33,7 @@ type aiPlayer struct {
 	starbaseHalfDesign    *cs.ShipDesign
 	starbaseDesign        *cs.ShipDesign
 	starbaseUnarmedDesign *cs.ShipDesign
+	outpostDesign         *cs.ShipDesign // a cheap orbital fort carrying a stargate or mass driver
 }
 
 type requests struct {
@@ -54,6 +56,9 @@ type playerConfig struct {
 	startAttackingYear      int // year to start launching attacks on players
 	namesByPurpose          map[cs.ShipDesignPurpose]string
 	researchOrder           []cs.TechLevel
+	colonyPipeline          int     // colony ships in flight or waiting at once
+	pace                    float64 // scales how much the AI builds at once for its size
+	researchReserve         int
 }
 
 // each AI has a personality that influences decisions; currently WIP
@@ -82,6 +87,9 @@ type warshipCount struct {
 	warships       int
 	fuelTransports int
 }
+
+// a war fleet takes one fuel tanker for this many bombers and warships
+const warFleetShipsPerTanker = 6
 
 type aiCutoffsByStartMode struct {
 	attackYear  map[cs.GameStartMode]int // min year to start attacking
@@ -192,6 +200,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 	}
 
 	aiPlayer.buildMaps()
+	aiPlayer.configureStrategy()
 
 	return &aiPlayer
 }
@@ -239,20 +248,7 @@ func (ai *aiPlayer) buildMaps() error {
 		},
 		cs.FleetPurposeColonizer: {
 			purpose: cs.FleetPurposeColonizer,
-			ships: []fleetShip{
-				{
-					purpose:  cs.ShipDesignPurposeColonistFreighter,
-					quantity: 3,
-				},
-				{
-					purpose:  cs.ShipDesignPurposeFuelFreighter,
-					quantity: 2,
-				},
-				{
-					purpose:  cs.ShipDesignPurposeColonizer,
-					quantity: 1,
-				},
-			},
+			ships:   []fleetShip{{purpose: cs.ShipDesignPurposeColonizer, quantity: 1}},
 		},
 		cs.FleetPurposeColonistFreighter: {
 			purpose: cs.FleetPurposeColonistFreighter,
@@ -403,10 +399,15 @@ func (ai *aiPlayer) getWarshipCount() (warshipQty warshipCount) {
 		warshipQty.warships = min((yearsAfterStart/5)*6, 150)
 	}
 
-	// only add on fuel transports if we have them and they can repair our fleets
-	if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter] != nil &&
-		ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter].Spec.RepairBonus > 0 {
-		warshipQty.fuelTransports = min((warshipQty.bombers+warshipQty.warships)/5, 25)
+	if tanker := ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter]; tanker != nil {
+		if ai.enabled("war-fuel") {
+			// Bombers are heavy. Without tankers a war fleet only has the fuel
+			// to crawl, and takes decades to reach anything.
+			warshipQty.fuelTransports = min((warshipQty.bombers+warshipQty.warships+warFleetShipsPerTanker-1)/warFleetShipsPerTanker, 25)
+		} else if tanker.Spec.RepairBonus > 0 {
+			// only add on fuel transports if they can repair our fleets
+			warshipQty.fuelTransports = min((warshipQty.bombers+warshipQty.warships)/5, 25)
+		}
 	}
 
 	return warshipQty
@@ -474,8 +475,19 @@ func (ai *aiPlayer) updateWarshipAmounts(bombers, beamShips, torpedoShips, fuelT
 func (ai *aiPlayer) ProcessTurn() error {
 	ai.assignPurpose()
 	ai.gatherIntel()
-	ai.plan()
-	ai.designStarbases()
+	if err := ai.plan(); err != nil {
+		return err
+	}
+	if err := ai.designStarbases(); err != nil {
+		return err
+	}
+	// Recipes are rebuilt with the AI every turn. Set today's fleet sizes before
+	// assembling or requesting them, rather than discarding them after production.
+	if ai.game.YearsPassed() >= ai.config.startAttackingYear {
+		if err := ai.updateWarfleets(); err != nil {
+			return err
+		}
+	}
 
 	// TODO: Add packet defense checks
 	// if we see a packet coming to us, try to load its cargo,
@@ -487,7 +499,11 @@ func (ai *aiPlayer) ProcessTurn() error {
 	if err := ai.scoutPackets(); err != nil {
 		return err
 	}
+	ai.picketScouts()
 	if err := ai.colonize(); err != nil {
+		return err
+	}
+	if err := ai.mine(); err != nil {
 		return err
 	}
 	if err := ai.layMines(); err != nil {
@@ -496,6 +512,12 @@ func (ai *aiPlayer) ProcessTurn() error {
 	// only attack or invade after a while
 	if ai.game.YearsPassed() >= ai.config.startAttackingYear {
 		if err := ai.invade(); err != nil {
+			return err
+		}
+		if err := ai.retireWarships(); err != nil {
+			return err
+		}
+		if err := ai.musterWarships(); err != nil {
 			return err
 		}
 		if err := ai.bomb(); err != nil {
@@ -508,21 +530,19 @@ func (ai *aiPlayer) ProcessTurn() error {
 	if err := ai.transport(); err != nil {
 		return err
 	}
-	if err := ai.produce(); err != nil {
+	if err := ai.haulMinerals(); err != nil {
 		return err
 	}
-
-	if ai.game.Year%4 == 0 || len(ai.Player.TechsJustGained) > 0 {
-		// only update warship amounts/designs every 4 years or if we just gained a tech level
-		if err := ai.updateWarfleets(); err != nil {
-			return err
-		}
+	ai.retireTransports()
+	if err := ai.produce(); err != nil {
+		return err
 	}
 
 	// make sure our research is optimal
 	ai.research()
 	// cleanup any old designs we haven't built
 	ai.removeUnusedDesigns()
+	ai.trackIdleFleets()
 
 	return nil
 }
@@ -541,7 +561,7 @@ func (ai *aiPlayer) getClosestPlanetIntel(position cs.Vector, planetIntelsByNum 
 		intel := planetIntelsByNum[num]
 
 		distSquared := position.DistanceSquaredTo(intel.Position)
-		if shortestDist > distSquared {
+		if shortestDist > distSquared || (shortestDist == distSquared && closest != nil && intel.Num < closest.Num) {
 			shortestDist = distSquared
 			closest = intel
 		}
@@ -557,7 +577,7 @@ func (ai *aiPlayer) getFarthestPlanetIntel(position cs.Vector, planetIntelsByNum
 
 	for _, intel := range planetIntelsByNum {
 		distSquared := position.DistanceSquaredTo(intel.Position)
-		if longestDistance < distSquared {
+		if longestDistance < distSquared || (longestDistance == distSquared && farthest != nil && intel.Num < farthest.Num) {
 			longestDistance = distSquared
 			farthest = intel
 		}
@@ -573,7 +593,7 @@ func (ai *aiPlayer) getClosestPlanet(fleet *cs.Fleet, planetsByNum map[int]*cs.P
 
 	for _, planet := range planetsByNum {
 		distSquared := fleet.Position.DistanceSquaredTo(planet.Position)
-		if shortestDist > distSquared {
+		if shortestDist > distSquared || (shortestDist == distSquared && closest != nil && planet.Num < closest.Num) {
 			shortestDist = distSquared
 			closest = planet
 		}
@@ -588,7 +608,7 @@ func (ai *aiPlayer) getClosestStarbasePlanet(fleet *cs.Fleet) *cs.Planet {
 	var closest *cs.Planet = nil
 
 	for _, planet := range ai.Planets {
-		if !planet.Spec.HasStarbase && planet.Spec.DockCapacity > 0 {
+		if !planet.Spec.HasStarbase || planet.Spec.DockCapacity == 0 {
 			continue
 		}
 
@@ -642,6 +662,17 @@ func (ai *aiPlayer) getIdleShipCount(planet *cs.Planet, fleetPurpose cs.FleetPur
 		}
 	}
 	return count
+}
+
+// fleetPower is the combined power rating of a fleet's ships
+func (ai *aiPlayer) fleetPower(fleet *cs.Fleet) int {
+	power := 0
+	for _, token := range fleet.Tokens {
+		if design := ai.GetDesign(token.DesignNum); design != nil {
+			power += token.Quantity * design.Spec.PowerRating
+		}
+	}
+	return power
 }
 
 // get all the enemy ships above a planet

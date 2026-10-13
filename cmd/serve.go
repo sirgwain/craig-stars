@@ -21,8 +21,11 @@ func newServeCmd() *cobra.Command {
 	}
 	serveCmd.Flags().Bool("test-mode", false, "Use a temporary file-based database for testing")
 
-	// bind this flag so config can pick it up for overrides
+	serveCmd.Flags().Bool("ai-mode", false, "Use a temporary file-based database containing a finished game for each AI race, to view as an admin")
+
+	// bind these flags so config can pick them up for overrides
 	viper.BindPFlag("test-mode", serveCmd.Flags().Lookup("test-mode"))
+	viper.BindPFlag("ai-mode", serveCmd.Flags().Lookup("ai-mode"))
 
 	return serveCmd
 }

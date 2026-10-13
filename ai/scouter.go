@@ -8,6 +8,13 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
+// a scout with less than this share of its fuel left is spent
+const scoutSpentShare = .25
+
+func (ai *aiPlayer) scoutSpent(fleet *cs.Fleet) bool {
+	return float64(fleet.Fuel) < scoutSpentShare*float64(fleet.Spec.FuelCapacity)
+}
+
 // dispatch scouts to unknown planets
 func (ai *aiPlayer) scout() error {
 	unknownPlanetsByNum := map[int]*cs.Planet{}
@@ -27,6 +34,10 @@ func (ai *aiPlayer) scout() error {
 				// this fleet can be sent to scan a planet
 				scannerFleets = append(scannerFleets, fleet)
 			} else {
+				if ai.enabled("replace-spent-scouts") && ai.scoutSpent(fleet) {
+					// it may never arrive, so leave its target for another scout
+					continue
+				}
 				// this fleet is already scanning a planet, remove the target from the unknown planets list
 				for _, wp := range fleet.Waypoints[1:] {
 					if wp.TargetNum != cs.None {
@@ -52,6 +63,14 @@ func (ai *aiPlayer) scout() error {
 	}
 
 	idleFleets := len(scannerFleets)
+	scoutCount := 0
+	for _, f := range ai.Fleets {
+		// A scout that has run dry crawls for the rest of the game, so it
+		// doesn't count against the limit and a fresh one can take over.
+		if f.GetTag(cs.TagPurpose) == string(cs.FleetPurposeScout) && !(ai.enabled("replace-spent-scouts") && ai.scoutSpent(f)) {
+			scoutCount += f.Spec.TotalShips
+		}
+	}
 	ai.log.Debug("Scanner fleets and unknown planets",
 		slog.Int("scannerFleets", idleFleets),
 		slog.Int("unknownPlanets", len(unknownPlanetsByNum)),
@@ -86,7 +105,7 @@ func (ai *aiPlayer) scout() error {
 
 	// build scout ships where necessary
 	if len(unknownPlanetsByNum)-idleFleets > 0 {
-		ai.addFleetBuildRequest(cs.FleetPurposeScout, len(unknownPlanetsByNum)-idleFleets)
+		ai.addFleetBuildRequest(cs.FleetPurposeScout, max(0, min(len(unknownPlanetsByNum)-idleFleets, ai.scoutLimit()-scoutCount)))
 	}
 
 	return nil

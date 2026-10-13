@@ -58,6 +58,9 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 	// check existing idle ships to see if we have enough already lying around
 	fleetsToMerge := []*cs.Fleet{}
 	for i, fleet := range fleets {
+		if !fleet.Idle() {
+			continue
+		}
 		if fleet.GetTag("purpose") != string(f.purpose) {
 			// fleet's current purpose doesn't match our desired purpose;
 			// assume it's doing something else
@@ -160,7 +163,14 @@ func (ai *aiPlayer) assembleFromIdleFleets(fleetMakeup fleet) ([]*cs.Fleet, erro
 	// find all idle fleets that are colonizers
 	// and merge them into a single fleet with purpose
 	fleets := []*cs.Fleet{}
-	for planetNum, fleets := range ai.fleetsByPlanetNum {
+	// merging assigns fleet numbers, so visit planets in a stable order
+	planetNums := make([]int, 0, len(ai.fleetsByPlanetNum))
+	for planetNum := range ai.fleetsByPlanetNum {
+		planetNums = append(planetNums, planetNum)
+	}
+	slices.Sort(planetNums)
+	for _, planetNum := range planetNums {
+		fleets := ai.fleetsByPlanetNum[planetNum]
 
 		fleetsToCheck := make([]*cs.Fleet, len(fleets))
 		copy(fleetsToCheck, fleets)
