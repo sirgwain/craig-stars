@@ -1400,6 +1400,41 @@ func Test_turn_detonateMines(t *testing.T) {
 	}
 }
 
+func Test_turn_detonateMinesOverlappingFields(t *testing.T) {
+	u := newTestUniverse(t, TestScenario{Players: []ScenarioPlayer{
+		{
+			Player: NewPlayer(1, NewRace().WithPRT(SD)),
+			Minefields: []Minefield{
+				{MinefieldType: MinefieldTypeStandard, NumMines: 100, MinefieldOrders: MinefieldOrders{Detonate: true}},
+				{MinefieldType: MinefieldTypeStandard, NumMines: 100, MinefieldOrders: MinefieldOrders{Detonate: true}},
+			},
+		},
+		{
+			Designs: Designs(DesignLongRangeScout),
+			Fleets:  []ScenarioFleet{{Name: "Scout", Design: DesignLongRangeScout.Name}},
+		},
+	}})
+	fleet := u.Fleet("Scout")
+
+	// The first detonation destroys the scout. The second must not hit it again.
+	u.Run((*turnGenerator).detonateMines)
+
+	assert.True(t, fleet.Delete)
+	assert.Empty(t, fleet.Tokens)
+	for _, player := range u.Game.Players {
+		var hits int
+		for _, message := range player.Messages {
+			if message.Type == PlayerMessageFleetMinefieldHit {
+				hits++
+			}
+		}
+		assert.Equal(t, 1, hits, "player %d should receive one hit message", player.Num)
+	}
+	for _, minefield := range u.Game.Minefields {
+		assert.Equal(t, 75, minefield.NumMines)
+	}
+}
+
 func Test_turn_detonateMinesCargoCapacity(t *testing.T) {
 	tests := []struct {
 		name         string

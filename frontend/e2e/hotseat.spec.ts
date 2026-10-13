@@ -8,7 +8,7 @@ import { apiErrorsFailTest, expect, test } from './setup';
 
 // create a game where the host controls players 1 and 2
 async function createHotSeatGame(page: Page, name: string): Promise<bigint> {
-	await page.getByRole('link', { name: 'Single Player' }).click();
+	await page.getByRole('link', { name: 'Single Player', exact: true }).click();
 	await page.getByRole('textbox', { name: 'Name', exact: true }).fill(name);
 	await page.getByLabel('Size').selectOption('Tiny');
 	await page.getByLabel('Density').selectOption('Sparse');

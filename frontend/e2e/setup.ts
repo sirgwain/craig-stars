@@ -56,6 +56,15 @@ export async function createTestGame(
 	return createResponse.game;
 }
 
+// The games and races lists load after the page renders, and long lists are collapsed behind a
+// "Show all" button, so wait for the list and expand it before looking for an item's menu.
+async function showAllItems(page: Page) {
+	await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+	await expect(page.locator('.loading')).toHaveCount(0);
+	const showAll = page.getByRole('button', { name: /^Show all/ });
+	if (await showAll.isVisible()) await showAll.click();
+}
+
 export const test = base.extend<{
 	authenticatedPage: Page;
 	newGamePage: {
@@ -79,14 +88,14 @@ export const test = base.extend<{
 		await page.goto('/');
 
 		// Wait for the homepage to be visible to confirm we're logged in
-		await expect(page.getByRole('link', { name: 'Single Player' })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Single Player', exact: true })).toBeVisible();
 
 		// Use this logged-in page in tests
 		await use(page);
 	},
 
 	newGamePage: async ({ authenticatedPage }, use) => {
-		await authenticatedPage.getByRole('link', { name: 'Single Player' }).click();
+		await authenticatedPage.getByRole('link', { name: 'Single Player', exact: true }).click();
 
 		// fill in some fields
 		const name = `Test Game ${gameNum++}`;
@@ -148,6 +157,8 @@ export const test = base.extend<{
 		const deleteButton = await authenticatedPage.locator(
 			`[data-type="delete-button"][data-id="${game.game.id}"]`
 		);
+		await showAllItems(authenticatedPage);
+		await deleteButton.locator('xpath=ancestor::details').locator('summary').click();
 		await expect(deleteButton).toBeVisible();
 
 		// confirm delete
@@ -189,6 +200,8 @@ export const test = base.extend<{
 		const deleteButton = await authenticatedPage.locator(
 			`[data-type="delete-button"][data-id="${race.id}"]`
 		);
+		await showAllItems(authenticatedPage);
+		await deleteButton.locator('xpath=ancestor::details').locator('summary').click();
 		await expect(deleteButton).toBeVisible();
 
 		// confirm delete
@@ -219,7 +232,9 @@ export const test = base.extend<{
 				const deleteButton = await authenticatedPage.locator(
 					`[data-type="delete-button"][data-id="${gameId}"]`
 				);
-				if (await deleteButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+				await showAllItems(authenticatedPage);
+				if (await deleteButton.count()) {
+					await deleteButton.locator('xpath=ancestor::details').locator('summary').click();
 					// confirm delete
 					authenticatedPage.once('dialog', async (dialog) => {
 						await dialog.accept();
