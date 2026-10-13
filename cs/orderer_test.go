@@ -1740,6 +1740,58 @@ func Test_orders_Merge(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "merge a damaged freighter into a scout",
+			fleets: []*Fleet{
+				{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Scout #1",
+					},
+					BaseName: "Scout",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
+					},
+				},
+				{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       2,
+						PlayerNum: player.Num,
+						Name:      "Teamster #2",
+					},
+					BaseName: "Teamster",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2, QuantityDamaged: 1, Damage: 10},
+					},
+				},
+			},
+			want: &Fleet{
+				MapObject: MapObject{
+					Type:      MapObjectTypeFleet,
+					Num:       1,
+					PlayerNum: player.Num,
+					Name:      "Scout #1",
+				},
+				BaseName: "Scout",
+				FleetOrders: FleetOrders{
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+				},
+				Tokens: []ShipToken{
+					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
+					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2, QuantityDamaged: 1, Damage: 10}, // damage is unchanged
+				},
+			},
+			wantErr: false,
+		},
+		{
 			name: "merge a scout and freighter, scout, freighter, scout",
 			fleets: []*Fleet{
 				{
