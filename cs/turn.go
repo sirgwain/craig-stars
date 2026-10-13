@@ -1626,6 +1626,10 @@ func (t *turnGenerator) detonateMines() {
 		minefieldPlayer := t.game.getPlayer(minefield.PlayerNum)
 		fleetsWithin := t.game.fleetsWithin(minefield.Position, minefield.Radius())
 		for _, fleet := range fleetsWithin {
+			if fleet.Delete {
+				// already destroyed by another detonation this turn
+				continue
+			}
 			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
 			damage := minefield.damageFleet(fleet, fleetPlayer, stats)
 			damage.Position = fleet.Position
