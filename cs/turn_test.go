@@ -1546,6 +1546,48 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 
 }
 
+func Test_turn_planetGrowDieOffDeleteStarbase(t *testing.T) {
+	s := SingleUnitScenario()
+	s.Planets[0].Starbase = "Starbase"
+	s.Planets[0].Cargo = Cargo{} // no colonists left, so the planet dies off when it grows
+	s.Players[0].Designs = append(s.Players[0].Designs, ShipDesign{Name: "Starbase", Hull: SpaceStation.Name})
+
+	u := newTestUniverse(t, s)
+	planet := u.Planet("Planet 1")
+	starbase := planet.Starbase
+
+	u.GenerateTurn()
+
+	// no pop, no starbase
+	assert.Equal(t, None, planet.PlayerNum)
+	assert.Equal(t, true, starbase.Delete)
+	assert.Nil(t, planet.Starbase)
+
+	// the starbase stays gone when the next turn loads the universe
+	u.GenerateTurn()
+	assert.Nil(t, planet.Starbase)
+	assert.Empty(t, u.Game.Starbases)
+}
+
+func Test_universe_buildMapsDeleteOrphanedStarbase(t *testing.T) {
+	s := SingleUnitScenario()
+	s.Planets[0].Starbase = "Starbase"
+	s.Players[0].Designs = append(s.Players[0].Designs, ShipDesign{Name: "Starbase", Hull: SpaceStation.Name})
+
+	u := newTestUniverse(t, s)
+	planet := u.Planet("Planet 1")
+	starbase := planet.Starbase
+
+	// a planet that died off with its starbase left behind
+	planet.emptyPlanet()
+
+	u.Game.buildMaps(u.Game.Players)
+
+	assert.Equal(t, true, starbase.Delete)
+	assert.Nil(t, planet.Starbase)
+	assert.NotContains(t, u.Game.getMapObjectsAtPosition(planet.Position), starbase)
+}
+
 func Test_turn_decayPackets(t *testing.T) {
 	s := SingleUnitScenario()
 	s.Players[0].MineralPackets = []ScenarioMineralPacket{

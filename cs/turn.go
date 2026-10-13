@@ -2251,6 +2251,10 @@ func (t *turnGenerator) planetGrow() {
 			slog.Int("Population", planet.exactPopulation()),
 		)
 		if planet.GetPopulation() <= 0 { // should never happen, but covers our bases
+			// the starbase goes with the colony
+			if planet.Starbase != nil {
+				t.game.deleteStarbase(planet.Starbase)
+			}
 			planet.emptyPlanet()
 			messager.planetDiedOff(player, planet)
 
