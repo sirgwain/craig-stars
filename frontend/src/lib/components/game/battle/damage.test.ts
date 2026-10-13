@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { ARMOR_COLOR, SHIELD_COLOR, damageMarks, formatDamage } from './damage';
+import { ARMOR_COLOR, SHIELD_COLOR, damageByTarget, damageMarks, formatDamage } from './damage';
 
 describe('battle damage marks', () => {
-	it('marks armor, shields and kills in a fixed order', () => {
-		const marks = damageMarks({ damageDoneShields: 10, damageDoneArmor: 30, tokensDestroyed: 2 });
-		expect(marks.map((m) => m.kind)).toEqual(['armor', 'shield', 'destroyed']);
-		expect(marks.map((m) => m.text)).toEqual(['-30', '-10', '2 destroyed']);
+	it('marks armor, then shields', () => {
+		const marks = damageMarks({ damageDoneShields: 10, damageDoneArmor: 30 });
+		expect(marks.map((m) => m.kind)).toEqual(['armor', 'shield']);
+		expect(marks.map((m) => m.text)).toEqual(['-30', '-10']);
 	});
 
 	it('tells shield damage from armor damage', () => {
@@ -26,7 +26,22 @@ describe('battle damage marks', () => {
 	});
 
 	it('formats damage', () => {
-		expect(formatDamage('armor', 12)).toBe('-12');
-		expect(formatDamage('destroyed', 1)).toBe('destroyed');
+		expect(formatDamage(12)).toBe('-12');
+	});
+
+	it('adds up the shots of an attack for each square', () => {
+		const targets = damageByTarget([
+			{ to: { x: 5, y: 5 }, damageDoneShields: 50 },
+			{ to: { x: 5, y: 5 }, damageDoneShields: 10, damageDoneArmor: 30 },
+			{ to: { x: 5, y: 6 }, damageDoneArmor: 40 },
+			// a miss
+			{ to: { x: 5, y: 7 } }
+		]);
+		expect(targets.map((t) => [t.x, t.y])).toEqual([
+			[5, 5],
+			[5, 6]
+		]);
+		expect(targets[0].marks.map((m) => m.label)).toEqual(['30 armor damage', '60 shield damage']);
+		expect(targets[1].marks.map((m) => m.label)).toEqual(['40 armor damage']);
 	});
 });

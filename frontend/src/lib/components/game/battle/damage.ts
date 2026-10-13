@@ -1,16 +1,14 @@
-// How a hit on a token is marked on the battle board: shield damage and armor damage get
-// different icons and colors.
+// How a hit on a token is marked on the battle board: shield damage in blue with the bubble of
+// an energy shield, armor damage in orange with a solid plate.
 
 // 24x24 icon paths
-export const SHIELD_ICON_PATH = 'M12 2 20 5v6c0 5.5-3.4 9.4-8 11-4.6-1.6-8-5.5-8-11V5Z';
-export const ARMOR_ICON_PATH =
-	'M12 1l2.2 7.2L21 5l-4.4 6 6.4 2.5-7.2 1.1L17.5 22 12 16.8 6.5 22l1.7-7.4L1 13.5l6.4-2.5L3 5l6.8 3.2Z';
+export const SHIELD_ICON_PATH = 'M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16Z';
+export const ARMOR_ICON_PATH = 'M12 2 20 5v6c0 5.5-3.4 9.4-8 11-4.6-1.6-8-5.5-8-11V5Z';
 
 export const SHIELD_COLOR = '#8fe3ff';
 export const ARMOR_COLOR = '#ffb050';
-export const DESTROYED_COLOR = '#ff6060';
 
-export type DamageKind = 'shield' | 'armor' | 'destroyed';
+export type DamageKind = 'shield' | 'armor';
 
 export type DamageMark = {
 	kind: DamageKind;
@@ -23,27 +21,22 @@ export type DamageMark = {
 type Hit = {
 	damageDoneShields?: number;
 	damageDoneArmor?: number;
-	tokensDestroyed?: number;
 };
 
-export function formatDamage(kind: DamageKind, amount: number): string {
-	if (kind === 'destroyed') {
-		return amount > 1 ? `${amount} destroyed` : 'destroyed';
-	}
+export function formatDamage(amount: number): string {
 	return `-${amount}`;
 }
 
-// the marks for one hit, armor first, then shields, then ships destroyed
+// the marks for one hit, armor first, then shields
 export function damageMarks(hit: Hit | undefined): DamageMark[] {
 	const marks: DamageMark[] = [];
 	const armor = hit?.damageDoneArmor ?? 0;
 	const shields = hit?.damageDoneShields ?? 0;
-	const destroyed = hit?.tokensDestroyed ?? 0;
 	if (armor > 0) {
 		marks.push({
 			kind: 'armor',
 			amount: armor,
-			text: formatDamage('armor', armor),
+			text: formatDamage(armor),
 			color: ARMOR_COLOR,
 			label: `${armor} armor damage`
 		});
@@ -52,19 +45,39 @@ export function damageMarks(hit: Hit | undefined): DamageMark[] {
 		marks.push({
 			kind: 'shield',
 			amount: shields,
-			text: formatDamage('shield', shields),
+			text: formatDamage(shields),
 			color: SHIELD_COLOR,
 			label: `${shields} shield damage`
 		});
 	}
-	if (destroyed > 0) {
-		marks.push({
-			kind: 'destroyed',
-			amount: destroyed,
-			text: formatDamage('destroyed', destroyed),
-			color: DESTROYED_COLOR,
-			label: `${destroyed} destroyed`
-		});
-	}
 	return marks;
+}
+
+type Shot = Hit & { to?: { x?: number; y?: number } };
+
+export type TargetDamage = { x: number; y: number; marks: DamageMark[] };
+
+// the marks of an attack for each square it hit: the shots of one weapon slot can hit several
+// targets, or the same one more than once
+export function damageByTarget(shots: Shot[]): TargetDamage[] {
+	const hits = new Map<string, Required<Hit> & { x: number; y: number }>();
+	for (const shot of shots) {
+		const x = shot.to?.x ?? 0;
+		const y = shot.to?.y ?? 0;
+		const key = `${x},${y}`;
+		const hit = hits.get(key) ?? {
+			x,
+			y,
+			damageDoneShields: 0,
+			damageDoneArmor: 0
+		};
+		hit.damageDoneShields += shot.damageDoneShields ?? 0;
+		hit.damageDoneArmor += shot.damageDoneArmor ?? 0;
+		hits.set(key, hit);
+	}
+	return Array.from(hits.values(), (hit) => ({
+		x: hit.x,
+		y: hit.y,
+		marks: damageMarks(hit)
+	})).filter((target) => target.marks.length > 0);
 }

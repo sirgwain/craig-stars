@@ -4,14 +4,12 @@
 	import type { DesignFinder } from '#lib/services/Universe.js';
 	import { type Battle, type PhaseToken } from '#lib/types/Battle.js';
 	import { getDisplayColor } from '#lib/utils/colorUtils.js';
-	import { Play } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import { getContext, onDestroy, onMount, untrack } from 'svelte';
+	import { getContext, onDestroy, untrack } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { readable } from 'svelte/store';
 	import { BattlePlayback } from './animation/BattlePlayback.svelte';
 	import BattleBoardAction from './BattleBoardAction.svelte';
-	import BattleBoardAttack from './BattleBoardAttack.svelte';
+	import BattleBoardDamage from './BattleBoardDamage.svelte';
 	import BattleBoardPhaseControls from './BattleBoardPhaseControls.svelte';
 	import BattleBoardSquare from './BattleBoardSquare.svelte';
 	import BattleBoardTokenDetails from './BattleBoardTokenDetails.svelte';
@@ -61,7 +59,6 @@
 			weaponPower
 		}
 	);
-	onMount(() => playback.autoplay());
 	onDestroy(() => playback.destroy());
 
 	// damage per part of the weapon in a token's slot (the original draws strong beams blue)
@@ -81,7 +78,21 @@
 	// to the height when on its side (with the controls beside it).
 	const boardSize = 690;
 	const phoneLandscape = new MediaQuery('(orientation: landscape) and (max-height: 29.99rem)');
+	let containerWidth = $state(boardSize);
 	let availableWidth = $state(boardSize);
+
+	// Follow the container's width, except when it grows by no more than a scrollbar: a smaller
+	// board can make the page short enough to lose its scrollbar, and growing back into that space
+	// would bring the scrollbar back, over and over.
+	const scrollbarSlack = 24;
+	$effect(() => {
+		const width = containerWidth;
+		untrack(() => {
+			if (width < availableWidth || width > availableWidth + scrollbarSlack) {
+				availableWidth = width;
+			}
+		});
+	});
 	let innerHeight = $state(0);
 	let boardTop = $state(0);
 	let boardArea: HTMLDivElement | undefined = $state();
@@ -114,19 +125,17 @@
 		untrack(() => playback.setCanvas(c, w, h));
 	});
 
-	// keyboard control of the original playback (the classic viewer has none)
+	// keyboard control of the playback. Keys pressed on a control keep their usual meaning (space
+	// presses a focused button, the arrows move through a field).
+	const controls =
+		'a, button, input, select, textarea, summary, [contenteditable], [role="button"]';
+
 	function onKeyDown(e: KeyboardEvent) {
-		const el = e.target as HTMLElement | null;
 		if (
-			!playback.animate ||
 			e.ctrlKey ||
 			e.metaKey ||
 			e.altKey ||
-			(el &&
-				(el.tagName === 'INPUT' ||
-					el.tagName === 'TEXTAREA' ||
-					el.tagName === 'SELECT' ||
-					el.isContentEditable))
+			(e.target instanceof Element && e.target.closest(controls))
 		) {
 			return;
 		}
@@ -151,22 +160,11 @@
 		}
 		e.preventDefault();
 	}
-
-	// a focused button would otherwise also "click" on space
-	function onKeyUp(e: KeyboardEvent) {
-		if (
-			playback.animate &&
-			e.key === ' ' &&
-			(e.target as HTMLElement | null)?.tagName === 'BUTTON'
-		) {
-			e.preventDefault();
-		}
-	}
 </script>
 
-<svelte:window onkeydown={onKeyDown} onkeyup={onKeyUp} bind:innerHeight />
+<svelte:window onkeydown={onKeyDown} bind:innerHeight />
 
-<div class="flex w-full" bind:clientWidth={availableWidth}>
+<div class="flex w-full" bind:clientWidth={containerWidth}>
 	<div class="mx-auto">
 		<div class="flex flex-row flex-wrap">
 			<!-- the grid of the board -->
@@ -182,9 +180,9 @@
 						bind:clientHeight={boardHeight}
 						data-testid="battle-board"
 					>
-						<!-- the original style draws its own attacks -->
-						{#if playback.style === 'classic'}
-							<BattleBoardAttack {battle} {phase} {cell} markScale={Math.min(2, 1 / scale)} />
+						<!-- not while a torpedo is on its way: the board still shows the attack before -->
+						{#if playback.damage && !playback.inFlight}
+							<BattleBoardDamage {battle} {phase} {cell} markScale={Math.min(2, 1 / scale)} />
 						{/if}
 
 						{#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as y (y)}
@@ -202,25 +200,13 @@
 							{/each}
 						{/each}
 
-						<!-- the original style's beams, torpedoes and bangs -->
+						<!-- beams, torpedoes and bangs -->
 						<canvas
 							bind:this={canvas}
 							class="absolute left-0 top-0 size-full z-30 pointer-events-none"
 							aria-hidden="true"
 						></canvas>
 					</div>
-
-					{#if playback.animate && phase === 0 && !playback.playing && !playback.animating && battle.totalPhases > 0}
-						<div class="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-							<button
-								class="btn btn-secondary btn-lg shadow-lg pointer-events-auto opacity-90"
-								onclick={() => playback.play()}
-								title="play the battle (Space)"
-							>
-								<Icon src={Play} size="24" class="inline" /> Play battle
-							</button>
-						</div>
-					{/if}
 				</div>
 				<div
 					class="mx-auto w-(--board-size) phone-landscape:mx-0 phone-landscape:w-72 phone-landscape:pl-2"

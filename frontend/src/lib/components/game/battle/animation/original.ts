@@ -1,6 +1,5 @@
 // The "Original" battle style: the look of the original Stars! battle replay (VCR), following
-// how the original draws an attack (AnimateAttack in vcr.c of the reconstructed source at
-// https://github.com/sirgwain/stars).
+// how the original draws an attack.
 //
 // A beam is two thin lines from two points on the shooter's square to the center of the target,
 // red for weak beams and blue for strong ones, with a small bang on the target. A torpedo is a

@@ -17,9 +17,6 @@ test('battle viewer fits a phone', async ({ testGamePage }) => {
 	);
 
 	// the controls are under the board and big enough to tap
-	await page.getByRole('combobox', { name: 'battle style' }).selectOption('Original');
-	await page.getByRole('button', { name: /pause/i }).tap();
-	await page.getByRole('button', { name: 'begin' }).tap();
 	for (const name of ['begin', 'previous', 'next', 'end']) {
 		const button = await page.getByRole('button', { name, exact: true }).boundingBox();
 		expect(button?.y).toBeGreaterThan((box?.y ?? 0) + (box?.height ?? 0));

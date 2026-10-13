@@ -37,14 +37,10 @@ type ActiveStep = {
 export const SPEEDS = [0.5, 1, 2, 4];
 const playbackKey = 'cs.battle.playback';
 
-// How a battle is shown: classic is the step by step viewer, original plays it back like the
-// original game's battle replay.
-export type BattleStyle = 'classic' | 'original';
-export const BATTLE_STYLES: BattleStyle[] = ['classic', 'original'];
-
-// remembered per browser: how battles are shown (classic by default) and how fast
-export type PlaybackPrefs = { style: BattleStyle; speed: number };
-export const defaultPlaybackPrefs: PlaybackPrefs = { style: 'classic', speed: 1 };
+// remembered per browser: whether attacks are animated, whether the damage they do is marked on
+// their targets, and how fast the battle plays
+export type PlaybackPrefs = { animations: boolean; damage: boolean; speed: number };
+export const defaultPlaybackPrefs: PlaybackPrefs = { animations: true, damage: true, speed: 1 };
 
 export function loadPlaybackPrefs(): PlaybackPrefs {
 	try {
@@ -52,10 +48,11 @@ export function loadPlaybackPrefs(): PlaybackPrefs {
 		if (json) {
 			const prefs = JSON.parse(json) as Partial<PlaybackPrefs>;
 			return {
-				style:
-					prefs.style && BATTLE_STYLES.includes(prefs.style)
-						? prefs.style
-						: defaultPlaybackPrefs.style,
+				animations:
+					typeof prefs.animations === 'boolean'
+						? prefs.animations
+						: defaultPlaybackPrefs.animations,
+				damage: typeof prefs.damage === 'boolean' ? prefs.damage : defaultPlaybackPrefs.damage,
 				speed:
 					prefs.speed && SPEEDS.includes(prefs.speed) ? prefs.speed : defaultPlaybackPrefs.speed
 			};
@@ -74,14 +71,20 @@ export function savePlaybackPrefs(prefs: PlaybackPrefs) {
 	}
 }
 
-// Plays a battle back in the original style: one step per phase (the shots of one weapon slot
-// together) at the original's beat for the speed, drawing each attack on a canvas over the board.
+// Plays a battle back in the style of the original game's battle replay: one step per phase (the
+// shots of one weapon slot together) at the original's beat for the speed, drawing each attack on
+// a canvas over the board. It waits at the start until it is played.
 export class BattlePlayback {
-	style = $state<BattleStyle>('classic');
+	// torpedoes fly to their targets; when off, an attack is drawn right away
+	animations = $state(true);
+	// the damage of an attack is marked on its targets
+	damage = $state(true);
 	playing = $state(false);
 	speed = $state(1);
 	// a step is being played (playing, or a single step)
 	animating = $state(false);
+	// a torpedo is on its way: the board still shows the phase before the attack
+	inFlight = $state(false);
 	reducedMotion = $state(false);
 
 	private renderer = new OriginalRenderer(() => this.draw());
@@ -103,11 +106,10 @@ export class BattlePlayback {
 		private host: PlaybackHost
 	) {
 		const prefs = loadPlaybackPrefs();
-		this.style = prefs.style;
+		this.animations = prefs.animations;
+		this.damage = prefs.damage;
 		this.speed = prefs.speed;
-		if (this.style === 'original') {
-			this.renderer.load();
-		}
+		this.renderer.load();
 		if (typeof window !== 'undefined' && 'matchMedia' in window) {
 			this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 			this.reducedMotion = this.motionQuery.matches;
@@ -118,11 +120,6 @@ export class BattlePlayback {
 	private onMotionChange = (e: MediaQueryListEvent) => {
 		this.reducedMotion = e.matches;
 	};
-
-	// the battle is played back, not stepped through
-	get animate(): boolean {
-		return this.style === 'original';
-	}
 
 	destroy() {
 		cancelAnimationFrame(this.raf);
@@ -163,30 +160,27 @@ export class BattlePlayback {
 
 	setSpeed(speed: number) {
 		this.speed = speed;
-		savePlaybackPrefs({ style: this.style, speed });
+		this.savePrefs();
 	}
 
-	// switch between the classic viewer and the original playback
-	setStyle(style: BattleStyle) {
-		if (style === this.style) {
+	setAnimations(animations: boolean) {
+		if (animations === this.animations) {
 			return;
 		}
-		this.stopAll();
-		this.style = style;
-		savePlaybackPrefs({ style, speed: this.speed });
-		if (style === 'original') {
-			this.renderer.load();
-			// the original plays the battle like a tape
-			this.play();
-		}
+		// a step in progress was timed for the old setting
+		this.finishCurrent();
+		this.animations = animations;
+		this.savePrefs();
 		this.draw();
 	}
 
-	// a board was opened: the original style starts playing on its own
-	autoplay() {
-		if (this.animate && this.host.getPhase() === 0 && this.battle.totalPhases > 0) {
-			this.play();
-		}
+	setDamage(damage: boolean) {
+		this.damage = damage;
+		this.savePrefs();
+	}
+
+	private savePrefs() {
+		savePlaybackPrefs({ animations: this.animations, damage: this.damage, speed: this.speed });
 	}
 
 	// ---- transport ----
@@ -282,6 +276,7 @@ export class BattlePlayback {
 		this.current = undefined;
 		this.frozen = false;
 		this.animating = false;
+		this.inFlight = false;
 	}
 
 	// jump to the end of the current step
@@ -313,6 +308,7 @@ export class BattlePlayback {
 		}
 		this.current = { step, start: at, impactAt, advanceAt, impactDone: false };
 		this.animating = true;
+		this.inFlight = impactAt > 0;
 	}
 
 	private vcrOptions(shots: BattleRecordTokenAction[]): VcrAttackOptions {
@@ -321,7 +317,7 @@ export class BattlePlayback {
 			cell: this.cell,
 			frameMs: vcrFrameMs(vcrSpeed(this.speed)),
 			beamPower: first ? this.host.weaponPower?.(first.tokenNum, first.slot) : undefined,
-			still: this.reducedMotion
+			still: this.reducedMotion || !this.animations
 		};
 	}
 
@@ -368,6 +364,7 @@ export class BattlePlayback {
 			const t = this.clock - current.start;
 			if (!current.impactDone && t >= current.impactAt) {
 				current.impactDone = true;
+				this.inFlight = false;
 				this.host.setPhase(current.step.toPhase);
 			}
 			if (t >= current.advanceAt) {
@@ -388,7 +385,6 @@ export class BattlePlayback {
 		if (!ctx) return;
 		ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 		ctx.clearRect(0, 0, this.width, this.height);
-		if (this.style !== 'original') return;
 		const frame = this.frame();
 		if (frame) {
 			this.renderer.render(ctx, frame);

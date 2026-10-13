@@ -7,24 +7,32 @@ test('battle viewer steps through a battle and plays it', async ({ testGamePage 
 	await page.goto(`/games/${gameId}/battles/1`);
 
 	const phase = page.getByRole('spinbutton', { name: 'phase' });
-	const style = page.getByRole('combobox', { name: 'battle style' });
+	const animations = page.getByRole('checkbox', { name: 'Animations' });
+	const play = page.getByRole('button', { name: 'Play', exact: true });
+	const pause = page.getByRole('button', { name: 'Pause' });
 
-	// the classic viewer: step to the first attack, which marks the damage on its target
-	await expect(style).toHaveValue('classic');
+	// it waits at the start until it is played
+	await expect(play).toBeVisible();
+	await expect(phase).toHaveValue('0');
+
+	// the next attack marks the damage on its target
 	await page.getByRole('button', { name: 'next attack' }).click();
 	await expect(phase).not.toHaveValue('0');
-	await expect(page.getByTestId('battle-damage')).toBeVisible();
+	await expect(page.getByTestId('battle-damage').first()).toBeVisible();
 	await expect(page.getByLabel(/(shield|armor) damage/).first()).toBeVisible();
 
-	// the original playback starts on its own, and is remembered for the next battle
-	await style.selectOption('Original');
-	await expect(page.getByRole('button', { name: /pause/i })).toBeVisible();
+	await page.getByRole('button', { name: 'begin' }).click();
 	await page.getByRole('button', { name: '4x' }).click();
+	await play.click();
+	await expect(pause).toBeVisible();
 	await expect.poll(async () => Number(await phase.inputValue())).toBeGreaterThan(3);
-	await page.getByRole('button', { name: /pause/i }).click();
-	await expect(page.getByRole('button', { name: /^play/i }).first()).toBeVisible();
+	await pause.click();
+	await expect(play).toBeVisible();
 
+	// the speed and the animations are remembered for the next battle, which waits to be played
+	await animations.uncheck();
 	await page.reload();
-	await expect(style).toHaveValue('original');
-	await expect(page.getByRole('button', { name: /pause/i })).toBeVisible();
+	await expect(animations).not.toBeChecked();
+	await expect(page.getByRole('button', { name: '4x' })).toHaveAttribute('aria-pressed', 'true');
+	await expect(play).toBeVisible();
 });
