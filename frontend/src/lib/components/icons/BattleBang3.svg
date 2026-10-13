@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+	<polygon fill="#ff0000" points="16,1 18.87,9.07 24.13,7.87 22.93,13.13 31,16 22.93,18.87 24.13,24.13 18.87,22.93 16,31 13.13,22.93 7.87,24.13 9.07,18.87 1,16 9.07,13.13 7.87,7.87 13.13,9.07"/>
+	<g fill="#800000">
+		<circle cx="16" cy="1" r="0.8"/>
+		<circle cx="18.87" cy="9.07" r="0.8"/>
+		<circle cx="24.13" cy="7.87" r="0.8"/>
+		<circle cx="22.93" cy="13.13" r="0.8"/>
+		<circle cx="31" cy="16" r="0.8"/>
+		<circle cx="22.93" cy="18.87" r="0.8"/>
+		<circle cx="24.13" cy="24.13" r="0.8"/>
+		<circle cx="18.87" cy="22.93" r="0.8"/>
+		<circle cx="16" cy="31" r="0.8"/>
+		<circle cx="13.13" cy="22.93" r="0.8"/>
+		<circle cx="7.87" cy="24.13" r="0.8"/>
+		<circle cx="9.07" cy="18.87" r="0.8"/>
+		<circle cx="1" cy="16" r="0.8"/>
+		<circle cx="9.07" cy="13.13" r="0.8"/>
+		<circle cx="7.87" cy="7.87" r="0.8"/>
+		<circle cx="13.13" cy="9.07" r="0.8"/>
+	</g>
+</svg>

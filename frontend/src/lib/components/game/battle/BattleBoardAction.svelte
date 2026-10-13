@@ -30,6 +30,17 @@
 		}
 		return '';
 	}
+
+	// the component in the shooter's firing slot, when its design is known
+	function getWeaponDescription(): string {
+		if (!action?.slot) {
+			return '';
+		}
+		const token = battle.getToken(action.tokenNum ?? 0);
+		const design = token && designFinder.getDesign(token.playerNum, token.designNum);
+		const name = design?.slots.find((s) => s.hullSlotIndex === action.slot)?.hullComponent;
+		return name ? ` with ${name}` : '';
+	}
 </script>
 
 {#if action}
@@ -42,7 +53,7 @@
 	{:else if action.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_BEAM_FIRE'}
 		{`The ${getTokenDescription(action.tokenNum)} at (${action.from?.x ?? 0}, ${
 			action.from?.y ?? 0
-		}) attacks the ${getTokenDescription(action.targetNum)} at (${action.to?.x ?? 0}, ${action.to?.y ?? 0})`}
+		}) attacks the ${getTokenDescription(action.targetNum)} at (${action.to?.x ?? 0}, ${action.to?.y ?? 0})${getWeaponDescription()}`}
 		{#if action.damageDoneArmor && action.damageDoneShields}
 			{`doing ${action.damageDoneArmor} damage to armor and ${action.damageDoneShields} damage to shields`}
 		{:else if action.damageDoneArmor}
@@ -53,7 +64,7 @@
 	{:else if action.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_TORPEDO_FIRE'}
 		{`The ${getTokenDescription(action.tokenNum)} attacks the ${getTokenDescription(
 			action.targetNum
-		)} at (${action.to?.x ?? 0}, ${action.to?.y ?? 0})`}
+		)} at (${action.to?.x ?? 0}, ${action.to?.y ?? 0})${getWeaponDescription()}`}
 		{#if action.damageDoneArmor && action.damageDoneShields}
 			{`doing ${action.damageDoneArmor} damage to armor and ${action.damageDoneShields} damage to shields with ${action.torpedoHits} hits`}
 		{:else if action.damageDoneArmor}

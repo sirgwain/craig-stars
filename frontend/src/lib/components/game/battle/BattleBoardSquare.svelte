@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { designFinderKey, getGameContext } from '#lib/services/GameContext.js';
+	import { designFinderKey } from '#lib/services/GameContext.js';
 	import type { DesignFinder } from '#lib/services/Universe.js';
 	import { getHullIcon } from '#lib/techicon.js';
 	import type { PhaseToken } from '#lib/types/Battle.js';
-	import { getDisplayColor } from '#lib/utils/colorUtils.js';
 	import { getContext } from 'svelte';
-
-	const { player, universe, settings } = getGameContext();
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 
@@ -15,6 +12,8 @@
 		phase: number;
 		selectedToken: PhaseToken | undefined;
 		selected?: boolean;
+		// side color of a player's tokens
+		colorOf: (playerNum: number | undefined) => string;
 		onSelected?: (token: PhaseToken) => void;
 	};
 
@@ -23,6 +22,7 @@
 		phase,
 		selectedToken,
 		selected = false,
+		colorOf,
 		onSelected: onSelected
 	}: Props = $props();
 
@@ -62,7 +62,7 @@
 	class:border-neutral={!selected && !tokens}
 	class:border-accent={selected}
 	style={!selected && tokens && tokens[tokenIndex]
-		? `border-color: ${getDisplayColor(tokens[tokenIndex].playerNum, $player, $universe, $settings)};`
+		? `border-color: ${colorOf(tokens[tokenIndex].playerNum)};`
 		: ''}
 >
 	{#if tokens}
