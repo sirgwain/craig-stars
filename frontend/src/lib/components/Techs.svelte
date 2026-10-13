@@ -1,4 +1,7 @@
 <script lang="ts">
+	import TechBrowser from './tech/TechBrowser.svelte';
+	import { addError } from '#lib/services/Errors.js';
+	import type { ConnectError } from '@connectrpc/connect';
 	import TableSearchInput from '#lib/components/table/TableSearchInput.svelte';
 	import TechSummary from '#lib/components/tech/TechSummary.svelte';
 	import { techClient } from '#lib/services/connect.js';
@@ -81,8 +84,12 @@
 	});
 
 	onMount(async () => {
-		const resp = await techClient.getTechs({});
-		techStore = { ...resp };
+		try {
+			const resp = await techClient.getTechs({});
+			techStore = { ...resp };
+		} catch (e) {
+			addError(e as ConnectError);
+		}
 	});
 
 	let newTechs = $derived(
@@ -94,53 +101,62 @@
 	);
 </script>
 
-<div class="flex justify-between">
-	<div><TableSearchInput bind:value={filter} /></div>
-	<div class="cs-form-control" class:hidden={!player}>
-		<label class="cs-form-label cursor-pointer">
-			<span class="cs-label-text mr-1">Show All</span>
-			<input type="checkbox" class="toggle" class:toggle-accent={showAll} bind:checked={showAll} />
-		</label>
+{#if !player}
+	<TechBrowser {techs} />
+{:else}
+	<div class="flex justify-between">
+		<div><TableSearchInput bind:value={filter} /></div>
+		<div class="cs-form-control" class:hidden={!player}>
+			<label class="cs-form-label cursor-pointer">
+				<span class="cs-label-text mr-1">Show All</span>
+				<input
+					type="checkbox"
+					class="toggle"
+					class:toggle-accent={showAll}
+					bind:checked={showAll}
+				/>
+			</label>
+		</div>
 	</div>
-</div>
 
-{#if player && newTechs && filter === ''}
-	<ItemTitle>Recently Learned Techs</ItemTitle>
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-		{#each newTechs as tech (tech.tech?.name)}
-			<div class="mx-3">
-				<TechSummary {tech} {player} />
-			</div>
-		{/each}
-	</div>
-{/if}
-
-{#each TechCategories as category (category)}
-	{#if techsByCategory[category].length > 0}
-		<a
-			id={kebabCase(enumToString(TechCategory, category))}
-			href={`#${kebabCase(enumToString(TechCategory, category))}`}
-			><SectionHeader title={enumToString(TechCategory, category)} /></a
-		>
+	{#if player && newTechs && filter === ''}
+		<ItemTitle>Recently Learned Techs</ItemTitle>
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-			{#each sortBy(techsByCategory[category], 'rank') as tech (tech.tech?.name)}
-				{#if showAll || (player && canLearnTech(player, tech) && hasRequiredLevels(player.techLevels, tech.tech?.requirements?.techLevel))}
-					<div class="mx-3" data-type="tech-card" data-name={tech.tech?.name}>
-						<!-- Hide the graph on safari until svelte5 -->
-						<TechSummary
-							{tech}
-							{player}
-							{cs}
-							showResearchCost={!!(
-								player &&
-								cs &&
-								canLearnTech(player, tech) &&
-								!hasRequiredLevels(player.techLevels, tech.tech?.requirements?.techLevel)
-							)}
-						/>
-					</div>
-				{/if}
+			{#each newTechs as tech (tech.tech?.name)}
+				<div class="mx-3">
+					<TechSummary {tech} {player} />
+				</div>
 			{/each}
 		</div>
 	{/if}
-{/each}
+
+	{#each TechCategories as category (category)}
+		{#if techsByCategory[category].length > 0}
+			<a
+				id={kebabCase(enumToString(TechCategory, category))}
+				href={`#${kebabCase(enumToString(TechCategory, category))}`}
+				><SectionHeader title={enumToString(TechCategory, category)} /></a
+			>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+				{#each sortBy(techsByCategory[category], 'tech.ranking') as tech (tech.tech?.name)}
+					{#if showAll || (player && canLearnTech(player, tech) && hasRequiredLevels(player.techLevels, tech.tech?.requirements?.techLevel))}
+						<div class="mx-3" data-type="tech-card" data-name={tech.tech?.name}>
+							<!-- Hide the graph on safari until svelte5 -->
+							<TechSummary
+								{tech}
+								{player}
+								{cs}
+								showResearchCost={!!(
+									player &&
+									cs &&
+									canLearnTech(player, tech) &&
+									!hasRequiredLevels(player.techLevels, tech.tech?.requirements?.techLevel)
+								)}
+							/>
+						</div>
+					{/if}
+				{/each}
+			</div>
+		{/if}
+	{/each}
+{/if}

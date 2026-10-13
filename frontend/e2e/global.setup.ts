@@ -23,7 +23,7 @@ async function globalSetup(config: FullConfig) {
 	await page.getByRole('button', { name: 'Submit' }).click();
 
 	// Wait for the homepage to be visible
-	await page.getByRole('link', { name: 'Single Player' }).waitFor();
+	await page.getByRole('link', { name: 'Single Player', exact: true }).waitFor();
 
 	// Save signed-in state to 'authFile'
 	await page.context().storageState({ path: authFile });

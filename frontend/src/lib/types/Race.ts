@@ -163,6 +163,41 @@ export const getLabelForLRT = (lrt: LRT): string => {
 	}
 };
 
+export const getAbbreviationForLRT = (lrt: LRT): string => {
+	switch (lrt) {
+		case IFE:
+			return 'IFE';
+		case TT:
+			return 'TT';
+		case ARM:
+			return 'ARM';
+		case ISB:
+			return 'ISB';
+		case GR:
+			return 'GR';
+		case UR:
+			return 'UR';
+		case NRSE:
+			return 'NRSE';
+		case OBRM:
+			return 'OBRM';
+		case NAS:
+			return 'NAS';
+		case LSP:
+			return 'LSP';
+		case BET:
+			return 'BET';
+		case RS:
+			return 'RS';
+		case MA:
+			return 'MA';
+		case CE:
+			return 'CE';
+		default:
+			return '';
+	}
+};
+
 export function getHabWidth(race: Race) {
 	return {
 		grav: (race.habHigh?.grav ?? 0) - (race.habLow?.grav ?? 0),

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import ErrorToast from '#lib/components/ErrorToast.svelte';
 	import Menu from '#lib/components/Menu.svelte';
 	import NotificationToast from '#lib/components/NotificationToast.svelte';
@@ -16,6 +17,9 @@
 
 	let { children }: Props = $props();
 
+	// the library screens lay out cards in a grid, so they get more room
+	let wide = $derived(['/', '/games', '/races'].includes(page.url.pathname));
+
 	onMount(() => {
 		$errors = [];
 	});
@@ -25,7 +29,7 @@
 	<div class="sticky top-0 z-10">
 		<Menu user={$me} />
 	</div>
-	<div class="w-full mx-auto md:max-w-2xl">
+	<div class="w-full min-w-0 mx-auto" class:md:max-w-2xl={!wide} class:max-w-6xl={wide}>
 		{#if children}{@render children()}{:else}This is the main content{/if}
 	</div>
 	<ErrorToast />

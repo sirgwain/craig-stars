@@ -14,7 +14,7 @@
 		<Menu user={$me} />
 	</div>
 	<div class="relative">
-		<div class="w-full mx-auto md:max-w-3xl">
+		<div class="w-full min-w-0 mx-auto max-w-384">
 			{@render children?.()}
 		</div>
 	</div>
