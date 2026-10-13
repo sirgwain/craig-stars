@@ -758,6 +758,10 @@ func Test_battle_runBattle1(t *testing.T) {
 	assert.Greater(t, len(record.ActionsPerRound), 1)
 	assert.Equal(t, 2, record.Stats.NumShipsByPlayer[player1.Num])
 	assert.Equal(t, 1, record.Stats.NumShipsByPlayer[player2.Num])
+
+	// player 2's freighter is unarmed, so only player 2 takes damage
+	assert.Equal(t, 0, record.Stats.DamageTakenByPlayer[player1.Num])
+	assert.Greater(t, record.Stats.DamageTakenByPlayer[player2.Num], 0)
 }
 
 func Test_getBattleSpeed(t *testing.T) {

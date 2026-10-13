@@ -178,7 +178,7 @@ func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Vector
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
-	b.Stats.DamageTakenByPlayer[token.PlayerNum] += damageDoneArmor
+	b.Stats.DamageTakenByPlayer[target.PlayerNum] += damageDoneArmor
 
 	slog.Debug(fmt.Sprintf("Round: %d %s", round, action))
 
@@ -206,7 +206,7 @@ func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from Vec
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
-	b.Stats.DamageTakenByPlayer[token.PlayerNum] += damageDoneArmor
+	b.Stats.DamageTakenByPlayer[target.PlayerNum] += damageDoneArmor
 
 	slog.Debug(fmt.Sprintf("Round: %d %s", round, action))
 }
