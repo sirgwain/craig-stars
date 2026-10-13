@@ -41,7 +41,9 @@ type Player struct {
 	Spec                      PlayerSpec           `json:"-"`
 	TechsJustGained           []*Tech              `json:"-"`
 	// notes written for the player during turn generation, to be saved with the game
-	NewNotes             []*PlayerNote `json:"-"`
+	NewNotes []*PlayerNote `json:"-"`
+	// mail the player wrote this year, to be delivered during turn generation
+	PendingMail          []*PlayerMail `json:"-"`
 	leftoverResources    int
 	techLevelGained      bool
 	acquirablePartGained bool

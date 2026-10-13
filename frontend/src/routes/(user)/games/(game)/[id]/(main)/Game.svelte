@@ -35,6 +35,7 @@
 	import { onMount } from 'svelte';
 	import CargoTranfserDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
 	import MergeFleetsDialog from '../dialogs/merge/MergeFleetsDialog.svelte';
+	import MailDialog from '../dialogs/mail/MailDialog.svelte';
 	import NoteDialog from '../dialogs/note/NoteDialog.svelte';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
 	import SplitFleetDialog from '../dialogs/split/SplitFleetDialog.svelte';
@@ -712,4 +713,5 @@
 		onCancel={() => (showSearchDialog = false)}
 	/>
 	<NoteDialog />
+	<MailDialog />
 </div>

@@ -104,6 +104,9 @@ type ReadClient interface {
 	GetPlayerNote(ctx context.Context, id int64) (*cs.PlayerNote, error)
 	GetPlayerNotesForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.PlayerNote, error)
 	GetPlayerNoteForTarget(ctx context.Context, gameID int64, playerNum int, target cs.MapObjectTarget) (*cs.PlayerNote, error)
+	GetPlayerMail(ctx context.Context, id int64) (*cs.PlayerMail, error)
+	GetPlayerMailForPlayer(ctx context.Context, gameID int64, playerNum int, year int) ([]*cs.PlayerMail, error)
+	GetPendingPlayerMailForGame(ctx context.Context, gameID int64, year int) ([]*cs.PlayerMail, error)
 }
 
 type WriteClient interface {
@@ -167,6 +170,8 @@ type WriteClient interface {
 
 	SavePlayerNote(ctx context.Context, note *cs.PlayerNote) error
 	DeletePlayerNote(ctx context.Context, id int64) error
+	SavePlayerMail(ctx context.Context, mail *cs.PlayerMail) error
+	DeletePlayerMail(ctx context.Context, id int64) error
 }
 
 // A database Client interface is used to make all calls that modify the database

@@ -307,6 +307,7 @@ type Converter interface {
 	// goverter:ignore Spec
 	// goverter:ignore TechsJustGained
 	// goverter:ignore NewNotes
+	// goverter:ignore PendingMail
 	ConvertPlayer(source generated.Player) cs.Player
 
 	// goverter:map . GameDBObject | ExtendLightPlayerGameDBObject
@@ -319,6 +320,7 @@ type Converter interface {
 	// goverter:ignore Spec
 	// goverter:ignore TechsJustGained
 	// goverter:ignore NewNotes
+	// goverter:ignore PendingMail
 	ConvertLightPlayer(source generated.GetLightPlayerForGameRow) cs.Player
 
 	// goverter:map . GameDBObject | ExtendPlayerStatusGameDBObject
@@ -626,6 +628,16 @@ type Converter interface {
 	// goverter:map . Position
 	ConvertPlayerNote(source generated.PlayerNote) *cs.PlayerNote
 	ConvertPlayerNotes(source []generated.PlayerNote) []*cs.PlayerNote
+
+	// goverter:autoMap GameDBObject
+	ConvertGamePlayerMailToCreateParams(source *cs.PlayerMail) generated.CreatePlayerMailParams
+
+	// goverter:autoMap GameDBObject
+	ConvertGamePlayerMailToUpdateParams(source *cs.PlayerMail) generated.UpdatePlayerMailParams
+
+	// goverter:map . GameDBObject
+	ConvertPlayerMail(source generated.PlayerMail) *cs.PlayerMail
+	ConvertPlayerMails(source []generated.PlayerMail) []*cs.PlayerMail
 
 	// goverter:ignore Colonists
 	salvageCargo(source generated.Salvage) cs.Cargo

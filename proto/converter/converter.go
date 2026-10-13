@@ -232,6 +232,7 @@ type Converter interface {
 	// goverter:ignore Spec
 	// goverter:ignore TechsJustGained
 	// goverter:ignore NewNotes
+	// goverter:ignore PendingMail
 	ConvertPlayer(source *craig_starsv1.Player) *cs.Player
 
 	// goverter:ignore ScoreHistory
@@ -353,6 +354,10 @@ type Converter interface {
 	ConvertPlayerNote(source *craig_starsv1.PlayerNote) *cs.PlayerNote
 	ConvertCSPlayerNote(source *cs.PlayerNote) *craig_starsv1.PlayerNote
 	ConvertCSPlayerNotes(source []*cs.PlayerNote) []*craig_starsv1.PlayerNote
+
+	ConvertPlayerMail(source *craig_starsv1.PlayerMail) *cs.PlayerMail
+	ConvertCSPlayerMail(source *cs.PlayerMail) *craig_starsv1.PlayerMail
+	ConvertCSPlayerMails(source []*cs.PlayerMail) []*craig_starsv1.PlayerMail
 
 	ConvertWormhole(source *craig_starsv1.Wormhole) *cs.Wormhole
 	ConvertCSWormhole(source *cs.Wormhole) *craig_starsv1.Wormhole

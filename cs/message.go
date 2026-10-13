@@ -247,6 +247,7 @@ const (
 	PlayerMessagePlanetClimateChange
 	PlayerMessagePlanetColonizeContested
 	PlayerMessagePlanetBuiltNote
+	PlayerMessagePlayerMail
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -955,6 +956,12 @@ func (m *messageClient) planetTerraform(player *Player, planet *Planet, habType 
 func (m *messageClient) playerDiscovered(player *Player, otherPlayer *Player) {
 	player.Messages = append(player.Messages, newPlayerMessage(PlayerMessagePlayerDiscovery, otherPlayer.Num).
 		withSpec(PlayerMessageSpec{Name: otherPlayer.Race.PluralName}))
+}
+
+// deliver mail another player wrote, toPlayerNum is PlayerMailToEverybody for mail sent to everybody
+func (m *messageClient) playerMail(player *Player, mail *PlayerMail) {
+	player.Messages = append(player.Messages, newPlayerMessage(PlayerMessagePlayerMail, mail.FromPlayerNum).
+		withSpec(PlayerMessageSpec{SourcePlayerNum: mail.FromPlayerNum, DestPlayerNum: mail.ToPlayerNum, Note: mail.Text}))
 }
 
 // Amount is the research level reached.

@@ -141,6 +141,8 @@ func (t *turnGenerator) generateTurn() error {
 		return err
 	}
 
+	t.deliverMail()
+
 	// notify about battles
 	t.checkBattleReports()
 
@@ -157,6 +159,25 @@ func (t *turnGenerator) generateTurn() error {
 
 	t.log.Info("generated turn")
 	return nil
+}
+
+// deliverMail gives each player the mail other players wrote them this year
+func (t *turnGenerator) deliverMail() {
+	for _, sender := range t.game.Players {
+		for _, mail := range sender.PendingMail {
+			for _, player := range t.game.Players {
+				if !mail.SentTo(player.Num) {
+					continue
+				}
+				// a player can get mail from a player they haven't met, so they need to know who it is from
+				if player.Num != sender.Num {
+					newDiscoverer(t.log, player).discoverPlayer(sender)
+				}
+				messager.playerMail(player, mail)
+			}
+		}
+		sender.PendingMail = nil
+	}
 }
 
 // update all planet specs with the latest info

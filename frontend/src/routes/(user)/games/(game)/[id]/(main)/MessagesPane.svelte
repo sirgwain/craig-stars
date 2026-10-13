@@ -14,9 +14,11 @@
 		ArrowLongLeft,
 		ArrowLongRight,
 		ArrowTopRightOnSquare,
+		ArrowUturnLeft,
 		Eye,
 		MagnifyingGlassMinus,
-		MagnifyingGlassPlus
+		MagnifyingGlassPlus,
+		PencilSquare
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
@@ -31,7 +33,8 @@
 		messageNum,
 		selectMapObject,
 		zoomToMapObject,
-		gotoTarget
+		gotoTarget,
+		openMail
 	} = getGameContext();
 
 	type Props = {
@@ -81,6 +84,7 @@
 		}
 
 		if (
+			message.type === PlayerMessageType.PLAYER_MAIL ||
 			message.type === PlayerMessageType.PLAYER_GAIN_TECH_LEVEL ||
 			message.type === PlayerMessageType.BATTLE_REPORTS ||
 			(message.type === PlayerMessageType.PLAYER_TECH_GAINED && message.spec?.techGained) ||
@@ -200,6 +204,8 @@
 		getPreviousVisibleMessageNum($messageNum, showFilteredMessages, messages)
 	);
 	let visible = $derived((message && $settings.isMessageVisible(message.type)) ?? false);
+	// mail from another player is replied to instead of gone to
+	let isMail = $derived(message?.type === PlayerMessageType.PLAYER_MAIL);
 </script>
 
 <div class:hidden={!showMessages} class:block={showMessages}>
@@ -217,6 +223,16 @@
 
 				<div class="flex-1 text-center text-lg font-semibold text-secondary">
 					Year: {$game.year} Message {$messageNum + 1} of {messages.length}
+				</div>
+				<div class="tooltip tooltip-left" data-tip="Write a message to other players">
+					<button
+						type="button"
+						class="mr-1 align-middle"
+						onclick={() => openMail()}
+						title="write message"
+						data-type="write-mail"
+						><Icon src={PencilSquare} size="24" class="hover:stroke-accent" /></button
+					>
 				</div>
 				<div
 					class="tooltip tooltip-left"
@@ -261,13 +277,15 @@
 									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /></button
 								>
 							</div>
-							<div class="tooltip" data-tip="goto">
+							<div class="tooltip" data-tip={isMail ? 'reply' : 'goto'}>
 								<button
 									onclick={goto}
 									disabled={!isMessageGotoable(message)}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
-									title="goto"
-									>{#if viewBattle}
+									title={isMail ? 'reply' : 'goto'}
+									>{#if isMail}
+										<Icon src={ArrowUturnLeft} size="16" class="hover:stroke-accent inline" />
+									{:else if viewBattle}
 										<Icon src={Eye} size="16" class="hover:stroke-accent inline" />
 									{:else}
 										<Icon

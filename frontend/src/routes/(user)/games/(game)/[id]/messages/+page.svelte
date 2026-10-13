@@ -6,9 +6,10 @@
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { PlayerMessageType, type PlayerMessage } from '#lib/types/cs-proto.js';
 	import { getMapObjectTarget } from '#lib/types/Message.js';
+	import MailDialog from '../dialogs/mail/MailDialog.svelte';
 	import MessageDetail from './MessageDetail.svelte';
 
-	const { game, player, universe, settings, gotoTarget } = getGameContext();
+	const { game, player, universe, settings, gotoTarget, openMail } = getGameContext();
 
 	function selectMessage(message: PlayerMessage) {
 		gotoTarget(message, $game.id, $player.num, $universe);
@@ -23,6 +24,9 @@
 			} else {
 				return 'Battle';
 			}
+		}
+		if (message.type === PlayerMessageType.PLAYER_MAIL) {
+			return 'Reply';
 		}
 		if (message.type === PlayerMessageType.PLAYER_GAIN_TECH_LEVEL) {
 			return 'Research';
@@ -66,6 +70,9 @@
 <div class="w-full">
 	<div class="flex flex-row justify-between m-2">
 		<TableSearchInput bind:value={search} />
+		<button class="btn btn-sm btn-outline" onclick={() => openMail()} data-type="write-mail"
+			>Write Message</button
+		>
 		<div class="cs-form-control">
 			<label class="cs-form-label cursor-pointer">
 				<span class="cs-label-text mr-1">Show All Messages</span>
@@ -109,3 +116,5 @@
 		{/snippet}
 	</Table>
 </div>
+
+<MailDialog />

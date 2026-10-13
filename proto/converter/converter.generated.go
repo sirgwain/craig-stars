@@ -571,6 +571,29 @@ func (c *ProtoConverter) ConvertCSPlayerIntels(source []cs.PlayerIntel) []*v1.Pl
 	}
 	return pCraig_starsv1PlayerIntelList
 }
+func (c *ProtoConverter) ConvertCSPlayerMail(source *cs.PlayerMail) *v1.PlayerMail {
+	var pCraig_starsv1PlayerMail *v1.PlayerMail
+	if source != nil {
+		var craig_starsv1PlayerMail v1.PlayerMail
+		craig_starsv1PlayerMail.GameDbObject = CSGameDBObjectToGameDBObject((*source).GameDBObject)
+		craig_starsv1PlayerMail.Year = IntToInt32((*source).Year)
+		craig_starsv1PlayerMail.FromPlayerNum = IntToInt32((*source).FromPlayerNum)
+		craig_starsv1PlayerMail.ToPlayerNum = IntToInt32((*source).ToPlayerNum)
+		craig_starsv1PlayerMail.Text = (*source).Text
+		pCraig_starsv1PlayerMail = &craig_starsv1PlayerMail
+	}
+	return pCraig_starsv1PlayerMail
+}
+func (c *ProtoConverter) ConvertCSPlayerMails(source []*cs.PlayerMail) []*v1.PlayerMail {
+	var pCraig_starsv1PlayerMailList []*v1.PlayerMail
+	if source != nil {
+		pCraig_starsv1PlayerMailList = make([]*v1.PlayerMail, len(source))
+		for i := 0; i < len(source); i++ {
+			pCraig_starsv1PlayerMailList[i] = c.ConvertCSPlayerMail(source[i])
+		}
+	}
+	return pCraig_starsv1PlayerMailList
+}
 func (c *ProtoConverter) ConvertCSPlayerMessageSpecMysteryTrader(source *cs.PlayerMessageSpecMysteryTrader) *v1.PlayerMessageSpecMysteryTrader {
 	var pCraig_starsv1PlayerMessageSpecMysteryTrader *v1.PlayerMessageSpecMysteryTrader
 	if source != nil {
@@ -1823,6 +1846,19 @@ func (c *ProtoConverter) ConvertPlayer(source *v1.Player) *cs.Player {
 		pCsPlayer = &csPlayer
 	}
 	return pCsPlayer
+}
+func (c *ProtoConverter) ConvertPlayerMail(source *v1.PlayerMail) *cs.PlayerMail {
+	var pCsPlayerMail *cs.PlayerMail
+	if source != nil {
+		var csPlayerMail cs.PlayerMail
+		csPlayerMail.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
+		csPlayerMail.Year = Int32ToInt((*source).Year)
+		csPlayerMail.FromPlayerNum = Int32ToInt((*source).FromPlayerNum)
+		csPlayerMail.ToPlayerNum = Int32ToInt((*source).ToPlayerNum)
+		csPlayerMail.Text = (*source).Text
+		pCsPlayerMail = &csPlayerMail
+	}
+	return pCsPlayerMail
 }
 func (c *ProtoConverter) ConvertPlayerMessageSpecMysteryTrader(source *v1.PlayerMessageSpecMysteryTrader) *cs.PlayerMessageSpecMysteryTrader {
 	var pCsPlayerMessageSpecMysteryTrader *cs.PlayerMessageSpecMysteryTrader
