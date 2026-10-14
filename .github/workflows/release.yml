@@ -63,6 +63,17 @@ jobs:
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
 
+      # TinyGo recompiles the stdlib and deps on a cold cache, which is most of the WASM build time
+      - name: Get tinygo cache path
+        id: tinygoCache
+        run: echo "path=$(tinygo env GOCACHE)" >> $GITHUB_OUTPUT
+      - name: Cache tinygo build cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.tinygoCache.outputs.path }}
+          key: tinygo-${{ runner.os }}-${{ matrix.tinygo-version }}-${{ hashFiles('wasm/go.sum', 'cs/go.sum', 'proto-wasm/go.sum') }}
+          restore-keys: tinygo-${{ runner.os }}-${{ matrix.tinygo-version }}-
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
