@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/ai"
@@ -176,4 +177,48 @@ func Test_gameRunner_KickPlayer_keepsNumPlayers(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, game.NumPlayers)
 	assert.Equal(t, 0, game.OpenPlayerSlots)
+}
+
+// A host "generate now" racing the last submits shares the per game lock: no deadlock, no error,
+// and the game ends up waiting for players again.
+func Test_gameRunner_GenerateTurn_concurrentWithSubmits(t *testing.T) {
+	dbConn, cfg := connectSubmitTestDB(t)
+	gameID := hostTwoHumanGame(t, dbConn, cfg)
+	svc := NewPlayerServiceHandler(dbConn, cfg, newDiscordNotifier(dbConn, cfg)).(*playerService)
+	read := dbConn.NewReadClient()
+
+	for round := 0; round < 5; round++ {
+		before, err := read.GetGame(context.Background(), gameID)
+		require.NoError(t, err)
+
+		start := make(chan struct{})
+		errs := make([]error, 3)
+		var wg sync.WaitGroup
+		for i, num := range []int{1, 2} {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				<-start
+				errs[i] = submitAs(t, svc, dbConn, gameID, num)
+			}()
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			_, errs[2] = NewGameRunner(dbConn, cfg).GenerateTurn(gameID)
+		}()
+		close(start)
+		wg.Wait()
+		for _, err := range errs {
+			require.NoError(t, err)
+		}
+
+		after, err := read.GetGame(context.Background(), gameID)
+		require.NoError(t, err)
+		// the forced turn always happens; the submits may generate one more after it
+		require.GreaterOrEqual(t, after.Year, before.Year+1)
+		require.LessOrEqual(t, after.Year, before.Year+2)
+		require.Equal(t, cs.GameStateWaitingForPlayers, after.State)
+	}
 }
