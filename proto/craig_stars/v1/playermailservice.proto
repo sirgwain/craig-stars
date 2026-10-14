@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/playermail.proto";
+
+service PlayerMailService {
+  // GetPlayerMail returns the mail the player has written and the mail delivered to them
+  rpc GetPlayerMail(GetPlayerMailRequest) returns (GetPlayerMailResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // SavePlayerMail writes mail to another player, or changes mail that hasn't been delivered yet.
+  // Mail is delivered when the next turn is generated.
+  rpc SavePlayerMail(SavePlayerMailRequest) returns (SavePlayerMailResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+  // DeletePlayerMail deletes mail that hasn't been delivered yet
+  rpc DeletePlayerMail(DeletePlayerMailRequest) returns (DeletePlayerMailResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+}
+
+message GetPlayerMailRequest {
+  int64 game_id = 1;
+}
+
+message GetPlayerMailResponse {
+  repeated PlayerMail mail = 1;
+}
+
+message SavePlayerMailRequest {
+  int64 game_id = 1;
+  PlayerMail mail = 2;
+}
+
+message SavePlayerMailResponse {
+  PlayerMail mail = 1;
+}
+
+message DeletePlayerMailRequest {
+  int64 game_id = 1;
+  int64 mail_id = 2;
+}
+
+message DeletePlayerMailResponse {}

@@ -181,6 +181,19 @@ func (c *client) GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error
 		player.Designs = append(player.Designs, design)
 	}
 
+	// mail players wrote this year is delivered by the next turn generation
+	mail, err := c.GetPendingPlayerMailForGame(ctx, game.ID, game.Year)
+	if err != nil {
+		return nil, fmt.Errorf("load player mail for game: %w", err)
+	}
+	for _, m := range mail {
+		if m.FromPlayerNum < 1 || m.FromPlayerNum > len(players) {
+			continue
+		}
+		player := players[m.FromPlayerNum-1]
+		player.PendingMail = append(player.PendingMail, m)
+	}
+
 	universeLogger := slog.With(slog.Int64("GameID", game.ID), slog.String("GameName", game.Name))
 	universe := cs.NewUniverse(universeLogger, &game.Rules)
 

@@ -305,6 +305,17 @@ type Player struct {
 	Revision                     int64
 }
 
+type PlayerMail struct {
+	ID            int64
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	GameID        int64
+	Year          int64
+	FromPlayerNum int64
+	ToPlayerNum   int64
+	Text          string
+}
+
 type PlayerNote struct {
 	ID              int64
 	CreatedAt       time.Time

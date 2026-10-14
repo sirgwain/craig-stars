@@ -14,6 +14,8 @@ export * from '#lib/protogen/craig_stars/v1/mysterytrader_pb.js';
 export * from '#lib/protogen/craig_stars/v1/planet_pb.js';
 export * from '#lib/protogen/craig_stars/v1/planetservice_pb.js';
 export * from '#lib/protogen/craig_stars/v1/player_pb.js';
+export * from '#lib/protogen/craig_stars/v1/playermail_pb.js';
+export * from '#lib/protogen/craig_stars/v1/playermailservice_pb.js';
 export * from '#lib/protogen/craig_stars/v1/playernote_pb.js';
 export * from '#lib/protogen/craig_stars/v1/playernoteservice_pb.js';
 export * from '#lib/protogen/craig_stars/v1/playerservice_pb.js';

@@ -26,6 +26,7 @@ import {
 	type MineralPacket,
 	type Planet,
 	type Player,
+	type PlayerMail,
 	type PlayerMessage,
 	type PlayerNote,
 	type PlayerRelationship,
@@ -65,6 +66,7 @@ import {
 	minefieldClient,
 	planetClient,
 	playerClient,
+	playerMailClient,
 	playerNoteClient,
 	productionPlanClient,
 	shipDesignClient,
@@ -170,6 +172,15 @@ export type GameContext = {
 	cancelEditNote: () => void;
 	savePlayerNote: (note: PlayerNote) => Promise<void>;
 	deletePlayerNote: (note: PlayerNote) => Promise<void>;
+
+	// mail to other players
+	// who the mail dialog is writing to while it's open, 0 for everybody
+	mailTo: Readable<number | undefined>;
+	openMail: (toPlayerNum?: number) => void;
+	closeMail: () => void;
+	getPlayerMail: () => Promise<PlayerMail[]>;
+	savePlayerMail: (mail: PlayerMail) => Promise<PlayerMail>;
+	deletePlayerMail: (mail: PlayerMail) => Promise<void>;
 	transferCargo: (
 		fleet: CommandedFleet,
 		dest: CargoDest,
@@ -231,6 +242,7 @@ export async function createGameContext(
 
 	const zoomTarget = writable<MapObjectLike | undefined>();
 	const editingNote = writable<PlayerNote | undefined>();
+	const mailTo = writable<number | undefined>();
 
 	// Keep saves in order per fleet, while allowing local edits to draw immediately.
 	const fleetOrderSaves = new Map<string, Promise<void>>();
@@ -286,6 +298,7 @@ export async function createGameContext(
 		highlightedMapObjectPeers.set([]);
 		mostRecentMapObject.set(undefined);
 		editingNote.set(undefined);
+		mailTo.set(undefined);
 
 		const s = get(settings);
 		messageNum.set(getNextVisibleMessageNum(-1, false, p.messages, s));
@@ -374,6 +387,12 @@ export async function createGameContext(
 
 		if (message.battleNum) {
 			goto(`/games/${gameId}/battles/${message.battleNum}`);
+			return;
+		}
+
+		if (message.type === PlayerMessageType.PLAYER_MAIL) {
+			// reply to the player who wrote it
+			openMail(message.spec?.sourcePlayerNum);
 			return;
 		}
 
@@ -1401,6 +1420,33 @@ export async function createGameContext(
 		universe.set(u);
 	}
 
+	// open the mail dialog to write to a player, or to everybody
+	function openMail(toPlayerNum = 0) {
+		mailTo.set(toPlayerNum);
+	}
+
+	function closeMail() {
+		mailTo.set(undefined);
+	}
+
+	async function getPlayerMail(): Promise<PlayerMail[]> {
+		const { mail } = await playerMailClient.getPlayerMail({ gameId });
+		return mail;
+	}
+
+	async function savePlayerMail(mail: PlayerMail): Promise<PlayerMail> {
+		const { mail: saved } = await playerMailClient.savePlayerMail({ gameId, mail });
+		return saved ?? mail;
+	}
+
+	async function deletePlayerMail(mail: PlayerMail): Promise<void> {
+		const mailId = mail.gameDbObject?.id;
+		if (!mailId) {
+			return;
+		}
+		await playerMailClient.deletePlayerMail({ gameId, mailId });
+	}
+
 	async function updatePlanetOrders(planet: CommandedPlanet): Promise<void> {
 		const resp = await planetClient.updatePlanetOrders({
 			gameId,
@@ -1674,6 +1720,12 @@ export async function createGameContext(
 		cancelEditNote,
 		savePlayerNote,
 		deletePlayerNote,
+		mailTo,
+		openMail,
+		closeMail,
+		getPlayerMail,
+		savePlayerMail,
+		deletePlayerMail,
 		transferCargo,
 		split,
 		splitAll,

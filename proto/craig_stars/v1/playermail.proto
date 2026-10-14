@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+
+// A message one player writes to another player, or to everybody. Mail is delivered when the turn
+// for the year it was written in is generated.
+message PlayerMail {
+  GameDBObject game_db_object = 1;
+  int32 year = 2;
+  int32 from_player_num = 3;
+  // 0 sends the mail to every other player
+  int32 to_player_num = 4;
+  string text = 5;
+}

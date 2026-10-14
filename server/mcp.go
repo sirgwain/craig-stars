@@ -35,6 +35,7 @@ func (s *server) newMCPHandler() http.Handler {
 	craig_starsv1mcp.ForwardToConnectFleetServiceClient(runtimeServer, craig_starsv1connect.NewFleetServiceClient(client, baseURL, opts...))
 	craig_starsv1mcp.ForwardToConnectMinefieldServiceClient(runtimeServer, craig_starsv1connect.NewMinefieldServiceClient(client, baseURL, opts...))
 	craig_starsv1mcp.ForwardToConnectPlayerNoteServiceClient(runtimeServer, craig_starsv1connect.NewPlayerNoteServiceClient(client, baseURL, opts...))
+	craig_starsv1mcp.ForwardToConnectPlayerMailServiceClient(runtimeServer, craig_starsv1connect.NewPlayerMailServiceClient(client, baseURL, opts...))
 
 	return mcpserver.NewStreamableHTTPServer(raw,
 		mcpserver.WithEndpointPath("/api/mcp"),

@@ -17,6 +17,18 @@
 	{message.text}
 {:else if message.type === PlayerMessageType.ERROR}
 	Something went wrong on the server. Please contact the administrator, {message.spec?.error}
+{:else if message.type === PlayerMessageType.PLAYER_MAIL}
+	<!-- DestPlayerNum is 0 for mail sent to everybody. -->
+	<span class="font-semibold">
+		{#if message.spec?.sourcePlayerNum === $player.num}
+			<!-- mail a player wrote to themselves -->
+			Note:
+		{:else}
+			From the {$universe.getPlayerPluralName(message.spec?.sourcePlayerNum)}
+			{message.spec?.destPlayerNum ? 'to you' : 'to everybody'}:
+		{/if}
+	</span>
+	<span class="whitespace-pre-wrap">{message.spec?.note}</span>
 {:else if message.type === PlayerMessageType.PLAYER_DISCOVERY}
 	You have discovered a new species, the {message.spec?.name ||
 		$universe.getPlayerPluralName(message.target?.targetPlayerNum)}. You are not alone in this

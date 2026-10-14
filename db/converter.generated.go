@@ -794,6 +794,26 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) generated.Player {
 	}
 	return generatedPlayer
 }
+func (c *GameConverter) ConvertGamePlayerMailToCreateParams(source *cs.PlayerMail) generated.CreatePlayerMailParams {
+	var generatedCreatePlayerMailParams generated.CreatePlayerMailParams
+	if source != nil {
+		generatedCreatePlayerMailParams.GameID = (*source).GameDBObject.GameID
+		generatedCreatePlayerMailParams.Year = IntToInt64((*source).Year)
+		generatedCreatePlayerMailParams.FromPlayerNum = IntToInt64((*source).FromPlayerNum)
+		generatedCreatePlayerMailParams.ToPlayerNum = IntToInt64((*source).ToPlayerNum)
+		generatedCreatePlayerMailParams.Text = (*source).Text
+	}
+	return generatedCreatePlayerMailParams
+}
+func (c *GameConverter) ConvertGamePlayerMailToUpdateParams(source *cs.PlayerMail) generated.UpdatePlayerMailParams {
+	var generatedUpdatePlayerMailParams generated.UpdatePlayerMailParams
+	if source != nil {
+		generatedUpdatePlayerMailParams.ToPlayerNum = IntToInt64((*source).ToPlayerNum)
+		generatedUpdatePlayerMailParams.Text = (*source).Text
+		generatedUpdatePlayerMailParams.ID = (*source).GameDBObject.ID
+	}
+	return generatedUpdatePlayerMailParams
+}
 func (c *GameConverter) ConvertGamePlayerNoteToCreateParams(source *cs.PlayerNote) generated.CreatePlayerNoteParams {
 	var generatedCreatePlayerNoteParams generated.CreatePlayerNoteParams
 	if source != nil {
@@ -1561,6 +1581,25 @@ func (c *GameConverter) ConvertPlayer(source generated.Player) cs.Player {
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	return csPlayer
 }
+func (c *GameConverter) ConvertPlayerMail(source generated.PlayerMail) *cs.PlayerMail {
+	var csPlayerMail cs.PlayerMail
+	csPlayerMail.GameDBObject = c.generatedPlayerMailToCsGameDBObject(source)
+	csPlayerMail.Year = Int64ToInt(source.Year)
+	csPlayerMail.FromPlayerNum = Int64ToInt(source.FromPlayerNum)
+	csPlayerMail.ToPlayerNum = Int64ToInt(source.ToPlayerNum)
+	csPlayerMail.Text = source.Text
+	return &csPlayerMail
+}
+func (c *GameConverter) ConvertPlayerMails(source []generated.PlayerMail) []*cs.PlayerMail {
+	var pCsPlayerMailList []*cs.PlayerMail
+	if source != nil {
+		pCsPlayerMailList = make([]*cs.PlayerMail, len(source))
+		for i := 0; i < len(source); i++ {
+			pCsPlayerMailList[i] = c.ConvertPlayerMail(source[i])
+		}
+	}
+	return pCsPlayerMailList
+}
 func (c *GameConverter) ConvertPlayerNote(source generated.PlayerNote) *cs.PlayerNote {
 	var csPlayerNote cs.PlayerNote
 	csPlayerNote.GameDBObject = c.generatedPlayerNoteToCsGameDBObject(source)
@@ -1901,6 +1940,14 @@ func (c *GameConverter) generatedPlanetToCsPlanetOrders(source generated.Planet)
 	csPlanetOrders.PacketTargetNum = Int64ToInt(source.PacketTargetNum)
 	csPlanetOrders.PacketSpeed = Int64ToInt(source.PacketSpeed)
 	return csPlanetOrders
+}
+func (c *GameConverter) generatedPlayerMailToCsGameDBObject(source generated.PlayerMail) cs.GameDBObject {
+	var csGameDBObject cs.GameDBObject
+	csGameDBObject.ID = source.ID
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
+	return csGameDBObject
 }
 func (c *GameConverter) generatedPlayerNoteToCsGameDBObject(source generated.PlayerNote) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject

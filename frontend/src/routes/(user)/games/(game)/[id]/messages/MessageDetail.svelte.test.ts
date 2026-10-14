@@ -325,6 +325,34 @@ describe('player and legacy messages', () => {
 			.element(page.getByText('Please contact the administrator, Missing object', { exact: false }))
 			.toBeInTheDocument();
 	});
+	it.each([
+		[2, 'to you'],
+		[0, 'to everybody']
+	])('renders mail from another player sent to %s', async (destPlayerNum, to) => {
+		render(MessageDetail, {
+			message: create(PlayerMessageSchema, {
+				type: Type.PLAYER_MAIL,
+				target: { targetPlayerNum: 2 },
+				spec: { sourcePlayerNum: 2, destPlayerNum, note: 'truce?' }
+			})
+		});
+		await expect
+			.element(page.getByText(`From the Visitors ${to}:`, { exact: false }))
+			.toBeInTheDocument();
+		await expect.element(page.getByText('truce?')).toBeInTheDocument();
+	});
+	it('renders mail a player wrote to themselves as a note', async () => {
+		render(MessageDetail, {
+			message: create(PlayerMessageSchema, {
+				type: Type.PLAYER_MAIL,
+				target: { targetPlayerNum: 1 },
+				spec: { sourcePlayerNum: 1, destPlayerNum: 1, note: 'note to self' }
+			})
+		});
+		await expect.element(page.getByText('Note:', { exact: false })).toBeInTheDocument();
+		await expect.element(page.getByText('note to self')).toBeInTheDocument();
+		await expect.element(page.getByText('From the', { exact: false })).not.toBeInTheDocument();
+	});
 	it.each([1, 2])('renders victory for player %s', async (targetPlayerNum) => {
 		render(MessageDetail, {
 			message: create(PlayerMessageSchema, {
