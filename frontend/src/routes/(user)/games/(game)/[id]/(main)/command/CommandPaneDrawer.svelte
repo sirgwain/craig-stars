@@ -161,8 +161,10 @@
 	}
 </script>
 
+<!-- when open, sit above the header (z-50) so the backdrop catches taps meant to close the drawer
+ instead of them reaching the header's controls, like the menu, which opens on focus, not click -->
 <div
-	class="w-full desk:hidden phone-landscape:hidden select-none z-10"
+	class="w-full desk:hidden phone-landscape:hidden select-none {open ? 'z-60' : 'z-10'}"
 	data-type="command-drawer"
 	data-open={open}
 >
@@ -186,6 +188,10 @@
 					) {
 						return;
 					}
+					// a tap outside only closes the drawer, it shouldn't also hit what's underneath
+					// (i.e. the submit turn button)
+					event.preventDefault();
+					event.stopPropagation();
 					open = false;
 				}}
 				class="bg-base-200 border-t border-base-300 rounded-t-2xl h-[80dvh] shadow-lg relative z-5 p-4"

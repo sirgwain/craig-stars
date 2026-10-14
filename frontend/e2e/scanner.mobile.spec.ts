@@ -64,13 +64,18 @@ test('command drawer opens and closes', async ({ testGamePage }) => {
 	await toggleDrawer(page, false);
 	await expect(drawer(page).locator('#planet-production-tile')).toBeHidden();
 
-	// The header remains an easy outside target while the drawer is open.
+	// Tapping the header while the drawer is open only closes the drawer, it doesn't also
+	// open the menu under the tap. The backdrop covers the menu, so force the tap through.
+	const menu = page.locator('header label[for="menu"]');
+	const research = page.locator('header').getByRole('link', { name: 'Research', exact: true });
 	await toggleDrawer(page, true);
-	await page.locator('header label[for="menu"]').tap();
+	await menu.tap({ force: true });
 	await expect(drawer(page)).toHaveAttribute('data-open', 'false');
-	await expect(
-		page.locator('header').getByRole('link', { name: 'Research', exact: true })
-	).toBeVisible();
+	await expect(research).toBeHidden();
+
+	// with the drawer closed, the menu works again
+	await menu.tap();
+	await expect(research).toBeVisible();
 });
 
 /**
