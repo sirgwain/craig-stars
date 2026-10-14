@@ -88,33 +88,38 @@
 			>
 		</div>
 
-		<div class="flex flex-row items-center gap-1">
-			{@render phaseInput()}
-			<button
-				onclick={() => playback.nextAttack()}
-				disabled={atEnd}
-				class={`${btn} btn-outline`}
-				title="next attack"
-				>Next Attack<Icon
-					src={ArrowLongRight}
-					size="16"
-					class="hover:stroke-accent inline"
-				/></button
-			>
-		</div>
+		<!-- Flatten this group on desktop to preserve the existing control order and spacing. -->
+		<div
+			class="flex flex-row flex-wrap items-center justify-center gap-1 w-full order-1 desk:contents desk:order-0"
+		>
+			<div class="flex flex-row items-center gap-1">
+				{@render phaseInput()}
+				<button
+					onclick={() => playback.nextAttack()}
+					disabled={atEnd}
+					class={`${btn} btn-outline`}
+					title="next attack"
+					>Next Attack<Icon
+						src={ArrowLongRight}
+						size="16"
+						class="hover:stroke-accent inline"
+					/></button
+				>
+			</div>
 
-		<div class="flex flex-row items-center gap-1">
-			<div class="join" role="group" aria-label="playback speed">
-				{#each SPEEDS as speed (speed)}
-					<button
-						class="join-item btn btn-sm px-2 normal-case"
-						class:btn-secondary={playback.speed === speed}
-						class:btn-outline={playback.speed !== speed}
-						onclick={() => playback.setSpeed(speed)}
-						title={`playback speed ${speed}x`}
-						aria-pressed={playback.speed === speed}>{speed}x</button
-					>
-				{/each}
+			<div class="flex flex-row items-center gap-1">
+				<div class="join" role="group" aria-label="playback speed">
+					{#each SPEEDS as speed (speed)}
+						<button
+							class="join-item btn btn-sm px-2 normal-case"
+							class:btn-secondary={playback.speed === speed}
+							class:btn-outline={playback.speed !== speed}
+							onclick={() => playback.setSpeed(speed)}
+							title={`playback speed ${speed}x`}
+							aria-pressed={playback.speed === speed}>{speed}x</button
+						>
+					{/each}
+				</div>
 			</div>
 		</div>
 		<div class="flex flex-col gap-1">
