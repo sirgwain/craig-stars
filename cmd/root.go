@@ -20,16 +20,16 @@ var (
 )
 
 var logFile string
-var debugEnabled = true
+var debugEnabled bool
 var cliServer string
 var cliToken string
 var cliConfigPath string
 
 // prerun method for enabling slog logging
 func logPreRun(cmd *cobra.Command, args []string) error {
-	// pick level based on your flag/env/config
+	// pick level based on the debug flag
 	level := slog.LevelInfo
-	if debugEnabled { // e.g. from a flag
+	if debugEnabled {
 		level = slog.LevelDebug
 	}
 
@@ -106,6 +106,7 @@ func Execute() {
 
 func init() {
 	// all commands have debug mode
+	rootCmd.PersistentFlags().BoolVar(&debugEnabled, "debug", false, "enable debug logging")
 	rootCmd.PersistentFlags().StringVarP(&logFile, "log", "", "", "log file to send structured logs to")
 	rootCmd.PersistentFlags().StringVar(&cliServer, "server", "", "craig-stars server URL")
 	rootCmd.PersistentFlags().StringVar(&cliToken, "token", "", "craig-stars API bearer token")

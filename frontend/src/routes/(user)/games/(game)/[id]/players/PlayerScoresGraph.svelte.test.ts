@@ -41,11 +41,16 @@ it('lists each player in a legend and only counts whole starbases', async () => 
 	host.style.width = '600px';
 	host.style.height = '400px';
 	document.body.appendChild(host);
-	const { container } = render(PlayerScoresGraph, { type: 'starbases' }, { baseElement: host });
-	// the page gives the graph a fixed height
-	container.style.height = '400px';
-	container.style.padding = '20px 30px';
-	container.style.boxSizing = 'border-box';
+	// the page gives the graph a fixed height, so size it before mounting
+	const target = host.appendChild(document.createElement('div'));
+	target.style.height = '400px';
+	target.style.padding = '20px 30px';
+	target.style.boxSizing = 'border-box';
+	const { container } = render(
+		PlayerScoresGraph,
+		{ target, props: { type: 'starbases' } },
+		{ baseElement: host }
+	);
 	await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
 	const legend = [...container.querySelectorAll('[data-type="legend"] li')];
