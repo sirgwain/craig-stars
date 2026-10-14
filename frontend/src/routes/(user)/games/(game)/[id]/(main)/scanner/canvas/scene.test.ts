@@ -63,20 +63,22 @@ function buildOne(
 }
 
 describe('population view', () => {
-	// expected radii come from vrgPopRad in Stars!, which counts hundreds of colonists
+	// the radii at each threshold come from vrgPopRad in Stars!, which counts hundreds of colonists.
+	// Between thresholds the radius grows smoothly instead of stepping up a pixel.
 	it.each([
 		{ colonists: 0, radius: 2 },
-		{ colonists: 24, radius: 2 },
+		{ colonists: 12.5, radius: 2.5 },
 		{ colonists: 25, radius: 3 },
-		{ colonists: 2500, radius: 11 },
+		{ colonists: 2250, radius: 11 },
+		{ colonists: 2625, radius: 11.5 },
 		{ colonists: 25000, radius: 21 },
 		{ colonists: 100000, radius: 21 }
-	])('sizes a planet with $colonists kT of colonists like Stars!', ({ colonists, radius }) => {
+	])('sizes a planet with $colonists kT of colonists', ({ colonists, radius }) => {
 		const { draw } = buildOne(
 			{ mapObject: { num: 1, playerNum: 1 }, cargo: { colonists } },
 			PlanetViewState.Population
 		);
-		expect(draw.pop?.radius).toBe(radius);
+		expect(draw.pop?.radius).toBeCloseTo(radius);
 	});
 
 	it('colors planets by owner using CSS colors', () => {
@@ -223,24 +225,29 @@ describe('planet value view', () => {
 		return { value: draw.value, colors };
 	}
 
-	// expected radii come from the scanViewPlanetValue case in Stars! DrawScanner
+	// the smallest and largest radii, and the radii at each 11%, come from the scanViewPlanetValue
+	// case in Stars! DrawScanner. In between the radius grows smoothly.
 	it.each([
 		{ habitability: 100, outer: 10, inner: 8 },
-		{ habitability: 50, outer: 6, inner: 4 },
-		{ habitability: 10, outer: 2, inner: 1 },
-		{ habitability: 0, outer: 2, inner: 1 },
-		{ habitability: 33, outer: 5, inner: 3 }
-	])('sizes a $habitability% planet like Stars!', ({ habitability, outer, inner }) => {
+		{ habitability: 88, outer: 10, inner: 8 },
+		{ habitability: 55, outer: 7, inner: 5 },
+		{ habitability: 50, outer: 6.545, inner: 4.545 },
+		{ habitability: 33, outer: 5, inner: 3 },
+		{ habitability: 27.5, outer: 4.5, inner: 3 },
+		{ habitability: 11, outer: 3, inner: 2 },
+		{ habitability: 5.5, outer: 2.5, inner: 1.5 },
+		{ habitability: 0, outer: 2, inner: 1 }
+	])('sizes a $habitability% planet', ({ habitability, outer, inner }) => {
 		const { value, colors } = valueDraw(habitability, habitability);
-		expect(value?.outerRadius).toBe(outer);
-		expect(value?.innerRadius).toBe(inner);
+		expect(value?.outerRadius).toBeCloseTo(outer);
+		expect(value?.innerRadius).toBeCloseTo(inner);
 		expect(value?.inner).toBe(colors.planet.habitable);
 		expect(value?.outer).toBe(colors.planet.habitableRing);
 	});
 
 	it('shows the terraformed value in yellow when terraforming makes a planet habitable', () => {
-		const { value, colors } = valueDraw(-10, 30);
-		expect(value?.outerRadius).toBe(4);
+		const { value, colors } = valueDraw(-10, 33);
+		expect(value?.outerRadius).toBe(5);
 		expect(value?.innerRadius).toBe(3);
 		expect(value?.inner).toBe(colors.planet.terraformable);
 		expect(value?.outer).toBe(colors.planet.terraformableRing);
@@ -255,7 +262,7 @@ describe('planet value view', () => {
 	});
 
 	it('shows CA races the terraformed value in green', () => {
-		const { value, colors } = valueDraw(20, 80, Prt.CA);
+		const { value, colors } = valueDraw(20, 77, Prt.CA);
 		expect(value?.outerRadius).toBe(9);
 		expect(value?.inner).toBe(colors.planet.habitable);
 	});

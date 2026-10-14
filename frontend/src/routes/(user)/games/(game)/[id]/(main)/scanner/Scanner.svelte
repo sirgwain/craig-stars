@@ -83,9 +83,9 @@
 	// css pixels per light year, before zooming
 	let pixelsPerLightYear = $derived({ x: scaler.x(1) - scaler.x(0), y: scaler.y(1) - scaler.y(0) });
 
-	// our map scales for .75 to 10x, but the icons for the planets and fleets shrink below 2x
+	// our map scales for .75 to 15x, but the icons for the planets and fleets shrink below 2x
 	const minZoom = 0.75;
-	const maxZoom = 10;
+	const maxZoom = 15;
 	const minObjectZoom = 2;
 	let scale = $state(1.5); // default zoom
 
@@ -197,8 +197,9 @@
 		}
 	}
 
-	// the measuring tape is dragged out with the middle button, or the right button while shift is held.
-	// It measures from where the drag started to the pointer, snapping to mapobjects at either end
+	// the measuring tape is started with the middle button, or the right button while shift is held.
+	// It measures from the mapobject nearest the press to the pointer, until the right button is released.
+	// The end snaps to nearby mapobjects unless shift is held.
 	const tapeMinDistance = 3;
 	type Tape = { start: Vector; end: Vector; name: string };
 	let tapeStart: Vector | undefined;
@@ -402,10 +403,35 @@
 		return create(VectorSchema, { x: Number(snapped.x ?? 0), y: Number(snapped.y ?? 0) });
 	}
 
-	function tapeMove(position: Position, mo: MapObjectLike | undefined) {
+	// the tape always starts on a mapobject, however far the press was from one
+	function nearestMapObject(position: Position): MapObjectLike | undefined {
+		let nearest: MapObjectLike | undefined;
+		let nearestDistance = Infinity;
+		for (const mo of $data) {
+			const dx = Number(mo.mapObject?.position?.x ?? 0) - Number(position.x);
+			const dy = Number(mo.mapObject?.position?.y ?? 0) - Number(position.y);
+			const d = dx * dx + dy * dy;
+			if (d < nearestDistance) {
+				nearest = mo;
+				nearestDistance = d;
+			}
+		}
+		return nearest;
+	}
+
+	function tapeMove(position: Position, found: MapObjectLike | undefined, exact: boolean) {
 		if (!tapeStart) {
 			return;
 		}
+		// with shift held, only a mapobject right under the pointer counts
+		const mo =
+			exact &&
+			!equal(
+				found?.mapObject?.position ?? emptyVector(),
+				create(VectorSchema, { x: Number(position.x), y: Number(position.y) })
+			)
+				? undefined
+				: found;
 		const end = tapePosition(position, mo);
 		if (
 			!tape &&
@@ -427,7 +453,7 @@
 	function onContextMenu(e: FinderEvent) {
 		const { event, found } = e;
 
-		if (tapeContextMenu) {
+		if (tapeStart || tapeContextMenu) {
 			// this right click was the measuring tape
 			tapeContextMenu = false;
 			return;
@@ -451,7 +477,7 @@
 		highlightMapObject(found);
 
 		if (tapeStart) {
-			tapeMove(position, found);
+			tapeMove(position, found, event.shiftKey);
 			return;
 		}
 
@@ -513,10 +539,16 @@
 	async function onPointerDown(e: FinderEvent) {
 		const { event, found, position } = e;
 
+		if (tapeStart) {
+			// a middle button tape is still out, the right button puts it away
+			tapeContextMenu = event instanceof MouseEvent && event.button === 2;
+			return;
+		}
+
 		if (isTapeButton(event)) {
 			// the middle button would otherwise start scrolling the page
 			event.preventDefault();
-			tapeStart = tapePosition(position, found);
+			tapeStart = tapePosition(position, nearestMapObject(position));
 			tapeContextMenu = (event as PointerEvent).button === 2;
 			try {
 				// keep measuring if the pointer leaves the scanner
@@ -591,7 +623,10 @@
 		const { event, found, position } = e;
 
 		if (tapeStart) {
-			tapeDone();
+			// the tape stays out after the middle button lifts, until the right button is released
+			if (event instanceof MouseEvent && event.button === 2) {
+				tapeDone();
+			}
 			return;
 		}
 

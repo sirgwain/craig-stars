@@ -344,12 +344,29 @@ it('measures with the tape from a mapobject to the pointer', async () => {
 	expect(status()).toBeUndefined();
 	expect(onSelectMapObject).not.toHaveBeenCalled();
 
-	// the middle button measures too
+	// the middle button measures too, starting from the nearest mapobject
 	pointer('pointerdown', 40, 50, { button: 1 });
 	pointer('pointermove', 70, 90, {});
 	await tick();
-	expect(status()).toContain('50.00 light years');
+	expect(status()).toContain('100.00 light years');
+	// the tape stays out after the middle button lifts
 	pointer('pointerup', 70, 90, { button: 1 });
+	pointer('pointermove', 40, 50, {});
+	await tick();
+	expect(status()).toContain('50.00 light years');
+	// it snaps to a nearby mapobject, unless shift is held
+	pointer('pointermove', 12, 14, {});
+	await tick();
+	expect(status()).toContain('X: 10');
+	expect(status()).toContain('0.00 light years');
+	pointer('pointermove', 12, 14, { shiftKey: true });
+	await tick();
+	expect(status()).toContain('Deep Space');
+	expect(status()).toContain('X: 12');
+	// until the right button is released
+	pointer('pointerdown', 40, 50, { button: 2 });
+	pointer('pointerup', 40, 50, { button: 2 });
 	await tick();
 	expect(status()).toBeUndefined();
+	expect(onSelectMapObject).not.toHaveBeenCalled();
 });

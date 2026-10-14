@@ -3,6 +3,7 @@
 	import { None } from '#lib/types/Consts.js';
 	import { QuestionMarkCircle, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import ConfirmDialog from '../ConfirmDialog.svelte';
 	import TechAvatar from '../tech/TechAvatar.svelte';
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
@@ -14,17 +15,23 @@
 		href: string;
 		copyhref: string;
 		onDelete?: (design: ShipDesign) => Promise<void>;
+		// how many of this design are in production queues, they're removed along with the design
+		numQueued?: number;
 		// hide the delete/copy/edit actions
 		readOnly?: boolean;
 	};
 
-	let { design, href, copyhref, onDelete, readOnly = false }: Props = $props();
+	let { design, href, copyhref, onDelete, numQueued = 0, readOnly = false }: Props = $props();
 
-	async function deleteDesign(design: ShipDesign) {
-		if (confirm(`Are you sure you want to delete ${design.name}?`)) {
-			onDelete?.(design);
-		}
-	}
+	// deleting a design scraps everything built from it and removes it from every production queue,
+	// so that gets a louder confirmation
+	let numInstances = $derived(design.spec?.numInstances ?? 0);
+	const count = (num: number) =>
+		`${num} ${design.spec?.starbase ? 'starbase' : 'ship'}${num === 1 ? '' : 's'}`;
+	let instancesText = $derived(count(numInstances));
+	let queuedText = $derived(count(numQueued));
+	let destructive = $derived(numInstances > 0 || numQueued > 0);
+	let confirmingDelete = $state(false);
 </script>
 
 <div
@@ -83,7 +90,7 @@
 				{#if !design.cannotDelete && !readOnly}
 					<button
 						class="btn btn-outline btn-secondary joint-item"
-						onclick={() => deleteDesign(design)}
+						onclick={() => (confirmingDelete = true)}
 					>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
@@ -99,3 +106,30 @@
 		</div>
 	</div>
 </div>
+
+<ConfirmDialog
+	bind:show={confirmingDelete}
+	title={`Delete ${design.name}?`}
+	{destructive}
+	confirmText={numInstances > 0 ? `Delete design and ${instancesText}` : 'Delete design'}
+	onConfirm={() => onDelete?.(design)}
+>
+	{#if destructive}
+		<p>Deleting this design will also:</p>
+		<ul class="list-disc pl-6 py-2">
+			{#if numInstances > 0}
+				<li data-type="delete-design-instances">
+					destroy the <strong class="text-error">{instancesText}</strong> built from it
+				</li>
+			{/if}
+			{#if numQueued > 0}
+				<li data-type="delete-design-queued">
+					remove the <strong class="text-error">{queuedText}</strong> queued for production
+				</li>
+			{/if}
+		</ul>
+		<p>This cannot be undone.</p>
+	{:else}
+		<p>Are you sure you want to delete this design? It is currently unused.</p>
+	{/if}
+</ConfirmDialog>

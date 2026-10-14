@@ -191,26 +191,43 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
+	 * Get the years it takes to travel the single leg that ends at a waypoint.
+	 * @returns the years, or undefined if the leg is at warp 0 and the fleet never gets there
+	 */
+	getYearsForLeg(waypointIndex: number): number | undefined {
+		const waypoints = this.fleetOrders.waypoints;
+		if (waypointIndex < 1 || waypointIndex >= waypoints.length) {
+			return 0;
+		}
+		const warpSpeed = waypoints[waypointIndex].warpSpeed;
+		if (warpSpeed === 0) {
+			return undefined;
+		}
+		if (warpSpeed === StargateWarpSpeed) {
+			return 1;
+		}
+		const dist = Math.floor(
+			distance(
+				waypoints[waypointIndex - 1].position ?? emptyVector(),
+				waypoints[waypointIndex].position ?? emptyVector()
+			)
+		);
+		// even a leg shorter than a year of travel takes a year
+		return Math.max(1, Math.ceil(dist / (warpSpeed * warpSpeed)));
+	}
+
+	/**
 	 * Get the years it takes to reach a waypoint, travelling every leg before it.
 	 * @returns the years, or undefined if a leg is at warp 0 and the fleet never gets there
 	 */
 	getYearsToWaypoint(waypointIndex: number): number | undefined {
-		const waypoints = this.fleetOrders.waypoints;
 		let years = 0;
-		for (let i = 1; i <= waypointIndex && i < waypoints.length; i++) {
-			const warpSpeed = waypoints[i].warpSpeed;
-			if (warpSpeed === 0) {
+		for (let i = 1; i <= waypointIndex && i < this.fleetOrders.waypoints.length; i++) {
+			const legYears = this.getYearsForLeg(i);
+			if (legYears === undefined) {
 				return undefined;
 			}
-			if (warpSpeed === StargateWarpSpeed) {
-				years += 1;
-				continue;
-			}
-			const dist = Math.floor(
-				distance(waypoints[i - 1].position ?? emptyVector(), waypoints[i].position ?? emptyVector())
-			);
-			// even a leg shorter than a year of travel takes a year
-			years += Math.max(1, Math.ceil(dist / (warpSpeed * warpSpeed)));
+			years += legYears;
 		}
 		return years;
 	}

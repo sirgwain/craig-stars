@@ -63,7 +63,6 @@ export type ScannerFrame = {
 	wormholeLinks: WormholeLink[];
 	notes: NoteDraw[];
 	selectedMapObject: MapObjectLike | undefined;
-	highlightedMapObject: MapObjectLike | undefined;
 	commandedMapObject: MapObjectLike | undefined;
 	selectedWaypoint: Waypoint | undefined;
 	// the map object to show the locator X on, and how opaque it is
@@ -623,8 +622,10 @@ function smallPopulation(view: ScannerView) {
 	return view.len(1) < 2;
 }
 
+// zoomed out, Stars! halves the 2-21 pixel radius to 1-11 pixels. Radii aren't whole pixels here,
+// so scale between the same smallest and largest sizes.
 function populationRadius(view: ScannerView, pop: NonNullable<PlanetDraw['pop']>) {
-	return smallPopulation(view) ? (pop.radius + 1) >> 1 : pop.radius;
+	return smallPopulation(view) ? 1 + ((pop.radius - 2) * 10) / 19 : pop.radius;
 }
 
 function drawPopulation(
@@ -927,10 +928,12 @@ function drawSalvages(ctx: CanvasRenderingContext2D, view: ScannerView, frame: S
 }
 
 /**
- * Show planet names below each planet. If names are turned off, only show the name of the
- * planet under the mouse or the selected planet.
+ * Show planet names below each planet, if names are turned on.
  */
 function drawNames(ctx: CanvasRenderingContext2D, view: ScannerView, frame: ScannerFrame) {
+	if (!frame.settings.showNames) {
+		return;
+	}
 	const s = view.iconScale;
 	const selectedPlanet = selectedPlanetDraw(frame);
 	ctx.font = nameFont;
@@ -952,19 +955,7 @@ function drawNames(ctx: CanvasRenderingContext2D, view: ScannerView, frame: Scan
 		);
 	};
 
-	if (frame.settings.showNames) {
-		frame.planets.forEach(drawName);
-		return;
-	}
-
-	for (const mo of [frame.highlightedMapObject, frame.selectedMapObject]) {
-		if (mo?.mapObject?.type === MapObjectType.PLANET) {
-			const draw = frame.planetsByNum.get(mo.mapObject.num);
-			if (draw) {
-				drawName(draw);
-			}
-		}
-	}
+	frame.planets.forEach(drawName);
 }
 
 // the player's notes on planets go under the planet's name, labels are centered where they were placed
@@ -974,11 +965,6 @@ function drawNotes(ctx: CanvasRenderingContext2D, view: ScannerView, frame: Scan
 	}
 	const s = view.iconScale;
 	const selectedPlanet = selectedPlanetDraw(frame);
-	const named = (num: number) =>
-		frame.settings.showNames ||
-		[frame.highlightedMapObject, frame.selectedMapObject].some(
-			(mo) => mo?.mapObject?.type === MapObjectType.PLANET && mo.mapObject.num === num
-		);
 
 	ctx.font = noteFont;
 	ctx.textAlign = 'center';
@@ -1003,7 +989,7 @@ function drawNotes(ctx: CanvasRenderingContext2D, view: ScannerView, frame: Scan
 		}
 		// make room for the selection arrow and the planet's name
 		const arrow = draw === selectedPlanet ? selectionArrowHeight(s) + gap : 0;
-		const name = named(note.planetNum ?? 0) ? nameHeight : 0;
+		const name = frame.settings.showNames ? nameHeight : 0;
 		ctx.textBaseline = 'top';
 		ctx.fillText(note.text, x, p.y + planetExtents(draw, view).bottom + gap + arrow + name);
 	}

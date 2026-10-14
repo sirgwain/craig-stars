@@ -32,7 +32,6 @@
 		commandedPlanet,
 		commandedMapObject,
 		selectedMapObject,
-		highlightedMapObject,
 		selectedWaypoint
 	} = getGameContext();
 
@@ -114,7 +113,6 @@
 					wormholeLinks,
 					notes,
 					selectedMapObject: $selectedMapObject,
-					highlightedMapObject: $highlightedMapObject,
 					commandedMapObject: $commandedMapObject,
 					selectedWaypoint: $selectedWaypoint,
 					locator: undefined

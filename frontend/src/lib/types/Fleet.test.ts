@@ -209,6 +209,14 @@ describe('trip to a waypoint', () => {
 		expect(fleet.getYearsToWaypoint(4)).toBe(9); // a short hop still takes a year
 	});
 
+	it('knows the years of a single leg', () => {
+		expect(fleet.getYearsForLeg(0)).toBe(0);
+		expect(fleet.getYearsForLeg(1)).toBe(4);
+		expect(fleet.getYearsForLeg(2)).toBe(1);
+		expect(fleet.getYearsForLeg(3)).toBe(3);
+		expect(fleet.getYearsForLeg(4)).toBe(1); // 10 ly at warp 9, however long the trip before it
+	});
+
 	it('uses a stargate in a year and never arrives at warp 0', () => {
 		const gate = new CommandedFleet(
 			create(FleetSchema, {
@@ -217,5 +225,7 @@ describe('trip to a waypoint', () => {
 		);
 		expect(gate.getYearsToWaypoint(1)).toBe(1);
 		expect(gate.getYearsToWaypoint(2)).toBeUndefined();
+		expect(gate.getYearsForLeg(1)).toBe(1);
+		expect(gate.getYearsForLeg(2)).toBeUndefined();
 	});
 });

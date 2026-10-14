@@ -50,7 +50,6 @@ vi.mock('#lib/services/GameContext.js', async () => {
 		commandedPlanet: writable(undefined),
 		commandedMapObject: writable(undefined),
 		selectedMapObject: writable(minefields[1]),
-		highlightedMapObject: writable(undefined),
 		selectedWaypoint: writable(undefined)
 	};
 	state.redraw = () =>

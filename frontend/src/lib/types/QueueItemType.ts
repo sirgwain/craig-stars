@@ -1,6 +1,7 @@
 import type { DesignFinder } from '#lib/services/Universe.js';
 
 import { QueueItemType, type ProductionQueueItem } from '#lib/types/cs-proto.js';
+import { Infinite } from './Consts';
 import { enumToString } from './Enums';
 
 export const validQueueItemTypes = new Set([
@@ -151,4 +152,43 @@ export function getShortName(item: ProductionQueueItem, designFinder: DesignFind
 		default:
 			return `${enumToString(QueueItemType, item.type)}`;
 	}
+}
+
+// how long until an item is built, from the first of its quantity to the last
+export function getCompletionDescription(item: ProductionQueueItem): string {
+	const skipped =
+		isAuto(item.type) &&
+		item.queueItemCompletionEstimate?.yearsToBuildOne === Infinite &&
+		item.queueItemCompletionEstimate.yearsToBuildAll === Infinite;
+	if (skipped) {
+		return 'Skipped';
+	}
+
+	const yearsToBuildOne = item.queueItemCompletionEstimate?.yearsToBuildOne ?? 1;
+	const yearsToBuildAll = isAuto(item.type)
+		? item.queueItemCompletionEstimate?.yearsToSkipAuto
+		: item.queueItemCompletionEstimate?.yearsToBuildAll;
+	if (yearsToBuildOne === yearsToBuildAll) {
+		if (yearsToBuildAll == 1) {
+			return '1 year';
+		}
+		if (yearsToBuildAll === Infinite) {
+			return 'never';
+		}
+		return `${yearsToBuildAll} years`;
+	}
+	if (yearsToBuildAll && yearsToBuildOne != yearsToBuildAll) {
+		if (yearsToBuildAll === Infinite) {
+			return `${yearsToBuildOne} to ???`;
+		}
+		return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
+	}
+
+	if (yearsToBuildOne == 1) {
+		return '1 year';
+	}
+	if (yearsToBuildOne === Infinite) {
+		return 'never';
+	}
+	return `${yearsToBuildOne} years`;
 }

@@ -7,6 +7,7 @@
 	} from '#lib/services/Events.js';
 	import { getGameContext } from '#lib/services/GameContext.js';
 	import { getMapObjectName } from '#lib/types/MapObject.js';
+	import { getCompletionDescription, hasQuantity } from '#lib/types/QueueItemType.js';
 	import type { CommandedPlanet } from '#lib/types/Planet.js';
 	import { emptyVector } from '#lib/types/Vector.js';
 	import CommandTile from './CommandTile.svelte';
@@ -21,6 +22,18 @@
 
 	let { planet, onShowProductionQueueDialog, onClearProductionQueue }: Props = $props();
 	let queueItems: ProductionQueueItem[] | undefined = $derived(planet.planetOrders.productionQueue);
+
+	// clicking an item in the queue shows when it completes, clicking it again puts that away.
+	// The selection is for one planet, it doesn't carry over to the next one we command.
+	let selection = $state<{ planetNum: number; index: number }>();
+	let selectedIndex = $derived(
+		selection?.planetNum === planet.mapObject.num ? selection.index : -1
+	);
+	let selectedItem = $derived(queueItems?.[selectedIndex]);
+
+	function onQueueItemClicked(index: number) {
+		selection = index === selectedIndex ? undefined : { planetNum: planet.mapObject.num, index };
+	}
 
 	const clear = async () => {
 		if (confirm('Are you sure you want to clear the planet production queue?')) {
@@ -42,12 +55,20 @@
 								hasFollowingItem={index < queueItems.length - 1}
 								{index}
 								shortName={true}
+								selected={index === selectedIndex}
+								{onQueueItemClicked}
 							/>
 						</li>
 					{/each}
 				{/if}
 			</ul>
 		{/if}
+	</div>
+	<div class="flex justify-between mt-1" data-type="queue-item-completion">
+		<span class="shrink-0">Completion</span>
+		<span class="min-w-0 truncate pl-1">
+			{selectedItem && hasQuantity(selectedItem.type) ? getCompletionDescription(selectedItem) : ''}
+		</span>
 	</div>
 	{#if planet.planetOrders.routeTargetNum}
 		{@const routeDest = $universe.getMapObject(
