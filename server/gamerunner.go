@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/sirgwain/craig-stars/ai"
@@ -822,10 +823,49 @@ func (gr *gameRunner) SubmitTurn(gameID int64, playerNum int) error {
 	return nil
 }
 
+// turnLocks holds a *sync.Mutex per game id. CheckAndGenerateTurn and GenerateTurn hold it while they
+// check and generate, so turn generation for one game is serialized. Game runners are created per
+// request, so the locks live at package level.
+// TODO: this only serializes within one server process; scaling out needs a db-level guard.
+var turnLocks sync.Map
+
+// lockGameTurn locks turn generation for a game and returns the unlock function
+func lockGameTurn(gameID int64) func() {
+	m, _ := turnLocks.LoadOrStore(gameID, &sync.Mutex{})
+	mu := m.(*sync.Mutex)
+	mu.Lock()
+	return mu.Unlock
+}
+
 // CheckAndGenerateTurn check a game for every player submitted and generate a turn
+//
+// Every caller runs its own check: callers must commit their submit first and must not share or
+// skip this call (a singleflight here once let the last submitter join a check that had read the
+// players before its submit landed, so no turn was generated). The per game lock makes concurrent
+// checks run one after another, and each reads the players only after taking the lock, so the last
+// check sees every committed submit and exactly one of them generates the turn. A later check sees
+// the new turn's cleared flags and does nothing.
 func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error) {
 	defer timeTrack(time.Now(), "CheckAndGenerateTurn")
-	fullGame, err := gr.loadGame(gr.dbConn.NewReadClient(), gameID)
+	unlock := lockGameTurn(gameID)
+	defer unlock()
+
+	// cheap check on the light game before loading the whole universe
+	readClient := gr.dbConn.NewReadClient()
+	game, err := readClient.GetGame(gr.ctx, gameID)
+	if err != nil {
+		return TurnNotGenerated, fmt.Errorf("load game %d: %w", gameID, err)
+	}
+	if game == nil {
+		return TurnNotGenerated, fmt.Errorf("game %d: %w", gameID, errNotFound)
+	}
+	for _, player := range game.Players {
+		if !player.SubmittedTurn {
+			return TurnNotGenerated, nil
+		}
+	}
+
+	fullGame, err := gr.loadGame(readClient, gameID)
 
 	if err != nil {
 		return TurnNotGenerated, err
@@ -851,6 +891,8 @@ func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckRes
 // GenerateTurn generate a new turn, regardless of whether player's have all submitted their turns
 func (gr *gameRunner) GenerateTurn(gameID int64) (TurnGenerationCheckResult, error) {
 	defer timeTrack(time.Now(), "GenerateTurn")
+	unlock := lockGameTurn(gameID)
+	defer unlock()
 
 	readWriteClient := gr.dbConn.NewReadWriteClient()
 
