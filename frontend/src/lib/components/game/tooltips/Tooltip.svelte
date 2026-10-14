@@ -30,13 +30,15 @@
 
 	// update the position of the tooltip to optimal
 	async function updatePosition() {
-		if (!component?.classList.contains('block')) return;
+		// hold onto the element, it may be unmounted while we compute the position
+		const el = component;
+		if (!el?.classList.contains('block')) return;
 
 		const virtualElement: VirtualElement = {
 			getBoundingClientRect: () => new DOMRect($tooltipLocation.x, $tooltipLocation.y, 0, 0)
 		};
 
-		const { x, y } = await computePosition(virtualElement, component, {
+		const { x, y } = await computePosition(virtualElement, el, {
 			placement: 'right',
 			strategy: 'fixed',
 			middleware: [
@@ -53,18 +55,51 @@
 		});
 
 		// Floating UI defaults to transforms, but fixed + left/top is fine too.
-		component.style.position = 'fixed';
-		component.style.left = `${x}px`;
-		component.style.top = `${y}px`;
+		el.style.position = 'fixed';
+		el.style.left = `${x}px`;
+		el.style.top = `${y}px`;
 	}
 
-	// Close on pointer up (matches your current UX)
-	function onPointerUp() {
+	// set when a pointer goes down while the tooltip is already open, i.e. a tap to dismiss it
+	let dismissing = false;
+
+	function close() {
+		dismissing = false;
 		window.removeEventListener('pointerup', onPointerUp);
+		window.removeEventListener('pointerdown', onDismissPointerDown, true);
 		$tooltipComponent = undefined;
 		document.body.className = document.body.className
 			.replaceAll('select-none', '')
 			.replaceAll('touch-none', '');
+	}
+
+	function onDismissPointerDown() {
+		dismissing = true;
+	}
+
+	// Close on pointer up (matches your current UX)
+	function onPointerUp() {
+		if (dismissing) {
+			// The tooltip is hidden by the time the browser fires the click for this tap, so the
+			// click would land on whatever is underneath (i.e. the submit turn button). Swallow it.
+			suppressNextClick();
+		}
+		close();
+	}
+
+	function suppressNextClick() {
+		const onClick = (e: MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
+			cleanup();
+		};
+		const cleanup = () => {
+			window.removeEventListener('click', onClick, true);
+			clearTimeout(timeout);
+		};
+		// if no click follows (i.e. the pointer moved), stop waiting for one
+		const timeout = setTimeout(cleanup, 500);
+		window.addEventListener('click', onClick, true);
 	}
 
 	// When tooltip opens/closes, manage body classes + listeners
@@ -72,25 +107,29 @@
 		if ($tooltipComponent) {
 			document.body.className = document.body.className + ' select-none touch-none';
 			window.addEventListener('pointerup', onPointerUp);
+			// registered after the pointerdown that opened the tooltip has been dispatched,
+			// so only later pointers count as dismissing
+			window.addEventListener('pointerdown', onDismissPointerDown, true);
 			updatePosition();
 		} else {
 			window.removeEventListener('pointerup', onPointerUp);
+			window.removeEventListener('pointerdown', onDismissPointerDown, true);
 		}
 	});
 </script>
 
 <svelte:window
 	onkeyup={(e) => {
-		if ($tooltipComponent && (e.key === 'Enter' || e.key === ' ')) onPointerUp();
+		if ($tooltipComponent && (e.key === 'Enter' || e.key === ' ')) close();
 	}}
 	onkeydowncapture={(e) => {
 		if (!$tooltipComponent) return;
 		if (e.key === 'Escape') {
 			e.preventDefault();
 			e.stopPropagation();
-			onPointerUp();
+			close();
 		} else if (e.key === 'Tab') {
-			onPointerUp();
+			close();
 		}
 	}}
 />
