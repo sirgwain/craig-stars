@@ -332,6 +332,7 @@ func Start(config configpkg.Config) error {
 	r.Group(func(r chi.Router) {
 		r.Use(m.Trace)
 		r.Get("/api/oauth/authorize", server.apiOAuthAuthorizeHandler)
+		r.Post("/api/oauth/authorize", server.apiOAuthConsentHandler)
 	})
 	r.Post("/api/oauth/token", server.apiOAuthTokenHandler)
 	r.Get("/api/oauth/metadata", server.apiOAuthMetadataHandler)

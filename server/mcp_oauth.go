@@ -28,26 +28,26 @@ type mcpRegisteredClient struct {
 }
 
 // validateMCPRedirectURI bridges MCP dynamic client registrations with the
-// shared API OAuth flow. Unregistered native and CLI clients use safe local
-// callback validation.
-func (s *server) validateMCPRedirectURI(ctx context.Context, clientID, redirectURI string) (bool, error) {
+// shared API OAuth flow. It returns the registered client, if any. Unregistered
+// native and CLI clients use safe local callback validation.
+func (s *server) validateMCPRedirectURI(ctx context.Context, clientID, redirectURI string) (*cs.MCPOAuthClient, error) {
 	if clientID != "" {
 		client, err := s.db.NewReadClient().GetMCPOAuthClient(ctx, clientID)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		if client != nil {
 			ok, err := s.db.NewReadClient().HasMCPOAuthRedirectURI(ctx, clientID, redirectURI)
 			if err != nil {
-				return false, err
+				return nil, err
 			}
 			if ok {
-				return true, nil
+				return client, nil
 			}
-			return true, errors.New("redirect_uri not registered for client")
+			return client, errors.New("redirect_uri not registered for client")
 		}
 	}
-	return false, validateRedirectURI(redirectURI)
+	return nil, validateRedirectURI(redirectURI)
 }
 
 // mcpResourceMetadataHandler publishes protected resource metadata for the
