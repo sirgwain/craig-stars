@@ -85,5 +85,10 @@
 	"imports": {
 		"#lib": "./src/lib/index.js",
 		"#lib/*": "./src/lib/*"
+	},
+	"overrides": {
+		"@tailwindcss/typography": {
+			"postcss-selector-parser": "^7.1.6"
+		}
 	}
 }
