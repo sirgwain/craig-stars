@@ -120,6 +120,7 @@ func startOAuthConsent(t *testing.T, s *server, user token.User) string {
 	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
 	assert.Equal(t, "DENY", rec.Header().Get("X-Frame-Options"))
 	assert.Contains(t, rec.Header().Get("Content-Security-Policy"), "frame-ancestors 'none'")
+	assert.Contains(t, rec.Header().Get("Content-Security-Policy"), "form-action 'self' http://127.0.0.1:39123;")
 	assert.Empty(t, s.apiOAuth.codes, "authorize GET must not issue a code")
 	m := consentIDPattern.FindStringSubmatch(rec.Body.String())
 	require.Len(t, m, 2)

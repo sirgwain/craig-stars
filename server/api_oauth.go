@@ -145,7 +145,7 @@ func (s *server) apiOAuthAuthorizeHandler(w http.ResponseWriter, r *http.Request
 
 	// the consent page must never be framed, or a clickjacking page could trick
 	// the user into pressing Allow
-	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'")
+	w.Header().Set("Content-Security-Policy", consentContentSecurityPolicy(redirectURI))
 	w.Header().Set("X-Frame-Options", "DENY")
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
