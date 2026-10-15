@@ -34,6 +34,7 @@ vi.mock('#lib/services/GameContext.js', async () => {
 		player: writable({ num: 1, isFriend: () => false, isEnemy: () => true }),
 		universe: writable({
 			allMinefields: minefields,
+			getMapObjectsByPosition: () => [],
 			planets: [],
 			planetIntels: [],
 			fleets: [],
