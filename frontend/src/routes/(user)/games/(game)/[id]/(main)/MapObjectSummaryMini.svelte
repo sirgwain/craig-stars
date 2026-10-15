@@ -29,7 +29,10 @@
 		getUnderlyingMapObject(mapObject)
 	);
 
-	let playerFleet = $derived($universe.getMyFleet(fleet?.mapObject?.num));
+	// Fleet numbers are only unique within each player's fleets.
+	let playerFleet = $derived(
+		fleet && ownedBy(fleet, $player.num) ? $universe.getMyFleet(fleet.mapObject?.num) : undefined
+	);
 
 	// tapping the cargo or fuel bar opens the transfer dialog, like it does in the full summary
 	let transferFleet = $derived(playerFleet ? new CommandedFleet(playerFleet) : undefined);
