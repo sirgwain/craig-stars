@@ -10,6 +10,7 @@ import (
 
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_getScanners(t *testing.T) {
@@ -567,4 +568,26 @@ func Test_sharePlayerIntel(t *testing.T) {
 	// nobody shares with 3 or 4, so they learn nothing new
 	assert.Equal(t, []bool{false, false, true, true}, seen(3))
 	assert.Equal(t, []bool{false, false, false, true}, seen(4))
+}
+
+func Test_updateFleetTargetsAfterWormhole(t *testing.T) {
+	for _, atExit := range []bool{false, true} {
+		t.Run(map[bool]string{false: "keep return to entrance", true: "drop redundant exit"}[atExit], func(t *testing.T) {
+			player, fleet := wormholeRoute(t)
+			position := Vector{100, 100}
+			if atExit {
+				position = Vector{1000, 100}
+			}
+			// A lost fleet target becomes a position waypoint. It is redundant only at the exit.
+			fleet.Waypoints[2] = NewFleetWaypoint(position, 1, 2, "Lost fleet", 6)
+			scan := playerScanner{player: player, universe: &Universe{Fleets: []*Fleet{fleet}}}
+			scan.updateFleetTargets()
+			if atExit {
+				assert.Len(t, fleet.Waypoints, 2)
+			} else {
+				require.Len(t, fleet.Waypoints, 3)
+				assert.Equal(t, MapObjectTypeNone, fleet.Waypoints[2].TargetType)
+			}
+		})
+	}
 }
