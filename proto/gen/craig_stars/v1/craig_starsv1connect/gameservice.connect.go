@@ -90,6 +90,8 @@ type GameServiceClient interface {
 	LeaveGame(context.Context, *connect.Request[v1.LeaveGameRequest]) (*connect.Response[v1.LeaveGameResponse], error)
 	StartGame(context.Context, *connect.Request[v1.StartGameRequest]) (*connect.Response[v1.StartGameResponse], error)
 	UnarchiveGame(context.Context, *connect.Request[v1.UnarchiveGameRequest]) (*connect.Response[v1.UnarchiveGameResponse], error)
+	// Update setup settings, or selected settings in a running single-player game.
+	// Only the host may update a game. Running games must be waiting for players.
 	UpdateGame(context.Context, *connect.Request[v1.UpdateGameRequest]) (*connect.Response[v1.UpdateGameResponse], error)
 }
 
@@ -327,6 +329,8 @@ type GameServiceHandler interface {
 	LeaveGame(context.Context, *connect.Request[v1.LeaveGameRequest]) (*connect.Response[v1.LeaveGameResponse], error)
 	StartGame(context.Context, *connect.Request[v1.StartGameRequest]) (*connect.Response[v1.StartGameResponse], error)
 	UnarchiveGame(context.Context, *connect.Request[v1.UnarchiveGameRequest]) (*connect.Response[v1.UnarchiveGameResponse], error)
+	// Update setup settings, or selected settings in a running single-player game.
+	// Only the host may update a game. Running games must be waiting for players.
 	UpdateGame(context.Context, *connect.Request[v1.UpdateGameRequest]) (*connect.Response[v1.UpdateGameResponse], error)
 }
 

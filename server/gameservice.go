@@ -131,28 +131,27 @@ func (s *gameService) UpdateGame(ctx context.Context, req *connect.Request[craig
 	user := contextUserSession(ctx)
 	game := contextGame(ctx)
 
-	if game.State != cs.GameStateSetup {
-		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("game cannot be updated after setup"))
-	}
-
 	if game.HostID != user.ID {
 		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("user is not the host"))
 	}
 
-	// Update game settings from proto request
-	game.Name = req.Msg.Settings.Name
-	game.Public = req.Msg.Settings.Public
-	game.Size = converter.SizeToCSSize(req.Msg.Settings.Size)
-	game.Density = converter.DensityToCSDensity(req.Msg.Settings.Density)
-	game.PlayerPositions = converter.PlayerPositionsToCSPlayerPositions(req.Msg.Settings.PlayerPositions)
-	game.RandomEvents = req.Msg.Settings.RandomEvents
-	game.ComputerPlayersFormAlliances = req.Msg.Settings.ComputerPlayersFormAlliances
-	game.PublicPlayerScores = req.Msg.Settings.PublicPlayerScores
-	game.MaxMinerals = req.Msg.Settings.MaxMinerals
-	game.GalaxyClumping = req.Msg.Settings.GalaxyClumping
-	game.StartMode = converter.GameStartModeToCSGameStartMode(req.Msg.Settings.StartMode)
-	game.QuickStartTurns = int(req.Msg.Settings.QuickStartTurns)
-	game.VictoryConditions = converter.C.ConvertVictoryConditions(req.Msg.Settings.VictoryConditions)
+	// Serialize settings changes with turn generation, then reload: the game in
+	// the request context may predate another update or a newly generated turn.
+	unlock := lockGameTurn(game.ID)
+	defer unlock()
+	game, err := dbClient.GetGame(ctx, game.ID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to load game: %w", err))
+	}
+	if game == nil {
+		return nil, connect.NewError(connect.CodeNotFound, errors.New("game not found"))
+	}
+	if game.HostID != user.ID {
+		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("user is not the host"))
+	}
+	if err := applyGameSettingsUpdate(game, req.Msg); err != nil {
+		return nil, err
+	}
 
 	if err := dbWriteClient.SaveGame(ctx, &game.Game); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update game: %w", err))
@@ -167,6 +166,78 @@ func (s *gameService) UpdateGame(ctx context.Context, req *connect.Request[craig
 	return connect.NewResponse(&craig_starsv1.UpdateGameResponse{
 		Game: converter.C.ConvertCSGameWithPlayers(updatedGame),
 	}), nil
+}
+
+// applyGameSettingsUpdate validates the entire update before changing any fields.
+// A missing mask preserves full replacement during setup; running games require
+// an explicit mask so omitted booleans cannot silently reset other settings.
+func applyGameSettingsUpdate(game *cs.GameWithPlayers, req *craig_starsv1.UpdateGameRequest) error {
+	setup := game.State == cs.GameStateSetup
+	if !setup && (game.State != cs.GameStateWaitingForPlayers || !game.IsSinglePlayer()) {
+		return connect.NewError(connect.CodeFailedPrecondition, errors.New("only single-player games waiting for players can be updated after setup"))
+	}
+	if req.Settings == nil {
+		return connect.NewError(connect.CodeInvalidArgument, errors.New("settings are required"))
+	}
+	paths := req.GetUpdateMask().GetPaths()
+	if len(paths) == 0 {
+		if !setup {
+			return connect.NewError(connect.CodeInvalidArgument, errors.New("update_mask is required after setup"))
+		}
+		paths = []string{
+			"name", "public", "size", "density", "player_positions", "random_events",
+			"computer_players_form_alliances", "public_player_scores", "max_minerals",
+			"galaxy_clumping", "start_mode", "quick_start_turns", "victory_conditions",
+		}
+	}
+	for _, path := range paths {
+		switch path {
+		case "name", "public_player_scores", "random_events", "victory_conditions":
+		case "public", "size", "density", "player_positions", "computer_players_form_alliances",
+			"max_minerals", "galaxy_clumping", "start_mode", "quick_start_turns":
+			if !setup {
+				return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("setting %q cannot be updated after setup", path))
+			}
+		default:
+			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("unsupported update_mask path %q", path))
+		}
+		if !setup && path == "victory_conditions" && game.VictorDeclared {
+			return connect.NewError(connect.CodeFailedPrecondition, errors.New("victory conditions cannot be updated after a victor is declared"))
+		}
+	}
+
+	settings := converter.C.ConvertGameSettings(req.Settings)
+	for _, path := range paths {
+		switch path {
+		case "name":
+			game.Name = settings.Name
+		case "public":
+			game.Public = settings.Public
+		case "size":
+			game.Size = settings.Size
+		case "density":
+			game.Density = settings.Density
+		case "player_positions":
+			game.PlayerPositions = settings.PlayerPositions
+		case "random_events":
+			game.RandomEvents = settings.RandomEvents
+		case "computer_players_form_alliances":
+			game.ComputerPlayersFormAlliances = settings.ComputerPlayersFormAlliances
+		case "public_player_scores":
+			game.PublicPlayerScores = settings.PublicPlayerScores
+		case "max_minerals":
+			game.MaxMinerals = settings.MaxMinerals
+		case "galaxy_clumping":
+			game.GalaxyClumping = settings.GalaxyClumping
+		case "start_mode":
+			game.StartMode = settings.StartMode
+		case "quick_start_turns":
+			game.QuickStartTurns = settings.QuickStartTurns
+		case "victory_conditions":
+			game.VictoryConditions = settings.VictoryConditions
+		}
+	}
+	return nil
 }
 
 // JoinGame implements craig_starsv1connect.GameServiceHandler.
