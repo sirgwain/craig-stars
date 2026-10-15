@@ -5,6 +5,7 @@ package craig_stars.v1;
 import "craig_stars/v1/common.proto";
 import "craig_stars/v1/game.proto";
 import "craig_stars/v1/race.proto";
+import "google/protobuf/field_mask.proto";
 
 service GameService {
   rpc AddPlayer(AddPlayerRequest) returns (AddPlayerResponse);
@@ -34,6 +35,8 @@ service GameService {
   rpc UnarchiveGame(UnarchiveGameRequest) returns (UnarchiveGameResponse) {
     option idempotency_level = IDEMPOTENT;
   }
+  // Update setup settings, or selected settings in a running single-player game.
+  // Only the host may update a game. Running games must be waiting for players.
   rpc UpdateGame(UpdateGameRequest) returns (UpdateGameResponse) {
     option idempotency_level = IDEMPOTENT;
   }
@@ -167,6 +170,13 @@ message UnarchiveGameResponse {
 message UpdateGameRequest {
   int64 game_id = 1;
   GameSettings settings = 2;
+  // Top-level GameSettings fields to replace, including explicit false/zero values.
+  // Omit during setup to retain the existing full-settings replacement behavior.
+  // Required after setup; only name, public_player_scores, random_events, and
+  // victory_conditions are editable in single-player games. Victory conditions
+  // cannot change after a victor is declared. Replace victory_conditions as a
+  // whole message; nested paths, players, and wildcard paths are not supported.
+  google.protobuf.FieldMask update_mask = 3;
 }
 
 message UpdateGameResponse {

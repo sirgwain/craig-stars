@@ -13,6 +13,7 @@ import (
 
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 const (
@@ -1435,9 +1436,16 @@ func (x *UnarchiveGameResponse) GetGame() *GameWithPlayers {
 }
 
 type UpdateGameRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	GameId        int64                  `protobuf:"varint,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
-	Settings      *GameSettings          `protobuf:"bytes,2,opt,name=settings,proto3" json:"settings,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	GameId   int64                  `protobuf:"varint,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
+	Settings *GameSettings          `protobuf:"bytes,2,opt,name=settings,proto3" json:"settings,omitempty"`
+	// Top-level GameSettings fields to replace, including explicit false/zero values.
+	// Omit during setup to retain the existing full-settings replacement behavior.
+	// Required after setup; only name, public_player_scores, random_events, and
+	// victory_conditions are editable in single-player games. Victory conditions
+	// cannot change after a victor is declared. Replace victory_conditions as a
+	// whole message; nested paths, players, and wildcard paths are not supported.
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1482,6 +1490,13 @@ func (x *UpdateGameRequest) GetGameId() int64 {
 func (x *UpdateGameRequest) GetSettings() *GameSettings {
 	if x != nil {
 		return x.Settings
+	}
+	return nil
+}
+
+func (x *UpdateGameRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.UpdateMask
 	}
 	return nil
 }
@@ -1534,7 +1549,7 @@ var File_craig_stars_v1_gameservice_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_gameservice_proto_rawDesc = "" +
 	"\n" +
-	" craig_stars/v1/gameservice.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x19craig_stars/v1/game.proto\x1a\x19craig_stars/v1/race.proto\"h\n" +
+	" craig_stars/v1/gameservice.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x19craig_stars/v1/game.proto\x1a\x19craig_stars/v1/race.proto\x1a google/protobuf/field_mask.proto\"h\n" +
 	"\x10AddPlayerRequest\x12\x17\n" +
 	"\agame_id\x18\x01 \x01(\x03R\x06gameId\x12;\n" +
 	"\vplayer_type\x18\x02 \x01(\x0e2\x1a.craig_stars.v1.PlayerTypeR\n" +
@@ -1607,10 +1622,12 @@ const file_craig_stars_v1_gameservice_proto_rawDesc = "" +
 	"\x14UnarchiveGameRequest\x12\x17\n" +
 	"\agame_id\x18\x01 \x01(\x03R\x06gameId\"L\n" +
 	"\x15UnarchiveGameResponse\x123\n" +
-	"\x04game\x18\x01 \x01(\v2\x1f.craig_stars.v1.GameWithPlayersR\x04game\"f\n" +
+	"\x04game\x18\x01 \x01(\v2\x1f.craig_stars.v1.GameWithPlayersR\x04game\"\xa3\x01\n" +
 	"\x11UpdateGameRequest\x12\x17\n" +
 	"\agame_id\x18\x01 \x01(\x03R\x06gameId\x128\n" +
-	"\bsettings\x18\x02 \x01(\v2\x1c.craig_stars.v1.GameSettingsR\bsettings\"I\n" +
+	"\bsettings\x18\x02 \x01(\v2\x1c.craig_stars.v1.GameSettingsR\bsettings\x12;\n" +
+	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
+	"updateMask\"I\n" +
 	"\x12UpdateGameResponse\x123\n" +
 	"\x04game\x18\x01 \x01(\v2\x1f.craig_stars.v1.GameWithPlayersR\x04game2\xb6\v\n" +
 	"\vGameService\x12P\n" +
@@ -1687,6 +1704,7 @@ var file_craig_stars_v1_gameservice_proto_goTypes = []any{
 	(*GameWithPlayers)(nil),             // 34: craig_stars.v1.GameWithPlayers
 	(*GameSettings)(nil),                // 35: craig_stars.v1.GameSettings
 	(*Race)(nil),                        // 36: craig_stars.v1.Race
+	(*fieldmaskpb.FieldMask)(nil),       // 37: google.protobuf.FieldMask
 }
 var file_craig_stars_v1_gameservice_proto_depIdxs = []int32{
 	33, // 0: craig_stars.v1.AddPlayerRequest.player_type:type_name -> craig_stars.v1.PlayerType
@@ -1704,44 +1722,45 @@ var file_craig_stars_v1_gameservice_proto_depIdxs = []int32{
 	34, // 12: craig_stars.v1.KickPlayerResponse.game:type_name -> craig_stars.v1.GameWithPlayers
 	34, // 13: craig_stars.v1.UnarchiveGameResponse.game:type_name -> craig_stars.v1.GameWithPlayers
 	35, // 14: craig_stars.v1.UpdateGameRequest.settings:type_name -> craig_stars.v1.GameSettings
-	34, // 15: craig_stars.v1.UpdateGameResponse.game:type_name -> craig_stars.v1.GameWithPlayers
-	0,  // 16: craig_stars.v1.GameService.AddPlayer:input_type -> craig_stars.v1.AddPlayerRequest
-	2,  // 17: craig_stars.v1.GameService.ArchiveGame:input_type -> craig_stars.v1.ArchiveGameRequest
-	4,  // 18: craig_stars.v1.GameService.CreateGame:input_type -> craig_stars.v1.CreateGameRequest
-	6,  // 19: craig_stars.v1.GameService.DeleteGame:input_type -> craig_stars.v1.DeleteGameRequest
-	8,  // 20: craig_stars.v1.GameService.DeletePlayerSlot:input_type -> craig_stars.v1.DeletePlayerSlotRequest
-	10, // 21: craig_stars.v1.GameService.ForceGenerateTurn:input_type -> craig_stars.v1.ForceGenerateTurnRequest
-	14, // 22: craig_stars.v1.GameService.GetGame:input_type -> craig_stars.v1.GetGameRequest
-	12, // 23: craig_stars.v1.GameService.GetGameByInviteHash:input_type -> craig_stars.v1.GetGameByInviteHashRequest
-	16, // 24: craig_stars.v1.GameService.GetGames:input_type -> craig_stars.v1.GetGamesRequest
-	18, // 25: craig_stars.v1.GameService.GetGuestUser:input_type -> craig_stars.v1.GetGuestUserRequest
-	21, // 26: craig_stars.v1.GameService.JoinGame:input_type -> craig_stars.v1.JoinGameRequest
-	23, // 27: craig_stars.v1.GameService.KickPlayer:input_type -> craig_stars.v1.KickPlayerRequest
-	25, // 28: craig_stars.v1.GameService.LeaveGame:input_type -> craig_stars.v1.LeaveGameRequest
-	27, // 29: craig_stars.v1.GameService.StartGame:input_type -> craig_stars.v1.StartGameRequest
-	29, // 30: craig_stars.v1.GameService.UnarchiveGame:input_type -> craig_stars.v1.UnarchiveGameRequest
-	31, // 31: craig_stars.v1.GameService.UpdateGame:input_type -> craig_stars.v1.UpdateGameRequest
-	1,  // 32: craig_stars.v1.GameService.AddPlayer:output_type -> craig_stars.v1.AddPlayerResponse
-	3,  // 33: craig_stars.v1.GameService.ArchiveGame:output_type -> craig_stars.v1.ArchiveGameResponse
-	5,  // 34: craig_stars.v1.GameService.CreateGame:output_type -> craig_stars.v1.CreateGameResponse
-	7,  // 35: craig_stars.v1.GameService.DeleteGame:output_type -> craig_stars.v1.DeleteGameResponse
-	9,  // 36: craig_stars.v1.GameService.DeletePlayerSlot:output_type -> craig_stars.v1.DeletePlayerSlotResponse
-	11, // 37: craig_stars.v1.GameService.ForceGenerateTurn:output_type -> craig_stars.v1.ForceGenerateTurnResponse
-	15, // 38: craig_stars.v1.GameService.GetGame:output_type -> craig_stars.v1.GetGameResponse
-	13, // 39: craig_stars.v1.GameService.GetGameByInviteHash:output_type -> craig_stars.v1.GetGameByInviteHashResponse
-	17, // 40: craig_stars.v1.GameService.GetGames:output_type -> craig_stars.v1.GetGamesResponse
-	19, // 41: craig_stars.v1.GameService.GetGuestUser:output_type -> craig_stars.v1.GetGuestUserResponse
-	22, // 42: craig_stars.v1.GameService.JoinGame:output_type -> craig_stars.v1.JoinGameResponse
-	24, // 43: craig_stars.v1.GameService.KickPlayer:output_type -> craig_stars.v1.KickPlayerResponse
-	26, // 44: craig_stars.v1.GameService.LeaveGame:output_type -> craig_stars.v1.LeaveGameResponse
-	28, // 45: craig_stars.v1.GameService.StartGame:output_type -> craig_stars.v1.StartGameResponse
-	30, // 46: craig_stars.v1.GameService.UnarchiveGame:output_type -> craig_stars.v1.UnarchiveGameResponse
-	32, // 47: craig_stars.v1.GameService.UpdateGame:output_type -> craig_stars.v1.UpdateGameResponse
-	32, // [32:48] is the sub-list for method output_type
-	16, // [16:32] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	37, // 15: craig_stars.v1.UpdateGameRequest.update_mask:type_name -> google.protobuf.FieldMask
+	34, // 16: craig_stars.v1.UpdateGameResponse.game:type_name -> craig_stars.v1.GameWithPlayers
+	0,  // 17: craig_stars.v1.GameService.AddPlayer:input_type -> craig_stars.v1.AddPlayerRequest
+	2,  // 18: craig_stars.v1.GameService.ArchiveGame:input_type -> craig_stars.v1.ArchiveGameRequest
+	4,  // 19: craig_stars.v1.GameService.CreateGame:input_type -> craig_stars.v1.CreateGameRequest
+	6,  // 20: craig_stars.v1.GameService.DeleteGame:input_type -> craig_stars.v1.DeleteGameRequest
+	8,  // 21: craig_stars.v1.GameService.DeletePlayerSlot:input_type -> craig_stars.v1.DeletePlayerSlotRequest
+	10, // 22: craig_stars.v1.GameService.ForceGenerateTurn:input_type -> craig_stars.v1.ForceGenerateTurnRequest
+	14, // 23: craig_stars.v1.GameService.GetGame:input_type -> craig_stars.v1.GetGameRequest
+	12, // 24: craig_stars.v1.GameService.GetGameByInviteHash:input_type -> craig_stars.v1.GetGameByInviteHashRequest
+	16, // 25: craig_stars.v1.GameService.GetGames:input_type -> craig_stars.v1.GetGamesRequest
+	18, // 26: craig_stars.v1.GameService.GetGuestUser:input_type -> craig_stars.v1.GetGuestUserRequest
+	21, // 27: craig_stars.v1.GameService.JoinGame:input_type -> craig_stars.v1.JoinGameRequest
+	23, // 28: craig_stars.v1.GameService.KickPlayer:input_type -> craig_stars.v1.KickPlayerRequest
+	25, // 29: craig_stars.v1.GameService.LeaveGame:input_type -> craig_stars.v1.LeaveGameRequest
+	27, // 30: craig_stars.v1.GameService.StartGame:input_type -> craig_stars.v1.StartGameRequest
+	29, // 31: craig_stars.v1.GameService.UnarchiveGame:input_type -> craig_stars.v1.UnarchiveGameRequest
+	31, // 32: craig_stars.v1.GameService.UpdateGame:input_type -> craig_stars.v1.UpdateGameRequest
+	1,  // 33: craig_stars.v1.GameService.AddPlayer:output_type -> craig_stars.v1.AddPlayerResponse
+	3,  // 34: craig_stars.v1.GameService.ArchiveGame:output_type -> craig_stars.v1.ArchiveGameResponse
+	5,  // 35: craig_stars.v1.GameService.CreateGame:output_type -> craig_stars.v1.CreateGameResponse
+	7,  // 36: craig_stars.v1.GameService.DeleteGame:output_type -> craig_stars.v1.DeleteGameResponse
+	9,  // 37: craig_stars.v1.GameService.DeletePlayerSlot:output_type -> craig_stars.v1.DeletePlayerSlotResponse
+	11, // 38: craig_stars.v1.GameService.ForceGenerateTurn:output_type -> craig_stars.v1.ForceGenerateTurnResponse
+	15, // 39: craig_stars.v1.GameService.GetGame:output_type -> craig_stars.v1.GetGameResponse
+	13, // 40: craig_stars.v1.GameService.GetGameByInviteHash:output_type -> craig_stars.v1.GetGameByInviteHashResponse
+	17, // 41: craig_stars.v1.GameService.GetGames:output_type -> craig_stars.v1.GetGamesResponse
+	19, // 42: craig_stars.v1.GameService.GetGuestUser:output_type -> craig_stars.v1.GetGuestUserResponse
+	22, // 43: craig_stars.v1.GameService.JoinGame:output_type -> craig_stars.v1.JoinGameResponse
+	24, // 44: craig_stars.v1.GameService.KickPlayer:output_type -> craig_stars.v1.KickPlayerResponse
+	26, // 45: craig_stars.v1.GameService.LeaveGame:output_type -> craig_stars.v1.LeaveGameResponse
+	28, // 46: craig_stars.v1.GameService.StartGame:output_type -> craig_stars.v1.StartGameResponse
+	30, // 47: craig_stars.v1.GameService.UnarchiveGame:output_type -> craig_stars.v1.UnarchiveGameResponse
+	32, // 48: craig_stars.v1.GameService.UpdateGame:output_type -> craig_stars.v1.UpdateGameResponse
+	33, // [33:49] is the sub-list for method output_type
+	17, // [17:33] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_gameservice_proto_init() }

@@ -9,7 +9,9 @@ import (
 	io "io"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
+	fieldmaskpb "github.com/planetscale/vtprotobuf/types/known/fieldmaskpb"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	fieldmaskpb1 "google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 const (
@@ -1337,6 +1339,16 @@ func (m *UpdateGameRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.UpdateMask != nil {
+		size, err := (*fieldmaskpb.FieldMask)(m.UpdateMask).MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if m.Settings != nil {
 		size, err := m.Settings.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -1849,6 +1861,10 @@ func (m *UpdateGameRequest) SizeVT() (n int) {
 	}
 	if m.Settings != nil {
 		l = m.Settings.SizeVT()
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.UpdateMask != nil {
+		l = (*fieldmaskpb.FieldMask)(m.UpdateMask).SizeVT()
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	n += len(m.unknownFields)
@@ -4506,6 +4522,42 @@ func (m *UpdateGameRequest) UnmarshalVT(dAtA []byte) error {
 				m.Settings = &GameSettings{}
 			}
 			if err := m.Settings.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateMask", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UpdateMask == nil {
+				m.UpdateMask = &fieldmaskpb1.FieldMask{}
+			}
+			if err := (*fieldmaskpb.FieldMask)(m.UpdateMask).UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
