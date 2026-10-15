@@ -333,9 +333,16 @@ func Start(config configpkg.Config) error {
 		r.Use(m.Trace)
 		r.Get("/api/oauth/authorize", server.apiOAuthAuthorizeHandler)
 		r.Post("/api/oauth/authorize", server.apiOAuthConsentHandler)
+		// Existing MCP clients may retain the OAuth endpoints advertised before
+		// the shared API OAuth routes were introduced. Keep the same session
+		// tracing and consent requirements for those URLs.
+		r.Get("/api/mcp/oauth/authorize", server.apiOAuthAuthorizeHandler)
+		r.Post("/api/mcp/oauth/authorize", server.apiOAuthConsentHandler)
 	})
 	r.Post("/api/oauth/token", server.apiOAuthTokenHandler)
 	r.Get("/api/oauth/metadata", server.apiOAuthMetadataHandler)
+	r.Post("/api/mcp/oauth/token", server.apiOAuthTokenHandler)
+	r.Get("/api/mcp/oauth/metadata", server.apiOAuthMetadataHandler)
 	r.Post("/api/mcp/oauth/register", server.mcpRegisterHandler)
 	r.Get("/.well-known/oauth-authorization-server", server.apiOAuthMetadataHandler)
 	r.Get("/.well-known/oauth-protected-resource/api/mcp", server.mcpResourceMetadataHandler)
