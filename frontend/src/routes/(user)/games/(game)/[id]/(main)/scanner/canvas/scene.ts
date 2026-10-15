@@ -3,6 +3,7 @@
  * the universe, settings or commanded objects change, not on every pan/zoom frame.
  */
 import type { Universe } from '#lib/services/Universe.js';
+import { getWormholeExit } from '#lib/types/Waypoint.js';
 import { population } from '#lib/types/Cargo.js';
 import { NoScanner, None, ReportAgeUnexplored } from '#lib/types/Consts.js';
 import {
@@ -198,14 +199,7 @@ export type WaypointPath = {
 // Fleets that reach a wormhole jump to its destination and continue from there, so a path
 // through a wormhole we know the destination of continues from the exit.
 function wormholeExits(universe: Universe, waypoints: Waypoint[]): (Position | undefined)[] {
-	return waypoints.map((wp) => {
-		const target = wp.mapObjectTarget;
-		if (target?.targetType !== MapObjectType.WORMHOLE || !target.targetNum) {
-			return undefined;
-		}
-		const destinationNum = universe.getWormhole(target.targetNum)?.destinationNum;
-		return destinationNum ? universe.getWormhole(destinationNum)?.mapObject?.position : undefined;
-	});
+	return waypoints.map((wp, index) => (index > 0 ? getWormholeExit(universe, wp) : undefined));
 }
 
 export function buildWaypointPaths(

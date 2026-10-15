@@ -1254,14 +1254,9 @@ export async function createGameContext(
 
 		fleet.fleetOrders.waypoints = fleet.fleetOrders?.waypoints.filter((wp) => wp != sw);
 
-		// deleting B from A -> B -> A leaves the fleet going from A to A, so drop the second A as well
-		const previous = fleet.fleetOrders.waypoints[selectedWaypointIndex - 1];
+		// Drop a redundant return waypoint, measuring from the exit if the previous stop is a wormhole.
 		const next = fleet.fleetOrders.waypoints[selectedWaypointIndex];
-		if (
-			next &&
-			previous.position?.x === next.position?.x &&
-			previous.position?.y === next.position?.y
-		) {
+		if (next && fleet.getDistanceForLeg(get(universe), selectedWaypointIndex) === 0) {
 			fleet.fleetOrders.waypoints.splice(selectedWaypointIndex, 1);
 		}
 
