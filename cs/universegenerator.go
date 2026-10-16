@@ -444,21 +444,19 @@ func (ug *universeGenerator) getPlayerPlanets() ([]int, error) {
 		distIdeal = distIdeal * 90 / 100
 	}
 
-	// Bias by start-distance setting, then re-add the linear guard.
-	// Original used mdStartDist/3 with 3 levels. Your enum has 4 levels; extend linearly:
-	// Close=1/3, Moderate=2/3, Farther=1.0, Distant=4/3.
+	// Scale the area-per-player component from Close (0) to Distant (1),
+	// then re-add the minimum-spacing guard.
 	switch ug.Game.PlayerPositions {
 	case PlayerPositionsClose:
-		distIdeal = distIdeal / 3
+		distIdeal = 0
 	case PlayerPositionsModerate:
-		distIdeal = distIdeal * 2 / 3
+		distIdeal = distIdeal / 3
 	case PlayerPositionsDistant:
-		distIdeal = distIdeal * 4 / 3
-
+		// Use the full area-per-player component.
 	case PlayerPositionsFarther:
 		fallthrough
 	default:
-		// no op
+		distIdeal = distIdeal * 2 / 3
 	}
 
 	distIdeal += l
@@ -466,6 +464,8 @@ func (ug *universeGenerator) getPlayerPlanets() ([]int, error) {
 	// Acceptable band: *0.9 low, *7/6 high
 	distMinSquared := distIdeal * 90 / 100
 	distMaxSquared := distIdeal * 70 / 60
+	// Always make progress, even for custom maps with very small dimensions.
+	distRelaxation := max(distIdeal/35, 1)
 
 	// Allowed box (percent of span) depends on player count, applied independently to X and Y.
 	var innerFrac, outerFrac int
@@ -506,8 +506,10 @@ retryFullPlacement:
 	chosen := make([]int, 0, numPlayers) // indices into pts
 	used := make([]bool, numPlanets)
 
-	// ---- 1) Pick the first index inside allowed box (or closest to it) ----
+	// ---- 1) Prefer the central half for the first homeworld ----
 	{
+		firstInnerX, firstOuterX := width/4, 3*width/4
+		firstInnerY, firstOuterY := height/4, 3*height/4
 		bestIdx := 0
 		bestEdge := math.MaxInt32
 		var idx int
@@ -518,11 +520,11 @@ retryFullPlacement:
 				continue
 			}
 			p := pts[idx]
-			if inBx(p.x, innerX, outerX) && inBx(p.y, innerY, outerY) {
+			if inBx(p.x, firstInnerX, firstOuterX) && inBx(p.y, firstInnerY, firstOuterY) {
 				// inside; take it
 				break
 			}
-			e2 := edgeDistSquared(p.x, p.y, innerX, outerX, innerY, outerY)
+			e2 := edgeDistSquared(p.x, p.y, firstInnerX, firstOuterX, firstInnerY, firstOuterY)
 			if e2 < bestEdge {
 				bestEdge = e2
 				bestIdx = idx
@@ -614,12 +616,11 @@ retryFullPlacement:
 
 		// If we still couldn't place player i, relax the band and restart.
 		if !ok {
-			// Matches the “-35/+35” flavor from the decompile (units here are squared).
-			distMinSquared -= 35
+			distMinSquared -= distRelaxation
 			if distMinSquared < 0 {
 				distMinSquared = 0
 			}
-			distMaxSquared += 35
+			distMaxSquared += distRelaxation
 			goto retryFullPlacement
 		}
 	}
@@ -630,12 +631,11 @@ retryFullPlacement:
 		out[i] = pts[chosen[i]].i
 	}
 
-	// // (Optional) mark the planets; comment out if you prefer to do this later.
-	// for pi, idx := range out {
-	// 	pl := ug.Universe.Planets[idx]
-	// 	pl.Homeworld = true
-	// 	pl.MapObject.PlayerNum = pi + 1 // or your own player ordering/IDs
-	// }
+	// Randomize assignment so no player consistently gets the first, central homeworld.
+	for i := range out {
+		j := i + ug.Rules.random.Intn(numPlayers-i)
+		out[i], out[j] = out[j], out[i]
+	}
 
 	return out, nil
 }
