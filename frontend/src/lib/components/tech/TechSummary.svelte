@@ -65,7 +65,7 @@
 			return;
 		}
 		cs.wasmService
-			.getTechCost({ tech: techLike.tech })
+			.getTechCost({ tech: techLike.tech, player })
 			.then((resp) => (cost = resp.cost ?? techLike.tech?.cost));
 	});
 	$effect(() => {

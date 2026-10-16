@@ -6,6 +6,8 @@ import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegen
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Cost, CostJson, Hab, HabJson, TechLevel, TechLevelJson, WaypointDest, WaypointDestJson } from "./common_pb";
 import { file_craig_stars_v1_common } from "./common_pb";
+import type { BattleRecord, BattleRecordJson } from "./battle_pb";
+import { file_craig_stars_v1_battle } from "./battle_pb";
 import type { Fleet, FleetJson } from "./fleet_pb";
 import { file_craig_stars_v1_fleet } from "./fleet_pb";
 import type { UpdateWaypointResult, UpdateWaypointResultJson } from "./fleetservice_pb";
@@ -14,7 +16,7 @@ import type { Minefield, MinefieldJson, MinefieldSpec, MinefieldSpecJson } from 
 import { file_craig_stars_v1_minefield } from "./minefield_pb";
 import type { Planet, PlanetJson, QueueItemType, QueueItemTypeJson } from "./planet_pb";
 import { file_craig_stars_v1_planet } from "./planet_pb";
-import type { Intels, IntelsJson, Player, PlayerJson, PlayerResearchSpec, PlayerResearchSpecJson } from "./player_pb";
+import type { BattlePlan, BattlePlanJson, Intels, IntelsJson, Player, PlayerJson, PlayerResearchSpec, PlayerResearchSpecJson } from "./player_pb";
 import { file_craig_stars_v1_player } from "./player_pb";
 import type { Race, RaceJson, RaceSpec, RaceSpecJson } from "./race_pb";
 import { file_craig_stars_v1_race } from "./race_pb";
@@ -28,7 +30,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file craig_stars/v1/wasm.proto.
  */
 export const file_craig_stars_v1_wasm: GenFile = /*@__PURE__*/
-  fileDesc("ChljcmFpZ19zdGFycy92MS93YXNtLnByb3RvEg5jcmFpZ19zdGFycy52MSKpAQoSQWRkV2F5cG9pbnRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSKgoEZGVzdBgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLldheXBvaW50RGVzdBInCh9jdXJyZW50X3NlbGVjdGVkX3dheXBvaW50X2luZGV4GAMgASgFEhgKEGZhc3Rlc3Rfd2F5cG9pbnQYBCABKAgiSgoTQWRkV2F5cG9pbnRSZXNwb25zZRIkCgVmbGVldBgBIAEoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0Eg0KBWluZGV4GAIgASgFIkAKGkNhbGN1bGF0ZVJhY2VQb2ludHNSZXF1ZXN0EiIKBHJhY2UYASABKAsyFC5jcmFpZ19zdGFycy52MS5SYWNlIi0KG0NhbGN1bGF0ZVJhY2VQb2ludHNSZXNwb25zZRIOCgZwb2ludHMYASABKAUiSwobQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXF1ZXN0EiwKCW1pbmVmaWVsZBgBIAEoCzIZLmNyYWlnX3N0YXJzLnYxLk1pbmVmaWVsZCJLChxDb21wdXRlTWluZWZpZWxkU3BlY1Jlc3BvbnNlEisKBHNwZWMYASABKAsyHS5jcmFpZ19zdGFycy52MS5NaW5lZmllbGRTcGVjIiIKIENvbXB1dGVQbGF5ZXJSZXNlYXJjaFNwZWNSZXF1ZXN0IlUKIUNvbXB1dGVQbGF5ZXJSZXNlYXJjaFNwZWNSZXNwb25zZRIwCgRzcGVjGAEgASgLMiIuY3JhaWdfc3RhcnMudjEuUGxheWVyUmVzZWFyY2hTcGVjIjwKFkNvbXB1dGVSYWNlU3BlY1JlcXVlc3QSIgoEcmFjZRgBIAEoCzIULmNyYWlnX3N0YXJzLnYxLlJhY2UiQQoXQ29tcHV0ZVJhY2VTcGVjUmVzcG9uc2USJgoEc3BlYxgBIAEoCzIYLmNyYWlnX3N0YXJzLnYxLlJhY2VTcGVjIkoKHENvbXB1dGVTaGlwRGVzaWduU3BlY1JlcXVlc3QSKgoGZGVzaWduGAEgASgLMhouY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnbiJNCh1Db21wdXRlU2hpcERlc2lnblNwZWNSZXNwb25zZRIsCgRzcGVjGAEgASgLMh4uY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnblNwZWMiIwoSRW5hYmxlRGVidWdSZXF1ZXN0Eg0KBWRlYnVnGAEgASgIIhUKE0VuYWJsZURlYnVnUmVzcG9uc2UiQwoZRXN0aW1hdGVQcm9kdWN0aW9uUmVxdWVzdBImCgZwbGFuZXQYASABKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQiRAoaRXN0aW1hdGVQcm9kdWN0aW9uUmVzcG9uc2USJgoGcGxhbmV0GAEgASgLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0InIKFkdldE1heEJ1aWxkYWJsZVJlcXVlc3QSJgoGcGxhbmV0GAEgASgLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0EjAKCWl0ZW1fdHlwZRgCIAEoDjIdLmNyYWlnX3N0YXJzLnYxLlF1ZXVlSXRlbVR5cGUiKQoXR2V0TWF4QnVpbGRhYmxlUmVzcG9uc2USDgoGcmVzdWx0GAEgASgFImQKHEdldFBsYW5ldEhhYml0YWJpbGl0eVJlcXVlc3QSIgoEcmFjZRgBIAEoCzIULmNyYWlnX3N0YXJzLnYxLlJhY2USIAoDaGFiGAIgASgLMhMuY3JhaWdfc3RhcnMudjEuSGFiIi8KHUdldFBsYW5ldEhhYml0YWJpbGl0eVJlc3BvbnNlEg4KBnJlc3VsdBgBIAEoBSJHChZHZXRSZXNlYXJjaENvc3RSZXF1ZXN0Ei0KCnRlY2hfbGV2ZWwYASABKAsyGS5jcmFpZ19zdGFycy52MS5UZWNoTGV2ZWwiLAoXR2V0UmVzZWFyY2hDb3N0UmVzcG9uc2USEQoJcmVzb3VyY2VzGAEgASgFInsKHUdldFN0YXJiYXNlVXBncmFkZUNvc3RSZXF1ZXN0EioKBmRlc2lnbhgBIAEoCzIaLmNyYWlnX3N0YXJzLnYxLlNoaXBEZXNpZ24SLgoKbmV3X2Rlc2lnbhgCIAEoCzIaLmNyYWlnX3N0YXJzLnYxLlNoaXBEZXNpZ24iRAoeR2V0U3RhcmJhc2VVcGdyYWRlQ29zdFJlc3BvbnNlEiIKBGNvc3QYASABKAsyFC5jcmFpZ19zdGFycy52MS5Db3N0IjgKEkdldFRlY2hDb3N0UmVxdWVzdBIiCgR0ZWNoGAEgASgLMhQuY3JhaWdfc3RhcnMudjEuVGVjaCI5ChNHZXRUZWNoQ29zdFJlc3BvbnNlEiIKBGNvc3QYASABKAsyFC5jcmFpZ19zdGFycy52MS5Db3N0IkAKEVNldERlc2lnbnNSZXF1ZXN0EisKB2Rlc2lnbnMYASADKAsyGi5jcmFpZ19zdGFycy52MS5TaGlwRGVzaWduIhQKElNldERlc2lnbnNSZXNwb25zZSI6ChBTZXRJbnRlbHNSZXF1ZXN0EiYKBmludGVscxgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLkludGVscyITChFTZXRJbnRlbHNSZXNwb25zZSI6ChBTZXRQbGF5ZXJSZXF1ZXN0EiYKBnBsYXllchgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlBsYXllciITChFTZXRQbGF5ZXJSZXNwb25zZSI9ChNVcGRhdGVQbGFuZXRSZXF1ZXN0EiYKBnBsYW5ldBgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlBsYW5ldCIWChRVcGRhdGVQbGFuZXRSZXNwb25zZSI/ChRVcGRhdGVQbGFuZXRzUmVxdWVzdBInCgdwbGFuZXRzGAEgAygLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0IhcKFVVwZGF0ZVBsYW5ldHNSZXNwb25zZSKsAQoVVXBkYXRlV2F5cG9pbnRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSKgoEZGVzdBgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLldheXBvaW50RGVzdBInCh9jdXJyZW50X3NlbGVjdGVkX3dheXBvaW50X2luZGV4GAMgASgFEhgKEGZhc3Rlc3Rfd2F5cG9pbnQYBCABKAgidAoWVXBkYXRlV2F5cG9pbnRSZXNwb25zZRIkCgVmbGVldBgBIAEoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0EjQKBnJlc3VsdBgDIAEoDjIkLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVdheXBvaW50UmVzdWx0Im4KGlVwZGF0ZVdheXBvaW50U3BlZWRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSFgoOd2F5cG9pbnRfaW5kZXgYAiABKAUSEgoKd2FycF9zcGVlZBgDIAEoBSJDChtVcGRhdGVXYXlwb2ludFNwZWVkUmVzcG9uc2USJAoFZmxlZXQYASABKAsyFS5jcmFpZ19zdGFycy52MS5GbGVldDKkEAoLV2FzbVNlcnZpY2USWAoLQWRkV2F5cG9pbnQSIi5jcmFpZ19zdGFycy52MS5BZGRXYXlwb2ludFJlcXVlc3QaIy5jcmFpZ19zdGFycy52MS5BZGRXYXlwb2ludFJlc3BvbnNlIgAScAoTQ2FsY3VsYXRlUmFjZVBvaW50cxIqLmNyYWlnX3N0YXJzLnYxLkNhbGN1bGF0ZVJhY2VQb2ludHNSZXF1ZXN0GisuY3JhaWdfc3RhcnMudjEuQ2FsY3VsYXRlUmFjZVBvaW50c1Jlc3BvbnNlIgAScwoUQ29tcHV0ZU1pbmVmaWVsZFNwZWMSKy5jcmFpZ19zdGFycy52MS5Db21wdXRlTWluZWZpZWxkU3BlY1JlcXVlc3QaLC5jcmFpZ19zdGFycy52MS5Db21wdXRlTWluZWZpZWxkU3BlY1Jlc3BvbnNlIgASggEKGUNvbXB1dGVQbGF5ZXJSZXNlYXJjaFNwZWMSMC5jcmFpZ19zdGFycy52MS5Db21wdXRlUGxheWVyUmVzZWFyY2hTcGVjUmVxdWVzdBoxLmNyYWlnX3N0YXJzLnYxLkNvbXB1dGVQbGF5ZXJSZXNlYXJjaFNwZWNSZXNwb25zZSIAEmQKD0NvbXB1dGVSYWNlU3BlYxImLmNyYWlnX3N0YXJzLnYxLkNvbXB1dGVSYWNlU3BlY1JlcXVlc3QaJy5jcmFpZ19zdGFycy52MS5Db21wdXRlUmFjZVNwZWNSZXNwb25zZSIAEnYKFUNvbXB1dGVTaGlwRGVzaWduU3BlYxIsLmNyYWlnX3N0YXJzLnYxLkNvbXB1dGVTaGlwRGVzaWduU3BlY1JlcXVlc3QaLS5jcmFpZ19zdGFycy52MS5Db21wdXRlU2hpcERlc2lnblNwZWNSZXNwb25zZSIAElgKC0VuYWJsZURlYnVnEiIuY3JhaWdfc3RhcnMudjEuRW5hYmxlRGVidWdSZXF1ZXN0GiMuY3JhaWdfc3RhcnMudjEuRW5hYmxlRGVidWdSZXNwb25zZSIAEm0KEkVzdGltYXRlUHJvZHVjdGlvbhIpLmNyYWlnX3N0YXJzLnYxLkVzdGltYXRlUHJvZHVjdGlvblJlcXVlc3QaKi5jcmFpZ19zdGFycy52MS5Fc3RpbWF0ZVByb2R1Y3Rpb25SZXNwb25zZSIAEmQKD0dldE1heEJ1aWxkYWJsZRImLmNyYWlnX3N0YXJzLnYxLkdldE1heEJ1aWxkYWJsZVJlcXVlc3QaJy5jcmFpZ19zdGFycy52MS5HZXRNYXhCdWlsZGFibGVSZXNwb25zZSIAEnYKFUdldFBsYW5ldEhhYml0YWJpbGl0eRIsLmNyYWlnX3N0YXJzLnYxLkdldFBsYW5ldEhhYml0YWJpbGl0eVJlcXVlc3QaLS5jcmFpZ19zdGFycy52MS5HZXRQbGFuZXRIYWJpdGFiaWxpdHlSZXNwb25zZSIAEmQKD0dldFJlc2VhcmNoQ29zdBImLmNyYWlnX3N0YXJzLnYxLkdldFJlc2VhcmNoQ29zdFJlcXVlc3QaJy5jcmFpZ19zdGFycy52MS5HZXRSZXNlYXJjaENvc3RSZXNwb25zZSIAEnkKFkdldFN0YXJiYXNlVXBncmFkZUNvc3QSLS5jcmFpZ19zdGFycy52MS5HZXRTdGFyYmFzZVVwZ3JhZGVDb3N0UmVxdWVzdBouLmNyYWlnX3N0YXJzLnYxLkdldFN0YXJiYXNlVXBncmFkZUNvc3RSZXNwb25zZSIAElgKC0dldFRlY2hDb3N0EiIuY3JhaWdfc3RhcnMudjEuR2V0VGVjaENvc3RSZXF1ZXN0GiMuY3JhaWdfc3RhcnMudjEuR2V0VGVjaENvc3RSZXNwb25zZSIAElUKClNldERlc2lnbnMSIS5jcmFpZ19zdGFycy52MS5TZXREZXNpZ25zUmVxdWVzdBoiLmNyYWlnX3N0YXJzLnYxLlNldERlc2lnbnNSZXNwb25zZSIAElIKCVNldEludGVscxIgLmNyYWlnX3N0YXJzLnYxLlNldEludGVsc1JlcXVlc3QaIS5jcmFpZ19zdGFycy52MS5TZXRJbnRlbHNSZXNwb25zZSIAElIKCVNldFBsYXllchIgLmNyYWlnX3N0YXJzLnYxLlNldFBsYXllclJlcXVlc3QaIS5jcmFpZ19zdGFycy52MS5TZXRQbGF5ZXJSZXNwb25zZSIAElsKDFVwZGF0ZVBsYW5ldBIjLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVBsYW5ldFJlcXVlc3QaJC5jcmFpZ19zdGFycy52MS5VcGRhdGVQbGFuZXRSZXNwb25zZSIAEl4KDVVwZGF0ZVBsYW5ldHMSJC5jcmFpZ19zdGFycy52MS5VcGRhdGVQbGFuZXRzUmVxdWVzdBolLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVBsYW5ldHNSZXNwb25zZSIAEmEKDlVwZGF0ZVdheXBvaW50EiUuY3JhaWdfc3RhcnMudjEuVXBkYXRlV2F5cG9pbnRSZXF1ZXN0GiYuY3JhaWdfc3RhcnMudjEuVXBkYXRlV2F5cG9pbnRSZXNwb25zZSIAEnAKE1VwZGF0ZVdheXBvaW50U3BlZWQSKi5jcmFpZ19zdGFycy52MS5VcGRhdGVXYXlwb2ludFNwZWVkUmVxdWVzdBorLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVdheXBvaW50U3BlZWRSZXNwb25zZSIAYgZwcm90bzM", [file_craig_stars_v1_common, file_craig_stars_v1_fleet, file_craig_stars_v1_fleetservice, file_craig_stars_v1_minefield, file_craig_stars_v1_planet, file_craig_stars_v1_player, file_craig_stars_v1_race, file_craig_stars_v1_shipdesign, file_craig_stars_v1_tech]);
+  fileDesc("ChljcmFpZ19zdGFycy92MS93YXNtLnByb3RvEg5jcmFpZ19zdGFycy52MSKpAQoSQWRkV2F5cG9pbnRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSKgoEZGVzdBgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLldheXBvaW50RGVzdBInCh9jdXJyZW50X3NlbGVjdGVkX3dheXBvaW50X2luZGV4GAMgASgFEhgKEGZhc3Rlc3Rfd2F5cG9pbnQYBCABKAgiSgoTQWRkV2F5cG9pbnRSZXNwb25zZRIkCgVmbGVldBgBIAEoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0Eg0KBWluZGV4GAIgASgFIkAKGkNhbGN1bGF0ZVJhY2VQb2ludHNSZXF1ZXN0EiIKBHJhY2UYASABKAsyFC5jcmFpZ19zdGFycy52MS5SYWNlIi0KG0NhbGN1bGF0ZVJhY2VQb2ludHNSZXNwb25zZRIOCgZwb2ludHMYASABKAUiSwobQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXF1ZXN0EiwKCW1pbmVmaWVsZBgBIAEoCzIZLmNyYWlnX3N0YXJzLnYxLk1pbmVmaWVsZCJLChxDb21wdXRlTWluZWZpZWxkU3BlY1Jlc3BvbnNlEisKBHNwZWMYASABKAsyHS5jcmFpZ19zdGFycy52MS5NaW5lZmllbGRTcGVjIiIKIENvbXB1dGVQbGF5ZXJSZXNlYXJjaFNwZWNSZXF1ZXN0IlUKIUNvbXB1dGVQbGF5ZXJSZXNlYXJjaFNwZWNSZXNwb25zZRIwCgRzcGVjGAEgASgLMiIuY3JhaWdfc3RhcnMudjEuUGxheWVyUmVzZWFyY2hTcGVjIjwKFkNvbXB1dGVSYWNlU3BlY1JlcXVlc3QSIgoEcmFjZRgBIAEoCzIULmNyYWlnX3N0YXJzLnYxLlJhY2UiQQoXQ29tcHV0ZVJhY2VTcGVjUmVzcG9uc2USJgoEc3BlYxgBIAEoCzIYLmNyYWlnX3N0YXJzLnYxLlJhY2VTcGVjIoQBChxDb21wdXRlU2hpcERlc2lnblNwZWNSZXF1ZXN0EioKBmRlc2lnbhgBIAEoCzIaLmNyYWlnX3N0YXJzLnYxLlNoaXBEZXNpZ24SJgoGcGxheWVyGAIgASgLMhYuY3JhaWdfc3RhcnMudjEuUGxheWVyEhAKCHZhbGlkYXRlGAMgASgIIk0KHUNvbXB1dGVTaGlwRGVzaWduU3BlY1Jlc3BvbnNlEiwKBHNwZWMYASABKAsyHi5jcmFpZ19zdGFycy52MS5TaGlwRGVzaWduU3BlYyIjChJFbmFibGVEZWJ1Z1JlcXVlc3QSDQoFZGVidWcYASABKAgiFQoTRW5hYmxlRGVidWdSZXNwb25zZSJDChlFc3RpbWF0ZVByb2R1Y3Rpb25SZXF1ZXN0EiYKBnBsYW5ldBgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlBsYW5ldCJEChpFc3RpbWF0ZVByb2R1Y3Rpb25SZXNwb25zZRImCgZwbGFuZXQYASABKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQicgoWR2V0TWF4QnVpbGRhYmxlUmVxdWVzdBImCgZwbGFuZXQYASABKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQSMAoJaXRlbV90eXBlGAIgASgOMh0uY3JhaWdfc3RhcnMudjEuUXVldWVJdGVtVHlwZSIpChdHZXRNYXhCdWlsZGFibGVSZXNwb25zZRIOCgZyZXN1bHQYASABKAUiZAocR2V0UGxhbmV0SGFiaXRhYmlsaXR5UmVxdWVzdBIiCgRyYWNlGAEgASgLMhQuY3JhaWdfc3RhcnMudjEuUmFjZRIgCgNoYWIYAiABKAsyEy5jcmFpZ19zdGFycy52MS5IYWIiLwodR2V0UGxhbmV0SGFiaXRhYmlsaXR5UmVzcG9uc2USDgoGcmVzdWx0GAEgASgFIkcKFkdldFJlc2VhcmNoQ29zdFJlcXVlc3QSLQoKdGVjaF9sZXZlbBgBIAEoCzIZLmNyYWlnX3N0YXJzLnYxLlRlY2hMZXZlbCIsChdHZXRSZXNlYXJjaENvc3RSZXNwb25zZRIRCglyZXNvdXJjZXMYASABKAUiewodR2V0U3RhcmJhc2VVcGdyYWRlQ29zdFJlcXVlc3QSKgoGZGVzaWduGAEgASgLMhouY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnbhIuCgpuZXdfZGVzaWduGAIgASgLMhouY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnbiJECh5HZXRTdGFyYmFzZVVwZ3JhZGVDb3N0UmVzcG9uc2USIgoEY29zdBgBIAEoCzIULmNyYWlnX3N0YXJzLnYxLkNvc3QiYAoSR2V0VGVjaENvc3RSZXF1ZXN0EiIKBHRlY2gYASABKAsyFC5jcmFpZ19zdGFycy52MS5UZWNoEiYKBnBsYXllchgCIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlBsYXllciI5ChNHZXRUZWNoQ29zdFJlc3BvbnNlEiIKBGNvc3QYASABKAsyFC5jcmFpZ19zdGFycy52MS5Db3N0IkAKEVNldERlc2lnbnNSZXF1ZXN0EisKB2Rlc2lnbnMYASADKAsyGi5jcmFpZ19zdGFycy52MS5TaGlwRGVzaWduIhQKElNldERlc2lnbnNSZXNwb25zZSI6ChBTZXRJbnRlbHNSZXF1ZXN0EiYKBmludGVscxgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLkludGVscyITChFTZXRJbnRlbHNSZXNwb25zZSI6ChBTZXRQbGF5ZXJSZXF1ZXN0EiYKBnBsYXllchgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlBsYXllciITChFTZXRQbGF5ZXJSZXNwb25zZSI9ChNVcGRhdGVQbGFuZXRSZXF1ZXN0EiYKBnBsYW5ldBgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlBsYW5ldCIWChRVcGRhdGVQbGFuZXRSZXNwb25zZSI/ChRVcGRhdGVQbGFuZXRzUmVxdWVzdBInCgdwbGFuZXRzGAEgAygLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0IhcKFVVwZGF0ZVBsYW5ldHNSZXNwb25zZSKsAQoVVXBkYXRlV2F5cG9pbnRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSKgoEZGVzdBgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLldheXBvaW50RGVzdBInCh9jdXJyZW50X3NlbGVjdGVkX3dheXBvaW50X2luZGV4GAMgASgFEhgKEGZhc3Rlc3Rfd2F5cG9pbnQYBCABKAgidAoWVXBkYXRlV2F5cG9pbnRSZXNwb25zZRIkCgVmbGVldBgBIAEoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0EjQKBnJlc3VsdBgDIAEoDjIkLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVdheXBvaW50UmVzdWx0Im4KGlVwZGF0ZVdheXBvaW50U3BlZWRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSFgoOd2F5cG9pbnRfaW5kZXgYAiABKAUSEgoKd2FycF9zcGVlZBgDIAEoBSJDChtVcGRhdGVXYXlwb2ludFNwZWVkUmVzcG9uc2USJAoFZmxlZXQYASABKAsyFS5jcmFpZ19zdGFycy52MS5GbGVldCKpAQoVQmF0dGxlU2ltdWxhdGlvblN0YWNrEioKBmRlc2lnbhgBIAEoCzIaLmNyYWlnX3N0YXJzLnYxLlNoaXBEZXNpZ24SEAoIcXVhbnRpdHkYAiABKAUSGAoQcXVhbnRpdHlfZGFtYWdlZBgDIAEoBRIOCgZkYW1hZ2UYBCABKAESKAoEcGxhbhgFIAEoCzIaLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVBsYW4iqAIKFEJhdHRsZVNpbXVsYXRpb25TaWRlEiIKBHJhY2UYASABKAsyFC5jcmFpZ19zdGFycy52MS5SYWNlEi4KC3RlY2hfbGV2ZWxzGAIgASgLMhkuY3JhaWdfc3RhcnMudjEuVGVjaExldmVsEjUKBnN0YWNrcxgDIAMoCzIlLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVNpbXVsYXRpb25TdGFjaxJPCg5hY3F1aXJlZF90ZWNocxgEIAMoCzI3LmNyYWlnX3N0YXJzLnYxLkJhdHRsZVNpbXVsYXRpb25TaWRlLkFjcXVpcmVkVGVjaHNFbnRyeRo0ChJBY3F1aXJlZFRlY2hzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgIOgI4ASJaChVTaW11bGF0ZUJhdHRsZVJlcXVlc3QSMwoFc2lkZXMYASADKAsyJC5jcmFpZ19zdGFycy52MS5CYXR0bGVTaW11bGF0aW9uU2lkZRIMCgRzZWVkGAIgASgDIqIBChtCYXR0bGVTaW11bGF0aW9uU3RhY2tSZXN1bHQSEgoKcGxheWVyX251bRgBIAEoBRISCgpkZXNpZ25fbnVtGAIgASgFEhEKCXN1cnZpdm9ycxgDIAEoBRIRCglyZXRyZWF0ZWQYBCABKAUSEQoJZGVzdHJveWVkGAUgASgFEiIKBGxvc3MYBiABKAsyFC5jcmFpZ19zdGFycy52MS5Db3N0IrABChZTaW11bGF0ZUJhdHRsZVJlc3BvbnNlEiwKBnJlY29yZBgBIAEoCzIcLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVJlY29yZBIrCgdkZXNpZ25zGAIgAygLMhouY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnbhI7CgZzdGFja3MYAyADKAsyKy5jcmFpZ19zdGFycy52MS5CYXR0bGVTaW11bGF0aW9uU3RhY2tSZXN1bHQyhxEKC1dhc21TZXJ2aWNlEmEKDlNpbXVsYXRlQmF0dGxlEiUuY3JhaWdfc3RhcnMudjEuU2ltdWxhdGVCYXR0bGVSZXF1ZXN0GiYuY3JhaWdfc3RhcnMudjEuU2ltdWxhdGVCYXR0bGVSZXNwb25zZSIAElgKC0FkZFdheXBvaW50EiIuY3JhaWdfc3RhcnMudjEuQWRkV2F5cG9pbnRSZXF1ZXN0GiMuY3JhaWdfc3RhcnMudjEuQWRkV2F5cG9pbnRSZXNwb25zZSIAEnAKE0NhbGN1bGF0ZVJhY2VQb2ludHMSKi5jcmFpZ19zdGFycy52MS5DYWxjdWxhdGVSYWNlUG9pbnRzUmVxdWVzdBorLmNyYWlnX3N0YXJzLnYxLkNhbGN1bGF0ZVJhY2VQb2ludHNSZXNwb25zZSIAEnMKFENvbXB1dGVNaW5lZmllbGRTcGVjEisuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXF1ZXN0GiwuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXNwb25zZSIAEoIBChlDb21wdXRlUGxheWVyUmVzZWFyY2hTcGVjEjAuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZVBsYXllclJlc2VhcmNoU3BlY1JlcXVlc3QaMS5jcmFpZ19zdGFycy52MS5Db21wdXRlUGxheWVyUmVzZWFyY2hTcGVjUmVzcG9uc2UiABJkCg9Db21wdXRlUmFjZVNwZWMSJi5jcmFpZ19zdGFycy52MS5Db21wdXRlUmFjZVNwZWNSZXF1ZXN0GicuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZVJhY2VTcGVjUmVzcG9uc2UiABJ2ChVDb21wdXRlU2hpcERlc2lnblNwZWMSLC5jcmFpZ19zdGFycy52MS5Db21wdXRlU2hpcERlc2lnblNwZWNSZXF1ZXN0Gi0uY3JhaWdfc3RhcnMudjEuQ29tcHV0ZVNoaXBEZXNpZ25TcGVjUmVzcG9uc2UiABJYCgtFbmFibGVEZWJ1ZxIiLmNyYWlnX3N0YXJzLnYxLkVuYWJsZURlYnVnUmVxdWVzdBojLmNyYWlnX3N0YXJzLnYxLkVuYWJsZURlYnVnUmVzcG9uc2UiABJtChJFc3RpbWF0ZVByb2R1Y3Rpb24SKS5jcmFpZ19zdGFycy52MS5Fc3RpbWF0ZVByb2R1Y3Rpb25SZXF1ZXN0GiouY3JhaWdfc3RhcnMudjEuRXN0aW1hdGVQcm9kdWN0aW9uUmVzcG9uc2UiABJkCg9HZXRNYXhCdWlsZGFibGUSJi5jcmFpZ19zdGFycy52MS5HZXRNYXhCdWlsZGFibGVSZXF1ZXN0GicuY3JhaWdfc3RhcnMudjEuR2V0TWF4QnVpbGRhYmxlUmVzcG9uc2UiABJ2ChVHZXRQbGFuZXRIYWJpdGFiaWxpdHkSLC5jcmFpZ19zdGFycy52MS5HZXRQbGFuZXRIYWJpdGFiaWxpdHlSZXF1ZXN0Gi0uY3JhaWdfc3RhcnMudjEuR2V0UGxhbmV0SGFiaXRhYmlsaXR5UmVzcG9uc2UiABJkCg9HZXRSZXNlYXJjaENvc3QSJi5jcmFpZ19zdGFycy52MS5HZXRSZXNlYXJjaENvc3RSZXF1ZXN0GicuY3JhaWdfc3RhcnMudjEuR2V0UmVzZWFyY2hDb3N0UmVzcG9uc2UiABJ5ChZHZXRTdGFyYmFzZVVwZ3JhZGVDb3N0Ei0uY3JhaWdfc3RhcnMudjEuR2V0U3RhcmJhc2VVcGdyYWRlQ29zdFJlcXVlc3QaLi5jcmFpZ19zdGFycy52MS5HZXRTdGFyYmFzZVVwZ3JhZGVDb3N0UmVzcG9uc2UiABJYCgtHZXRUZWNoQ29zdBIiLmNyYWlnX3N0YXJzLnYxLkdldFRlY2hDb3N0UmVxdWVzdBojLmNyYWlnX3N0YXJzLnYxLkdldFRlY2hDb3N0UmVzcG9uc2UiABJVCgpTZXREZXNpZ25zEiEuY3JhaWdfc3RhcnMudjEuU2V0RGVzaWduc1JlcXVlc3QaIi5jcmFpZ19zdGFycy52MS5TZXREZXNpZ25zUmVzcG9uc2UiABJSCglTZXRJbnRlbHMSIC5jcmFpZ19zdGFycy52MS5TZXRJbnRlbHNSZXF1ZXN0GiEuY3JhaWdfc3RhcnMudjEuU2V0SW50ZWxzUmVzcG9uc2UiABJSCglTZXRQbGF5ZXISIC5jcmFpZ19zdGFycy52MS5TZXRQbGF5ZXJSZXF1ZXN0GiEuY3JhaWdfc3RhcnMudjEuU2V0UGxheWVyUmVzcG9uc2UiABJbCgxVcGRhdGVQbGFuZXQSIy5jcmFpZ19zdGFycy52MS5VcGRhdGVQbGFuZXRSZXF1ZXN0GiQuY3JhaWdfc3RhcnMudjEuVXBkYXRlUGxhbmV0UmVzcG9uc2UiABJeCg1VcGRhdGVQbGFuZXRzEiQuY3JhaWdfc3RhcnMudjEuVXBkYXRlUGxhbmV0c1JlcXVlc3QaJS5jcmFpZ19zdGFycy52MS5VcGRhdGVQbGFuZXRzUmVzcG9uc2UiABJhCg5VcGRhdGVXYXlwb2ludBIlLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVdheXBvaW50UmVxdWVzdBomLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVdheXBvaW50UmVzcG9uc2UiABJwChNVcGRhdGVXYXlwb2ludFNwZWVkEiouY3JhaWdfc3RhcnMudjEuVXBkYXRlV2F5cG9pbnRTcGVlZFJlcXVlc3QaKy5jcmFpZ19zdGFycy52MS5VcGRhdGVXYXlwb2ludFNwZWVkUmVzcG9uc2UiAGIGcHJvdG8z", [file_craig_stars_v1_common, file_craig_stars_v1_battle, file_craig_stars_v1_fleet, file_craig_stars_v1_fleetservice, file_craig_stars_v1_minefield, file_craig_stars_v1_planet, file_craig_stars_v1_player, file_craig_stars_v1_race, file_craig_stars_v1_shipdesign, file_craig_stars_v1_tech]);
 
 /**
  * @generated from message craig_stars.v1.AddWaypointRequest
@@ -340,6 +342,18 @@ export type ComputeShipDesignSpecRequest = Message<"craig_stars.v1.ComputeShipDe
    * @generated from field: craig_stars.v1.ShipDesign design = 1;
    */
   design?: ShipDesign | undefined;
+
+  /**
+   * Optional independent owner for simulator design previews.
+   *
+   * @generated from field: craig_stars.v1.Player player = 2;
+   */
+  player?: Player | undefined;
+
+  /**
+   * @generated from field: bool validate = 3;
+   */
+  validate: boolean;
 };
 
 /**
@@ -350,6 +364,18 @@ export type ComputeShipDesignSpecRequestJson = {
    * @generated from field: craig_stars.v1.ShipDesign design = 1;
    */
   design?: ShipDesignJson;
+
+  /**
+   * Optional independent owner for simulator design previews.
+   *
+   * @generated from field: craig_stars.v1.Player player = 2;
+   */
+  player?: PlayerJson;
+
+  /**
+   * @generated from field: bool validate = 3;
+   */
+  validate?: boolean;
 };
 
 /**
@@ -740,6 +766,11 @@ export type GetTechCostRequest = Message<"craig_stars.v1.GetTechCostRequest"> & 
    * @generated from field: craig_stars.v1.Tech tech = 1;
    */
   tech?: Tech | undefined;
+
+  /**
+   * @generated from field: craig_stars.v1.Player player = 2;
+   */
+  player?: Player | undefined;
 };
 
 /**
@@ -750,6 +781,11 @@ export type GetTechCostRequestJson = {
    * @generated from field: craig_stars.v1.Tech tech = 1;
    */
   tech?: TechJson;
+
+  /**
+   * @generated from field: craig_stars.v1.Player player = 2;
+   */
+  player?: PlayerJson;
 };
 
 /**
@@ -1185,9 +1221,306 @@ export const UpdateWaypointSpeedResponseSchema: GenMessage<UpdateWaypointSpeedRe
   messageDesc(file_craig_stars_v1_wasm, 39);
 
 /**
+ * Each stack is an independent battle token with its own orders.
+ *
+ * @generated from message craig_stars.v1.BattleSimulationStack
+ */
+export type BattleSimulationStack = Message<"craig_stars.v1.BattleSimulationStack"> & {
+  /**
+   * @generated from field: craig_stars.v1.ShipDesign design = 1;
+   */
+  design?: ShipDesign | undefined;
+
+  /**
+   * @generated from field: int32 quantity = 2;
+   */
+  quantity: number;
+
+  /**
+   * @generated from field: int32 quantity_damaged = 3;
+   */
+  quantityDamaged: number;
+
+  /**
+   * @generated from field: double damage = 4;
+   */
+  damage: number;
+
+  /**
+   * @generated from field: craig_stars.v1.BattlePlan plan = 5;
+   */
+  plan?: BattlePlan | undefined;
+};
+
+/**
+ * Each stack is an independent battle token with its own orders.
+ *
+ * @generated from message craig_stars.v1.BattleSimulationStack
+ */
+export type BattleSimulationStackJson = {
+  /**
+   * @generated from field: craig_stars.v1.ShipDesign design = 1;
+   */
+  design?: ShipDesignJson;
+
+  /**
+   * @generated from field: int32 quantity = 2;
+   */
+  quantity?: number;
+
+  /**
+   * @generated from field: int32 quantity_damaged = 3;
+   */
+  quantityDamaged?: number;
+
+  /**
+   * @generated from field: double damage = 4;
+   */
+  damage?: number | "NaN" | "Infinity" | "-Infinity";
+
+  /**
+   * @generated from field: craig_stars.v1.BattlePlan plan = 5;
+   */
+  plan?: BattlePlanJson;
+};
+
+/**
+ * Describes the message craig_stars.v1.BattleSimulationStack.
+ * Use `create(BattleSimulationStackSchema)` to create a new message.
+ */
+export const BattleSimulationStackSchema: GenMessage<BattleSimulationStack, {jsonType: BattleSimulationStackJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 40);
+
+/**
+ * @generated from message craig_stars.v1.BattleSimulationSide
+ */
+export type BattleSimulationSide = Message<"craig_stars.v1.BattleSimulationSide"> & {
+  /**
+   * @generated from field: craig_stars.v1.Race race = 1;
+   */
+  race?: Race | undefined;
+
+  /**
+   * @generated from field: craig_stars.v1.TechLevel tech_levels = 2;
+   */
+  techLevels?: TechLevel | undefined;
+
+  /**
+   * @generated from field: repeated craig_stars.v1.BattleSimulationStack stacks = 3;
+   */
+  stacks: BattleSimulationStack[];
+
+  /**
+   * @generated from field: map<string, bool> acquired_techs = 4;
+   */
+  acquiredTechs: { [key: string]: boolean };
+};
+
+/**
+ * @generated from message craig_stars.v1.BattleSimulationSide
+ */
+export type BattleSimulationSideJson = {
+  /**
+   * @generated from field: craig_stars.v1.Race race = 1;
+   */
+  race?: RaceJson;
+
+  /**
+   * @generated from field: craig_stars.v1.TechLevel tech_levels = 2;
+   */
+  techLevels?: TechLevelJson;
+
+  /**
+   * @generated from field: repeated craig_stars.v1.BattleSimulationStack stacks = 3;
+   */
+  stacks?: BattleSimulationStackJson[];
+
+  /**
+   * @generated from field: map<string, bool> acquired_techs = 4;
+   */
+  acquiredTechs?: { [key: string]: boolean };
+};
+
+/**
+ * Describes the message craig_stars.v1.BattleSimulationSide.
+ * Use `create(BattleSimulationSideSchema)` to create a new message.
+ */
+export const BattleSimulationSideSchema: GenMessage<BattleSimulationSide, {jsonType: BattleSimulationSideJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 41);
+
+/**
+ * @generated from message craig_stars.v1.SimulateBattleRequest
+ */
+export type SimulateBattleRequest = Message<"craig_stars.v1.SimulateBattleRequest"> & {
+  /**
+   * @generated from field: repeated craig_stars.v1.BattleSimulationSide sides = 1;
+   */
+  sides: BattleSimulationSide[];
+
+  /**
+   * @generated from field: int64 seed = 2;
+   */
+  seed: bigint;
+};
+
+/**
+ * @generated from message craig_stars.v1.SimulateBattleRequest
+ */
+export type SimulateBattleRequestJson = {
+  /**
+   * @generated from field: repeated craig_stars.v1.BattleSimulationSide sides = 1;
+   */
+  sides?: BattleSimulationSideJson[];
+
+  /**
+   * @generated from field: int64 seed = 2;
+   */
+  seed?: string;
+};
+
+/**
+ * Describes the message craig_stars.v1.SimulateBattleRequest.
+ * Use `create(SimulateBattleRequestSchema)` to create a new message.
+ */
+export const SimulateBattleRequestSchema: GenMessage<SimulateBattleRequest, {jsonType: SimulateBattleRequestJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 42);
+
+/**
+ * @generated from message craig_stars.v1.BattleSimulationStackResult
+ */
+export type BattleSimulationStackResult = Message<"craig_stars.v1.BattleSimulationStackResult"> & {
+  /**
+   * @generated from field: int32 player_num = 1;
+   */
+  playerNum: number;
+
+  /**
+   * @generated from field: int32 design_num = 2;
+   */
+  designNum: number;
+
+  /**
+   * @generated from field: int32 survivors = 3;
+   */
+  survivors: number;
+
+  /**
+   * @generated from field: int32 retreated = 4;
+   */
+  retreated: number;
+
+  /**
+   * @generated from field: int32 destroyed = 5;
+   */
+  destroyed: number;
+
+  /**
+   * @generated from field: craig_stars.v1.Cost loss = 6;
+   */
+  loss?: Cost | undefined;
+};
+
+/**
+ * @generated from message craig_stars.v1.BattleSimulationStackResult
+ */
+export type BattleSimulationStackResultJson = {
+  /**
+   * @generated from field: int32 player_num = 1;
+   */
+  playerNum?: number;
+
+  /**
+   * @generated from field: int32 design_num = 2;
+   */
+  designNum?: number;
+
+  /**
+   * @generated from field: int32 survivors = 3;
+   */
+  survivors?: number;
+
+  /**
+   * @generated from field: int32 retreated = 4;
+   */
+  retreated?: number;
+
+  /**
+   * @generated from field: int32 destroyed = 5;
+   */
+  destroyed?: number;
+
+  /**
+   * @generated from field: craig_stars.v1.Cost loss = 6;
+   */
+  loss?: CostJson;
+};
+
+/**
+ * Describes the message craig_stars.v1.BattleSimulationStackResult.
+ * Use `create(BattleSimulationStackResultSchema)` to create a new message.
+ */
+export const BattleSimulationStackResultSchema: GenMessage<BattleSimulationStackResult, {jsonType: BattleSimulationStackResultJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 43);
+
+/**
+ * @generated from message craig_stars.v1.SimulateBattleResponse
+ */
+export type SimulateBattleResponse = Message<"craig_stars.v1.SimulateBattleResponse"> & {
+  /**
+   * @generated from field: craig_stars.v1.BattleRecord record = 1;
+   */
+  record?: BattleRecord | undefined;
+
+  /**
+   * @generated from field: repeated craig_stars.v1.ShipDesign designs = 2;
+   */
+  designs: ShipDesign[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.BattleSimulationStackResult stacks = 3;
+   */
+  stacks: BattleSimulationStackResult[];
+};
+
+/**
+ * @generated from message craig_stars.v1.SimulateBattleResponse
+ */
+export type SimulateBattleResponseJson = {
+  /**
+   * @generated from field: craig_stars.v1.BattleRecord record = 1;
+   */
+  record?: BattleRecordJson;
+
+  /**
+   * @generated from field: repeated craig_stars.v1.ShipDesign designs = 2;
+   */
+  designs?: ShipDesignJson[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.BattleSimulationStackResult stacks = 3;
+   */
+  stacks?: BattleSimulationStackResultJson[];
+};
+
+/**
+ * Describes the message craig_stars.v1.SimulateBattleResponse.
+ * Use `create(SimulateBattleResponseSchema)` to create a new message.
+ */
+export const SimulateBattleResponseSchema: GenMessage<SimulateBattleResponse, {jsonType: SimulateBattleResponseJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 44);
+
+/**
  * @generated from service craig_stars.v1.WasmService
  */
 export const WasmService: GenService<{
+  /**
+   * @generated from rpc craig_stars.v1.WasmService.SimulateBattle
+   */
+  simulateBattle: {
+    methodKind: "unary";
+    input: typeof SimulateBattleRequestSchema;
+    output: typeof SimulateBattleResponseSchema;
+  },
   /**
    * @generated from rpc craig_stars.v1.WasmService.AddWaypoint
    */
