@@ -16,9 +16,11 @@ import {
 	ShipDesignSpecSchema,
 	ShipTokenSchema,
 	type Planet,
-	type ShipTokenJson
+	type ShipTokenJson,
+	WormholeSchema
 } from '#lib/types/cs-proto.js';
 import { create } from '@bufbuild/protobuf';
+import type { Universe } from '#lib/services/Universe.js';
 
 describe('ShipToken moveDamagedTokens test', () => {
 	it('transfer no damaged tokens', () => {
@@ -130,7 +132,10 @@ describe('trip to a waypoint', () => {
 			spec: { planetStarbaseSpec: { dockCapacity } }
 		}) as Planet;
 	const planets = [planet(1, 0), planet(2, -1)];
-	const universe = { getPlanet: (num: number) => planets.find((p) => p.mapObject?.num === num) };
+	const universe = {
+		getWormhole: () => undefined,
+		getPlanet: (num: number) => planets.find((p) => p.mapObject?.num === num)
+	};
 	const player = { isFriend: (num: number) => num === 1 };
 	const at = (x: number, warpSpeed: number, estFuelUsage: number, planetNum = 0) => ({
 		position: { x, y: 0 },
@@ -202,19 +207,19 @@ describe('trip to a waypoint', () => {
 	});
 
 	it('adds up the years of every leg', () => {
-		expect(fleet.getYearsToWaypoint(0)).toBe(0);
-		expect(fleet.getYearsToWaypoint(1)).toBe(4); // 100 ly at warp 5
-		expect(fleet.getYearsToWaypoint(2)).toBe(5); // 25 ly more
-		expect(fleet.getYearsToWaypoint(3)).toBe(8); // 75 ly at warp 6 is 3 years
-		expect(fleet.getYearsToWaypoint(4)).toBe(9); // a short hop still takes a year
+		expect(fleet.getYearsToWaypoint(universe, 0)).toBe(0);
+		expect(fleet.getYearsToWaypoint(universe, 1)).toBe(4); // 100 ly at warp 5
+		expect(fleet.getYearsToWaypoint(universe, 2)).toBe(5); // 25 ly more
+		expect(fleet.getYearsToWaypoint(universe, 3)).toBe(8); // 75 ly at warp 6 is 3 years
+		expect(fleet.getYearsToWaypoint(universe, 4)).toBe(9); // a short hop still takes a year
 	});
 
 	it('knows the years of a single leg', () => {
-		expect(fleet.getYearsForLeg(0)).toBe(0);
-		expect(fleet.getYearsForLeg(1)).toBe(4);
-		expect(fleet.getYearsForLeg(2)).toBe(1);
-		expect(fleet.getYearsForLeg(3)).toBe(3);
-		expect(fleet.getYearsForLeg(4)).toBe(1); // 10 ly at warp 9, however long the trip before it
+		expect(fleet.getYearsForLeg(universe, 0)).toBe(0);
+		expect(fleet.getYearsForLeg(universe, 1)).toBe(4);
+		expect(fleet.getYearsForLeg(universe, 2)).toBe(1);
+		expect(fleet.getYearsForLeg(universe, 3)).toBe(3);
+		expect(fleet.getYearsForLeg(universe, 4)).toBe(1); // 10 ly at warp 9, however long the trip before it
 	});
 
 	it('uses a stargate in a year and never arrives at warp 0', () => {
@@ -223,9 +228,68 @@ describe('trip to a waypoint', () => {
 				fleetOrders: { waypoints: [at(0, 5, 0), at(500, StargateWarpSpeed, 0), at(600, 0, 0)] }
 			})
 		);
-		expect(gate.getYearsToWaypoint(1)).toBe(1);
-		expect(gate.getYearsToWaypoint(2)).toBeUndefined();
-		expect(gate.getYearsForLeg(1)).toBe(1);
-		expect(gate.getYearsForLeg(2)).toBeUndefined();
+		expect(gate.getYearsToWaypoint(universe, 1)).toBe(1);
+		expect(gate.getYearsToWaypoint(universe, 2)).toBeUndefined();
+		expect(gate.getYearsForLeg(universe, 1)).toBe(1);
+		expect(gate.getYearsForLeg(universe, 2)).toBeUndefined();
+	});
+});
+
+describe('waypoint travel through wormholes', () => {
+	const entrance = create(WormholeSchema, {
+		mapObject: { num: 1, position: { x: 100, y: 100 } },
+		destinationNum: 2
+	});
+	const exit = create(WormholeSchema, {
+		mapObject: { num: 2, position: { x: 1000, y: 100 } },
+		destinationNum: 1
+	});
+	const universeWith = (...wormholes: (typeof entrance)[]) =>
+		({ getWormhole: (num: number) => wormholes.find((w) => w.mapObject?.num === num) }) as Universe;
+	const route = () =>
+		new CommandedFleet(
+			create(FleetSchema, {
+				fleetOrders: {
+					waypoints: [
+						{ position: { x: 64, y: 100 } },
+						{
+							position: { x: 100, y: 100 },
+							warpSpeed: 6,
+							mapObjectTarget: { targetType: MapObjectType.WORMHOLE, targetNum: 1 }
+						},
+						{ position: { x: 1036, y: 100 }, warpSpeed: 6 }
+					]
+				}
+			})
+		);
+
+	it('measures the leg after a wormhole from its exit', () => {
+		const fleet = route();
+		const universe = universeWith(entrance, exit);
+		expect(fleet.getDistanceForLeg(universe, 1)).toBe(36);
+		expect(fleet.getDistanceForLeg(universe, 2)).toBe(36);
+		expect(fleet.getYearsForLeg(universe, 2)).toBe(1);
+		expect(fleet.getYearsToWaypoint(universe, 2)).toBe(2);
+		expect(fleet.fleetOrders.waypoints[1].position).toMatchObject({ x: 100, y: 100 });
+	});
+
+	it.each([
+		['missing entrance', universeWith(exit)],
+		['unknown link', universeWith(create(WormholeSchema, { mapObject: entrance.mapObject }), exit)],
+		['missing exit', universeWith(entrance)]
+	])('uses the entrance with %s', (_name, universe) => {
+		const fleet = route();
+		expect(fleet.getDistanceForLeg(universe, 2)).toBe(936);
+		expect(fleet.getYearsToWaypoint(universe, 2)).toBe(27);
+	});
+
+	it('does not teleport the current position or an untargeted waypoint', () => {
+		const fleet = route();
+		const universe = universeWith(entrance, exit);
+		fleet.fleetOrders.waypoints.shift();
+		expect(fleet.getDistanceForLeg(universe, 1)).toBe(936);
+		const untargeted = route();
+		untargeted.fleetOrders.waypoints[1].mapObjectTarget = undefined;
+		expect(untargeted.getDistanceForLeg(universe, 2)).toBe(936);
 	});
 });

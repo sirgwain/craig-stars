@@ -6,6 +6,7 @@ import {
 	MapObjectType,
 	WaypointDestSchema,
 	WaypointSchema,
+	WormholeSchema,
 	type Fleet,
 	type FleetOrders
 } from '#lib/types/cs-proto.js';
@@ -399,3 +400,36 @@ it('selects the end of the route when a fleet is commanded', async () => {
 	expect(get(context.selectedMapObject)).toBe(u.fleets[0]);
 	expect(get(context.currentSelectedWaypointIndex)).toBe(0);
 });
+
+it.each([
+	[20, [10, 20, 20]], // returning to the entrance is a real leg from the exit
+	[100, [10, 20]] // a position waypoint at the exit is redundant
+])(
+	'uses the wormhole exit when cleaning up after deleting a waypoint (%i)',
+	async (returnX, expected) => {
+		clients.fleetClient.updateFleetOrders.mockImplementation(async ({ fleetOrders }) =>
+			response(fleetOrders)
+		);
+		const { context, u } = await setup();
+		u.wormholes = [
+			create(WormholeSchema, {
+				mapObject: { num: 1, position: { x: 20, y: 10 } },
+				destinationNum: 2
+			}),
+			create(WormholeSchema, {
+				mapObject: { num: 2, position: { x: 100, y: 10 } },
+				destinationNum: 1
+			})
+		];
+		await context.addWaypoint(dest(20), false);
+		const waypoints = () => get(context.commandedFleet)!.fleetOrders.waypoints;
+		waypoints()[1].mapObjectTarget = create(WaypointSchema, {
+			mapObjectTarget: { targetType: MapObjectType.WORMHOLE, targetNum: 1 }
+		}).mapObjectTarget;
+		await context.addWaypoint(dest(30), false);
+		await context.addWaypoint(dest(returnX), false);
+		context.selectWaypoint(waypoints()[2]);
+		await context.deleteWaypoint();
+		expect(waypoints().map((wp) => wp.position!.x)).toEqual(expected);
+	}
+);

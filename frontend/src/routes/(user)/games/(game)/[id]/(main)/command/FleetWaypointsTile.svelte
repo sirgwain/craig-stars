@@ -9,7 +9,6 @@
 	import { StargateWarpSpeed } from '#lib/types/Consts.js';
 	import { MapObjectType, WaypointSchema, type Waypoint } from '#lib/types/cs-proto.js';
 	import { CommandedFleet } from '#lib/types/Fleet.js';
-	import { distance, emptyVector } from '#lib/types/Vector.js';
 	import { create } from '@bufbuild/protobuf';
 	import CommandTile from './CommandTile.svelte';
 
@@ -57,14 +56,6 @@
 	let waypointPlanetFriendly = $derived(
 		waypointPlanet && $player.isFriend(waypointPlanet.mapObject?.playerNum)
 	);
-	let dist = $derived(
-		nextWaypoint || previousWaypoint
-			? distance(
-					waypoint.position ?? emptyVector(),
-					(previousWaypoint ? previousWaypoint.position : nextWaypoint?.position) ?? emptyVector()
-				)
-			: 0
-	);
 
 	// calculate the fuel used per leg of each waypoint, starting at wp1
 	let fuelUsagePerLeg = $derived(
@@ -74,10 +65,11 @@
 	// travel time and fuel are shown for the leg into the selected waypoint and for the whole trip up
 	// to it, or to the next waypoint when the fleet's current position is selected
 	let tripIndex = $derived(previousWaypoint ? selectedWaypointIndex : 1);
+	let dist = $derived(fleet.getDistanceForLeg($universe, tripIndex));
 	const formatYears = (years: number | undefined) =>
 		years === undefined ? 'Never' : years === 1 ? '1 year' : `${years} years`;
-	let legTravelTime = $derived(formatYears(fleet.getYearsForLeg(tripIndex)));
-	let totalTravelTime = $derived(formatYears(fleet.getYearsToWaypoint(tripIndex)));
+	let legTravelTime = $derived(formatYears(fleet.getYearsForLeg($universe, tripIndex)));
+	let totalTravelTime = $derived(formatYears(fleet.getYearsToWaypoint($universe, tripIndex)));
 
 	// the most fuel the trip needs at once, which starts over wherever the fleet refuels
 	let fuelUsage = $derived(fleet.getFuelUsageToWaypoint($player, $universe, tripIndex));

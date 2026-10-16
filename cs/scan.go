@@ -862,7 +862,7 @@ func (scan *playerScanner) updateFleetTargets() {
 			}
 
 			// this waypoint is now the same as the one before it, so delete it
-			if wp.TargetType == MapObjectTypeNone && wp.Position == fleet.Waypoints[i-1].Position {
+			if wp.TargetType == MapObjectTypeNone && wp.Position == fleet.waypointDeparturePosition(scan.player, i-1) {
 				fleet.Waypoints = slices.Delete(fleet.Waypoints, i, i+1)
 				i--
 			}

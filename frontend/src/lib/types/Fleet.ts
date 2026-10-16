@@ -29,6 +29,7 @@ import { deepSpaceMapObject, type MapObjectLike, owned } from './MapObject';
 import type { CommandedPlayer } from './Player';
 import { distance, emptyVector } from './Vector';
 import { enumToString } from './Enums';
+import { getWormholeExit } from './Waypoint';
 
 export const WaypointTasks: WaypointTask[] = [
 	WaypointTask.UNSPECIFIED,
@@ -190,11 +191,29 @@ export class CommandedFleet implements Fleet {
 		return fuel;
 	}
 
+	/** Get the distance flown for a leg, starting at the exit of a preceding wormhole. */
+	getDistanceForLeg(universe: Pick<Universe, 'getWormhole'>, waypointIndex: number): number {
+		const waypoints = this.fleetOrders.waypoints;
+		if (waypointIndex < 1 || waypointIndex >= waypoints.length) {
+			return 0;
+		}
+		const previous = waypoints[waypointIndex - 1];
+		// Waypoint 0 is the fleet's current position, so it hasn't flown through a wormhole.
+		const exit = waypointIndex > 1 ? getWormholeExit(universe, previous) : undefined;
+		return distance(
+			exit ?? previous.position ?? emptyVector(),
+			waypoints[waypointIndex].position ?? emptyVector()
+		);
+	}
+
 	/**
 	 * Get the years it takes to travel the single leg that ends at a waypoint.
 	 * @returns the years, or undefined if the leg is at warp 0 and the fleet never gets there
 	 */
-	getYearsForLeg(waypointIndex: number): number | undefined {
+	getYearsForLeg(
+		universe: Pick<Universe, 'getWormhole'>,
+		waypointIndex: number
+	): number | undefined {
 		const waypoints = this.fleetOrders.waypoints;
 		if (waypointIndex < 1 || waypointIndex >= waypoints.length) {
 			return 0;
@@ -206,12 +225,7 @@ export class CommandedFleet implements Fleet {
 		if (warpSpeed === StargateWarpSpeed) {
 			return 1;
 		}
-		const dist = Math.floor(
-			distance(
-				waypoints[waypointIndex - 1].position ?? emptyVector(),
-				waypoints[waypointIndex].position ?? emptyVector()
-			)
-		);
+		const dist = Math.floor(this.getDistanceForLeg(universe, waypointIndex));
 		// even a leg shorter than a year of travel takes a year
 		return Math.max(1, Math.ceil(dist / (warpSpeed * warpSpeed)));
 	}
@@ -220,10 +234,13 @@ export class CommandedFleet implements Fleet {
 	 * Get the years it takes to reach a waypoint, travelling every leg before it.
 	 * @returns the years, or undefined if a leg is at warp 0 and the fleet never gets there
 	 */
-	getYearsToWaypoint(waypointIndex: number): number | undefined {
+	getYearsToWaypoint(
+		universe: Pick<Universe, 'getWormhole'>,
+		waypointIndex: number
+	): number | undefined {
 		let years = 0;
 		for (let i = 1; i <= waypointIndex && i < this.fleetOrders.waypoints.length; i++) {
-			const legYears = this.getYearsForLeg(i);
+			const legYears = this.getYearsForLeg(universe, i);
 			if (legYears === undefined) {
 				return undefined;
 			}

@@ -733,13 +733,28 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	return spec
 }
 
+// waypointDeparturePosition is where a leg starts after completing the preceding waypoint.
+// A future wormhole waypoint ends at its known exit. Waypoint 0 is our current position,
+// and unknown links use the entrance as the best estimate without revealing hidden intel.
+func (f *Fleet) waypointDeparturePosition(player *Player, waypointIndex int) Vector {
+	wp := f.Waypoints[waypointIndex]
+	if waypointIndex > 0 && wp.TargetType == MapObjectTypeWormhole && wp.TargetNum != None {
+		if entrance := player.GetWormholeIntel(wp.TargetNum); entrance != nil && entrance.DestinationNum != None {
+			if exit := player.GetWormholeIntel(entrance.DestinationNum); exit != nil {
+				return exit.Position
+			}
+		}
+	}
+	return wp.Position
+}
+
 // compute fuel usage for each waypoint
 func (f *Fleet) ComputeFuelUsage(player *Player) {
 	for i := range f.Waypoints {
 		wp := &f.Waypoints[i]
 		if i > 0 && wp.WarpSpeed < StargateWarpSpeed {
-			wpPrevious := f.Waypoints[i-1]
-			wp.EstFuelUsage = f.GetFuelCost(player, wp.WarpSpeed, math.Ceil(wp.Position.DistanceTo(wpPrevious.Position)))
+			from := f.waypointDeparturePosition(player, i-1)
+			wp.EstFuelUsage = f.GetFuelCost(player, wp.WarpSpeed, math.Ceil(wp.Position.DistanceTo(from)))
 		} else {
 			wp.EstFuelUsage = 0
 		}
@@ -1731,6 +1746,7 @@ func (f *Fleet) AddWaypoint(
 	selectedWaypoint := info.selectedWaypoint
 	nextWaypoint := info.nextWaypoint
 	index := info.waypointIndex
+	from := f.waypointDeparturePosition(player, index)
 
 	// the position is either a position or the target's position
 	position := dest.Position
@@ -1739,7 +1755,7 @@ func (f *Fleet) AddWaypoint(
 	}
 
 	if position == (Vector{}) ||
-		position == selectedWaypoint.Position ||
+		position == from ||
 		(nextWaypoint != nil && position == nextWaypoint.Position) {
 		slog.Debug("Not adding waypoint position",
 			slog.String("position", position.String()),
@@ -1759,7 +1775,7 @@ func (f *Fleet) AddWaypoint(
 	fuelAlreadyAllocated := f.GetFuelAllocated(player, index)
 	orbiting := player.getWaypointPlanetIntel(*selectedWaypoint)
 
-	dist := math.Ceil(selectedWaypoint.Position.DistanceTo(position))
+	dist := math.Ceil(from.DistanceTo(position))
 
 	// determine what warp we should set for this waypoint, using the planet we're going to,
 	// even if we're targeting a fleet there
@@ -1769,7 +1785,7 @@ func (f *Fleet) AddWaypoint(
 	}
 	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, destPlanet, fuelAlreadyAllocated, fastestWaypoint)
 	if target := player.getMovingFleetIntel(dest.MO); target != nil {
-		warpSpeed = f.getPursuitWarp(player, selectedWaypoint.Position, target, f.getYearsToWaypoint(index), fuelAlreadyAllocated, fastestWaypoint, warpSpeed)
+		warpSpeed = f.getPursuitWarp(player, from, target, f.getYearsToWaypoint(player, index), fuelAlreadyAllocated, fastestWaypoint, warpSpeed)
 	}
 
 	if dest.MO.Type != MapObjectTypeNone {
@@ -1793,7 +1809,6 @@ func (f *Fleet) AddWaypoint(
 			wp.Task = WaypointTaskRemoteMining
 			wp.TransportTasks = WaypointTransportTasks{}
 		}
-		wp.EstFuelUsage = f.GetFuelCost(player, wp.WarpSpeed, dist)
 		f.Waypoints = slices.Insert(f.Waypoints, index+1, wp)
 	} else {
 		wp := Waypoint{
@@ -1805,10 +1820,10 @@ func (f *Fleet) AddWaypoint(
 			Task:           selectedWaypoint.Task,
 			TransportTasks: selectedWaypoint.TransportTasks,
 		}
-		wp.EstFuelUsage = f.GetFuelCost(player, wp.WarpSpeed, dist)
 		f.Waypoints = slices.Insert(f.Waypoints, index+1, wp)
 	}
 
+	f.ComputeFuelUsage(player)
 	return index + 1
 }
 
@@ -1832,6 +1847,7 @@ func (f *Fleet) UpdateWaypoint(
 	}
 
 	f.ComputeFuelUsage(player)
+	from := f.waypointDeparturePosition(player, waypointIndex-1)
 
 	// the position is either a position or the target's position
 	position := dest.Position
@@ -1843,7 +1859,7 @@ func (f *Fleet) UpdateWaypoint(
 		return UpdateWaypointResultNone
 	}
 
-	if position == previousWaypoint.Position {
+	if position == from {
 		// don't update a waypoint to be the same as a previous waypoint, this should just delete it
 		return UpdateWaypointResultPreviousWaypoint
 	}
@@ -1853,7 +1869,7 @@ func (f *Fleet) UpdateWaypoint(
 		return UpdateWaypointResultNextWaypoint
 	}
 
-	dist := math.Ceil(previousWaypoint.Position.DistanceTo(position))
+	dist := math.Ceil(from.DistanceTo(position))
 
 	// get the fuel allocated up to but not including this waypoint since we're moving it around
 	fuelAlreadyAllocated := f.GetFuelAllocated(player, waypointIndex-1)
@@ -1877,7 +1893,7 @@ func (f *Fleet) UpdateWaypoint(
 	}
 	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, destPlanet, fuelAlreadyAllocated, fastestWaypoint)
 	if target := player.getMovingFleetIntel(dest.MO); target != nil {
-		warpSpeed = f.getPursuitWarp(player, previousWaypoint.Position, target, f.getYearsToWaypoint(waypointIndex-1), fuelAlreadyAllocated, fastestWaypoint, warpSpeed)
+		warpSpeed = f.getPursuitWarp(player, from, target, f.getYearsToWaypoint(player, waypointIndex-1), fuelAlreadyAllocated, fastestWaypoint, warpSpeed)
 	}
 
 	if dest.MO.Type != MapObjectTypeNone {
@@ -1900,7 +1916,7 @@ func (f *Fleet) UpdateWaypoint(
 		selectedWaypoint.WarpSpeed = warpSpeed
 	}
 
-	selectedWaypoint.EstFuelUsage = f.GetFuelCost(player, selectedWaypoint.WarpSpeed, dist)
+	f.ComputeFuelUsage(player)
 
 	return UpdateWaypointResultUpdated
 }
@@ -2048,14 +2064,14 @@ func (f *Fleet) GetMaxWarp(
 const pursuitMaxYears = 100
 
 // getYearsToWaypoint returns how many years it takes this fleet to reach the waypoint at waypointIndex
-func (f *Fleet) getYearsToWaypoint(waypointIndex int) int {
+func (f *Fleet) getYearsToWaypoint(player *Player, waypointIndex int) int {
 	years := 0
 	for i := 1; i <= waypointIndex && i < len(f.Waypoints); i++ {
 		wp := f.Waypoints[i]
 		if wp.WarpSpeed == StargateWarpSpeed {
 			years++
 		} else if wp.WarpSpeed > 0 {
-			dist := wp.Position.DistanceTo(f.Waypoints[i-1].Position)
+			dist := wp.Position.DistanceTo(f.waypointDeparturePosition(player, i-1))
 			years += int(math.Ceil(dist / float64(wp.WarpSpeed*wp.WarpSpeed)))
 		}
 	}
