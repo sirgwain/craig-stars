@@ -14,6 +14,7 @@
 		title?: string | undefined;
 		tooltip?: string | undefined;
 		titleClass?: string;
+		stacked?: boolean;
 		values?: Value<T>[];
 	} & HTMLSelectAttributes;
 
@@ -21,6 +22,7 @@
 		name,
 		value = $bindable(),
 		titleClass = 'cs-label-text w-32 text-right',
+		stacked = false,
 		values = [],
 		...rest
 	}: Props = $props();
@@ -29,9 +31,9 @@
 </script>
 
 <div class="w-full grow">
-	<label class="cs-form-label"
-		><span class={titleClass}>{title}</span>
-		<select class="select ml-2 grow" bind:value {...rest}>
+	<label class={stacked ? 'flex flex-col gap-1' : 'cs-form-label'}
+		><span class={stacked ? 'cs-label-text' : titleClass}>{title}</span>
+		<select class={stacked ? 'select w-full min-w-0' : 'select ml-2 grow'} bind:value {...rest}>
 			{#each values as value, index (index)}
 				<option value={value.value}>{value.title}</option>
 			{/each}

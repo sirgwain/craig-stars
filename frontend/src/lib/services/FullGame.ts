@@ -60,6 +60,7 @@ export class FullGame implements Game {
 	victorDeclared = false;
 	archived = false;
 	galaxyClumping = false;
+	techCostMultiplier = 1;
 	rules = defaultRules;
 	players: PlayerStatus[] = [];
 

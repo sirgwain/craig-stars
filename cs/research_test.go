@@ -263,3 +263,43 @@ func Test_research_research(t *testing.T) {
 		})
 	}
 }
+
+func TestResearchCostMultiplier(t *testing.T) {
+	for _, multiplier := range []float64{0, 1, 2, 2.5, 10} {
+		for _, raceCost := range []ResearchCostLevel{ResearchCostLess, ResearchCostStandard, ResearchCostExtra} {
+			r := NewRules()
+			r.TechCostMultiplier = multiplier
+			researcher := newResearcher(&r)
+			factor := 1.0
+			if raceCost == ResearchCostLess {
+				factor = .5
+			}
+			if raceCost == ResearchCostExtra {
+				factor = 1.75
+			}
+			want := int(float64(80+6*10) * factor * EffectiveTechCostMultiplier(multiplier))
+			if got := researcher.getTotalCost(TechLevel{1, 1, 1, 1, 1, 1}, raceCost, 1); got != want {
+				t.Errorf("multiplier %v race %s: got %d want %d", multiplier, raceCost, got, want)
+			}
+			if got := researcher.getTotalCost(TechLevel{26, 26, 26, 26, 26, 26}, raceCost, 26); got != 0 {
+				t.Errorf("maxed research cost = %d", got)
+			}
+		}
+	}
+}
+
+func TestSlowerResearchProgress(t *testing.T) {
+	r := NewRules()
+	r.TechCostMultiplier = 2
+	researcher := newResearcher(&r)
+	p := testPlayer().WithResearching(Energy).WithTechLevels(TechLevel{})
+	p.Race.ResearchCost.Energy = ResearchCostStandard
+	gained, leftover := researcher.researchFieldOnce(p, Energy, 50)
+	if gained || leftover != 0 || p.TechLevelsSpent.Energy != 50 {
+		t.Fatalf("normal cost should only half-fund slow research: %+v", p)
+	}
+	gained, leftover = researcher.researchFieldOnce(p, Energy, 60)
+	if !gained || leftover != 10 || p.TechLevels.Energy != 1 || p.TechLevelsSpent.Energy != 0 {
+		t.Fatalf("slow research breakthrough: gained %v leftover %d player %+v", gained, leftover, p)
+	}
+}

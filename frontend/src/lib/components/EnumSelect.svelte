@@ -17,6 +17,7 @@
 		tooltip?: string | undefined;
 		enumType: T;
 		titleClass?: string;
+		stacked?: boolean;
 		typeTitle?: (type: TT) => string;
 		typeFilter?: (type: TT) => boolean;
 		showEmpty?: boolean;
@@ -28,6 +29,7 @@
 		tooltip,
 		enumType,
 		titleClass = 'cs-label-text w-32 text-right',
+		stacked = false,
 		typeFilter = (_: TT) => true,
 		showEmpty = false,
 		...rest
@@ -40,9 +42,14 @@
 </script>
 
 <div class="w-full grow">
-	<label class="cs-form-label"
-		><span class={titleClass}>{title}</span>
-		<select class="select ml-2 grow" {name} bind:value {...rest}>
+	<label class={stacked ? 'flex flex-col gap-1' : 'cs-form-label'}
+		><span class={stacked ? 'cs-label-text' : titleClass}>{title}</span>
+		<select
+			class={stacked ? 'select w-full min-w-0' : 'select ml-2 grow'}
+			{name}
+			bind:value
+			{...rest}
+		>
 			{#each eu(enumType).getValues() as type (type)}
 				{#if typeFilter(type) && (showEmpty || type !== 0)}
 					<option value={type}>{typeTitle(type)}</option>

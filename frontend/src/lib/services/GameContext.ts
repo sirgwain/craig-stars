@@ -212,7 +212,7 @@ export async function createGameContext(
 	// setup initial wasm state
 	const { spec: raceSpec } = await cs.wasmService.computeRaceSpec({ race: p.race });
 	p.race.spec = raceSpec ?? p.race.spec;
-	await cs.wasmService.setPlayer({ player: p });
+	await cs.wasmService.setPlayer({ player: p, techCostMultiplier: fg.techCostMultiplier || 1 });
 	await cs.wasmService.setDesigns({ designs: u.designs });
 	await cs.wasmService.setIntels({ intels: u.intels });
 
@@ -277,7 +277,7 @@ export async function createGameContext(
 		rememberFleetOrders(u);
 		const { spec: raceSpec } = await cs.wasmService.computeRaceSpec({ race: p.race });
 		p.race.spec = raceSpec ?? p.race.spec;
-		await cs.wasmService.setPlayer({ player: p });
+		await cs.wasmService.setPlayer({ player: p, techCostMultiplier: fg.techCostMultiplier || 1 });
 		await cs.wasmService.setDesigns({ designs: u.designs });
 		await cs.wasmService.setIntels({ intels: u.intels });
 
@@ -768,7 +768,10 @@ export async function createGameContext(
 		const { spec } = await cs.wasmService.computeRaceSpec({ race: updated.race });
 		updated.race.spec = spec!;
 		player.set(updated);
-		await cs.wasmService.setPlayer({ player: p });
+		await cs.wasmService.setPlayer({
+			player: p,
+			techCostMultiplier: get(game).techCostMultiplier || 1
+		});
 	}
 
 	// Publish a local or server fleet update and preserve the commanded fleet's waypoint selection.

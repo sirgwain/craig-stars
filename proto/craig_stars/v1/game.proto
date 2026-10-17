@@ -35,6 +35,7 @@ message Game {
   bool victor_declared = 24;
   bool archived = 25;
   bool galaxy_clumping = 26;
+  double tech_cost_multiplier = 27;
 }
 
 message VictoryConditions {
@@ -74,6 +75,8 @@ message GameSettings {
   VictoryConditions victory_conditions = 12;
   repeated NewGamePlayer players = 13;
   bool galaxy_clumping = 14;
+  // Research cost multiplier, 1 to 10. Zero means the default of 1.
+  double tech_cost_multiplier = 15;
 }
 
 message GameWithPlayers {

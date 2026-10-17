@@ -5,8 +5,10 @@
 package craig_starsv1
 
 import (
+	binary "encoding/binary"
 	fmt "fmt"
 	io "io"
+	math "math"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -1336,6 +1338,12 @@ func (m *SetPlayerRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.TechCostMultiplier != 0 {
+		i -= 8
+		binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.TechCostMultiplier))))
+		i--
+		dAtA[i] = 0x11
+	}
 	if m.Player != nil {
 		size, err := m.Player.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -2182,6 +2190,9 @@ func (m *SetPlayerRequest) SizeVT() (n int) {
 	if m.Player != nil {
 		l = m.Player.SizeVT()
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.TechCostMultiplier != 0 {
+		n += 9
 	}
 	n += len(m.unknownFields)
 	return n
@@ -4952,6 +4963,17 @@ func (m *SetPlayerRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 2:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TechCostMultiplier", wireType)
+			}
+			var v uint64
+			if (iNdEx + 8) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
+			iNdEx += 8
+			m.TechCostMultiplier = float64(math.Float64frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

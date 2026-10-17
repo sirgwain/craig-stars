@@ -184,6 +184,10 @@ func (s *wasmService) SetDesigns(ctx context.Context, req *craig_starsv1.SetDesi
 }
 
 func (s *wasmService) SetPlayer(ctx context.Context, req *craig_starsv1.SetPlayerRequest) (*craig_starsv1.SetPlayerResponse, error) {
+	// Each game has its own research pace; do not mutate StandardRules.
+	rules := *s.rules
+	rules.TechCostMultiplier = cs.EffectiveTechCostMultiplier(req.TechCostMultiplier)
+	s.rules = &rules
 	player := converter.C.ConvertPlayer(req.Player)
 	player.Race.Spec = cs.ComputeRaceSpec(&player.Race, s.rules)
 

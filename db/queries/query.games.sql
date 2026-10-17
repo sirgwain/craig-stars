@@ -120,12 +120,14 @@ INSERT INTO
         year,
         victor_declared,
         archived,
-        galaxy_clumping
+        galaxy_clumping,
+        tech_cost_multiplier
     )
 VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
+        ?,
         ?,
         ?,
         ?,
@@ -199,7 +201,8 @@ SET
     year = ?,
     victor_declared = ?,
     archived = ?,
-    galaxy_clumping = ?
+    galaxy_clumping = ?,
+    tech_cost_multiplier = ?
 WHERE
     id = ?;
 

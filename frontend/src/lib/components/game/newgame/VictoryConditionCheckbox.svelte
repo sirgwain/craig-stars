@@ -10,7 +10,7 @@
 </script>
 
 <input
-	class="w-12"
+	class="checkbox checkbox-sm shrink-0"
 	type="checkbox"
 	checked={(conditions & condition) > 0}
 	onchange={(e) =>

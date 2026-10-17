@@ -265,3 +265,22 @@ func TestUpdateFullGameNewNotes(t *testing.T) {
 	require.Len(t, notes, 1)
 	assert.Equal(t, "for mining", notes[0].Text)
 }
+
+func TestGameTechCostMultiplierPersistence(t *testing.T) {
+	c := connectTestDB()
+	settings := cs.NewGameSettings()
+	settings.TechCostMultiplier = 2.5
+	game := cs.NewGame().WithSettings(*settings)
+	game.HostID = 1
+	require.NoError(t, c.SaveGame(t.Context(), game))
+	loaded, err := c.GetGame(t.Context(), game.ID)
+	require.NoError(t, err)
+	require.Equal(t, 2.5, loaded.TechCostMultiplier)
+	require.Equal(t, 2.5, loaded.Rules.TechCostMultiplier)
+	loaded.TechCostMultiplier = 3
+	require.NoError(t, c.SaveGame(t.Context(), &loaded.Game))
+	loaded, err = c.GetGame(t.Context(), game.ID)
+	require.NoError(t, err)
+	require.Equal(t, 3.0, loaded.TechCostMultiplier)
+	require.Equal(t, 3.0, loaded.Rules.TechCostMultiplier)
+}
