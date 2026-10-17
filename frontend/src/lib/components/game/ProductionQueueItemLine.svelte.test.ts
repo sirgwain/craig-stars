@@ -9,7 +9,10 @@ import { render } from 'vitest-browser-svelte';
 import ProductionQueueItemLine from './ProductionQueueItemLine.svelte';
 
 const state = vi.hoisted(() => ({ context: undefined as unknown }));
-vi.mock('#lib/services/GameContext.js', () => ({ getGameContext: () => state.context }));
+vi.mock('#lib/services/GameContext.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/services/GameContext.js')>()),
+	getGameContext: () => state.context
+}));
 
 const classes = ['this-year', 'next-year', 'skipped', 'never'];
 
