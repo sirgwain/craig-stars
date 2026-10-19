@@ -29,8 +29,20 @@ test('battle viewer steps through a battle and plays it', async ({ testGamePage 
 	await pause.click();
 	await expect(play).toBeVisible();
 
-	// the speed and the animations are remembered for the next battle, which waits to be played
+	// the next attack stops playback and steps through one attack at a time
+	await play.click();
+	await expect(pause).toBeVisible();
+	await page.getByRole('button', { name: 'next attack' }).click();
+	await expect(play).toBeVisible();
+
+	// without animations, the next attack lands right away
 	await animations.uncheck();
+	const before = Number(await phase.inputValue());
+	await page.getByRole('button', { name: 'next attack' }).click();
+	await expect.poll(async () => Number(await phase.inputValue())).toBeGreaterThan(before);
+	await expect(play).toBeVisible();
+
+	// the speed and the animations are remembered for the next battle, which waits to be played
 	await page.reload();
 	await expect(animations).not.toBeChecked();
 	await expect(page.getByRole('button', { name: '4x' })).toHaveAttribute('aria-pressed', 'true');

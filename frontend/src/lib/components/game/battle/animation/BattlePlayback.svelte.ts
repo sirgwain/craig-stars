@@ -246,22 +246,26 @@ export class BattlePlayback {
 		this.seek(this.battle.totalPhases);
 	}
 
-	// go to the next attack and play it
+	// stop playing and go to the next attack: play just that attack when animations are on,
+	// otherwise jump to the board after it
 	nextAttack() {
 		const phase = this.current ? this.current.step.toPhase : this.host.getPhase();
 		const index = this.battle.actions.findIndex((a, i) => {
 			const kind = actionKind(a);
 			return i >= phase && (kind === 'beam' || kind === 'torpedo');
 		});
+		this.playing = false;
 		if (index === -1) {
 			this.end();
 			return;
 		}
-		const wasPlaying = this.playing;
-		this.seek(index);
-		if (!wasPlaying) {
-			this.stepForward();
+		if (this.reducedMotion || !this.animations) {
+			const step = originalStep(this.battle.actions, index);
+			this.seek(step?.toPhase ?? index + 1);
+			return;
 		}
+		this.seek(index);
+		this.stepForward();
 	}
 
 	private stopAll() {
