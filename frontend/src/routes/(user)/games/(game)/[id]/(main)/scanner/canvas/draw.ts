@@ -195,9 +195,11 @@ function drawMinefields(ctx: CanvasRenderingContext2D, view: ScannerView, frame:
 			minefieldPattern(ctx, view, darken(selectedDraw.color, 0.6)) ?? selectedDraw.color;
 		ctx.fill();
 
-		const size = Math.max(view.len(2), 2);
-		ctx.fillStyle = selectedDraw.color;
-		ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+		if (selectedDraw.showCenter) {
+			const size = Math.max(view.len(2), 2);
+			ctx.fillStyle = selectedDraw.color;
+			ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+		}
 	}
 }
 

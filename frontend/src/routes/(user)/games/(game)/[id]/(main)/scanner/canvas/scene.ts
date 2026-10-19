@@ -114,7 +114,12 @@ export function buildScanners(
 	return Array.from(scannersByPosition.values());
 }
 
-export type MinefieldDraw = { minefield: Minefield; radius: number; color: string };
+export type MinefieldDraw = {
+	minefield: Minefield;
+	radius: number;
+	color: string;
+	showCenter: boolean;
+};
 
 // the minefields the player has chosen to see
 export function getVisibleMinefields(
@@ -133,7 +138,14 @@ export function buildMinefields(
 	return getVisibleMinefields(universe, player, settings).map((minefield) => ({
 		minefield,
 		radius: Math.sqrt(minefield.numMines),
-		color: getDisplayColor(minefield.mapObject?.playerNum, player, universe, settings)
+		color: getDisplayColor(minefield.mapObject?.playerNum, player, universe, settings),
+		// A planet or fleet already marks this location; don't put a square behind its icon.
+		showCenter: !universe
+			.getMapObjectsByPosition(minefield.mapObject?.position ?? emptyVector())
+			.some(
+				(mo) =>
+					mo.mapObject?.type === MapObjectType.PLANET || mo.mapObject?.type === MapObjectType.FLEET
+			)
 	}));
 }
 

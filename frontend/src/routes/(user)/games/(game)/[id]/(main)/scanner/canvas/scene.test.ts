@@ -3,6 +3,7 @@ import {
 	FleetSchema,
 	GameDBObjectSchema,
 	MapObjectType,
+	MinefieldSchema,
 	PlanetSchema,
 	PlayerNoteSchema,
 	Prt,
@@ -15,6 +16,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readScannerColors } from './colors';
 import {
 	buildFleets,
+	buildMinefields,
 	buildNotes,
 	buildPlanets,
 	buildWaypointPaths,
@@ -36,6 +38,54 @@ function palette(overrides: Record<string, string>) {
 	vi.spyOn(console, 'warn').mockImplementation(() => {});
 	return readScannerColors({} as HTMLCanvasElement);
 }
+
+describe('minefield center markers', () => {
+	const position = { x: 243, y: 462 };
+	const nearby = { x: position.x + 1, y: position.y };
+	const planet = (pos: typeof position) =>
+		create(PlanetSchema, { mapObject: { type: MapObjectType.PLANET, num: 1, position: pos } });
+	const fleet = (playerNum: number, pos: typeof position) =>
+		create(FleetSchema, {
+			mapObject: { type: MapObjectType.FLEET, num: 1, playerNum, position: pos }
+		});
+
+	it.each([
+		{
+			name: 'planet',
+			showCenter: false,
+			setup: (u: Universe) => (u.allPlanets = [planet(position)])
+		},
+		{
+			name: 'own fleet',
+			showCenter: false,
+			setup: (u: Universe) => (u.fleets = [fleet(1, position)])
+		},
+		{
+			name: 'fleet intel',
+			showCenter: false,
+			setup: (u: Universe) => (u.fleetIntels = [fleet(2, position)])
+		},
+		{
+			name: 'nearby planet',
+			showCenter: true,
+			setup: (u: Universe) => (u.allPlanets = [planet(nearby)])
+		},
+		{ name: 'empty space', showCenter: true, setup: () => {} }
+	])('$name: showCenter=$showCenter', ({ showCenter, setup }) => {
+		const universe = new Universe();
+		universe.minefields = [
+			create(MinefieldSchema, {
+				mapObject: { type: MapObjectType.MINEFIELD, num: 1, playerNum: 1, position },
+				numMines: 100
+			})
+		];
+		setup(universe);
+		universe.resetMapObjectsByPosition();
+
+		const [draw] = buildMinefields(universe, { num: 1 } as CommandedPlayer, new PlayerSettings());
+		expect(draw.showCenter).toBe(showCenter);
+	});
+});
 
 function buildOne(
 	planetData: Parameters<typeof create<typeof PlanetSchema>>[1],
