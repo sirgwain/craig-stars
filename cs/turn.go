@@ -1999,7 +1999,8 @@ func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToke
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
-	fleet.Tags = tags
+	// the tags come from a production queue item that may build more ships later
+	fleet.Tags = maps.Clone(tags)
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
 	if err := t.game.Universe.addFleet(&fleet); err != nil {
