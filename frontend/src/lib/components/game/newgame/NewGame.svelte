@@ -1,162 +1,51 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
-	import ItemTitle from '#lib/components/ItemTitle.svelte';
-	import SectionHeader from '#lib/components/SectionHeader.svelte';
-	import { gameClient } from '#lib/services/connect.js';
-	import {
-		VictoryConditionAttainTechLevels,
-		VictoryConditionExceedsSecondPlaceScore,
-		VictoryConditionOwnPlanets
-	} from '#lib/types/Consts.js';
-	import {
-		AiDifficulty,
-		Density,
-		type NewGamePlayer as GamePlayer,
-		type GameSettings,
-		GameSettingsSchema,
-		GameStartMode,
-		NewGamePlayerSchema,
-		NewGamePlayerType,
-		PlayerPositions,
-		Size
-	} from '#lib/types/cs-proto.js';
-	import { create } from '@bufbuild/protobuf';
-	import { PlusCircle } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import GameSettingsEditor from './GameSettingsEditor.svelte';
-	import NewGamePlayer from './NewGamePlayer.svelte';
-	import { getColor, getFirstAvailableColor } from './playerColors';
-	import VictoryConditions from './VictoryConditions.svelte';
+	import { onMount, untrack } from 'svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import { gameClient, raceClient } from '#lib/services/connect.js';
+	import { addError } from '#lib/services/Errors.js';
+	import { me } from '#lib/services/Stores.js';
+	import { NewGamePlayerType, type GameSettings, type Race } from '#lib/types/cs-proto.js';
+	import { humanoid } from '#lib/types/Race.js';
+	import type { ConnectError } from '@connectrpc/connect';
+	import GameCreationForm from './GameCreationForm.svelte';
+	import { allPlayerTypes, singlePlayerSettings } from './defaults';
 
-	type Props = {
-		players?: GamePlayer[];
-		name?: string;
-	};
-
-	let {
-		players = [
-			create(NewGamePlayerSchema, {
-				type: NewGamePlayerType.HOST,
-				color: getColor(0),
-				aiDifficulty: AiDifficulty.UNSPECIFIED,
-				defaultHullSet: 0
-			}),
-			create(NewGamePlayerSchema, {
-				type: NewGamePlayerType.AI,
-				color: getColor(1),
-				aiDifficulty: AiDifficulty.NORMAL,
-				defaultHullSet: 0
-			}),
-			create(NewGamePlayerSchema, {
-				type: NewGamePlayerType.AI,
-				color: getColor(2),
-				aiDifficulty: AiDifficulty.NORMAL,
-				defaultHullSet: 0
-			})
-		],
-		name = 'A Barefoot Jaywalk'
-	}: Props = $props();
-
-	let settings: GameSettings = $state(
-		create(GameSettingsSchema, {
-			name: untrack(() => name),
-			public: false,
-			size: Size.SMALL,
-			density: Density.NORMAL,
-			playerPositions: PlayerPositions.MODERATE,
-			randomEvents: true,
-			computerPlayersFormAlliances: false,
-			publicPlayerScores: false,
-			maxMinerals: false,
-			startMode: GameStartMode.UNSPECIFIED, // normal
-			quickStartTurns: 0,
-			players: untrack(() => players),
-			victoryConditions: {
-				conditions:
-					VictoryConditionOwnPlanets |
-					VictoryConditionAttainTechLevels |
-					VictoryConditionExceedsSecondPlaceScore,
-				numCriteriaRequired: 1,
-				yearsPassed: 50,
-				ownPlanets: 60,
-				attainTechLevel: 22,
-				attainTechLevelNumFields: 4,
-				exceedsScore: 11000,
-				exceedsSecondPlaceScore: 100,
-				productionCapacity: 100,
-				ownCapitalShips: 100,
-				highestScoreAfterYears: 100
-			}
-		})
-	);
-
+	type Props = { initialSettings?: GameSettings };
+	let { initialSettings }: Props = $props();
+	let settings = $state(untrack(() => initialSettings ?? singlePlayerSettings()));
+	let races: Race[] = $state([humanoid()]);
+	let loaded = $state(false);
 	let submitting = $state(false);
+	let allowedPlayerTypes = $derived($me.isGuest() ? [NewGamePlayerType.AI] : allPlayerTypes);
 
-	const onSubmit = async () => {
+	onMount(async () => {
+		try {
+			const response = await raceClient.getRaces({});
+			if (response.races.length) races = response.races;
+		} catch (e) {
+			addError(e as ConnectError);
+		} finally {
+			loaded = true;
+		}
+	});
+
+	async function onSubmit() {
+		if (submitting) return;
 		submitting = true;
 		try {
-			const resp = await gameClient.createGame({ settings: settings });
-			if (resp.game?.game) {
-				goto(`/games/${resp.game.game.id}`);
-			}
+			const response = await gameClient.createGame({ settings });
+			if (response.game?.game) await goto(`/games/${response.game.game.id}`);
+		} catch (e) {
+			addError(e as ConnectError);
 		} finally {
 			submitting = false;
 		}
-	};
-
-	const addPlayer = () => {
-		const usedColors = new Set<string>(settings.players.map<string>((p) => p.color));
-
-		settings.players = [
-			...settings.players,
-			create(NewGamePlayerSchema, {
-				type: NewGamePlayerType.AI,
-				color: getFirstAvailableColor(usedColors),
-				aiDifficulty: AiDifficulty.NORMAL,
-				defaultHullSet: 0
-			})
-		];
-	};
-
-	const removePlayer = (player: GamePlayer) => {
-		settings.players = settings.players.filter((p) => p !== player);
-	};
+	}
 </script>
 
-<form
-	onsubmit={(e) => {
-		e.preventDefault();
-		onSubmit();
-	}}
->
-	<div class="w-full flex justify-end gap-2">
-		<button type="submit" disabled={submitting} class="btn btn-success"
-			>{submitting ? 'Creating...' : 'Create Game'}</button
-		>
-	</div>
-
-	<ItemTitle>New Game</ItemTitle>
-
-	<GameSettingsEditor bind:settings />
-
-	<SectionHeader>
-		<button type="button" class="btn-ghost w-full flex flex-row" onclick={addPlayer}>
-			Players
-			<div class="ml-auto">
-				<Icon src={PlusCircle} size="24" class="hover:stroke-accent" />
-			</div>
-		</button></SectionHeader
-	>
-
-	{#each settings.players as player, i (i)}
-		<NewGamePlayer
-			bind:player={settings.players[i]}
-			index={i + 1}
-			onRemove={() => removePlayer(player)}
-		/>
-	{/each}
-
-	<SectionHeader>Victory Conditions</SectionHeader>
-	<VictoryConditions bind:settings />
-</form>
+{#if loaded}
+	<GameCreationForm bind:settings {races} {allowedPlayerTypes} {submitting} {onSubmit} />
+{:else}
+	<LoadingSpinner />
+{/if}

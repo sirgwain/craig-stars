@@ -28,6 +28,7 @@
 					<li><a href="/races">Races</a></li>
 				{/if}
 				<li><a href="/techs">Techs</a></li>
+				<li><a href="/docs">Help</a></li>
 			</ul>
 		</div>
 
@@ -54,6 +55,7 @@
 				{#if user}
 					<li>{user.username}</li>
 				{/if}
+				<li class="md:hidden"><a href="/docs">Help</a></li>
 				<li>
 					<DarkModeToggler />
 				</li>

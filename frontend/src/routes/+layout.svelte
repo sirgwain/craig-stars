@@ -8,7 +8,7 @@
 	import { me } from '#lib/services/Stores.js';
 	import { versionUpdate, watchRelease } from '#lib/services/Version.js';
 	import type { Snippet } from 'svelte';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 
 	import '../css/app.css';
 	import '../css/hulls.css';
@@ -25,11 +25,9 @@
 	);
 	const wasmExecUrl = new URL('#lib/wasm/wasm_exec.js', import.meta.url).href;
 
-	// check the user
-	onMount(() => {
-		if (!publicRoute) {
-			authGuard();
-		}
+	// Also initialize authentication when navigating from public docs into the app.
+	$effect(() => {
+		if (!publicRoute) untrack(() => void authGuard());
 	});
 
 	// a deploy updates the server and frontend separately, check for whichever we haven't seen

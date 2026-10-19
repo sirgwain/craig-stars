@@ -8,6 +8,7 @@
 	<div class="hero-content">
 		<div class="max-w-2xl bg-base-200 p-5 border border-base-300">
 			<div class="justify-end flex flex-row gap-1">
+				<a href="/docs" class="btn btn-outline btn-sm btn-secondary rounded-md">How to play</a>
 				<a
 					href="https://discord.gg/Ctdx7h6UZS"
 					class="btn btn-outline btn-sm btn-secondary rounded-md"
