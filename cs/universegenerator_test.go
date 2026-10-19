@@ -11,6 +11,80 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func newPlacementGenerator(positions PlayerPositions, numPlayers int, area Vector, random *testRandom, planets ...Vector) *universeGenerator {
+	game := newSeededGame(*NewGameSettings())
+	game.PlayerPositions = positions
+	game.Rules.random = random
+	ug := NewUniverseGenerator(game, make([]*Player, numPlayers)).(*universeGenerator)
+	ug.area = area
+	ug.Universe = &Universe{}
+	for _, position := range planets {
+		ug.Universe.Planets = append(ug.Universe.Planets, NewPlanet().withPosition(position))
+	}
+	return ug
+}
+
+func Test_universeGenerator_getPlayerPlanetsDistanceSettings(t *testing.T) {
+	// On a 1000-square map with two players the squared-distance targets are
+	// 6000, 154200, 302400, and 450600. Each pair fits its initial band.
+	tests := []struct {
+		positions PlayerPositions
+		second    Vector
+	}{
+		{PlayerPositionsClose, Vector{327, 250}},
+		{PlayerPositionsModerate, Vector{643, 250}},
+		{PlayerPositionsFarther, Vector{800, 250}},
+		{PlayerPositionsDistant, Vector{725, 725}},
+		{PlayerPositionsUnspecified, Vector{800, 250}},
+	}
+	for _, tt := range tests {
+		t.Run(string(tt.positions), func(t *testing.T) {
+			random := newIntRandom(0, 1, 0, 0)
+			ug := newPlacementGenerator(tt.positions, 2, Vector{1000, 1000}, random, Vector{250, 250}, tt.second)
+			got, err := ug.getPlayerPlanets()
+			require.NoError(t, err)
+			assert.Equal(t, []int{0, 1}, got)
+			assert.Equal(t, 4, random.intCount, "the pair should fit without relaxing the band")
+		})
+	}
+}
+
+func Test_universeGenerator_getPlayerPlanetsFirstHomeworld(t *testing.T) {
+	for _, area := range []Vector{{1000, 1000}, {2000, 1000}} {
+		t.Run(fmt.Sprint(area), func(t *testing.T) {
+			ug := newPlacementGenerator(PlayerPositionsFarther, 1, area, newIntRandom(0, 1, 0),
+				Vector{area.X / 5, area.Y / 2}, Vector{area.X / 2, area.Y / 2})
+			got, err := ug.getPlayerPlanets()
+			require.NoError(t, err)
+			assert.Equal(t, []int{1}, got, "reject a first homeworld outside the central half")
+		})
+	}
+	t.Run("closest sampled planet when none is central", func(t *testing.T) {
+		ug := newPlacementGenerator(PlayerPositionsFarther, 1, Vector{1000, 1000}, newIntRandom(0, 1),
+			Vector{100, 100}, Vector{800, 500})
+		got, err := ug.getPlayerPlanets()
+		require.NoError(t, err)
+		assert.Equal(t, []int{1}, got)
+	})
+}
+
+func Test_universeGenerator_getPlayerPlanetsTinyMap(t *testing.T) {
+	// The squared-distance target is too small to relax by target / 35; placement must still finish.
+	ug := newPlacementGenerator(PlayerPositionsClose, 2, Vector{4, 4}, newIntRandom(), Vector{1, 1}, Vector{2, 1})
+	got, err := ug.getPlayerPlanets()
+	require.NoError(t, err)
+	assert.Equal(t, []int{0, 1}, got)
+}
+
+func Test_universeGenerator_getPlayerPlanetsShufflesAssignments(t *testing.T) {
+	// Deliberately unsorted: returned indices must still refer to Universe.Planets.
+	ug := newPlacementGenerator(PlayerPositionsClose, 2, Vector{1000, 1000}, newIntRandom(0, 1, 1, 0),
+		Vector{577, 500}, Vector{500, 500})
+	got, err := ug.getPlayerPlanets()
+	require.NoError(t, err)
+	assert.Equal(t, []int{0, 1}, got, "swap the selected homeworlds before assigning players")
+}
+
 func Test_universeGenerator_placeExtraPlayerPlanet(t *testing.T) {
 	tests := []struct {
 		name     string
