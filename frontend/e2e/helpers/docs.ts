@@ -1,17 +1,13 @@
-import { expect, type Page, type TestInfo } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { NewGamePlayerType, Size } from '../../src/lib/types/cs-proto';
 
-export async function exerciseGameCreationExample(page: Page, testInfo: TestInfo) {
+export async function exerciseGameCreationExample(page: Page) {
 	const apiCalls: string[] = [];
 	page.on('request', (request) => {
 		if (request.url().includes('/api/')) apiCalls.push(request.url());
 	});
 	await page.goto('/docs/games/create');
 	await expect(page.getByRole('heading', { name: 'Create a game', exact: true })).toBeVisible();
-	await testInfo.attach('game-creation-guide', {
-		body: await page.screenshot(),
-		contentType: 'image/png'
-	});
 
 	const example = page.getByRole('region', { name: 'Try game creation' });
 	await example.getByRole('textbox', { name: 'Name', exact: true }).fill('Practice galaxy');
@@ -48,10 +44,6 @@ export async function exerciseGameCreationExample(page: Page, testInfo: TestInfo
 	await example.getByRole('button', { name: 'Preview setup' }).click();
 	await expect(preview).toContainText('2 players');
 
-	await testInfo.attach('game-creation-example', {
-		body: await example.screenshot({ style: 'header { visibility: hidden; }' }),
-		contentType: 'image/png'
-	});
 	const width = await page.evaluate(() => ({
 		viewport: window.innerWidth,
 		content: document.documentElement.scrollWidth

@@ -5,10 +5,15 @@
 		hostedGameSettings,
 		singlePlayerSettings
 	} from '#lib/components/game/newgame/defaults.js';
-	import { GameSettingsSchema, NewGamePlayerType } from '#lib/types/cs-proto.js';
+	import {
+		Density,
+		GameSettingsSchema,
+		NewGamePlayerType,
+		Size,
+		type GameSettings
+	} from '#lib/types/cs-proto.js';
 	import { humanoid } from '#lib/types/Race.js';
 	import { enumToString } from '#lib/types/Enums.js';
-	import { Size, Density } from '#lib/types/cs-proto.js';
 	import DocExample from '../DocExample.svelte';
 
 	// Example choices only; these are never fetched from or saved to an account.
@@ -18,7 +23,7 @@
 	];
 	let mode = $state('single');
 	let settings = $state(singlePlayerSettings());
-	let preview = $state<ReturnType<typeof singlePlayerSettings>>();
+	let preview = $state<GameSettings>();
 
 	function reset() {
 		settings = mode === 'host' ? hostedGameSettings() : singlePlayerSettings();

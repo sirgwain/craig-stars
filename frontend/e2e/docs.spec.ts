@@ -8,8 +8,8 @@ import { CreateGameResponseSchema } from '../src/lib/protogen/craig_stars/v1/gam
 test.describe('public documentation', () => {
 	test.use({ storageState: { cookies: [], origins: [] } });
 
-	test('game creation example works anonymously without API calls', async ({ page }, testInfo) => {
-		await exerciseGameCreationExample(page, testInfo);
+	test('game creation example works anonymously without API calls', async ({ page }) => {
+		await exerciseGameCreationExample(page);
 	});
 
 	test('docs navigation preserves MCP and initializes auth when leaving docs', async ({ page }) => {
