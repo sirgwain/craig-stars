@@ -27,6 +27,22 @@ describe('TechDescription', () => {
 			.toBeInTheDocument();
 	});
 
+	it('describes smart bombs as smart', async () => {
+		render(TechDescription, { tech: techs.getHullComponent('Smart Bomb')! });
+
+		await expect
+			.element(
+				page.getByText('This is a smart bomb. Planetary defenses are less effective against it.')
+			)
+			.toBeInTheDocument();
+	});
+
+	it('does not describe normal bombs as smart', async () => {
+		render(TechDescription, { tech: techs.getHullComponent('Lady Finger Bomb')! });
+
+		await expect.element(page.getByText(/smart bomb/)).not.toBeInTheDocument();
+	});
+
 	it('renders nothing for a tech with no description', async () => {
 		const { container } = render(TechDescription, {
 			tech: techs.getHullComponent('Long Hump 6')!

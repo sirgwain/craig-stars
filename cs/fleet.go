@@ -1798,16 +1798,22 @@ func (f *Fleet) AddWaypoint(
 				TargetType:      dest.MO.Type,
 				TargetPosition:  dest.MO.Position,
 			},
-			WarpSpeed:      warpSpeed,
-			Task:           selectedWaypoint.Task,
-			TransportTasks: selectedWaypoint.TransportTasks,
+			WarpSpeed:       warpSpeed,
+			Task:            selectedWaypoint.Task,
+			TransportTasks:  selectedWaypoint.TransportTasks,
+			PatrolRange:     selectedWaypoint.PatrolRange,
+			PatrolWarpSpeed: selectedWaypoint.PatrolWarpSpeed,
 		}
 		if canColonize {
 			wp.Task = WaypointTaskColonize
 			wp.TransportTasks = WaypointTransportTasks{}
+			wp.PatrolRange = PatrolRangeInfinite
+			wp.PatrolWarpSpeed = PatrolWarpSpeedAutomatic
 		} else if canRemoteMine {
 			wp.Task = WaypointTaskRemoteMining
 			wp.TransportTasks = WaypointTransportTasks{}
+			wp.PatrolRange = PatrolRangeInfinite
+			wp.PatrolWarpSpeed = PatrolWarpSpeedAutomatic
 		}
 		f.Waypoints = slices.Insert(f.Waypoints, index+1, wp)
 	} else {
@@ -1816,9 +1822,11 @@ func (f *Fleet) AddWaypoint(
 			MapObjectTarget: MapObjectTarget{
 				TargetPosition: position,
 			},
-			WarpSpeed:      warpSpeed,
-			Task:           selectedWaypoint.Task,
-			TransportTasks: selectedWaypoint.TransportTasks,
+			WarpSpeed:       warpSpeed,
+			Task:            selectedWaypoint.Task,
+			TransportTasks:  selectedWaypoint.TransportTasks,
+			PatrolRange:     selectedWaypoint.PatrolRange,
+			PatrolWarpSpeed: selectedWaypoint.PatrolWarpSpeed,
 		}
 		f.Waypoints = slices.Insert(f.Waypoints, index+1, wp)
 	}

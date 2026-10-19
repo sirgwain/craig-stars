@@ -2583,6 +2583,32 @@ func TestFleet_AddWaypoint(t *testing.T) {
 			},
 		},
 		{
+			name: "copy patrol settings",
+			fleet: testLongRangeScout(player).withWaypoints(Waypoint{
+				Position:        Vector{},
+				Task:            WaypointTaskPatrol,
+				PatrolRange:     100,
+				PatrolWarpSpeed: 5,
+			}),
+			args: args{
+				player:                       player,
+				dest:                         WaypointDest{Position: Vector{36, 0}},
+				currentSelectedWaypointIndex: 0,
+			},
+			want: 1,
+			wantWaypoint: Waypoint{
+				Position: Vector{36, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetPosition: Vector{36, 0},
+				},
+				WarpSpeed:       6,
+				EstFuelUsage:    5,
+				Task:            WaypointTaskPatrol,
+				PatrolRange:     100,
+				PatrolWarpSpeed: 5,
+			},
+		},
+		{
 			name: "gate",
 			fleet: testLongRangeScout(player).withWaypoints(
 				// orbiting planet with stargate
