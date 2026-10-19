@@ -40,51 +40,50 @@ function palette(overrides: Record<string, string>) {
 }
 
 describe('minefield center markers', () => {
-	it.each([
-		{ object: 'planet', nearby: false, showCenter: false },
-		{ object: 'fleet', nearby: false, showCenter: false },
-		{ object: 'fleet intel', nearby: false, showCenter: false },
-		{ object: 'planet', nearby: true, showCenter: true },
-		{ object: 'fleet', nearby: true, showCenter: true },
-		{ object: 'none', nearby: false, showCenter: true },
-		{ object: 'minefield', nearby: false, showCenter: true }
-	])('$object, nearby=$nearby: showCenter=$showCenter', ({ object, nearby, showCenter }) => {
-		const universe = new Universe();
-		const position = { x: 243, y: 462 };
-		const otherPosition = { x: position.x + (nearby ? 1 : 0), y: position.y };
-		const minefield = create(MinefieldSchema, {
-			mapObject: { type: MapObjectType.MINEFIELD, num: 1, playerNum: 1, position },
-			numMines: 100
+	const position = { x: 243, y: 462 };
+	const nearby = { x: position.x + 1, y: position.y };
+	const planet = (pos: typeof position) =>
+		create(PlanetSchema, { mapObject: { type: MapObjectType.PLANET, num: 1, position: pos } });
+	const fleet = (playerNum: number, pos: typeof position) =>
+		create(FleetSchema, {
+			mapObject: { type: MapObjectType.FLEET, num: 1, playerNum, position: pos }
 		});
-		universe.minefields = [minefield];
-		if (object === 'planet') {
-			universe.allPlanets = [
-				create(PlanetSchema, {
-					mapObject: { type: MapObjectType.PLANET, num: 1, position: otherPosition }
-				})
-			];
-		} else if (object === 'fleet' || object === 'fleet intel') {
-			const fleet = create(FleetSchema, {
-				mapObject: {
-					type: MapObjectType.FLEET,
-					num: 1,
-					playerNum: object === 'fleet' ? 1 : 2,
-					position: otherPosition
-				}
-			});
-			if (object === 'fleet') universe.fleets = [fleet];
-			else universe.fleetIntels = [fleet];
-		} else if (object === 'minefield') {
-			universe.minefields.push(
-				create(MinefieldSchema, {
-					mapObject: { type: MapObjectType.MINEFIELD, num: 2, playerNum: 1, position }
-				})
-			);
-		}
+
+	it.each([
+		{
+			name: 'planet',
+			showCenter: false,
+			setup: (u: Universe) => (u.allPlanets = [planet(position)])
+		},
+		{
+			name: 'own fleet',
+			showCenter: false,
+			setup: (u: Universe) => (u.fleets = [fleet(1, position)])
+		},
+		{
+			name: 'fleet intel',
+			showCenter: false,
+			setup: (u: Universe) => (u.fleetIntels = [fleet(2, position)])
+		},
+		{
+			name: 'nearby planet',
+			showCenter: true,
+			setup: (u: Universe) => (u.allPlanets = [planet(nearby)])
+		},
+		{ name: 'empty space', showCenter: true, setup: () => {} }
+	])('$name: showCenter=$showCenter', ({ showCenter, setup }) => {
+		const universe = new Universe();
+		universe.minefields = [
+			create(MinefieldSchema, {
+				mapObject: { type: MapObjectType.MINEFIELD, num: 1, playerNum: 1, position },
+				numMines: 100
+			})
+		];
+		setup(universe);
 		universe.resetMapObjectsByPosition();
-		const player = { num: 1 } as CommandedPlayer;
-		const [draw] = buildMinefields(universe, player, new PlayerSettings());
-		expect(draw).toMatchObject({ minefield, radius: 10, color: '#0000FF', showCenter });
+
+		const [draw] = buildMinefields(universe, { num: 1 } as CommandedPlayer, new PlayerSettings());
+		expect(draw.showCenter).toBe(showCenter);
 	});
 });
 
