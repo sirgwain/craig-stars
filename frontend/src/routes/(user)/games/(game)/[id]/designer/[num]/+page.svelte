@@ -13,6 +13,10 @@
 
 {#if design}
 	<Breadcrumb>
+		{#snippet end()}<a
+				class="btn btn-sm btn-outline btn-secondary"
+				href={`/games/${$game.id}/simulator?design=${design.num}`}>Simulate battle</a
+			>{/snippet}
 		{#snippet crumbs()}
 			<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
 			<li>{design?.name}</li>

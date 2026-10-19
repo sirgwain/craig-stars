@@ -24,13 +24,16 @@
 	import { ChevronLeft, ChevronRight, QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
+	import { readable } from 'svelte/store';
+	import type { CommandedPlayer } from '#lib/types/Player.js';
+	import type { CS } from '#lib/wasm.js';
 	import Cost from '../Cost.svelte';
 	import CostMini from '../CostMini.svelte';
 	import DesignStats from '../DesignStats.svelte';
 	import { onTechTooltip } from '../tooltips/TechTooltip';
 	import { shipDesignerContext } from './ShipDesignerContext';
 
-	const { cs, player } = getGameContext();
+	const gameContext = getGameContext();
 
 	type Props = {
 		hull: TechHull;
@@ -38,10 +41,23 @@
 		error?: string;
 		numHullSets?: number;
 		onSave?: () => void;
+		client?: CS;
+		playerOverride?: CommandedPlayer;
 	};
 
 	// Make plan-like local state for runes-compliant bindings, then sync back to design
-	let { hull, design = $bindable(), error = '', numHullSets = 4, onSave }: Props = $props();
+	let {
+		hull,
+		design = $bindable(),
+		error = '',
+		numHullSets = 4,
+		onSave,
+		client,
+		playerOverride
+	}: Props = $props();
+
+	let cs = $derived(client ?? gameContext.cs);
+	let player = $derived(playerOverride ? readable(playerOverride) : gameContext.player);
 
 	// Local runes state for frequently bound fields
 	let name: string = $state(design.name);
@@ -63,7 +79,7 @@
 	// Recompute spec when design changes
 	$effect(() => {
 		cs.wasmService
-			.computeShipDesignSpec({ design })
+			.computeShipDesignSpec({ design, player: playerOverride })
 			.then((resp) => (designSpec = resp.spec ?? create(ShipDesignSpecSchema)));
 	});
 
@@ -87,7 +103,7 @@
 			return;
 		}
 		cs.wasmService
-			.getTechCost({ tech: selectedComponent.tech })
+			.getTechCost({ tech: selectedComponent.tech, player: playerOverride })
 			.then((resp) => (selectedComponentCost = resp.cost ?? selectedComponentCost));
 	});
 
@@ -317,7 +333,8 @@
 							onkeydown={onPointerKeyDown}
 							onkeyup={onPointerKeyUp}
 							class="inline-block"
-							onpointerdown={(e) => onTechTooltip(e, selectedComponent)}
+							onpointerdown={(e) =>
+								onTechTooltip(e, selectedComponent, false, { playerOverride, client })}
 							><Icon
 								src={QuestionMarkCircle}
 								size="16"
