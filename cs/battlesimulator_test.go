@@ -3,8 +3,9 @@
 package cs
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func simulationSides() []BattleSimulationSide {
@@ -14,6 +15,7 @@ func simulationSides() []BattleSimulationSide {
 	}
 	return sides
 }
+
 func TestSimulateBattle(t *testing.T) {
 	t.Run("reproducible and independent of game state", func(t *testing.T) {
 		rules := NewRulesWithSeed(123)

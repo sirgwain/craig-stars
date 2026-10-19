@@ -6,13 +6,13 @@
 	import {
 		BattleTactic,
 		BattleTarget,
+		BattleSimulationStackSchema,
 		Prt,
-		ShipDesignSchema,
 		type BattleSimulationSide,
 		type ShipDesign
 	} from '#lib/types/cs-proto.js';
 	import { clone } from '@bufbuild/protobuf';
-	import { copyStack, newStack, techFields } from './scenario';
+	import { newStack, techFields } from './scenario';
 	let {
 		side = $bindable(),
 		index,
@@ -42,7 +42,7 @@
 	let choices = $derived([...side.stacks.flatMap((s) => (s.design ? [s.design] : [])), ...designs]);
 	let selectedDesign = $state(0);
 	function duplicate(i: number) {
-		side.stacks.splice(i + 1, 0, copyStack(side.stacks[i]));
+		side.stacks.splice(i + 1, 0, clone(BattleSimulationStackSchema, side.stacks[i]));
 	}
 </script>
 
@@ -232,8 +232,7 @@
 			<button
 				class="btn btn-sm btn-outline btn-secondary"
 				disabled={!choices[selectedDesign] || side.stacks.length >= 64}
-				onclick={() => side.stacks.push(newStack(clone(ShipDesignSchema, choices[selectedDesign])))}
-				>Add stack</button
+				onclick={() => side.stacks.push(newStack(choices[selectedDesign]))}>Add stack</button
 			>
 			<button
 				class="btn btn-sm btn-outline btn-secondary"

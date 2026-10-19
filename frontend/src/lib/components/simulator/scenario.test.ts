@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { create } from '@bufbuild/protobuf';
-import { SimulateBattleResponseSchema, ShipDesignSchema } from '#lib/types/cs-proto.js';
+import { clone, create } from '@bufbuild/protobuf';
+import {
+	BattleSimulationStackSchema,
+	SimulateBattleResponseSchema,
+	ShipDesignSchema
+} from '#lib/types/cs-proto.js';
 import {
 	newSides,
 	newStack,
-	copyStack,
 	encodeScenario,
 	decodeScenario,
 	validateSides,
@@ -14,7 +17,7 @@ import {
 describe('simulation scenarios', () => {
 	it('round trips race, technology, damage and independent stack plans', () => {
 		const sides = newSides();
-		const split = copyStack(sides[0].stacks[0]);
+		const split = clone(BattleSimulationStackSchema, sides[0].stacks[0]);
 		split.quantityDamaged = 3;
 		split.damage = 12;
 		split.plan!.tactic = 1;

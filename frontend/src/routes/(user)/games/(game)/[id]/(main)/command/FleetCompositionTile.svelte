@@ -73,7 +73,10 @@
 
 {#if selectedWaypoint}
 	<CommandTile title="Fleet Composition">
-		<a class="cs-link mb-1 block text-right" href={`/games/${$game.id}/simulator?fleet=${fleet.mapObject.num}`}>Simulate battle</a>
+		<a
+			class="cs-link mb-1 block text-right"
+			href={`/games/${$game.id}/simulator?fleet=${fleet.mapObject.num}`}>Simulate battle</a
+		>
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="size-full">
 				{#each fleet.tokens as token, index (index)}

@@ -88,7 +88,18 @@ func SimulateBattle(rules Rules, sides []BattleSimulationSide, seed int64) (*Bat
 				plan.Tactic = BattleTacticMaximizeDamage
 			}
 			plan.AttackWho = BattleAttackWhoEveryone
-			fleet := &Fleet{MapObject: MapObject{Num: len(fleets) + 1, PlayerNum: player.Num, Type: MapObjectTypeFleet}, Starbase: design.Spec.Starbase, battlePlan: &plan, Tokens: []ShipToken{{DesignNum: design.Num, Quantity: stack.Quantity, QuantityDamaged: stack.QuantityDamaged, Damage: stack.Damage, design: &design}}}
+			fleet := &Fleet{
+				MapObject:  MapObject{Num: len(fleets) + 1, PlayerNum: player.Num, Type: MapObjectTypeFleet},
+				Starbase:   design.Spec.Starbase,
+				battlePlan: &plan,
+				Tokens: []ShipToken{{
+					DesignNum:       design.Num,
+					Quantity:        stack.Quantity,
+					QuantityDamaged: stack.QuantityDamaged,
+					Damage:          stack.Damage,
+					design:          &design,
+				}},
+			}
 			fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 			fleets = append(fleets, fleet)
 			result.Designs = append(result.Designs, &design)
@@ -100,16 +111,18 @@ func SimulateBattle(rules Rules, sides []BattleSimulationSide, seed int64) (*Bat
 	}
 	result.Record = b.runBattle()
 	for _, token := range b.tokens {
-		loss := token.design.Spec.Cost
-		loss.Ironium *= token.quantityDestroyed
-		loss.Boranium *= token.quantityDestroyed
-		loss.Germanium *= token.quantityDestroyed
-		loss.Resources *= token.quantityDestroyed
 		retreated := 0
 		if token.ranAway {
 			retreated = token.Quantity
 		}
-		result.Stacks = append(result.Stacks, BattleSimulationStackResult{PlayerNum: token.PlayerNum, DesignNum: token.ShipToken.DesignNum, Survivors: token.Quantity, Retreated: retreated, Destroyed: token.quantityDestroyed, Loss: loss})
+		result.Stacks = append(result.Stacks, BattleSimulationStackResult{
+			PlayerNum: token.PlayerNum,
+			DesignNum: token.ShipToken.DesignNum,
+			Survivors: token.Quantity,
+			Retreated: retreated,
+			Destroyed: token.quantityDestroyed,
+			Loss:      MultiplyCost(token.design.Spec.Cost, token.quantityDestroyed),
+		})
 	}
 	slices.SortFunc(result.Stacks, func(a, b BattleSimulationStackResult) int {
 		if a.PlayerNum != b.PlayerNum {

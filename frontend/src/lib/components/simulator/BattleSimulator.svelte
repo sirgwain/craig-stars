@@ -6,7 +6,7 @@
 	import { replaceState } from '$app/navigation';
 	import { gameKey, type GameContext } from '#lib/services/GameContext.js';
 	import { techs } from '#lib/services/Stores.js';
-	import { canLearnTech } from '#lib/types/Player.js';
+	import { canLearnTech, type CommandedPlayer } from '#lib/types/Player.js';
 	import { hasRequiredLevels } from '#lib/types/TechLevel.js';
 	import { loadWasm, type CS } from '#lib/wasm.js';
 	import {
@@ -57,16 +57,7 @@
 	let selectedHull = $state('Destroyer');
 	let editorError = $state('');
 	let editorPlayer = $derived(editing ? owner(sides[editing.side]) : undefined);
-	let hullChoices = $derived(
-		editorPlayer
-			? $techs.hulls.filter(
-					(h) =>
-						h.tech &&
-						canLearnTech(editorPlayer, h) &&
-						hasRequiredLevels(editorPlayer.techLevels!, h.tech.requirements?.techLevel)
-				)
-			: []
-	);
+	let hullChoices = $derived(editorPlayer ? availableHulls(editorPlayer) : []);
 	let gameLabel = $state('Standalone · Custom race and tech for each side');
 
 	onMount(() => {
@@ -173,15 +164,17 @@
 		useGameSettings(side);
 		importSide = undefined;
 	}
-	function startDesign(side: number, stack?: number) {
-		editorError = '';
-		const player = owner(sides[side]);
-		const allowedHulls = $techs.hulls.filter(
+	function availableHulls(player: CommandedPlayer) {
+		return $techs.hulls.filter(
 			(h) =>
 				h.tech &&
 				canLearnTech(player, h) &&
 				hasRequiredLevels(player.techLevels, h.tech.requirements?.techLevel)
 		);
+	}
+	function startDesign(side: number, stack?: number) {
+		editorError = '';
+		const allowedHulls = availableHulls(owner(sides[side]));
 		if (!allowedHulls.some((h) => h.tech?.name === selectedHull))
 			selectedHull = allowedHulls[0]?.tech?.name ?? '';
 		editing = {
@@ -224,12 +217,9 @@
 		error = '';
 		try {
 			validateSides(sides);
-			if (![1, 10, 100].includes(iterations)) throw new Error('Choose 1, 10 or 100 battles.');
 			if (seed && !/^-?\d+$/.test(seed))
 				throw new Error('Seed must be a whole number, or blank for random.');
 			const firstSeed = seed ? BigInt(seed) : BigInt(Math.floor(Math.random() * 2 ** 32));
-			if (firstSeed < -(2n ** 63n) || firstSeed + BigInt(iterations - 1) > 2n ** 63n - 1n)
-				throw new Error('Seed is outside the supported range.');
 			const snapshot = sides.map((s) => clone(BattleSimulationSideSchema, s));
 			running = true;
 			completed = 0;

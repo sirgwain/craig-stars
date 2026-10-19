@@ -26,17 +26,19 @@ export const techFields = [
 	'electronics',
 	'biotechnology'
 ] as const;
+export const defaultPlan = () =>
+	create(BattlePlanSchema, {
+		name: 'Default',
+		tactic: BattleTactic.MAXIMIZE_DAMAGE,
+		primaryTarget: BattleTarget.ANY,
+		secondaryTarget: BattleTarget.ANY,
+		attackWho: BattleAttackWho.EVERYONE
+	});
 export function newStack(design: ShipDesign): BattleSimulationStack {
 	return create(BattleSimulationStackSchema, {
 		design: clone(ShipDesignSchema, design),
 		quantity: design.spec?.starbase ? 1 : 10,
-		plan: {
-			name: 'Default',
-			tactic: BattleTactic.MAXIMIZE_DAMAGE,
-			primaryTarget: BattleTarget.ANY,
-			secondaryTarget: BattleTarget.ANY,
-			attackWho: BattleAttackWho.EVERYONE
-		}
+		plan: defaultPlan()
 	});
 }
 export function sampleDesign(): ShipDesign {
@@ -127,7 +129,3 @@ export function outcome(response: SimulateBattleResponse): string {
 	if (active[1] && !active[0]) return 'B holds the field';
 	return 'No decisive outcome';
 }
-export function copyStack(stack: BattleSimulationStack): BattleSimulationStack {
-	return clone(BattleSimulationStackSchema, stack);
-}
-export const defaultPlan = () => create(BattlePlanSchema, newStack(sampleDesign()).plan);
