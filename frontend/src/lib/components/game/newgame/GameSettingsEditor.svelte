@@ -103,7 +103,7 @@
 {#if showInviteLink && !settings.public}<PrivateGameLink />{/if}
 <div class="mt-4 border border-base-300 bg-base-200 p-3">
 	<label for="tech-cost" class="flex items-center justify-between gap-3 font-semibold">
-		Technology cost <span class="text-info">{settings.techCostMultiplier || 1}×</span>
+		Technology cost <span class="text-info">{settings.techCostMultiplier}×</span>
 	</label>
 	<input
 		id="tech-cost"
@@ -114,8 +114,7 @@
 		min="1"
 		max="10"
 		step="0.25"
-		value={settings.techCostMultiplier || 1}
-		oninput={(e) => (settings.techCostMultiplier = e.currentTarget.valueAsNumber)}
+		bind:value={settings.techCostMultiplier}
 	/>
 	<div class="mt-1 flex justify-between text-xs text-base-content/70">
 		<span>1× Normal</span><span>10×</span>

@@ -182,7 +182,7 @@
 				<dt>Visibility</dt>
 				<dd>{settings.public ? 'Public' : 'Private'}</dd>
 				<dt>Technology cost</dt>
-				<dd>{settings.techCostMultiplier || 1}×</dd>
+				<dd>{settings.techCostMultiplier}×</dd>
 			</dl>
 		</aside>
 	</div>

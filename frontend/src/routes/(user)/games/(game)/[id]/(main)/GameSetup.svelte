@@ -33,7 +33,7 @@
 			publicPlayerScores: $game.publicPlayerScores,
 			maxMinerals: $game.maxMinerals,
 			galaxyClumping: $game.galaxyClumping,
-			techCostMultiplier: $game.techCostMultiplier || 1,
+			techCostMultiplier: $game.techCostMultiplier,
 			startMode: $game.startMode,
 			victoryConditions: $game.victoryConditions,
 			players: []

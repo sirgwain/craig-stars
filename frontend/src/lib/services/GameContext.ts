@@ -212,7 +212,7 @@ export async function createGameContext(
 	// setup initial wasm state
 	const { spec: raceSpec } = await cs.wasmService.computeRaceSpec({ race: p.race });
 	p.race.spec = raceSpec ?? p.race.spec;
-	await cs.wasmService.setPlayer({ player: p, techCostMultiplier: fg.techCostMultiplier || 1 });
+	await cs.wasmService.setPlayer({ player: p, techCostMultiplier: fg.techCostMultiplier });
 	await cs.wasmService.setDesigns({ designs: u.designs });
 	await cs.wasmService.setIntels({ intels: u.intels });
 
@@ -277,7 +277,7 @@ export async function createGameContext(
 		rememberFleetOrders(u);
 		const { spec: raceSpec } = await cs.wasmService.computeRaceSpec({ race: p.race });
 		p.race.spec = raceSpec ?? p.race.spec;
-		await cs.wasmService.setPlayer({ player: p, techCostMultiplier: fg.techCostMultiplier || 1 });
+		await cs.wasmService.setPlayer({ player: p, techCostMultiplier: fg.techCostMultiplier });
 		await cs.wasmService.setDesigns({ designs: u.designs });
 		await cs.wasmService.setIntels({ intels: u.intels });
 
@@ -770,7 +770,7 @@ export async function createGameContext(
 		player.set(updated);
 		await cs.wasmService.setPlayer({
 			player: p,
-			techCostMultiplier: get(game).techCostMultiplier || 1
+			techCostMultiplier: get(game).techCostMultiplier
 		});
 	}
 

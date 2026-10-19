@@ -2,9 +2,8 @@ import { expect, test } from './setup';
 
 for (const width of [1280, 390]) {
 	for (const route of ['single-player-game', 'host-game']) {
-		test(`${route} setup at ${width}px`, async ({ authenticatedPage: page }, testInfo) => {
+		test(`${route} setup at ${width}px`, async ({ authenticatedPage: page }) => {
 			await page.setViewportSize({ width, height: 844 });
-			await page.emulateMedia({ colorScheme: 'dark' });
 			await page.goto(`/${route}`);
 			await expect(page.getByRole('heading', { name: 'Galaxy', exact: true })).toBeVisible();
 			const slots = page.locator('[data-type="player-slot"]');
@@ -37,14 +36,6 @@ for (const width of [1280, 390]) {
 			expect(
 				await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
 			).toBe(true);
-			await page.evaluate(() => window.scrollTo(0, 0));
-			await testInfo.attach(`${route}-${width}`, {
-				body: await page.screenshot({
-					fullPage: true,
-					style: '.sticky { position: static !important; }'
-				}),
-				contentType: 'image/png'
-			});
 		});
 	}
 }

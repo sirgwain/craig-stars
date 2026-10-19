@@ -50,7 +50,7 @@
 				</div>
 				<div class="flex flex-row">
 					<div class="text-right font-semibold mr-2 w-32">Technology cost</div>
-					<div>{game.techCostMultiplier || 1}×</div>
+					<div>{game.techCostMultiplier}×</div>
 				</div>
 				<div class="flex flex-row">
 					<div class="text-right font-semibold mr-2 w-32">Year</div>
