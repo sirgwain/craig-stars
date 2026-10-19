@@ -157,6 +157,7 @@ message SetIntelsResponse {}
 
 message SetPlayerRequest {
   Player player = 1;
+  double tech_cost_multiplier = 2;
 }
 
 message SetPlayerResponse {}

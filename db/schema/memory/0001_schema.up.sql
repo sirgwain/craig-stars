@@ -139,7 +139,8 @@ CREATE TABLE
     victor_declared BOOLEAN NOT NULL DEFAULT 0,
     max_minerals BOOLEAN NOT NULL DEFAULT 0,
     archived BOOLEAN NOT NULL DEFAULT 0,
-    galaxy_clumping BOOLEAN NOT NULL DEFAULT 0
+    galaxy_clumping BOOLEAN NOT NULL DEFAULT 0,
+    tech_cost_multiplier REAL NOT NULL DEFAULT 1
   );
 
 CREATE TABLE

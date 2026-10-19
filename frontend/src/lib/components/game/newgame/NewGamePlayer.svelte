@@ -17,43 +17,39 @@
 </script>
 
 {#if player}
-	<div class="block">
-		{#if index !== 1}
-			<div class="flex flex-row justify-end">
-				<div class="grow">
-					{#if !$me.isGuest()}
-						<div class="grow">
-							<EnumSelect
-								name="type"
-								enumType={NewGamePlayerType}
-								bind:value={player.type}
-								title={`Player ${index}`}
-							/>
-						</div>
-					{:else}
-						<div class="text-xl mr-2 my-auto">AI Player {index}</div>
-					{/if}
-					{#if player.type === NewGamePlayerType.AI}
-						<AiPlayer bind:player />
-					{:else if player.type === NewGamePlayerType.HOST}
-						<!-- multiple host players make a hot seat game -->
-						<HostPlayer bind:player />
-					{/if}
-				</div>
-				<div class="my-auto mx-1">
-					<button
-						data-type="delete-button"
-						data-id={`Player ${index}`}
-						onclick={onRemove}
-						type="button"
-						class="btn btn-outline btn-sm my-1 normal-case"><Icon size="16" src={XMark} /></button
-					>
-				</div>
-			</div>
-		{:else}
-			<HostPlayer bind:player />
-		{/if}
+	<div class="border border-base-300 bg-base-200 p-3" data-type="player-slot" data-player={index}>
+		<div class="mb-2 flex items-center justify-between gap-2">
+			<h4 class="font-semibold">Player {index}{index === 1 ? ' · You' : ''}</h4>
+			{#if index !== 1}
+				<button
+					data-type="delete-button"
+					data-id={`Player ${index}`}
+					aria-label={`Remove slot ${index}`}
+					onclick={onRemove}
+					type="button"
+					class="btn btn-ghost btn-sm"><Icon size="16" src={XMark} /></button
+				>
+			{/if}
+		</div>
+		<div class="grid gap-3 sm:grid-cols-2">
+			{#if index !== 1 && !$me.isGuest()}
+				<EnumSelect
+					name={`player-${index}-type`}
+					stacked
+					enumType={NewGamePlayerType}
+					bind:value={player.type}
+					title={`Player ${index}`}
+				/>
+			{/if}
+			{#if player.type === NewGamePlayerType.AI}
+				<AiPlayer bind:player />
+			{:else if player.type === NewGamePlayerType.HOST}
+				<HostPlayer bind:player />
+			{:else}
+				<p class="my-auto text-sm text-base-content/70">
+					Open slot · A player can join and choose their race.
+				</p>
+			{/if}
+		</div>
 	</div>
-
-	<div></div>
 {/if}

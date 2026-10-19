@@ -108,6 +108,7 @@ type CostRules struct {
 	StarbaseHullRefundFactor       float64 `json:"starbaseHullRefundFactor"`
 	TerraformCost                  Cost    `json:"terraformCost"`
 	TechBaseCost                   []int   `json:"techBaseCost"`
+	TechCostMultiplier             float64 `json:"techCostMultiplier"`
 }
 
 // A slightly fancier map[bool]float64 that can be serialized to JSON
@@ -259,6 +260,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		},
 		StarbaseComponentCostReduction: 0.5, // 50% discount on non-orbital components
 		StarbaseHullRefundFactor:       0.5, // 50% of the old base's hull cost goes towards the new base
+		TechCostMultiplier:             1,
 		TechBaseCost: []int{
 			0,
 			50,

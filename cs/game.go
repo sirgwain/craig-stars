@@ -57,6 +57,7 @@ type Game struct {
 	VictorDeclared               bool              `json:"victorDeclared"`
 	Archived                     bool              `json:"archived"`
 	GalaxyClumping               bool              `json:"galaxyClumping"`
+	TechCostMultiplier           float64           `json:"techCostMultiplier"`
 }
 
 // A new player in a game, only used during game setup
@@ -81,6 +82,7 @@ type GameSettings struct {
 	PublicPlayerScores           bool              `json:"publicPlayerScores"`
 	MaxMinerals                  bool              `json:"maxMinerals"`
 	GalaxyClumping               bool              `json:"galaxyClumping"`
+	TechCostMultiplier           float64           `json:"techCostMultiplier"`
 	StartMode                    GameStartMode     `json:"startMode"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Players                      []NewGamePlayer   `json:"players"`
@@ -202,14 +204,15 @@ func NewGame() *Game {
 	seed := time.Now().UnixNano()
 	rules := NewRulesWithSeed(seed)
 	return &Game{
-		Name:            "A Barefoot Jaywalk",
-		Size:            SizeSmall,
-		Density:         DensityNormal,
-		PlayerPositions: PlayerPositionsModerate,
-		RandomEvents:    true,
-		StartMode:       GameStartModeNormal,
-		Year:            2400,
-		State:           GameStateSetup,
+		Name:               "A Barefoot Jaywalk",
+		Size:               SizeSmall,
+		Density:            DensityNormal,
+		PlayerPositions:    PlayerPositionsModerate,
+		RandomEvents:       true,
+		TechCostMultiplier: 1,
+		StartMode:          GameStartModeNormal,
+		Year:               2400,
+		State:              GameStateSetup,
 		VictoryConditions: VictoryConditions{
 			Conditions:               Bitmask(VictoryConditionOwnPlanets) | Bitmask(VictoryConditionAttainTechLevels) | Bitmask(VictoryConditionExceedsSecondPlaceScore),
 			NumCriteriaRequired:      1,
@@ -231,12 +234,13 @@ func NewGame() *Game {
 // create a new GameSettings object for the default game
 func NewGameSettings() *GameSettings {
 	return &GameSettings{
-		Name:            "A Barefoot Jaywalk",
-		Size:            SizeSmall,
-		Density:         DensityNormal,
-		PlayerPositions: PlayerPositionsModerate,
-		RandomEvents:    true,
-		StartMode:       GameStartModeNormal,
+		Name:               "A Barefoot Jaywalk",
+		Size:               SizeSmall,
+		Density:            DensityNormal,
+		PlayerPositions:    PlayerPositionsModerate,
+		RandomEvents:       true,
+		TechCostMultiplier: 1,
+		StartMode:          GameStartModeNormal,
 		VictoryConditions: VictoryConditions{
 			Conditions:               Bitmask(VictoryConditionOwnPlanets) | Bitmask(VictoryConditionAttainTechLevels) | Bitmask(VictoryConditionExceedsSecondPlaceScore),
 			NumCriteriaRequired:      1,
@@ -358,6 +362,7 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.PublicPlayerScores = settings.PublicPlayerScores
 	g.MaxMinerals = settings.MaxMinerals
 	g.GalaxyClumping = settings.GalaxyClumping
+	g.TechCostMultiplier = EffectiveTechCostMultiplier(settings.TechCostMultiplier)
 	g.StartMode = settings.StartMode
 	g.VictoryConditions = settings.VictoryConditions
 
@@ -365,6 +370,8 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	if settings.Rules != nil {
 		g.Rules = *settings.Rules
 	}
+
+	g.Rules.TechCostMultiplier = g.TechCostMultiplier
 
 	// use custome tech store for this game
 	if settings.TechStore != nil {

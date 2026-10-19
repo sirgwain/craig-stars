@@ -38,6 +38,7 @@
 			return { value: r.id, title: r.pluralName };
 		})}
 		name="Host"
+		stacked
 		value={player.race?.id ?? 0}
 		onchange={(e) => raceChanged(BigInt(e.currentTarget.value))}
 	/>

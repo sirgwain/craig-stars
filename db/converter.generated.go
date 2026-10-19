@@ -89,6 +89,7 @@ func (c *GameConverter) ConvertGame(source generated.Game) cs.Game {
 	csGame.VictorDeclared = source.VictorDeclared
 	csGame.Archived = source.Archived
 	csGame.GalaxyClumping = source.GalaxyClumping
+	csGame.TechCostMultiplier = source.TechCostMultiplier
 	return csGame
 }
 func (c *GameConverter) ConvertGameApiTokenToCreateParams(source *cs.APIToken) generated.CreateAPITokenParams {
@@ -278,6 +279,7 @@ func (c *GameConverter) ConvertGameGame(source *cs.Game) generated.Game {
 		generatedGame.MaxMinerals = (*source).MaxMinerals
 		generatedGame.Archived = (*source).Archived
 		generatedGame.GalaxyClumping = (*source).GalaxyClumping
+		generatedGame.TechCostMultiplier = (*source).TechCostMultiplier
 	}
 	return generatedGame
 }
@@ -318,6 +320,7 @@ func (c *GameConverter) ConvertGameGameToCreateParams(source *cs.Game) generated
 		generatedCreateGameParams.VictorDeclared = (*source).VictorDeclared
 		generatedCreateGameParams.Archived = (*source).Archived
 		generatedCreateGameParams.GalaxyClumping = (*source).GalaxyClumping
+		generatedCreateGameParams.TechCostMultiplier = (*source).TechCostMultiplier
 	}
 	return generatedCreateGameParams
 }
@@ -358,6 +361,7 @@ func (c *GameConverter) ConvertGameGameToUpdateParams(source *cs.Game) generated
 		generatedUpdateGameParams.VictorDeclared = (*source).VictorDeclared
 		generatedUpdateGameParams.Archived = (*source).Archived
 		generatedUpdateGameParams.GalaxyClumping = (*source).GalaxyClumping
+		generatedUpdateGameParams.TechCostMultiplier = (*source).TechCostMultiplier
 		generatedUpdateGameParams.ID = (*source).DBObject.ID
 	}
 	return generatedUpdateGameParams

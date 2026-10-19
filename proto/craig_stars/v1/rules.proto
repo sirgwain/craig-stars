@@ -67,6 +67,7 @@ message CostRules {
   double starbase_hull_refund_factor = 6;
   Cost terraform_cost = 7;
   repeated int32 tech_base_cost = 8;
+  double tech_cost_multiplier = 9;
 }
 
 message BattleRules {

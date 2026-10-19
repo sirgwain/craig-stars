@@ -1,6 +1,7 @@
 <script lang="ts">
 	type Props = {
 		value: number;
+		label?: string;
 		unit?: string | undefined;
 		min?: number;
 		max?: number;
@@ -10,6 +11,7 @@
 
 	let {
 		value = $bindable(),
+		label,
 		unit = undefined,
 		min = 0,
 		max = 100,
@@ -29,7 +31,8 @@
 <div class="join">
 	<div class="join-item">
 		<input
-			class="input input-secondary input-sm pr-0 w-auto"
+			aria-label={label}
+			class="input input-secondary input-sm w-24"
 			type="number"
 			{min}
 			{max}

@@ -26,6 +26,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import GameSettingsEditor from './GameSettingsEditor.svelte';
 	import NewGamePlayer from './NewGamePlayer.svelte';
+	import { enumToString } from '#lib/types/Enums.js';
 	import { getColor, getFirstAvailableColor } from './playerColors';
 	import VictoryConditions from './VictoryConditions.svelte';
 
@@ -69,6 +70,7 @@
 			computerPlayersFormAlliances: false,
 			publicPlayerScores: false,
 			maxMinerals: false,
+			techCostMultiplier: 1,
 			startMode: GameStartMode.UNSPECIFIED, // normal
 			quickStartTurns: 0,
 			players: untrack(() => players),
@@ -125,38 +127,68 @@
 </script>
 
 <form
+	class="mx-auto w-full max-w-6xl pb-4"
 	onsubmit={(e) => {
 		e.preventDefault();
 		onSubmit();
 	}}
 >
-	<div class="w-full flex justify-end gap-2">
-		<button type="submit" disabled={submitting} class="btn btn-success"
+	<ItemTitle>New Game</ItemTitle>
+	<div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+		<div class="min-w-0">
+			<GameSettingsEditor bind:settings />
+			<SectionHeader
+				><span class="flex items-center justify-between"
+					>Players <span class="text-sm font-normal">{settings.players.length} slots</span></span
+				></SectionHeader
+			>
+			<div class="grid gap-2">
+				{#each settings.players as player, i (player)}
+					<NewGamePlayer
+						bind:player={settings.players[i]}
+						index={i + 1}
+						onRemove={() => removePlayer(player)}
+					/>
+				{/each}
+			</div>
+			<button type="button" class="btn btn-outline btn-sm mt-3" onclick={addPlayer}
+				><Icon src={PlusCircle} size="20" />Add player</button
+			>
+			<details class="mt-4 border border-secondary p-3">
+				<summary class="cursor-pointer font-semibold"
+					>Victory Conditions <span class="text-sm font-normal text-base-content/70"
+						>· {settings.victoryConditions?.numCriteriaRequired} criteria after {settings
+							.victoryConditions?.yearsPassed} years</span
+					></summary
+				>
+				<VictoryConditions bind:settings />
+			</details>
+		</div>
+		<aside
+			class="sticky top-4 hidden border border-base-300 bg-base-200 p-4 lg:block"
+			aria-label="Game summary"
+		>
+			<h3 class="mb-3 text-lg font-semibold">Game summary</h3>
+			<p class="mb-3 wrap-break-word font-semibold">{settings.name}</p>
+			<dl class="grid grid-cols-2 gap-2 text-sm">
+				<dt>Galaxy</dt>
+				<dd>{enumToString(Size, settings.size)}</dd>
+				<dt>Density</dt>
+				<dd>{enumToString(Density, settings.density)}</dd>
+				<dt>Players</dt>
+				<dd>{settings.players.length}</dd>
+				<dt>Open slots</dt>
+				<dd>{settings.players.filter((p) => p.type === NewGamePlayerType.OPEN).length}</dd>
+				<dt>Visibility</dt>
+				<dd>{settings.public ? 'Public' : 'Private'}</dd>
+				<dt>Technology cost</dt>
+				<dd>{settings.techCostMultiplier}×</dd>
+			</dl>
+		</aside>
+	</div>
+	<div class="sticky bottom-0 z-10 mt-4 flex justify-end border-t border-base-300 bg-base-100 py-3">
+		<button type="submit" disabled={submitting} class="btn btn-success w-full sm:w-auto"
 			>{submitting ? 'Creating...' : 'Create Game'}</button
 		>
 	</div>
-
-	<ItemTitle>New Game</ItemTitle>
-
-	<GameSettingsEditor bind:settings />
-
-	<SectionHeader>
-		<button type="button" class="btn-ghost w-full flex flex-row" onclick={addPlayer}>
-			Players
-			<div class="ml-auto">
-				<Icon src={PlusCircle} size="24" class="hover:stroke-accent" />
-			</div>
-		</button></SectionHeader
-	>
-
-	{#each settings.players as player, i (i)}
-		<NewGamePlayer
-			bind:player={settings.players[i]}
-			index={i + 1}
-			onRemove={() => removePlayer(player)}
-		/>
-	{/each}
-
-	<SectionHeader>Victory Conditions</SectionHeader>
-	<VictoryConditions bind:settings />
 </form>

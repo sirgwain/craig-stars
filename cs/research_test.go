@@ -4,6 +4,8 @@ package cs
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_research_getNextResearchField(t *testing.T) {
@@ -261,5 +263,28 @@ func Test_research_research(t *testing.T) {
 			}
 
 		})
+	}
+}
+
+func TestResearchCostMultiplier(t *testing.T) {
+	// level 1 in every field: base cost 80 + 6 levels * 10 = 140 before modifiers
+	tests := []struct {
+		multiplier float64
+		raceCost   ResearchCostLevel
+		want       int
+	}{
+		{0, ResearchCostStandard, 140}, // unset defaults to normal
+		{1, ResearchCostStandard, 140},
+		{2, ResearchCostStandard, 280},
+		{2, ResearchCostLess, 140},
+		{2.5, ResearchCostExtra, 612},
+		{10, ResearchCostStandard, 1400},
+	}
+	for _, tt := range tests {
+		r := NewRules()
+		r.TechCostMultiplier = tt.multiplier
+		researcher := newResearcher(&r)
+		got := researcher.getTotalCost(TechLevel{1, 1, 1, 1, 1, 1}, tt.raceCost, 1)
+		assert.Equal(t, tt.want, got, "multiplier %v race %s", tt.multiplier, tt.raceCost)
 	}
 }
