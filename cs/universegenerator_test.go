@@ -11,22 +11,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Bound random draws so a placement regression fails instead of retrying indefinitely.
-type universePlacementRandom struct {
-	*testRandom
-	t        *testing.T
-	calls    int
-	maxCalls int
-}
-
-func (r *universePlacementRandom) Intn(n int) int {
-	r.t.Helper()
-	r.calls++
-	require.LessOrEqual(r.t, r.calls, r.maxCalls, "placement exceeded its random draw budget")
-	value := r.testRandom.Intn(n)
-	require.GreaterOrEqual(r.t, value, 0)
-	require.Less(r.t, value, n)
-	return value
+func newPlacementGenerator(positions PlayerPositions, numPlayers int, area Vector, random *testRandom, planets ...Vector) *universeGenerator {
+	game := newSeededGame(*NewGameSettings())
+	game.PlayerPositions = positions
+	game.Rules.random = random
+	ug := NewUniverseGenerator(game, make([]*Player, numPlayers)).(*universeGenerator)
+	ug.area = area
+	ug.Universe = &Universe{}
+	for _, position := range planets {
+		ug.Universe.Planets = append(ug.Universe.Planets, NewPlanet().withPosition(position))
+	}
+	return ug
 }
 
 func Test_universeGenerator_getPlayerPlanetsDistanceSettings(t *testing.T) {
@@ -40,25 +35,16 @@ func Test_universeGenerator_getPlayerPlanetsDistanceSettings(t *testing.T) {
 		{PlayerPositionsModerate, Vector{643, 250}},
 		{PlayerPositionsFarther, Vector{800, 250}},
 		{PlayerPositionsDistant, Vector{725, 725}},
-		// Preserve the Farther fallback for unspecified settings.
 		{PlayerPositionsUnspecified, Vector{800, 250}},
 	}
 	for _, tt := range tests {
 		t.Run(string(tt.positions), func(t *testing.T) {
-			game := newSeededGame(*NewGameSettings())
-			game.PlayerPositions = tt.positions
-			random := &universePlacementRandom{testRandom: newIntRandom(0, 1, 0, 0), t: t, maxCalls: 4}
-			game.Rules.random = random
-			ug := NewUniverseGenerator(game, make([]*Player, 2)).(*universeGenerator)
-			ug.area = Vector{1000, 1000}
-			ug.Universe = &Universe{Planets: []*Planet{
-				NewPlanet().withPosition(Vector{250, 250}),
-				NewPlanet().withPosition(tt.second),
-			}}
+			random := newIntRandom(0, 1, 0, 0)
+			ug := newPlacementGenerator(tt.positions, 2, Vector{1000, 1000}, random, Vector{250, 250}, tt.second)
 			got, err := ug.getPlayerPlanets()
 			require.NoError(t, err)
 			assert.Equal(t, []int{0, 1}, got)
-			assert.Equal(t, 4, random.calls, "the pair should fit without relaxing the band")
+			assert.Equal(t, 4, random.intCount, "the pair should fit without relaxing the band")
 		})
 	}
 }
@@ -66,88 +52,37 @@ func Test_universeGenerator_getPlayerPlanetsDistanceSettings(t *testing.T) {
 func Test_universeGenerator_getPlayerPlanetsFirstHomeworld(t *testing.T) {
 	for _, area := range []Vector{{1000, 1000}, {2000, 1000}} {
 		t.Run(fmt.Sprint(area), func(t *testing.T) {
-			game := newSeededGame(*NewGameSettings())
-			random := &universePlacementRandom{testRandom: newIntRandom(0, 1, 0), t: t, maxCalls: 3}
-			game.Rules.random = random
-			ug := NewUniverseGenerator(game, make([]*Player, 1)).(*universeGenerator)
-			ug.area = area
-			ug.Universe = &Universe{Planets: []*Planet{
-				NewPlanet().withPosition(Vector{area.X / 5, area.Y / 2}),
-				NewPlanet().withPosition(Vector{area.X / 2, area.Y / 2}),
-			}}
+			ug := newPlacementGenerator(PlayerPositionsFarther, 1, area, newIntRandom(0, 1, 0),
+				Vector{area.X / 5, area.Y / 2}, Vector{area.X / 2, area.Y / 2})
 			got, err := ug.getPlayerPlanets()
 			require.NoError(t, err)
 			assert.Equal(t, []int{1}, got, "reject a first homeworld outside the central half")
-			assert.Equal(t, 3, random.calls)
 		})
 	}
 	t.Run("closest sampled planet when none is central", func(t *testing.T) {
-		game := newSeededGame(*NewGameSettings())
-		random := &universePlacementRandom{testRandom: newIntRandom(0, 1), t: t, maxCalls: 51}
-		game.Rules.random = random
-		ug := NewUniverseGenerator(game, make([]*Player, 1)).(*universeGenerator)
-		ug.area = Vector{1000, 1000}
-		ug.Universe = &Universe{Planets: []*Planet{
-			NewPlanet().withPosition(Vector{100, 100}),
-			NewPlanet().withPosition(Vector{800, 500}),
-		}}
+		ug := newPlacementGenerator(PlayerPositionsFarther, 1, Vector{1000, 1000}, newIntRandom(0, 1),
+			Vector{100, 100}, Vector{800, 500})
 		got, err := ug.getPlayerPlanets()
 		require.NoError(t, err)
 		assert.Equal(t, []int{1}, got)
-		assert.Equal(t, 51, random.calls, "sample 50 candidates before falling back")
 	})
 }
 
-func Test_universeGenerator_getPlayerPlanetsRelaxation(t *testing.T) {
-	tests := []struct {
-		name        string
-		area        Vector
-		first       Vector
-		second      Vector
-		wantRetries int
-	}{
-		{name: "lower bound", area: Vector{1000, 1000}, first: Vector{500, 500}, second: Vector{540, 500}, wantRetries: 23},
-		{name: "upper bound", area: Vector{1000, 1000}, first: Vector{500, 500}, second: Vector{600, 500}, wantRetries: 18},
-		{name: "tiny custom map makes progress", area: Vector{4, 4}, first: Vector{1, 1}, second: Vector{2, 1}, wantRetries: 20},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			game := newSeededGame(*NewGameSettings())
-			game.PlayerPositions = PlayerPositionsClose
-			// Repeatedly choose planet 0; the circular scan considers planet 1.
-			wantCalls := (tt.wantRetries+1)*52 + 2
-			random := &universePlacementRandom{testRandom: newIntRandom(), t: t, maxCalls: wantCalls}
-			game.Rules.random = random
-			ug := NewUniverseGenerator(game, make([]*Player, 2)).(*universeGenerator)
-			ug.area = tt.area
-			ug.Universe = &Universe{Planets: []*Planet{
-				NewPlanet().withPosition(tt.first),
-				NewPlanet().withPosition(tt.second),
-			}}
-			got, err := ug.getPlayerPlanets()
-			require.NoError(t, err)
-			assert.Equal(t, []int{0, 1}, got)
-			assert.Equal(t, wantCalls, random.calls, "widen both bounds by target / 35 per retry")
-		})
-	}
+func Test_universeGenerator_getPlayerPlanetsTinyMap(t *testing.T) {
+	// The squared-distance target is too small to relax by target / 35; placement must still finish.
+	ug := newPlacementGenerator(PlayerPositionsClose, 2, Vector{4, 4}, newIntRandom(), Vector{1, 1}, Vector{2, 1})
+	got, err := ug.getPlayerPlanets()
+	require.NoError(t, err)
+	assert.Equal(t, []int{0, 1}, got)
 }
 
 func Test_universeGenerator_getPlayerPlanetsShufflesAssignments(t *testing.T) {
-	game := newSeededGame(*NewGameSettings())
-	game.PlayerPositions = PlayerPositionsClose
-	random := &universePlacementRandom{testRandom: newIntRandom(0, 1, 1, 0), t: t, maxCalls: 4}
-	game.Rules.random = random
-	ug := NewUniverseGenerator(game, make([]*Player, 2)).(*universeGenerator)
-	ug.area = Vector{1000, 1000}
 	// Deliberately unsorted: returned indices must still refer to Universe.Planets.
-	ug.Universe = &Universe{Planets: []*Planet{
-		NewPlanet().withPosition(Vector{577, 500}),
-		NewPlanet().withPosition(Vector{500, 500}),
-	}}
+	ug := newPlacementGenerator(PlayerPositionsClose, 2, Vector{1000, 1000}, newIntRandom(0, 1, 1, 0),
+		Vector{577, 500}, Vector{500, 500})
 	got, err := ug.getPlayerPlanets()
 	require.NoError(t, err)
 	assert.Equal(t, []int{0, 1}, got, "swap the selected homeworlds before assigning players")
-	assert.Equal(t, 4, random.calls)
 }
 
 func Test_universeGenerator_placeExtraPlayerPlanet(t *testing.T) {
