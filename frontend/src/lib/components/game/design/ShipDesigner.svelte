@@ -296,7 +296,7 @@
 										<div class="mr-2 pt-1 pl-1">
 											<TechAvatar tech={hc} />
 										</div>
-										<div>
+										<div class="text-left">
 											{hc.tech?.name}
 										</div>
 									</div>
