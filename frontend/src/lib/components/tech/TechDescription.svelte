@@ -187,6 +187,11 @@
 				descriptions.push(
 					`This bomb will kill approximately ${hullComponent.killRate}% of a planet's population each year.`
 				);
+				if (hullComponent.smart) {
+					descriptions.push(
+						'This is a smart bomb. Planetary defenses are less effective against it.'
+					);
+				}
 				if (hullComponent.minKillRate > 0) {
 					descriptions.push(
 						`If a planet has no defenses, this bomb is guaranteed to kill at least ${hullComponent.minKillRate} colonists each year.`
