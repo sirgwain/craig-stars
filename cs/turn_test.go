@@ -1973,6 +1973,20 @@ func Test_turn_buildStarbase(t *testing.T) {
 
 }
 
+func Test_turn_buildFleetCopiesTags(t *testing.T) {
+	u := newTestUniverse(t, SingleUnitScenario())
+	player, planet := u.Player(1), u.Planet("Planet 1")
+	design := player.Designs[0]
+	tags := Tags{TagPurpose: "Scout"}
+
+	fleet, err := u.turn.buildFleet(player, planet, ShipToken{design: design, DesignNum: design.Num, Quantity: 1}, tags, nil)
+	require.NoError(t, err)
+	fleet.SetTag("idleSince", "2400")
+
+	assert.Equal(t, "Scout", fleet.GetTag(TagPurpose))
+	assert.Equal(t, Tags{TagPurpose: "Scout"}, tags, "the queue item's tags are unchanged")
+}
+
 func Test_turn_fleetTransferOwner(t *testing.T) {
 	s := TwoPlayerScenario()
 	s.Players[0].Player = NewPlayer(1, NewRace().WithPluralName("Rabbitoids"))
