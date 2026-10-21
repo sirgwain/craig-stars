@@ -591,3 +591,58 @@ func Test_updateFleetTargetsAfterWormhole(t *testing.T) {
 		})
 	}
 }
+
+func Test_scanPlanetsMineLayer(t *testing.T) {
+	// same as the mini mine layer, minus the Bat Scanner (which would pen scan on its own)
+	design := ShipDesign{Name: "Little Hen", Hull: MiniMineLayer.Name, Slots: []ShipDesignSlot{
+		{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+		{HullComponent: MineDispenser40.Name, HullSlotIndex: 2, Quantity: 2},
+		{HullComponent: MineDispenser40.Name, HullSlotIndex: 3, Quantity: 2},
+	}}
+
+	tests := []struct {
+		name        string
+		task        WaypointTask
+		minefieldAt Vector
+		want        bool
+	}{
+		{"SD fleet laying mines into offset minefield discovers planet", WaypointTaskLayMinefield, Vector{103, 100}, true},
+		{"control: not laying mines, planet stays unexplored", WaypointTaskNone, Vector{103, 100}, false},
+		{"control: minefield centered on fleet discovers planet", WaypointTaskLayMinefield, Vector{100, 100}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := newTestUniverse(t, TestScenario{
+				Players: []ScenarioPlayer{
+					{
+						Player:  NewPlayer(1, NewRace().WithPRT(SD)),
+						Designs: Designs(design),
+						Fleets: []ScenarioFleet{{
+							Design:    design.Name,
+							Position:  Vector{100, 100},
+							Waypoints: []ScenarioWaypoint{{Position: Vector{100, 100}, Task: tt.task}},
+						}},
+						Minefields: []Minefield{*newMinefield(testPlayer().WithNum(1), MinefieldTypeStandard, 100, 1, tt.minefieldAt)},
+					},
+					{},
+				},
+				Planets: []ScenarioPlanet{
+					{Name: "Planet 1", Owner: 1, Cargo: Cargo{Colonists: 2500}},
+					{Name: "Planet 2", Owner: 2, Position: Vector{100, 100}, Cargo: Cargo{Colonists: 2500}},
+				},
+			})
+			game, player1, planet2 := u.Game, u.Player(1), u.Planet("Planet 2")
+			scan := playerScanner{game.Universe, &game.Rules, player1, game.Players, make(map[int]bool), newDiscoverer(testLogger, player1)}
+
+			scan.scanPlanets(scan.getScanners(), []scanner{}, []scanner{})
+
+			intel := player1.PlanetIntels[1]
+			if tt.want {
+				assert.Equal(t, 0, intel.ReportAge)
+				assert.Equal(t, planet2.Hab, intel.Hab)
+			} else {
+				assert.Equal(t, ReportAgeUnexplored, intel.ReportAge)
+			}
+		})
+	}
+}
