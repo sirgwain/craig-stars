@@ -592,6 +592,30 @@ func (scan *playerScanner) getScanners() []scanner {
 			}
 		}
 	}
+	// SD mine layers pen scan the spot they lay mines in
+	if scan.player.Race.Spec.MinefieldsAreScanners {
+		for _, fleet := range scan.universe.Fleets {
+			if fleet.Delete || fleet.PlayerNum != scan.player.Num || !fleet.Spec.CanLayMines {
+				continue
+			}
+			if len(fleet.Waypoints) == 0 || fleet.Waypoints[0].Task != WaypointTaskLayMinefield {
+				continue
+			}
+			s := scanner{
+				Position:             fleet.Position,
+				Range:                0,
+				RangePen:             0,
+				CloakReductionFactor: 1,
+			}
+			// use the fleet scanner if it's better
+			if fleetScanner, ok := scanningFleetsByPosition[fleet.Position]; ok {
+				s.Range = max(s.Range, fleetScanner.Range)
+				s.RangePen = max(s.RangePen, fleetScanner.RangePen)
+				s.CloakReductionFactor = min(s.CloakReductionFactor, fleetScanner.CloakReductionFactor)
+			}
+			scanners = append(scanners, s)
+		}
+	}
 
 	// Packet Physics packets act as pen scanners
 	for _, packet := range scan.universe.MineralPackets {
