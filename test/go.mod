@@ -1,6 +1,6 @@
 module github.com/sirgwain/craig-stars/test
 
-go 1.27.1
+go 1.27.3
 
 replace github.com/sirgwain/craig-stars => ../
 
