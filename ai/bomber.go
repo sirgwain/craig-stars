@@ -151,6 +151,9 @@ func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]*cs.Pla
 
 	// lowest weight wins
 	bestWeight := 0.0
+	// the nearest target out of range, for a fleet too slow to reach any in time
+	var nearest *cs.Planet
+	nearestYears := 0.0
 	yearlyTravelDistance := float64(fleet.Spec.Engine.IdealSpeed * fleet.Spec.Engine.IdealSpeed)
 
 	for num := range planets {
@@ -174,6 +177,9 @@ func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]*cs.Pla
 			warp := ai.getWarpSpeed(fleet, intel.ToTarget(), true)
 			yearsToTravel = max(1, math.Ceil(dist/float64(max(1, warp*warp))))
 			if yearsToTravel > maxAttackYears {
+				if nearest == nil || yearsToTravel < nearestYears || (yearsToTravel == nearestYears && intel.Num < nearest.Num) {
+					nearest, nearestYears = intel, yearsToTravel
+				}
 				continue
 			}
 		}
@@ -198,6 +204,11 @@ func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]*cs.Pla
 
 	// best = ai.getClosestPlanetIntel(fleet.Position, colonizablePlanets)
 
+	if best == nil {
+		// A big, heavy fleet may never reach anything within the limit.
+		// Set out for the nearest target rather than wait forever.
+		return nearest
+	}
 	return best
 }
 
