@@ -15,7 +15,11 @@ import Scanner from './Scanner.svelte';
 const state = vi.hoisted(() => ({
 	context: undefined as unknown,
 	canvasProps: undefined as
-		{ transform?: { apply: (p: [number, number]) => [number, number] } } | undefined
+		| {
+				transform?: { apply: (p: [number, number]) => [number, number] };
+				pixelsPerLightYear?: { x: number; y: number };
+		  }
+		| undefined
 }));
 vi.mock('#lib/services/GameContext.js', () => ({ getGameContext: () => state.context }));
 // Exercise scanner gestures and hit testing without involving canvas rendering.
@@ -35,7 +39,7 @@ afterEach(() => {
 });
 
 // A scanner commanding a fleet at (10, 10) whose selected waypoint is in deep space at (20, 20).
-async function scannerWithSelectedWaypoint(addWaypoint = false) {
+async function scannerWithSelectedWaypoint(addWaypoint = false, area = { x: 100, y: 100 }) {
 	const fleet = new CommandedFleet(
 		create(FleetSchema, {
 			mapObject: { type: MapObjectType.FLEET, playerNum: 1, num: 1, position: { x: 10, y: 10 } },
@@ -48,7 +52,7 @@ async function scannerWithSelectedWaypoint(addWaypoint = false) {
 	player.num = 1;
 	const zoomTarget = writable({ mapObject: fleet.mapObject });
 	state.context = {
-		game: writable({ area: { x: 100, y: 100 } }),
+		game: writable({ area }),
 		player: writable(player),
 		universe: writable(universe),
 		settings: writable(Object.assign(new PlayerSettings(), { addWaypoint })),
@@ -96,7 +100,16 @@ async function scannerWithSelectedWaypoint(addWaypoint = false) {
 		Object.defineProperties(event, { layerX: { value: layerX }, layerY: { value: layerY } });
 		overlay.dispatchEvent(event);
 	}
-	return { pointer, onSelectMapObject, onUpdateWaypointDest, onAddWaypoint, scanner, root };
+	return {
+		pointer,
+		onSelectMapObject,
+		onUpdateWaypointDest,
+		onAddWaypoint,
+		scanner,
+		root,
+		zoomTarget,
+		fleet
+	};
 }
 
 // The map is scaled to the scanner's shorter side, so turning a phone would otherwise leave the
@@ -120,6 +133,35 @@ it('keeps looking at the same part of the map when the scanner changes shape', a
 	const [rx, ry] = state.canvasProps!.transform!.apply([80, 80]);
 	expect(rx).toBeCloseTo(120);
 	expect(ry).toBeCloseTo(80);
+});
+
+// A landscape tablet is wider than it is tall, but not as wide as a wide map. The map has to fit
+// the scanner's width or the right side of the map can't be panned to.
+it('can show the right edge of a wide map in a scanner that is wide but not as wide as the map', async () => {
+	const { scanner, root, zoomTarget, fleet } = await scannerWithSelectedWaypoint(false, {
+		x: 100,
+		y: 60
+	});
+	for (const el of [scanner, root]) {
+		el.style.width = '200px';
+		el.style.height = '180px';
+	}
+	window.dispatchEvent(new Event('resize'));
+	await tick();
+
+	zoomTarget.set({
+		mapObject: { ...fleet.mapObject, position: create(VectorSchema, { x: 95, y: 30 }) }
+	});
+	await tick();
+
+	// the map fits the 200px width at 2px per light year
+	const ppl = state.canvasProps!.pixelsPerLightYear!;
+	expect(ppl.x).toBeCloseTo(2);
+	const [x, y] = state.canvasProps!.transform!.apply([95 * ppl.x, 30 * ppl.y]);
+	expect(x).toBeGreaterThanOrEqual(0);
+	expect(x).toBeLessThanOrEqual(200);
+	expect(y).toBeGreaterThanOrEqual(0);
+	expect(y).toBeLessThanOrEqual(180);
 });
 
 // Selecting what's under the selected waypoint can command a planet there, which would stop the

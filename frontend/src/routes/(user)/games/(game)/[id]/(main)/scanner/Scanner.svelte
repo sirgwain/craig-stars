@@ -62,7 +62,6 @@
 		onSetRouteDest
 	}: Props = $props();
 
-	const aspectRatio = $game.area.x / $game.area.y;
 	const padding = 20; // 20 px, used in zooming
 
 	let root: HTMLElement | undefined = $state();
@@ -250,29 +249,19 @@
 		zooming = false;
 	}
 
+	// The map is scaled to fit inside the scanner without stretching. A wide map in a viewport that
+	// is wide but not as wide as the map, like a landscape tablet, is limited by its width, not its
+	// height. Otherwise the right side of the map would be outside the area the player can pan to.
+	function fitScale(clientWidth: number, clientHeight: number) {
+		return Math.min(clientWidth / $game.area.x, clientHeight / $game.area.y);
+	}
+
 	function xRange(clientWidth: number, clientHeight: number) {
-		if (aspectRatio > 1 && clientHeight > clientWidth) {
-			// tall skinny viewport, wide map, so fully expand on the x
-			// but shrink up height
-			return [0, clientWidth];
-		} else if (aspectRatio > 1 && clientWidth > clientHeight) {
-			// wide viewport, wide map, so fully expand on the y
-			// but shrink up width
-			return [0, clientHeight * aspectRatio];
-		}
-		return [0, Math.min(clientWidth, clientHeight)];
+		return [0, $game.area.x * fitScale(clientWidth, clientHeight)];
 	}
 
 	function yRange(clientWidth: number, clientHeight: number) {
-		if (aspectRatio > 1 && clientHeight > clientWidth) {
-			// tall skinny viewport, wide map, so fully expand on the x
-			// but shrink up height
-			return [0, clientWidth / aspectRatio];
-		} else if (aspectRatio > 1 && clientWidth > clientHeight) {
-			// wide viewport, wide map, so fully expand on the y
-			return [0, clientHeight];
-		}
-		return [0, Math.min(clientWidth, clientHeight)];
+		return [0, $game.area.y * fitScale(clientWidth, clientHeight)];
 	}
 
 	// update clientWidth/height on resize
