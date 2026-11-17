@@ -335,6 +335,7 @@ func Start(config configpkg.Config) error {
 		r.Post("/api/oauth/authorize", server.apiOAuthConsentHandler)
 	})
 	r.Post("/api/oauth/token", server.apiOAuthTokenHandler)
+	r.Post("/api/oauth/revoke", server.apiOAuthRevokeHandler)
 	r.Get("/api/oauth/metadata", server.apiOAuthMetadataHandler)
 	r.Post("/api/mcp/oauth/register", server.mcpRegisterHandler)
 	r.Get("/.well-known/oauth-authorization-server", server.apiOAuthMetadataHandler)
