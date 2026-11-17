@@ -17,7 +17,7 @@ require (
 	github.com/disgoorg/disgo v0.19.6
 	github.com/disgoorg/snowflake/v2 v2.0.3
 	github.com/fabien-marty/slog-helpers v0.0.0-20240624063600-773d61849b89
-	github.com/go-chi/chi/v5 v5.3.2
+	github.com/go-chi/chi/v5 v5.4.0
 	github.com/go-chi/render v1.0.3
 	github.com/go-pkgz/auth/v2 v2.3.0
 	github.com/go-pkgz/rest v1.24.0
