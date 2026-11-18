@@ -79,7 +79,19 @@ func (s *wasmService) ComputeRaceSpec(ctx context.Context, req *craig_starsv1.Co
 
 func (s *wasmService) ComputeShipDesignSpec(ctx context.Context, req *craig_starsv1.ComputeShipDesignSpecRequest) (*craig_starsv1.ComputeShipDesignSpecResponse, error) {
 	design := converter.C.ConvertShipDesignP(req.Design)
-	spec, err := cs.ComputeShipDesignSpec(s.rules, s.player.TechLevels, cs.ComputeRaceSpec(&s.player.Race, s.rules), design)
+	player := s.player
+	if req.Player != nil {
+		player = converter.C.ConvertPlayer(req.Player)
+	}
+	if player == nil {
+		return nil, errors.New("no player for design preview")
+	}
+	if req.Validate {
+		if err := design.Validate(s.rules, player); err != nil {
+			return nil, err
+		}
+	}
+	spec, err := cs.ComputeShipDesignSpec(s.rules, player.TechLevels, cs.ComputeRaceSpec(&player.Race, s.rules), design)
 	if err != nil {
 		return nil, err
 	}
@@ -169,12 +181,16 @@ func (s *wasmService) GetStarbaseUpgradeCost(ctx context.Context, req *craig_sta
 }
 
 func (s *wasmService) GetTechCost(ctx context.Context, req *craig_starsv1.GetTechCostRequest) (*craig_starsv1.GetTechCostResponse, error) {
-	if s.player == nil {
+	player := s.player
+	if req.Player != nil {
+		player = converter.C.ConvertPlayer(req.Player)
+	}
+	if player == nil {
 		return nil, errors.New("no player, can't calculate tech cost")
 	}
 	costCalculatoor := cs.NewCostCalculator()
 
-	cost := costCalculatoor.GetTechCost(s.rules, s.player.TechLevels, s.player.Race.Spec, converter.C.ConvertTech(req.Tech))
+	cost := costCalculatoor.GetTechCost(s.rules, player.TechLevels, cs.ComputeRaceSpec(&player.Race, s.rules), converter.C.ConvertTech(req.Tech))
 	return &craig_starsv1.GetTechCostResponse{Cost: converter.C.ConvertCSCost(cost)}, nil
 }
 
@@ -257,4 +273,34 @@ func (s *wasmService) UpdateWaypointSpeed(ctx context.Context, req *craig_starsv
 	return &craig_starsv1.UpdateWaypointSpeedResponse{
 		Fleet: converter.C.ConvertCSFleet(fleet),
 	}, nil
+}
+
+// SimulateBattle never reads or replaces the session player, designs, or universe.
+func (s *wasmService) SimulateBattle(ctx context.Context, req *craig_starsv1.SimulateBattleRequest) (*craig_starsv1.SimulateBattleResponse, error) {
+	sides := make([]cs.BattleSimulationSide, 0, len(req.Sides))
+	for _, side := range req.Sides {
+		if side == nil || side.Race == nil || side.TechLevels == nil {
+			return nil, errors.New("each side needs race and tech levels")
+		}
+		converted := cs.BattleSimulationSide{Race: *converter.C.ConvertRaceP(side.Race), TechLevels: converter.C.ConvertTechLevel(side.TechLevels), AcquiredTechs: side.AcquiredTechs}
+		for _, stack := range side.Stacks {
+			if stack == nil || stack.Design == nil || stack.Plan == nil {
+				return nil, errors.New("each stack needs a design and battle plan")
+			}
+			converted.Stacks = append(converted.Stacks, cs.BattleSimulationStack{Design: *converter.C.ConvertShipDesignP(stack.Design), Quantity: int(stack.Quantity), QuantityDamaged: int(stack.QuantityDamaged), Damage: stack.Damage, Plan: converter.C.ConvertBattlePlan(stack.Plan)})
+		}
+		sides = append(sides, converted)
+	}
+	result, err := cs.SimulateBattle(*s.rules, sides, req.Seed)
+	if err != nil {
+		return nil, err
+	}
+	response := &craig_starsv1.SimulateBattleResponse{Record: converter.C.ConvertCSBattleRecord(*result.Record)}
+	for _, design := range result.Designs {
+		response.Designs = append(response.Designs, converter.C.ConvertCSShipDesign(design))
+	}
+	for _, stack := range result.Stacks {
+		response.Stacks = append(response.Stacks, &craig_starsv1.BattleSimulationStackResult{PlayerNum: int32(stack.PlayerNum), DesignNum: int32(stack.DesignNum), Survivors: int32(stack.Survivors), Retreated: int32(stack.Retreated), Destroyed: int32(stack.Destroyed), Loss: converter.C.ConvertCSCost(stack.Loss)})
+	}
+	return response, nil
 }

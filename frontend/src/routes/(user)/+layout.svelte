@@ -18,7 +18,7 @@
 	let { children }: Props = $props();
 
 	// the library screens lay out cards in a grid, so they get more room
-	let wide = $derived(['/', '/games', '/races'].includes(page.url.pathname));
+	let wide = $derived(['/', '/games', '/races', '/simulator'].includes(page.url.pathname));
 
 	onMount(() => {
 		$errors = [];

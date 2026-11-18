@@ -7,7 +7,10 @@ import { render } from 'vitest-browser-svelte';
 import DesignCard from './DesignCard.svelte';
 
 // the card doesn't need a game, but the tooltips it can open import the context
-vi.mock('#lib/services/GameContext.js', () => ({ getGameContext: () => undefined }));
+vi.mock('#lib/services/GameContext.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/services/GameContext.js')>()),
+	getGameContext: () => undefined
+}));
 
 // open the delete dialog for a design with these ships built and queued
 async function confirmDelete(numInstances: number, numQueued: number) {

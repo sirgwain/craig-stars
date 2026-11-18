@@ -186,6 +186,12 @@ func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 
 // validate that this ship design is correct and is avaliable for the given player
 func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
+	return sd.validate(rules, player, true)
+}
+
+// Existing ships (including transferred ships) can carry unavailable technology.
+// Battle simulation checks their structure without requiring ownership of the tech.
+func (sd *ShipDesign) validate(rules *Rules, player *Player, checkAvailability bool) error {
 	// Basic design/hull checks
 	if strings.TrimSpace(sd.Name) == "" {
 		return fmt.Errorf("design has no name")
@@ -201,7 +207,7 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	if hull == nil {
 		return fmt.Errorf("hull %q was not found in techStore", sd.Hull)
 	}
-	if !player.HasTech(&hull.Tech) {
+	if checkAvailability && !player.HasTech(&hull.Tech) {
 		return fmt.Errorf("hull %q is not available to player", hull)
 	}
 
@@ -246,7 +252,7 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 				return fmt.Errorf("hull component %q is forbidden on hull %s", hc, hull)
 			}
 
-			if !player.HasTech(&hc.Tech) {
+			if checkAvailability && !player.HasTech(&hc.Tech) {
 				return fmt.Errorf("hull component %s is not available to player", hc)
 			}
 		}

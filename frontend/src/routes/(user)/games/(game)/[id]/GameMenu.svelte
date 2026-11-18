@@ -111,6 +111,7 @@
 						<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
 						<li><a href={`/games/${$game.id}/messages`}>Messages</a></li>
 						<li><a href={`/games/${$game.id}/battles`}>Battles</a></li>
+						<li><a href={`/games/${$game.id}/simulator`}>Battle Simulator</a></li>
 					</ul>
 				</div>
 			</div>
@@ -163,6 +164,7 @@
 							<li class="md:hidden"><a href={`/games/${$game.id}/designs`}>Designs</a></li>
 							<li class="md:hidden"><a href={`/games/${$game.id}/messages`}>Messages</a></li>
 							<li class="md:hidden"><a href={`/games/${$game.id}/battles`}>Battles</a></li>
+							<li><a href={`/games/${$game.id}/simulator`}>Battle Simulator</a></li>
 						{/if}
 					</ul>
 					<ul>

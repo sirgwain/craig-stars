@@ -7,12 +7,11 @@
 package craig_starsv1
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -487,8 +486,11 @@ func (x *ComputeRaceSpecResponse) GetSpec() *RaceSpec {
 }
 
 type ComputeShipDesignSpecRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Design        *ShipDesign            `protobuf:"bytes,1,opt,name=design,proto3" json:"design,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Design *ShipDesign            `protobuf:"bytes,1,opt,name=design,proto3" json:"design,omitempty"`
+	// Optional independent owner for simulator design previews.
+	Player        *Player `protobuf:"bytes,2,opt,name=player,proto3" json:"player,omitempty"`
+	Validate      bool    `protobuf:"varint,3,opt,name=validate,proto3" json:"validate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -528,6 +530,20 @@ func (x *ComputeShipDesignSpecRequest) GetDesign() *ShipDesign {
 		return x.Design
 	}
 	return nil
+}
+
+func (x *ComputeShipDesignSpecRequest) GetPlayer() *Player {
+	if x != nil {
+		return x.Player
+	}
+	return nil
+}
+
+func (x *ComputeShipDesignSpecRequest) GetValidate() bool {
+	if x != nil {
+		return x.Validate
+	}
+	return false
 }
 
 type ComputeShipDesignSpecResponse struct {
@@ -1121,6 +1137,7 @@ func (x *GetStarbaseUpgradeCostResponse) GetCost() *Cost {
 type GetTechCostRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Tech          *Tech                  `protobuf:"bytes,1,opt,name=tech,proto3" json:"tech,omitempty"`
+	Player        *Player                `protobuf:"bytes,2,opt,name=player,proto3" json:"player,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1158,6 +1175,13 @@ func (*GetTechCostRequest) Descriptor() ([]byte, []int) {
 func (x *GetTechCostRequest) GetTech() *Tech {
 	if x != nil {
 		return x.Tech
+	}
+	return nil
+}
+
+func (x *GetTechCostRequest) GetPlayer() *Player {
+	if x != nil {
+		return x.Player
 	}
 	return nil
 }
@@ -1830,11 +1854,352 @@ func (x *UpdateWaypointSpeedResponse) GetFleet() *Fleet {
 	return nil
 }
 
+// Each stack is an independent battle token with its own orders.
+type BattleSimulationStack struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Design          *ShipDesign            `protobuf:"bytes,1,opt,name=design,proto3" json:"design,omitempty"`
+	Quantity        int32                  `protobuf:"varint,2,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	QuantityDamaged int32                  `protobuf:"varint,3,opt,name=quantity_damaged,json=quantityDamaged,proto3" json:"quantity_damaged,omitempty"`
+	Damage          float64                `protobuf:"fixed64,4,opt,name=damage,proto3" json:"damage,omitempty"`
+	Plan            *BattlePlan            `protobuf:"bytes,5,opt,name=plan,proto3" json:"plan,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *BattleSimulationStack) Reset() {
+	*x = BattleSimulationStack{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BattleSimulationStack) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BattleSimulationStack) ProtoMessage() {}
+
+func (x *BattleSimulationStack) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BattleSimulationStack.ProtoReflect.Descriptor instead.
+func (*BattleSimulationStack) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *BattleSimulationStack) GetDesign() *ShipDesign {
+	if x != nil {
+		return x.Design
+	}
+	return nil
+}
+
+func (x *BattleSimulationStack) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+func (x *BattleSimulationStack) GetQuantityDamaged() int32 {
+	if x != nil {
+		return x.QuantityDamaged
+	}
+	return 0
+}
+
+func (x *BattleSimulationStack) GetDamage() float64 {
+	if x != nil {
+		return x.Damage
+	}
+	return 0
+}
+
+func (x *BattleSimulationStack) GetPlan() *BattlePlan {
+	if x != nil {
+		return x.Plan
+	}
+	return nil
+}
+
+type BattleSimulationSide struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Race          *Race                    `protobuf:"bytes,1,opt,name=race,proto3" json:"race,omitempty"`
+	TechLevels    *TechLevel               `protobuf:"bytes,2,opt,name=tech_levels,json=techLevels,proto3" json:"tech_levels,omitempty"`
+	Stacks        []*BattleSimulationStack `protobuf:"bytes,3,rep,name=stacks,proto3" json:"stacks,omitempty"`
+	AcquiredTechs map[string]bool          `protobuf:"bytes,4,rep,name=acquired_techs,json=acquiredTechs,proto3" json:"acquired_techs,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BattleSimulationSide) Reset() {
+	*x = BattleSimulationSide{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BattleSimulationSide) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BattleSimulationSide) ProtoMessage() {}
+
+func (x *BattleSimulationSide) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BattleSimulationSide.ProtoReflect.Descriptor instead.
+func (*BattleSimulationSide) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *BattleSimulationSide) GetRace() *Race {
+	if x != nil {
+		return x.Race
+	}
+	return nil
+}
+
+func (x *BattleSimulationSide) GetTechLevels() *TechLevel {
+	if x != nil {
+		return x.TechLevels
+	}
+	return nil
+}
+
+func (x *BattleSimulationSide) GetStacks() []*BattleSimulationStack {
+	if x != nil {
+		return x.Stacks
+	}
+	return nil
+}
+
+func (x *BattleSimulationSide) GetAcquiredTechs() map[string]bool {
+	if x != nil {
+		return x.AcquiredTechs
+	}
+	return nil
+}
+
+type SimulateBattleRequest struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Sides         []*BattleSimulationSide `protobuf:"bytes,1,rep,name=sides,proto3" json:"sides,omitempty"`
+	Seed          int64                   `protobuf:"varint,2,opt,name=seed,proto3" json:"seed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SimulateBattleRequest) Reset() {
+	*x = SimulateBattleRequest{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SimulateBattleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SimulateBattleRequest) ProtoMessage() {}
+
+func (x *SimulateBattleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SimulateBattleRequest.ProtoReflect.Descriptor instead.
+func (*SimulateBattleRequest) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *SimulateBattleRequest) GetSides() []*BattleSimulationSide {
+	if x != nil {
+		return x.Sides
+	}
+	return nil
+}
+
+func (x *SimulateBattleRequest) GetSeed() int64 {
+	if x != nil {
+		return x.Seed
+	}
+	return 0
+}
+
+type BattleSimulationStackResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PlayerNum     int32                  `protobuf:"varint,1,opt,name=player_num,json=playerNum,proto3" json:"player_num,omitempty"`
+	DesignNum     int32                  `protobuf:"varint,2,opt,name=design_num,json=designNum,proto3" json:"design_num,omitempty"`
+	Survivors     int32                  `protobuf:"varint,3,opt,name=survivors,proto3" json:"survivors,omitempty"`
+	Retreated     int32                  `protobuf:"varint,4,opt,name=retreated,proto3" json:"retreated,omitempty"`
+	Destroyed     int32                  `protobuf:"varint,5,opt,name=destroyed,proto3" json:"destroyed,omitempty"`
+	Loss          *Cost                  `protobuf:"bytes,6,opt,name=loss,proto3" json:"loss,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BattleSimulationStackResult) Reset() {
+	*x = BattleSimulationStackResult{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BattleSimulationStackResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BattleSimulationStackResult) ProtoMessage() {}
+
+func (x *BattleSimulationStackResult) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BattleSimulationStackResult.ProtoReflect.Descriptor instead.
+func (*BattleSimulationStackResult) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *BattleSimulationStackResult) GetPlayerNum() int32 {
+	if x != nil {
+		return x.PlayerNum
+	}
+	return 0
+}
+
+func (x *BattleSimulationStackResult) GetDesignNum() int32 {
+	if x != nil {
+		return x.DesignNum
+	}
+	return 0
+}
+
+func (x *BattleSimulationStackResult) GetSurvivors() int32 {
+	if x != nil {
+		return x.Survivors
+	}
+	return 0
+}
+
+func (x *BattleSimulationStackResult) GetRetreated() int32 {
+	if x != nil {
+		return x.Retreated
+	}
+	return 0
+}
+
+func (x *BattleSimulationStackResult) GetDestroyed() int32 {
+	if x != nil {
+		return x.Destroyed
+	}
+	return 0
+}
+
+func (x *BattleSimulationStackResult) GetLoss() *Cost {
+	if x != nil {
+		return x.Loss
+	}
+	return nil
+}
+
+type SimulateBattleResponse struct {
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Record        *BattleRecord                  `protobuf:"bytes,1,opt,name=record,proto3" json:"record,omitempty"`
+	Designs       []*ShipDesign                  `protobuf:"bytes,2,rep,name=designs,proto3" json:"designs,omitempty"`
+	Stacks        []*BattleSimulationStackResult `protobuf:"bytes,3,rep,name=stacks,proto3" json:"stacks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SimulateBattleResponse) Reset() {
+	*x = SimulateBattleResponse{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SimulateBattleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SimulateBattleResponse) ProtoMessage() {}
+
+func (x *SimulateBattleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SimulateBattleResponse.ProtoReflect.Descriptor instead.
+func (*SimulateBattleResponse) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *SimulateBattleResponse) GetRecord() *BattleRecord {
+	if x != nil {
+		return x.Record
+	}
+	return nil
+}
+
+func (x *SimulateBattleResponse) GetDesigns() []*ShipDesign {
+	if x != nil {
+		return x.Designs
+	}
+	return nil
+}
+
+func (x *SimulateBattleResponse) GetStacks() []*BattleSimulationStackResult {
+	if x != nil {
+		return x.Stacks
+	}
+	return nil
+}
+
 var File_craig_stars_v1_wasm_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\n" +
-	"\x19craig_stars/v1/wasm.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1acraig_stars/v1/fleet.proto\x1a!craig_stars/v1/fleetservice.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1bcraig_stars/v1/player.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\x1a\x19craig_stars/v1/tech.proto\"\xe5\x01\n" +
+	"\x19craig_stars/v1/wasm.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/common.proto\x1a\x1bcraig_stars/v1/battle.proto\x1a\x1acraig_stars/v1/fleet.proto\x1a!craig_stars/v1/fleetservice.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1bcraig_stars/v1/player.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\x1a\x19craig_stars/v1/tech.proto\"\xe5\x01\n" +
 	"\x12AddWaypointRequest\x12+\n" +
 	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x120\n" +
 	"\x04dest\x18\x02 \x01(\v2\x1c.craig_stars.v1.WaypointDestR\x04dest\x12E\n" +
@@ -1857,9 +2222,11 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\x16ComputeRaceSpecRequest\x12(\n" +
 	"\x04race\x18\x01 \x01(\v2\x14.craig_stars.v1.RaceR\x04race\"G\n" +
 	"\x17ComputeRaceSpecResponse\x12,\n" +
-	"\x04spec\x18\x01 \x01(\v2\x18.craig_stars.v1.RaceSpecR\x04spec\"R\n" +
+	"\x04spec\x18\x01 \x01(\v2\x18.craig_stars.v1.RaceSpecR\x04spec\"\x9e\x01\n" +
 	"\x1cComputeShipDesignSpecRequest\x122\n" +
-	"\x06design\x18\x01 \x01(\v2\x1a.craig_stars.v1.ShipDesignR\x06design\"S\n" +
+	"\x06design\x18\x01 \x01(\v2\x1a.craig_stars.v1.ShipDesignR\x06design\x12.\n" +
+	"\x06player\x18\x02 \x01(\v2\x16.craig_stars.v1.PlayerR\x06player\x12\x1a\n" +
+	"\bvalidate\x18\x03 \x01(\bR\bvalidate\"S\n" +
 	"\x1dComputeShipDesignSpecResponse\x122\n" +
 	"\x04spec\x18\x01 \x01(\v2\x1e.craig_stars.v1.ShipDesignSpecR\x04spec\"*\n" +
 	"\x12EnableDebugRequest\x12\x14\n" +
@@ -1889,9 +2256,10 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\n" +
 	"new_design\x18\x02 \x01(\v2\x1a.craig_stars.v1.ShipDesignR\tnewDesign\"J\n" +
 	"\x1eGetStarbaseUpgradeCostResponse\x12(\n" +
-	"\x04cost\x18\x01 \x01(\v2\x14.craig_stars.v1.CostR\x04cost\">\n" +
+	"\x04cost\x18\x01 \x01(\v2\x14.craig_stars.v1.CostR\x04cost\"n\n" +
 	"\x12GetTechCostRequest\x12(\n" +
-	"\x04tech\x18\x01 \x01(\v2\x14.craig_stars.v1.TechR\x04tech\"?\n" +
+	"\x04tech\x18\x01 \x01(\v2\x14.craig_stars.v1.TechR\x04tech\x12.\n" +
+	"\x06player\x18\x02 \x01(\v2\x16.craig_stars.v1.PlayerR\x06player\"?\n" +
 	"\x13GetTechCostResponse\x12(\n" +
 	"\x04cost\x18\x01 \x01(\v2\x14.craig_stars.v1.CostR\x04cost\"I\n" +
 	"\x11SetDesignsRequest\x124\n" +
@@ -1923,7 +2291,38 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\n" +
 	"warp_speed\x18\x03 \x01(\x05R\twarpSpeed\"J\n" +
 	"\x1bUpdateWaypointSpeedResponse\x12+\n" +
-	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleetB\xbc\x01\n" +
+	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\"\xda\x01\n" +
+	"\x15BattleSimulationStack\x122\n" +
+	"\x06design\x18\x01 \x01(\v2\x1a.craig_stars.v1.ShipDesignR\x06design\x12\x1a\n" +
+	"\bquantity\x18\x02 \x01(\x05R\bquantity\x12)\n" +
+	"\x10quantity_damaged\x18\x03 \x01(\x05R\x0fquantityDamaged\x12\x16\n" +
+	"\x06damage\x18\x04 \x01(\x01R\x06damage\x12.\n" +
+	"\x04plan\x18\x05 \x01(\v2\x1a.craig_stars.v1.BattlePlanR\x04plan\"\xdd\x02\n" +
+	"\x14BattleSimulationSide\x12(\n" +
+	"\x04race\x18\x01 \x01(\v2\x14.craig_stars.v1.RaceR\x04race\x12:\n" +
+	"\vtech_levels\x18\x02 \x01(\v2\x19.craig_stars.v1.TechLevelR\n" +
+	"techLevels\x12=\n" +
+	"\x06stacks\x18\x03 \x03(\v2%.craig_stars.v1.BattleSimulationStackR\x06stacks\x12^\n" +
+	"\x0eacquired_techs\x18\x04 \x03(\v27.craig_stars.v1.BattleSimulationSide.AcquiredTechsEntryR\racquiredTechs\x1a@\n" +
+	"\x12AcquiredTechsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\"g\n" +
+	"\x15SimulateBattleRequest\x12:\n" +
+	"\x05sides\x18\x01 \x03(\v2$.craig_stars.v1.BattleSimulationSideR\x05sides\x12\x12\n" +
+	"\x04seed\x18\x02 \x01(\x03R\x04seed\"\xdf\x01\n" +
+	"\x1bBattleSimulationStackResult\x12\x1d\n" +
+	"\n" +
+	"player_num\x18\x01 \x01(\x05R\tplayerNum\x12\x1d\n" +
+	"\n" +
+	"design_num\x18\x02 \x01(\x05R\tdesignNum\x12\x1c\n" +
+	"\tsurvivors\x18\x03 \x01(\x05R\tsurvivors\x12\x1c\n" +
+	"\tretreated\x18\x04 \x01(\x05R\tretreated\x12\x1c\n" +
+	"\tdestroyed\x18\x05 \x01(\x05R\tdestroyed\x12(\n" +
+	"\x04loss\x18\x06 \x01(\v2\x14.craig_stars.v1.CostR\x04loss\"\xc9\x01\n" +
+	"\x16SimulateBattleResponse\x124\n" +
+	"\x06record\x18\x01 \x01(\v2\x1c.craig_stars.v1.BattleRecordR\x06record\x124\n" +
+	"\adesigns\x18\x02 \x03(\v2\x1a.craig_stars.v1.ShipDesignR\adesigns\x12C\n" +
+	"\x06stacks\x18\x03 \x03(\v2+.craig_stars.v1.BattleSimulationStackResultR\x06stacksB\xbc\x01\n" +
 	"\x12com.craig_stars.v1B\tWasmProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
 var (
@@ -1938,7 +2337,7 @@ func file_craig_stars_v1_wasm_proto_rawDescGZIP() []byte {
 	return file_craig_stars_v1_wasm_proto_rawDescData
 }
 
-var file_craig_stars_v1_wasm_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
+var file_craig_stars_v1_wasm_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_craig_stars_v1_wasm_proto_goTypes = []any{
 	(*AddWaypointRequest)(nil),                // 0: craig_stars.v1.AddWaypointRequest
 	(*AddWaypointResponse)(nil),               // 1: craig_stars.v1.AddWaypointResponse
@@ -1980,65 +2379,86 @@ var file_craig_stars_v1_wasm_proto_goTypes = []any{
 	(*UpdateWaypointResponse)(nil),            // 37: craig_stars.v1.UpdateWaypointResponse
 	(*UpdateWaypointSpeedRequest)(nil),        // 38: craig_stars.v1.UpdateWaypointSpeedRequest
 	(*UpdateWaypointSpeedResponse)(nil),       // 39: craig_stars.v1.UpdateWaypointSpeedResponse
-	(*Fleet)(nil),                             // 40: craig_stars.v1.Fleet
-	(*WaypointDest)(nil),                      // 41: craig_stars.v1.WaypointDest
-	(*Race)(nil),                              // 42: craig_stars.v1.Race
-	(*Minefield)(nil),                         // 43: craig_stars.v1.Minefield
-	(*MinefieldSpec)(nil),                     // 44: craig_stars.v1.MinefieldSpec
-	(*PlayerResearchSpec)(nil),                // 45: craig_stars.v1.PlayerResearchSpec
-	(*RaceSpec)(nil),                          // 46: craig_stars.v1.RaceSpec
-	(*ShipDesign)(nil),                        // 47: craig_stars.v1.ShipDesign
-	(*ShipDesignSpec)(nil),                    // 48: craig_stars.v1.ShipDesignSpec
-	(*Planet)(nil),                            // 49: craig_stars.v1.Planet
-	(QueueItemType)(0),                        // 50: craig_stars.v1.QueueItemType
-	(*Hab)(nil),                               // 51: craig_stars.v1.Hab
-	(*TechLevel)(nil),                         // 52: craig_stars.v1.TechLevel
-	(*Cost)(nil),                              // 53: craig_stars.v1.Cost
-	(*Tech)(nil),                              // 54: craig_stars.v1.Tech
-	(*Intels)(nil),                            // 55: craig_stars.v1.Intels
-	(*Player)(nil),                            // 56: craig_stars.v1.Player
-	(UpdateWaypointResult)(0),                 // 57: craig_stars.v1.UpdateWaypointResult
+	(*BattleSimulationStack)(nil),             // 40: craig_stars.v1.BattleSimulationStack
+	(*BattleSimulationSide)(nil),              // 41: craig_stars.v1.BattleSimulationSide
+	(*SimulateBattleRequest)(nil),             // 42: craig_stars.v1.SimulateBattleRequest
+	(*BattleSimulationStackResult)(nil),       // 43: craig_stars.v1.BattleSimulationStackResult
+	(*SimulateBattleResponse)(nil),            // 44: craig_stars.v1.SimulateBattleResponse
+	nil,                                       // 45: craig_stars.v1.BattleSimulationSide.AcquiredTechsEntry
+	(*Fleet)(nil),                             // 46: craig_stars.v1.Fleet
+	(*WaypointDest)(nil),                      // 47: craig_stars.v1.WaypointDest
+	(*Race)(nil),                              // 48: craig_stars.v1.Race
+	(*Minefield)(nil),                         // 49: craig_stars.v1.Minefield
+	(*MinefieldSpec)(nil),                     // 50: craig_stars.v1.MinefieldSpec
+	(*PlayerResearchSpec)(nil),                // 51: craig_stars.v1.PlayerResearchSpec
+	(*RaceSpec)(nil),                          // 52: craig_stars.v1.RaceSpec
+	(*ShipDesign)(nil),                        // 53: craig_stars.v1.ShipDesign
+	(*Player)(nil),                            // 54: craig_stars.v1.Player
+	(*ShipDesignSpec)(nil),                    // 55: craig_stars.v1.ShipDesignSpec
+	(*Planet)(nil),                            // 56: craig_stars.v1.Planet
+	(QueueItemType)(0),                        // 57: craig_stars.v1.QueueItemType
+	(*Hab)(nil),                               // 58: craig_stars.v1.Hab
+	(*TechLevel)(nil),                         // 59: craig_stars.v1.TechLevel
+	(*Cost)(nil),                              // 60: craig_stars.v1.Cost
+	(*Tech)(nil),                              // 61: craig_stars.v1.Tech
+	(*Intels)(nil),                            // 62: craig_stars.v1.Intels
+	(UpdateWaypointResult)(0),                 // 63: craig_stars.v1.UpdateWaypointResult
+	(*BattlePlan)(nil),                        // 64: craig_stars.v1.BattlePlan
+	(*BattleRecord)(nil),                      // 65: craig_stars.v1.BattleRecord
 }
 var file_craig_stars_v1_wasm_proto_depIdxs = []int32{
-	40, // 0: craig_stars.v1.AddWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
-	41, // 1: craig_stars.v1.AddWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
-	40, // 2: craig_stars.v1.AddWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
-	42, // 3: craig_stars.v1.CalculateRacePointsRequest.race:type_name -> craig_stars.v1.Race
-	43, // 4: craig_stars.v1.ComputeMinefieldSpecRequest.minefield:type_name -> craig_stars.v1.Minefield
-	44, // 5: craig_stars.v1.ComputeMinefieldSpecResponse.spec:type_name -> craig_stars.v1.MinefieldSpec
-	45, // 6: craig_stars.v1.ComputePlayerResearchSpecResponse.spec:type_name -> craig_stars.v1.PlayerResearchSpec
-	42, // 7: craig_stars.v1.ComputeRaceSpecRequest.race:type_name -> craig_stars.v1.Race
-	46, // 8: craig_stars.v1.ComputeRaceSpecResponse.spec:type_name -> craig_stars.v1.RaceSpec
-	47, // 9: craig_stars.v1.ComputeShipDesignSpecRequest.design:type_name -> craig_stars.v1.ShipDesign
-	48, // 10: craig_stars.v1.ComputeShipDesignSpecResponse.spec:type_name -> craig_stars.v1.ShipDesignSpec
-	49, // 11: craig_stars.v1.EstimateProductionRequest.planet:type_name -> craig_stars.v1.Planet
-	49, // 12: craig_stars.v1.EstimateProductionResponse.planet:type_name -> craig_stars.v1.Planet
-	49, // 13: craig_stars.v1.GetMaxBuildableRequest.planet:type_name -> craig_stars.v1.Planet
-	50, // 14: craig_stars.v1.GetMaxBuildableRequest.item_type:type_name -> craig_stars.v1.QueueItemType
-	42, // 15: craig_stars.v1.GetPlanetHabitabilityRequest.race:type_name -> craig_stars.v1.Race
-	51, // 16: craig_stars.v1.GetPlanetHabitabilityRequest.hab:type_name -> craig_stars.v1.Hab
-	52, // 17: craig_stars.v1.GetResearchCostRequest.tech_level:type_name -> craig_stars.v1.TechLevel
-	47, // 18: craig_stars.v1.GetStarbaseUpgradeCostRequest.design:type_name -> craig_stars.v1.ShipDesign
-	47, // 19: craig_stars.v1.GetStarbaseUpgradeCostRequest.new_design:type_name -> craig_stars.v1.ShipDesign
-	53, // 20: craig_stars.v1.GetStarbaseUpgradeCostResponse.cost:type_name -> craig_stars.v1.Cost
-	54, // 21: craig_stars.v1.GetTechCostRequest.tech:type_name -> craig_stars.v1.Tech
-	53, // 22: craig_stars.v1.GetTechCostResponse.cost:type_name -> craig_stars.v1.Cost
-	47, // 23: craig_stars.v1.SetDesignsRequest.designs:type_name -> craig_stars.v1.ShipDesign
-	55, // 24: craig_stars.v1.SetIntelsRequest.intels:type_name -> craig_stars.v1.Intels
-	56, // 25: craig_stars.v1.SetPlayerRequest.player:type_name -> craig_stars.v1.Player
-	49, // 26: craig_stars.v1.UpdatePlanetRequest.planet:type_name -> craig_stars.v1.Planet
-	49, // 27: craig_stars.v1.UpdatePlanetsRequest.planets:type_name -> craig_stars.v1.Planet
-	40, // 28: craig_stars.v1.UpdateWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
-	41, // 29: craig_stars.v1.UpdateWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
-	40, // 30: craig_stars.v1.UpdateWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
-	57, // 31: craig_stars.v1.UpdateWaypointResponse.result:type_name -> craig_stars.v1.UpdateWaypointResult
-	40, // 32: craig_stars.v1.UpdateWaypointSpeedRequest.fleet:type_name -> craig_stars.v1.Fleet
-	40, // 33: craig_stars.v1.UpdateWaypointSpeedResponse.fleet:type_name -> craig_stars.v1.Fleet
-	34, // [34:34] is the sub-list for method output_type
-	34, // [34:34] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	46, // 0: craig_stars.v1.AddWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
+	47, // 1: craig_stars.v1.AddWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
+	46, // 2: craig_stars.v1.AddWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
+	48, // 3: craig_stars.v1.CalculateRacePointsRequest.race:type_name -> craig_stars.v1.Race
+	49, // 4: craig_stars.v1.ComputeMinefieldSpecRequest.minefield:type_name -> craig_stars.v1.Minefield
+	50, // 5: craig_stars.v1.ComputeMinefieldSpecResponse.spec:type_name -> craig_stars.v1.MinefieldSpec
+	51, // 6: craig_stars.v1.ComputePlayerResearchSpecResponse.spec:type_name -> craig_stars.v1.PlayerResearchSpec
+	48, // 7: craig_stars.v1.ComputeRaceSpecRequest.race:type_name -> craig_stars.v1.Race
+	52, // 8: craig_stars.v1.ComputeRaceSpecResponse.spec:type_name -> craig_stars.v1.RaceSpec
+	53, // 9: craig_stars.v1.ComputeShipDesignSpecRequest.design:type_name -> craig_stars.v1.ShipDesign
+	54, // 10: craig_stars.v1.ComputeShipDesignSpecRequest.player:type_name -> craig_stars.v1.Player
+	55, // 11: craig_stars.v1.ComputeShipDesignSpecResponse.spec:type_name -> craig_stars.v1.ShipDesignSpec
+	56, // 12: craig_stars.v1.EstimateProductionRequest.planet:type_name -> craig_stars.v1.Planet
+	56, // 13: craig_stars.v1.EstimateProductionResponse.planet:type_name -> craig_stars.v1.Planet
+	56, // 14: craig_stars.v1.GetMaxBuildableRequest.planet:type_name -> craig_stars.v1.Planet
+	57, // 15: craig_stars.v1.GetMaxBuildableRequest.item_type:type_name -> craig_stars.v1.QueueItemType
+	48, // 16: craig_stars.v1.GetPlanetHabitabilityRequest.race:type_name -> craig_stars.v1.Race
+	58, // 17: craig_stars.v1.GetPlanetHabitabilityRequest.hab:type_name -> craig_stars.v1.Hab
+	59, // 18: craig_stars.v1.GetResearchCostRequest.tech_level:type_name -> craig_stars.v1.TechLevel
+	53, // 19: craig_stars.v1.GetStarbaseUpgradeCostRequest.design:type_name -> craig_stars.v1.ShipDesign
+	53, // 20: craig_stars.v1.GetStarbaseUpgradeCostRequest.new_design:type_name -> craig_stars.v1.ShipDesign
+	60, // 21: craig_stars.v1.GetStarbaseUpgradeCostResponse.cost:type_name -> craig_stars.v1.Cost
+	61, // 22: craig_stars.v1.GetTechCostRequest.tech:type_name -> craig_stars.v1.Tech
+	54, // 23: craig_stars.v1.GetTechCostRequest.player:type_name -> craig_stars.v1.Player
+	60, // 24: craig_stars.v1.GetTechCostResponse.cost:type_name -> craig_stars.v1.Cost
+	53, // 25: craig_stars.v1.SetDesignsRequest.designs:type_name -> craig_stars.v1.ShipDesign
+	62, // 26: craig_stars.v1.SetIntelsRequest.intels:type_name -> craig_stars.v1.Intels
+	54, // 27: craig_stars.v1.SetPlayerRequest.player:type_name -> craig_stars.v1.Player
+	56, // 28: craig_stars.v1.UpdatePlanetRequest.planet:type_name -> craig_stars.v1.Planet
+	56, // 29: craig_stars.v1.UpdatePlanetsRequest.planets:type_name -> craig_stars.v1.Planet
+	46, // 30: craig_stars.v1.UpdateWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
+	47, // 31: craig_stars.v1.UpdateWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
+	46, // 32: craig_stars.v1.UpdateWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
+	63, // 33: craig_stars.v1.UpdateWaypointResponse.result:type_name -> craig_stars.v1.UpdateWaypointResult
+	46, // 34: craig_stars.v1.UpdateWaypointSpeedRequest.fleet:type_name -> craig_stars.v1.Fleet
+	46, // 35: craig_stars.v1.UpdateWaypointSpeedResponse.fleet:type_name -> craig_stars.v1.Fleet
+	53, // 36: craig_stars.v1.BattleSimulationStack.design:type_name -> craig_stars.v1.ShipDesign
+	64, // 37: craig_stars.v1.BattleSimulationStack.plan:type_name -> craig_stars.v1.BattlePlan
+	48, // 38: craig_stars.v1.BattleSimulationSide.race:type_name -> craig_stars.v1.Race
+	59, // 39: craig_stars.v1.BattleSimulationSide.tech_levels:type_name -> craig_stars.v1.TechLevel
+	40, // 40: craig_stars.v1.BattleSimulationSide.stacks:type_name -> craig_stars.v1.BattleSimulationStack
+	45, // 41: craig_stars.v1.BattleSimulationSide.acquired_techs:type_name -> craig_stars.v1.BattleSimulationSide.AcquiredTechsEntry
+	41, // 42: craig_stars.v1.SimulateBattleRequest.sides:type_name -> craig_stars.v1.BattleSimulationSide
+	60, // 43: craig_stars.v1.BattleSimulationStackResult.loss:type_name -> craig_stars.v1.Cost
+	65, // 44: craig_stars.v1.SimulateBattleResponse.record:type_name -> craig_stars.v1.BattleRecord
+	53, // 45: craig_stars.v1.SimulateBattleResponse.designs:type_name -> craig_stars.v1.ShipDesign
+	43, // 46: craig_stars.v1.SimulateBattleResponse.stacks:type_name -> craig_stars.v1.BattleSimulationStackResult
+	47, // [47:47] is the sub-list for method output_type
+	47, // [47:47] is the sub-list for method input_type
+	47, // [47:47] is the sub-list for extension type_name
+	47, // [47:47] is the sub-list for extension extendee
+	0,  // [0:47] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_wasm_proto_init() }
@@ -2047,6 +2467,7 @@ func file_craig_stars_v1_wasm_proto_init() {
 		return
 	}
 	file_craig_stars_v1_common_proto_init()
+	file_craig_stars_v1_battle_proto_init()
 	file_craig_stars_v1_fleet_proto_init()
 	file_craig_stars_v1_fleetservice_proto_init()
 	file_craig_stars_v1_minefield_proto_init()
@@ -2061,7 +2482,7 @@ func file_craig_stars_v1_wasm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_wasm_proto_rawDesc), len(file_craig_stars_v1_wasm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   40,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

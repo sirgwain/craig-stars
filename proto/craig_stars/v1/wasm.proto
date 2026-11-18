@@ -3,6 +3,7 @@ syntax = "proto3";
 package craig_stars.v1;
 
 import "craig_stars/v1/common.proto";
+import "craig_stars/v1/battle.proto";
 import "craig_stars/v1/fleet.proto";
 import "craig_stars/v1/fleetservice.proto";
 import "craig_stars/v1/minefield.proto";
@@ -13,6 +14,7 @@ import "craig_stars/v1/shipdesign.proto";
 import "craig_stars/v1/tech.proto";
 
 service WasmService {
+  rpc SimulateBattle(SimulateBattleRequest) returns (SimulateBattleResponse) {}
   rpc AddWaypoint(AddWaypointRequest) returns (AddWaypointResponse) {}
   rpc CalculateRacePoints(CalculateRacePointsRequest) returns (CalculateRacePointsResponse) {}
   rpc ComputeMinefieldSpec(ComputeMinefieldSpecRequest) returns (ComputeMinefieldSpecResponse) {}
@@ -80,6 +82,9 @@ message ComputeRaceSpecResponse {
 
 message ComputeShipDesignSpecRequest {
   ShipDesign design = 1;
+  // Optional independent owner for simulator design previews.
+  Player player = 2;
+  bool validate = 3;
 }
 
 message ComputeShipDesignSpecResponse {
@@ -137,6 +142,7 @@ message GetStarbaseUpgradeCostResponse {
 
 message GetTechCostRequest {
   Tech tech = 1;
+  Player player = 2;
 }
 
 message GetTechCostResponse {
@@ -193,4 +199,36 @@ message UpdateWaypointSpeedRequest {
 
 message UpdateWaypointSpeedResponse {
   Fleet fleet = 1;
+}
+
+// Each stack is an independent battle token with its own orders.
+message BattleSimulationStack {
+  ShipDesign design = 1;
+  int32 quantity = 2;
+  int32 quantity_damaged = 3;
+  double damage = 4;
+  BattlePlan plan = 5;
+}
+message BattleSimulationSide {
+  Race race = 1;
+  TechLevel tech_levels = 2;
+  repeated BattleSimulationStack stacks = 3;
+  map<string, bool> acquired_techs = 4;
+}
+message SimulateBattleRequest {
+  repeated BattleSimulationSide sides = 1;
+  int64 seed = 2;
+}
+message BattleSimulationStackResult {
+  int32 player_num = 1;
+  int32 design_num = 2;
+  int32 survivors = 3;
+  int32 retreated = 4;
+  int32 destroyed = 5;
+  Cost loss = 6;
+}
+message SimulateBattleResponse {
+  BattleRecord record = 1;
+  repeated ShipDesign designs = 2;
+  repeated BattleSimulationStackResult stacks = 3;
 }

@@ -6,7 +6,6 @@ package craig_starsv1wasm
 
 import (
 	context "context"
-
 	grpcwasm "github.com/sirgwain/craig-stars/proto-wasm/grpcwasm"
 	v1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
 )
@@ -24,6 +23,9 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// WasmServiceSimulateBattleProcedure is the fully-qualified name of the WasmService's
+	// SimulateBattle RPC.
+	WasmServiceSimulateBattleProcedure = "/craig_stars.v1.WasmService/SimulateBattle"
 	// WasmServiceAddWaypointProcedure is the fully-qualified name of the WasmService's AddWaypoint RPC.
 	WasmServiceAddWaypointProcedure = "/craig_stars.v1.WasmService/AddWaypoint"
 	// WasmServiceCalculateRacePointsProcedure is the fully-qualified name of the WasmService's
@@ -82,6 +84,7 @@ const (
 
 // WasmServiceHandler is the WASM service interface for the craig_stars.v1.WasmService service.
 type WasmServiceHandler interface {
+	SimulateBattle(context.Context, *v1.SimulateBattleRequest) (*v1.SimulateBattleResponse, error)
 	AddWaypoint(context.Context, *v1.AddWaypointRequest) (*v1.AddWaypointResponse, error)
 	CalculateRacePoints(context.Context, *v1.CalculateRacePointsRequest) (*v1.CalculateRacePointsResponse, error)
 	ComputeMinefieldSpec(context.Context, *v1.ComputeMinefieldSpecRequest) (*v1.ComputeMinefieldSpecResponse, error)
@@ -108,6 +111,12 @@ type WasmServiceHandler interface {
 func NewWasmServiceHandler(svc WasmServiceHandler) grpcwasm.Handler {
 	return grpcwasm.HandlerFunc(func(ctx context.Context, method string, reqBytes []byte) ([]byte, error) {
 		switch method {
+		case WasmServiceSimulateBattleProcedure:
+			respBytes, err := grpcwasm.HandleUnary(ctx, reqBytes, &v1.SimulateBattleRequest{}, svc.SimulateBattle)
+			if err != nil {
+				return nil, err
+			}
+			return respBytes, nil
 		case WasmServiceAddWaypointProcedure:
 			respBytes, err := grpcwasm.HandleUnary(ctx, reqBytes, &v1.AddWaypointRequest{}, svc.AddWaypoint)
 			if err != nil {

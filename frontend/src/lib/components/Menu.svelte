@@ -28,6 +28,7 @@
 					<li><a href="/races">Races</a></li>
 				{/if}
 				<li><a href="/techs">Techs</a></li>
+				<li><a href="/simulator">Battle Simulator</a></li>
 			</ul>
 		</div>
 
@@ -63,6 +64,7 @@
 					<li class="md:hidden"><a href="/races">Races</a></li>
 					<li><a href="/settings">Settings</a></li>
 					<li class="md:hidden"><a href="/techs">Techs</a></li>
+					<li class="md:hidden"><a href="/simulator">Battle Simulator</a></li>
 					{#if user.isAdmin()}
 						<li><div class="divider"></div></li>
 						<li>
@@ -89,6 +91,7 @@
 					<li class="text-center">version {PKG.version}</li>
 				{:else}
 					<li class="md:hidden"><a href="/techs">Techs</a></li>
+					<li class="md:hidden"><a href="/simulator">Battle Simulator</a></li>
 				{/if}
 			</ul>
 		</div>
