@@ -8,10 +8,9 @@
 	<title>craig-stars MCP</title>
 </svelte:head>
 
-<main class="min-h-screen bg-base-100 text-base-content">
-	<section class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
+<div>
+	<div class="flex flex-col gap-6">
 		<header class="flex flex-col gap-2 border-b border-base-300 pb-4">
-			<a class="link w-fit" href="/">craig-stars</a>
 			<h1 class="text-3xl font-bold">MCP setup</h1>
 			<p class="text-base-content/75">
 				Connect Claude, Codex, or another MCP client to your craig-stars games with the same Discord
@@ -20,14 +19,14 @@
 		</header>
 
 		<section class="flex flex-col gap-3">
-			<h2 class="text-xl font-semibold">Server URL</h2>
+			<h2 id="server-url" class="scroll-mt-24 text-xl font-semibold">Server URL</h2>
 			<div class="mockup-code text-sm">
 				<pre><code>{serverUrl}</code></pre>
 			</div>
 		</section>
 
 		<section class="flex flex-col gap-3">
-			<h2 class="text-xl font-semibold">Codex</h2>
+			<h2 id="codex" class="scroll-mt-24 text-xl font-semibold">Codex</h2>
 			<p class="text-base-content/75">
 				Add an HTTP MCP server named <code>craig-stars</code> with the hosted URL. When the client asks
 				to authenticate, complete the browser sign-in and return to Codex.
@@ -53,7 +52,7 @@ client_id = "codex"
 		</section>
 
 		<section class="flex flex-col gap-3">
-			<h2 class="text-xl font-semibold">Claude Code</h2>
+			<h2 id="claude-code" class="scroll-mt-24 text-xl font-semibold">Claude Code</h2>
 			<p class="text-base-content/75">
 				Add an HTTP MCP server named <code>craig-stars</code> with the hosted URL. When Claude asks to
 				authenticate, complete the browser sign-in and return to Claude Code.
@@ -64,7 +63,7 @@ client_id = "codex"
 		</section>
 
 		<section class="flex flex-col gap-3">
-			<h2 class="text-xl font-semibold">Authentication</h2>
+			<h2 id="authentication" class="scroll-mt-24 text-xl font-semibold">Authentication</h2>
 			<p class="text-base-content/75">
 				The MCP client opens a browser, craig-stars signs you in with Discord, then redirects back
 				to the requesting client. OAuth endpoints are discovered automatically from the MCP server
@@ -72,5 +71,5 @@ client_id = "codex"
 				data, updating orders, and submitting turns.
 			</p>
 		</section>
-	</section>
-</main>
+	</div>
+</div>

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import EnumSelect from '#lib/components/EnumSelect.svelte';
-	import { me } from '#lib/services/Stores.js';
-	import { NewGamePlayerType, type NewGamePlayer } from '#lib/types/cs-proto.js';
+	import { NewGamePlayerType, type NewGamePlayer, type Race } from '#lib/types/cs-proto.js';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import AiPlayer from './AIPlayer.svelte';
@@ -11,9 +10,11 @@
 		player: NewGamePlayer;
 		index: number;
 		onRemove: () => void;
+		races: Race[];
+		allowedPlayerTypes: NewGamePlayerType[];
 	};
 
-	let { player = $bindable(), index, onRemove }: Props = $props();
+	let { player = $bindable(), index, onRemove, races, allowedPlayerTypes }: Props = $props();
 </script>
 
 {#if player}
@@ -21,11 +22,12 @@
 		{#if index !== 1}
 			<div class="flex flex-row justify-end">
 				<div class="grow">
-					{#if !$me.isGuest()}
+					{#if allowedPlayerTypes.length > 1}
 						<div class="grow">
 							<EnumSelect
 								name="type"
 								enumType={NewGamePlayerType}
+								typeFilter={(type) => allowedPlayerTypes.includes(type)}
 								bind:value={player.type}
 								title={`Player ${index}`}
 							/>
@@ -37,7 +39,7 @@
 						<AiPlayer bind:player />
 					{:else if player.type === NewGamePlayerType.HOST}
 						<!-- multiple host players make a hot seat game -->
-						<HostPlayer bind:player />
+						<HostPlayer bind:player {races} />
 					{/if}
 				</div>
 				<div class="my-auto mx-1">
@@ -51,7 +53,7 @@
 				</div>
 			</div>
 		{:else}
-			<HostPlayer bind:player />
+			<HostPlayer bind:player {races} />
 		{/if}
 	</div>
 

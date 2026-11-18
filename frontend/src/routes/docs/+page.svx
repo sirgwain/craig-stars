@@ -1,0 +1,14 @@
+# Player guide
+
+Build a race, choose your opponents, and start exploring the galaxy.
+These guides explain the choices you make in craig-stars and include interactive examples you can try before creating a game.
+
+## Start playing
+
+[Create a game](/docs/games/create) walks through choosing a race, galaxy settings, player slots, AI difficulty, and victory conditions. Start with a single-player game or host a game for other people.
+
+The [game creation example](/docs/games/create#try-it) uses the same controls as the real game. Change settings, add players, and preview your setup without signing in or saving anything.
+
+## Connect an assistant
+
+[MCP setup](/docs/mcp) explains how to connect an assistant to your games with Claude, Codex, or another MCP client.

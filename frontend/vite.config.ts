@@ -8,6 +8,8 @@ import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
+import { mdsvex } from 'mdsvex';
+import rehypeSlug from 'rehype-slug';
 
 const file = fileURLToPath(new URL('package.json', import.meta.url));
 const json = readFileSync(file, 'utf8');
@@ -17,7 +19,8 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		sveltekit({
-			preprocess: vitePreprocess(),
+			extensions: ['.svelte', '.svx'],
+			preprocess: [vitePreprocess(), mdsvex({ extensions: ['.svx'], rehypePlugins: [rehypeSlug] })],
 			adapter: adapter({ fallback: 'index.html' }),
 			prerender: { entries: [] },
 			version: {

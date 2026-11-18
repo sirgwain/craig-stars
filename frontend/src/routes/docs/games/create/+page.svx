@@ -1,0 +1,89 @@
+<script>
+	import GameCreationExample from '#lib/docs/examples/GameCreationExample.svelte';
+</script>
+
+# Create a game
+
+Choose your race, the galaxy you will explore, and the players who will share it. You can play against AI opponents, control multiple races yourself, or host a game for other people.
+
+## First game
+
+1. Open [Single Player](/single-player-game).
+2. Choose your race in the **Host** field. If you have no saved races, you can use the Humanoids.
+3. Give the game a name. For a first game, Small size, Normal density, and Moderate player positions are a useful starting point.
+4. Leave the two AI opponents on Normal, or choose Easy for a gentler start. Remove an opponent with its remove button, or add another using the **Players** heading.
+5. Review the victory conditions and select **Create Game**.
+
+A single-player game generates its galaxy immediately. Creating a game with open or guest slots takes you to setup so the other players can choose their races before you start.
+
+Want to experiment first? [Try the interactive example](#try-it) below. It works without signing in.
+
+## Choose a race
+
+The Host field lists your saved races. Use [Races](/races) to create or edit a race before starting a game. A race defines your abilities, preferred environments, population growth, economy, and research costs.
+
+Your race must fit within the available advantage points. The race editor calculates these as you change traits and settings; an overspent race cannot be saved.
+
+Creating a game uses a copy of the selected race. Editing your saved race later does not change a race already in a game.
+
+## Galaxy settings
+
+| Setting | What it changes |
+| --- | --- |
+| Name | The name shown in your game list. |
+| Size | The dimensions of the galaxy. Wide variants change its shape. Larger galaxies generally mean more travel and a longer game. |
+| Density | How many planets populate the galaxy. Consider this together with galaxy size and player count. |
+| Player Positions | How close together homeworlds are placed at the start. |
+| Public | Whether other users can discover and join a game with open slots. A private game uses an invitation link. |
+| Random Events | Whether random events can occur during play. |
+| Public Player Scores | Whether players can see other players' scores. This is separate from whether the game is public. |
+| Beginner: Max Minerals | Increases mineral availability when generating the galaxy. |
+| Computer Players Form Alliances | Starts AI players allied with one another. |
+| Galaxy Clumping | Groups planets into clusters instead of distributing them evenly. |
+| Start Mode | Normal, Accelerated BBS Play, or Max Start. |
+
+**Normal** uses the standard starting conditions. **Accelerated BBS Play** gives a stronger beginning, including extra homeworld surface minerals and starting population. **Max Start** begins with maximum technology and abundant starting resources for trying advanced play.
+
+The form below starts with the same defaults as the real creation pages. Change size, density, or a checkbox and use Reset to restore them.
+
+## Players and AI
+
+The first slot belongs to you, the host. Additional slots can be:
+
+- **Host:** another race controlled by your account, for hot-seat play. Choose its race separately.
+- **AI:** a computer-controlled opponent with its own difficulty setting.
+- **Open:** a slot another signed-in player can join.
+- **Guest:** a slot for a player invited through a guest sign-in link.
+
+Open [Host Game](/host-game) to begin with a host slot, an open slot, and an AI opponent. You can change that mix before creating the game. Guests can create single-player games, but cannot host multiplayer games.
+
+| AI level | What to expect |
+| --- | --- |
+| Easy | Slower expansion and later attacks, leaving more time to establish your economy. |
+| Normal | The baseline AI strategy. |
+| Hard | Faster expansion, earlier attacks, and more deliberate research toward its racial strengths. |
+| Cheater | Hard's strategy with a race from a stronger pool that exceeds the normal race-point budget. |
+
+## Victory conditions
+
+Enable the criteria you want the game to use, then adjust their thresholds. You can win through planet ownership, technology, score, production capacity, capital ships, or the highest score after a specified number of years.
+
+**Winner must meet** controls how many enabled criteria a player needs to satisfy. **At least … years must pass** sets the earliest a winner can be declared. Choose a required count no greater than the number of enabled criteria.
+
+For example, requiring one of three enabled conditions allows any of those three routes to victory. Requiring all three makes the objectives cumulative.
+
+## After creation
+
+For single-player games, the galaxy is generated and you can begin issuing orders. Games where one account controls all human races also count as single player.
+
+For multiplayer games, the setup page shows which players are ready. As host, you can update settings, manage slots, and copy invitation links. A private-game invitation lets a signed-in player join an open slot; a guest invitation signs in as that particular guest player. Treat guest links as access to that player's seat.
+
+Once every player is ready, the host can select **Start Game**. Galaxy generation settings such as size and density are chosen before the game starts.
+
+## Try it
+
+This is the real game creation form, using local example races. Switch between Single player and Host a game, add or remove slots, and change the victory conditions. **Preview setup** shows a summary; it does not create a game or save a race. **Reset** restores the selected example's defaults.
+
+<GameCreationExample />
+
+When you are ready, [create a single-player game](/single-player-game) or [host a game](/host-game). You will sign in before creating a real game.
