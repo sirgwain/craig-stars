@@ -9,9 +9,10 @@
 	let { player = $bindable() }: Props = $props();
 </script>
 
-<div class="w-3/4 ml-auto grow">
+<div class="min-w-0">
 	<EnumSelect
-		name="type"
+		name="difficulty"
+		stacked
 		bind:value={player.aiDifficulty}
 		enumType={AiDifficulty}
 		typeFilter={(t) =>

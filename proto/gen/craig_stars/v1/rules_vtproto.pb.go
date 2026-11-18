@@ -187,6 +187,12 @@ func (m *CostRules) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.TechCostMultiplier != 0 {
+		i -= 8
+		binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.TechCostMultiplier))))
+		i--
+		dAtA[i] = 0x49
+	}
 	if len(m.TechBaseCost) > 0 {
 		var pksize2 int
 		for _, num := range m.TechBaseCost {
@@ -1497,6 +1503,9 @@ func (m *CostRules) SizeVT() (n int) {
 		}
 		n += 1 + protohelpers.SizeOfVarint(uint64(l)) + l
 	}
+	if m.TechCostMultiplier != 0 {
+		n += 9
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -2599,6 +2608,17 @@ func (m *CostRules) UnmarshalVT(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field TechBaseCost", wireType)
 			}
+		case 9:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TechCostMultiplier", wireType)
+			}
+			var v uint64
+			if (iNdEx + 8) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
+			iNdEx += 8
+			m.TechCostMultiplier = float64(math.Float64frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

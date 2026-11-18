@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 
 	"connectrpc.com/connect"
@@ -42,6 +43,10 @@ func (s *gameService) CreateGame(ctx context.Context, req *connect.Request[craig
 
 	// Convert proto settings to CS settings
 	settings := converter.C.ConvertGameSettings(req.Msg.Settings)
+
+	if err := validateTechCostMultiplier(settings.TechCostMultiplier); err != nil {
+		return nil, err
+	}
 
 	// make sure guests don't create multiplayer games
 	if user.isGuest() && !settings.IsSinglePlayer() {
@@ -187,19 +192,24 @@ func applyGameSettingsUpdate(game *cs.GameWithPlayers, req *craig_starsv1.Update
 		paths = []string{
 			"name", "public", "size", "density", "player_positions", "random_events",
 			"computer_players_form_alliances", "public_player_scores", "max_minerals",
-			"galaxy_clumping", "start_mode", "quick_start_turns", "victory_conditions",
+			"galaxy_clumping", "start_mode", "quick_start_turns", "victory_conditions", "tech_cost_multiplier",
 		}
 	}
 	for _, path := range paths {
 		switch path {
 		case "name", "public_player_scores", "random_events", "victory_conditions":
 		case "public", "size", "density", "player_positions", "computer_players_form_alliances",
-			"max_minerals", "galaxy_clumping", "start_mode", "quick_start_turns":
+			"max_minerals", "galaxy_clumping", "start_mode", "quick_start_turns", "tech_cost_multiplier":
 			if !setup {
 				return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("setting %q cannot be updated after setup", path))
 			}
 		default:
 			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("unsupported update_mask path %q", path))
+		}
+		if path == "tech_cost_multiplier" {
+			if err := validateTechCostMultiplier(req.Settings.TechCostMultiplier); err != nil {
+				return err
+			}
 		}
 		if !setup && path == "victory_conditions" && game.VictorDeclared {
 			return connect.NewError(connect.CodeFailedPrecondition, errors.New("victory conditions cannot be updated after a victor is declared"))
@@ -227,6 +237,9 @@ func applyGameSettingsUpdate(game *cs.GameWithPlayers, req *craig_starsv1.Update
 			game.PublicPlayerScores = settings.PublicPlayerScores
 		case "max_minerals":
 			game.MaxMinerals = settings.MaxMinerals
+		case "tech_cost_multiplier":
+			game.TechCostMultiplier = cs.EffectiveTechCostMultiplier(settings.TechCostMultiplier)
+			game.Rules.TechCostMultiplier = game.TechCostMultiplier
 		case "galaxy_clumping":
 			game.GalaxyClumping = settings.GalaxyClumping
 		case "start_mode":
@@ -525,4 +538,13 @@ func (s *gameService) ForceGenerateTurn(ctx context.Context, req *connect.Reques
 	return connect.NewResponse(&craig_starsv1.ForceGenerateTurnResponse{
 		Game: converter.C.ConvertCSGameWithPlayers(updatedGame),
 	}), nil
+}
+
+// Zero is the protobuf default used by existing clients.
+func validateTechCostMultiplier(multiplier float64) error {
+	multiplier = cs.EffectiveTechCostMultiplier(multiplier)
+	if math.IsNaN(multiplier) || math.IsInf(multiplier, 0) || multiplier < 1 || multiplier > 10 {
+		return connect.NewError(connect.CodeInvalidArgument, errors.New("tech_cost_multiplier must be between 1 and 10"))
+	}
+	return nil
 }

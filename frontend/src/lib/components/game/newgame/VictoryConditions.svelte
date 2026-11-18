@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import {
 		VictoryConditionAttainTechLevels,
 		VictoryConditionExceedsScore,
@@ -33,131 +34,95 @@
 	});
 </script>
 
-<div>
-	<label class="cs-form-label justify-start">
-		<VictoryConditionCheckbox
-			bind:conditions={victoryConditions.conditions}
-			condition={VictoryConditionOwnPlanets}
-		/>
-		<span class="cs-label-text mr-1">
-			Owns
-			<VictoryConditionInput
-				bind:value={victoryConditions.ownPlanets}
-				min={20}
-				max={100}
-				unit="%"
-			/>
-			of all planets.
-		</span>
-	</label>
-	<label class="cs-form-label justify-start">
-		<VictoryConditionCheckbox
-			bind:conditions={victoryConditions.conditions}
-			condition={VictoryConditionAttainTechLevels}
-		/>
-		<span class="cs-label-text mr-1">
-			Attains Tech
-			<VictoryConditionInput bind:value={victoryConditions.attainTechLevel} min={8} max={26} />
-			in
-			<VictoryConditionInput
-				bind:value={victoryConditions.attainTechLevelNumFields}
-				min={2}
-				max={6}
-			/>
-			fields.
-		</span>
-	</label>
-	<label class="cs-form-label justify-start">
-		<VictoryConditionCheckbox
-			bind:conditions={victoryConditions.conditions}
-			condition={VictoryConditionExceedsScore}
-		/>
-		<span class="cs-label-text mr-1">
-			Exceeds a score of
-			<VictoryConditionInput bind:value={victoryConditions.exceedsScore} min={1000} max={20000} />
-			.
-		</span>
-	</label>
-	<label class="cs-form-label justify-start">
-		<VictoryConditionCheckbox
-			bind:conditions={victoryConditions.conditions}
-			condition={VictoryConditionExceedsSecondPlaceScore}
-		/>
-		<span class="cs-label-text mr-1">
-			Exceeds second place score by
-			<VictoryConditionInput
-				bind:value={victoryConditions.exceedsSecondPlaceScore}
-				min={20}
-				max={300}
-				unit="%"
-			/>
-			.
-		</span>
-	</label>
-	<label class="cs-form-label justify-start">
-		<VictoryConditionCheckbox
-			bind:conditions={victoryConditions.conditions}
-			condition={VictoryConditionProductionCapacity}
-		/>
-		<span class="cs-label-text mr-1">
-			Has a production capacity of
-			<VictoryConditionInput
-				bind:value={victoryConditions.productionCapacity}
-				min={10}
-				max={500}
-				step={10}
-			/>,000 resources/yr.
-		</span>
-	</label>
-	<label class="cs-form-label justify-start">
-		<VictoryConditionCheckbox
-			bind:conditions={victoryConditions.conditions}
-			condition={VictoryConditionOwnCapitalShips}
-		/>
-		<span class="cs-label-text mr-1">
-			Owns
-			<VictoryConditionInput
-				bind:value={victoryConditions.ownCapitalShips}
-				min={10}
-				max={300}
-				step={10}
-			/>
-			capital ships.
-		</span>
-	</label>
-	<label class="cs-form-label justify-start">
-		<VictoryConditionCheckbox
-			bind:conditions={victoryConditions.conditions}
-			condition={VictoryConditionHighestScoreAfterYears}
-		/>
-		<span class="cs-label-text mr-1">
-			Has the highest score after
-			<VictoryConditionInput
-				bind:value={victoryConditions.highestScoreAfterYears}
-				min={30}
-				max={900}
-				step={10}
-			/>
-			years.
-		</span>
-	</label>
-	<label class="cs-form-label justify-start">
-		<span class="cs-label-text mr-1">
-			Winner must meet
-			<VictoryConditionInput bind:value={victoryConditions.numCriteriaRequired} min={1} max={7} />
-			of the above selected criteria.
-		</span>
-	</label>
-	<label class="cs-form-label justify-start">
-		<span class="cs-label-text mr-1">
-			At least
-			<VictoryConditionInput
+{#snippet criterion(title: string, condition: number, fields: Snippet)}
+	<div
+		class="grid gap-2 border-b border-base-300 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+	>
+		<label class="flex items-center gap-3"
+			><VictoryConditionCheckbox bind:conditions={victoryConditions.conditions} {condition} /><span
+				>{title}</span
+			></label
+		>
+		<div class="ml-7 flex flex-wrap items-center gap-2 sm:ml-0">{@render fields()}</div>
+	</div>
+{/snippet}
+<div class="text-sm">
+	{#snippet planets()}<VictoryConditionInput
+			label="Planets owned"
+			bind:value={victoryConditions.ownPlanets}
+			min={20}
+			max={100}
+			unit="%"
+		/>of planets{/snippet}
+	{@render criterion('Own planets', VictoryConditionOwnPlanets, planets)}
+	{#snippet tech()}Level<VictoryConditionInput
+			label="Victory tech level"
+			bind:value={victoryConditions.attainTechLevel}
+			min={8}
+			max={26}
+		/>in<VictoryConditionInput
+			label="Technology fields"
+			bind:value={victoryConditions.attainTechLevelNumFields}
+			min={2}
+			max={6}
+		/>fields{/snippet}
+	{@render criterion('Attain technology levels', VictoryConditionAttainTechLevels, tech)}
+	{#snippet score()}<VictoryConditionInput
+			label="Winning score"
+			bind:value={victoryConditions.exceedsScore}
+			min={1000}
+			max={20000}
+		/>points{/snippet}
+	{@render criterion('Exceed score', VictoryConditionExceedsScore, score)}
+	{#snippet second()}<VictoryConditionInput
+			label="Lead over second place"
+			bind:value={victoryConditions.exceedsSecondPlaceScore}
+			min={20}
+			max={300}
+			unit="%"
+		/>ahead{/snippet}
+	{@render criterion('Exceed second place score', VictoryConditionExceedsSecondPlaceScore, second)}
+	{#snippet production()}<VictoryConditionInput
+			label="Production capacity"
+			bind:value={victoryConditions.productionCapacity}
+			min={10}
+			max={500}
+			step={10}
+		/>thousand resources/yr{/snippet}
+	{@render criterion('Production capacity', VictoryConditionProductionCapacity, production)}
+	{#snippet ships()}<VictoryConditionInput
+			label="Capital ships"
+			bind:value={victoryConditions.ownCapitalShips}
+			min={10}
+			max={300}
+			step={10}
+		/>ships{/snippet}
+	{@render criterion('Own capital ships', VictoryConditionOwnCapitalShips, ships)}
+	{#snippet highest()}<VictoryConditionInput
+			label="Highest score after years"
+			bind:value={victoryConditions.highestScoreAfterYears}
+			min={30}
+			max={900}
+			step={10}
+		/>years{/snippet}
+	{@render criterion('Highest score after years', VictoryConditionHighestScoreAfterYears, highest)}
+	<div class="grid gap-3 pt-3 sm:grid-cols-2">
+		<label class="flex flex-col items-start gap-2"
+			>Selected criteria required<VictoryConditionInput
+				label="Selected criteria required"
+				bind:value={victoryConditions.numCriteriaRequired}
+				min={1}
+				max={7}
+			/></label
+		>
+		<label class="flex flex-col items-start gap-2"
+			>Minimum years before victory<VictoryConditionInput
+				label="Minimum years before victory"
 				bind:value={victoryConditions.yearsPassed}
 				min={30}
 				max={500}
 				step={10}
-			/>
-			years must pass before a winner is declared.
-		</span>
-	</label>
+			/></label
+		>
+	</div>
 </div>

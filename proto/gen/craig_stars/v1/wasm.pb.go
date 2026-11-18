@@ -1367,10 +1367,11 @@ func (*SetIntelsResponse) Descriptor() ([]byte, []int) {
 }
 
 type SetPlayerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Player        *Player                `protobuf:"bytes,1,opt,name=player,proto3" json:"player,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Player             *Player                `protobuf:"bytes,1,opt,name=player,proto3" json:"player,omitempty"`
+	TechCostMultiplier float64                `protobuf:"fixed64,2,opt,name=tech_cost_multiplier,json=techCostMultiplier,proto3" json:"tech_cost_multiplier,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *SetPlayerRequest) Reset() {
@@ -1408,6 +1409,13 @@ func (x *SetPlayerRequest) GetPlayer() *Player {
 		return x.Player
 	}
 	return nil
+}
+
+func (x *SetPlayerRequest) GetTechCostMultiplier() float64 {
+	if x != nil {
+		return x.TechCostMultiplier
+	}
+	return 0
 }
 
 type SetPlayerResponse struct {
@@ -1899,9 +1907,10 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\x12SetDesignsResponse\"B\n" +
 	"\x10SetIntelsRequest\x12.\n" +
 	"\x06intels\x18\x01 \x01(\v2\x16.craig_stars.v1.IntelsR\x06intels\"\x13\n" +
-	"\x11SetIntelsResponse\"B\n" +
+	"\x11SetIntelsResponse\"t\n" +
 	"\x10SetPlayerRequest\x12.\n" +
-	"\x06player\x18\x01 \x01(\v2\x16.craig_stars.v1.PlayerR\x06player\"\x13\n" +
+	"\x06player\x18\x01 \x01(\v2\x16.craig_stars.v1.PlayerR\x06player\x120\n" +
+	"\x14tech_cost_multiplier\x18\x02 \x01(\x01R\x12techCostMultiplier\"\x13\n" +
 	"\x11SetPlayerResponse\"E\n" +
 	"\x13UpdatePlanetRequest\x12.\n" +
 	"\x06planet\x18\x01 \x01(\v2\x16.craig_stars.v1.PlanetR\x06planet\"\x16\n" +

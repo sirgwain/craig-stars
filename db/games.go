@@ -119,6 +119,7 @@ func (c *client) getGameWithPlayers(ctx context.Context, params generated.GetGam
 
 	// TODO: eventually allow rules overrides, but for now, always use standard rules
 	game.Rules = cs.NewRules()
+	game.Rules.TechCostMultiplier = cs.EffectiveTechCostMultiplier(game.TechCostMultiplier)
 	return game, nil
 }
 
@@ -254,6 +255,7 @@ func (c *client) GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error
 	// Seed from the game and year so generating a turn from the same saved
 	// state gives the same result.
 	game.Rules = cs.NewRulesWithSeed(game.Seed + int64(game.Year))
+	game.Rules.TechCostMultiplier = cs.EffectiveTechCostMultiplier(game.TechCostMultiplier)
 
 	// load a tech store if this game has a separate one
 	techStore := &cs.StaticTechStore

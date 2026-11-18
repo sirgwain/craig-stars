@@ -98,6 +98,7 @@ type Game struct {
 	MaxMinerals                               bool
 	Archived                                  bool
 	GalaxyClumping                            bool
+	TechCostMultiplier                        float64
 }
 
 type GamePlayer struct {

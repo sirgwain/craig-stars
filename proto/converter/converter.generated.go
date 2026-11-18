@@ -232,6 +232,7 @@ func (c *ProtoConverter) ConvertCSGame(source cs.Game) *v1.Game {
 	craig_starsv1Game.VictorDeclared = source.VictorDeclared
 	craig_starsv1Game.Archived = source.Archived
 	craig_starsv1Game.GalaxyClumping = source.GalaxyClumping
+	craig_starsv1Game.TechCostMultiplier = source.TechCostMultiplier
 	return &craig_starsv1Game
 }
 func (c *ProtoConverter) ConvertCSGameWithPlayers(source *cs.GameWithPlayers) *v1.GameWithPlayers {
@@ -1432,6 +1433,7 @@ func (c *ProtoConverter) ConvertGame(source *v1.Game) *cs.Game {
 		csGame.VictorDeclared = (*source).VictorDeclared
 		csGame.Archived = (*source).Archived
 		csGame.GalaxyClumping = (*source).GalaxyClumping
+		csGame.TechCostMultiplier = (*source).TechCostMultiplier
 		pCsGame = &csGame
 	}
 	return pCsGame
@@ -1459,6 +1461,7 @@ func (c *ProtoConverter) ConvertGameSettings(source *v1.GameSettings) cs.GameSet
 		csGameSettings.PublicPlayerScores = (*source).PublicPlayerScores
 		csGameSettings.MaxMinerals = (*source).MaxMinerals
 		csGameSettings.GalaxyClumping = (*source).GalaxyClumping
+		csGameSettings.TechCostMultiplier = (*source).TechCostMultiplier
 		csGameSettings.StartMode = GameStartModeToCSGameStartMode((*source).StartMode)
 		csGameSettings.VictoryConditions = c.ConvertVictoryConditions((*source).VictoryConditions)
 		if (*source).Players != nil {
@@ -2632,6 +2635,7 @@ func (c *ProtoConverter) csCostRulesToPCraig_starsv1CostRules(source cs.CostRule
 			craig_starsv1CostRules.TechBaseCost[i] = IntToInt32(source.TechBaseCost[i])
 		}
 	}
+	craig_starsv1CostRules.TechCostMultiplier = source.TechCostMultiplier
 	return &craig_starsv1CostRules
 }
 func (c *ProtoConverter) csEngineToPCraig_starsv1Engine(source cs.Engine) *v1.Engine {
@@ -3452,6 +3456,7 @@ func (c *ProtoConverter) pCraig_starsv1CostRulesToCsCostRules(source *v1.CostRul
 				csCostRules.TechBaseCost[i] = Int32ToInt((*source).TechBaseCost[i])
 			}
 		}
+		csCostRules.TechCostMultiplier = (*source).TechCostMultiplier
 	}
 	return csCostRules
 }

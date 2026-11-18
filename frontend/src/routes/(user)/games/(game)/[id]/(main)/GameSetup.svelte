@@ -32,6 +32,8 @@
 			computerPlayersFormAlliances: $game.computerPlayersFormAlliances,
 			publicPlayerScores: $game.publicPlayerScores,
 			maxMinerals: $game.maxMinerals,
+			galaxyClumping: $game.galaxyClumping,
+			techCostMultiplier: $game.techCostMultiplier,
 			startMode: $game.startMode,
 			victoryConditions: $game.victoryConditions,
 			players: []

@@ -1,5 +1,13 @@
 package cs
 
+// EffectiveTechCostMultiplier keeps omitted settings and older saved games at normal costs.
+func EffectiveTechCostMultiplier(multiplier float64) float64 {
+	if multiplier == 0 {
+		return 1
+	}
+	return multiplier
+}
+
 type TechField string
 
 const (
@@ -172,7 +180,7 @@ func (r *researcher) getTotalCost(techLevels TechLevel, researchCostLevel Resear
 	}
 
 	// from starsfaq
-	return int(float64(baseCost+(totalLevels*10)) * costFactor)
+	return int(float64(baseCost+(totalLevels*10)) * costFactor * EffectiveTechCostMultiplier(r.rules.TechCostMultiplier))
 
 }
 

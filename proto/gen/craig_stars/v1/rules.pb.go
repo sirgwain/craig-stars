@@ -377,6 +377,7 @@ type CostRules struct {
 	StarbaseHullRefundFactor       float64                `protobuf:"fixed64,6,opt,name=starbase_hull_refund_factor,json=starbaseHullRefundFactor,proto3" json:"starbase_hull_refund_factor,omitempty"`
 	TerraformCost                  *Cost                  `protobuf:"bytes,7,opt,name=terraform_cost,json=terraformCost,proto3" json:"terraform_cost,omitempty"`
 	TechBaseCost                   []int32                `protobuf:"varint,8,rep,packed,name=tech_base_cost,json=techBaseCost,proto3" json:"tech_base_cost,omitempty"`
+	TechCostMultiplier             float64                `protobuf:"fixed64,9,opt,name=tech_cost_multiplier,json=techCostMultiplier,proto3" json:"tech_cost_multiplier,omitempty"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -465,6 +466,13 @@ func (x *CostRules) GetTechBaseCost() []int32 {
 		return x.TechBaseCost
 	}
 	return nil
+}
+
+func (x *CostRules) GetTechCostMultiplier() float64 {
+	if x != nil {
+		return x.TechCostMultiplier
+	}
+	return 0
 }
 
 type BattleRules struct {
@@ -1576,7 +1584,7 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"\x10random_terraform\x18\t \x01(\x05R\x0frandomTerraform\x12!\n" +
 	"\faffects_habs\x18\n" +
 	" \x01(\x05R\vaffectsHabs\x12,\n" +
-	"\x12pop_killed_percent\x18\v \x01(\x01R\x10popKilledPercent\"\xe5\x03\n" +
+	"\x12pop_killed_percent\x18\v \x01(\x01R\x10popKilledPercent\"\x97\x04\n" +
 	"\tCostRules\x127\n" +
 	"\fdefense_cost\x18\x01 \x01(\v2\x14.craig_stars.v1.CostR\vdefenseCost\x124\n" +
 	"\x16factory_cost_germanium\x18\x02 \x01(\x05R\x14factoryCostGermanium\x120\n" +
@@ -1585,7 +1593,8 @@ const file_craig_stars_v1_rules_proto_rawDesc = "" +
 	"!starbase_component_cost_reduction\x18\x05 \x01(\x01R\x1estarbaseComponentCostReduction\x12=\n" +
 	"\x1bstarbase_hull_refund_factor\x18\x06 \x01(\x01R\x18starbaseHullRefundFactor\x12;\n" +
 	"\x0eterraform_cost\x18\a \x01(\v2\x14.craig_stars.v1.CostR\rterraformCost\x12$\n" +
-	"\x0etech_base_cost\x18\b \x03(\x05R\ftechBaseCost\"\xe0\x03\n" +
+	"\x0etech_base_cost\x18\b \x03(\x05R\ftechBaseCost\x120\n" +
+	"\x14tech_cost_multiplier\x18\t \x01(\x01R\x12techCostMultiplier\"\xe0\x03\n" +
 	"\vBattleRules\x12,\n" +
 	"\x12beam_range_dropoff\x18\x01 \x01(\x01R\x10beamRangeDropoff\x12$\n" +
 	"\x0ebeam_bonus_cap\x18\x02 \x01(\x01R\fbeamBonusCap\x128\n" +

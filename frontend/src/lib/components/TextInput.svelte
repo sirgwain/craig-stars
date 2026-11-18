@@ -7,6 +7,7 @@
 		value: string | undefined;
 		title?: string | undefined;
 		titleClass?: string;
+		stacked?: boolean;
 		required?: boolean;
 		disabled?: boolean;
 	} & HTMLInputAttributes;
@@ -15,6 +16,7 @@
 		name,
 		value = $bindable(),
 		titleClass = 'cs-label-text w-32 text-right',
+		stacked = false,
 		required = false,
 		disabled = false,
 		...rest
@@ -25,10 +27,10 @@
 
 <div class="w-full grow">
 	<div class="cs-form-control">
-		<label class="cs-form-label"
-			><span class={titleClass}>{title}</span>
+		<label class={stacked ? 'flex flex-col gap-1' : 'cs-form-label'}
+			><span class={stacked ? 'cs-label-text' : titleClass}>{title}</span>
 			<input
-				class="input ml-2 grow"
+				class={stacked ? 'input w-full min-w-0' : 'input ml-2 grow'}
 				type="text"
 				{name}
 				{required}

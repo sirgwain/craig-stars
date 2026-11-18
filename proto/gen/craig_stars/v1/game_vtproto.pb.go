@@ -5,8 +5,10 @@
 package craig_starsv1
 
 import (
+	binary "encoding/binary"
 	fmt "fmt"
 	io "io"
+	math "math"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	timestamppb "github.com/planetscale/vtprotobuf/types/known/timestamppb"
@@ -50,6 +52,14 @@ func (m *Game) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if m.TechCostMultiplier != 0 {
+		i -= 8
+		binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.TechCostMultiplier))))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xd9
 	}
 	if m.GalaxyClumping {
 		i--
@@ -453,6 +463,12 @@ func (m *GameSettings) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.TechCostMultiplier != 0 {
+		i -= 8
+		binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.TechCostMultiplier))))
+		i--
+		dAtA[i] = 0x79
+	}
 	if m.GalaxyClumping {
 		i--
 		if m.GalaxyClumping {
@@ -715,6 +731,9 @@ func (m *Game) SizeVT() (n int) {
 	if m.GalaxyClumping {
 		n += 3
 	}
+	if m.TechCostMultiplier != 0 {
+		n += 10
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -841,6 +860,9 @@ func (m *GameSettings) SizeVT() (n int) {
 	}
 	if m.GalaxyClumping {
 		n += 2
+	}
+	if m.TechCostMultiplier != 0 {
+		n += 9
 	}
 	n += len(m.unknownFields)
 	return n
@@ -1491,6 +1513,17 @@ func (m *Game) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.GalaxyClumping = bool(v != 0)
+		case 27:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TechCostMultiplier", wireType)
+			}
+			var v uint64
+			if (iNdEx + 8) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
+			iNdEx += 8
+			m.TechCostMultiplier = float64(math.Float64frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])
@@ -2295,6 +2328,17 @@ func (m *GameSettings) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.GalaxyClumping = bool(v != 0)
+		case 15:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TechCostMultiplier", wireType)
+			}
+			var v uint64
+			if (iNdEx + 8) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
+			iNdEx += 8
+			m.TechCostMultiplier = float64(math.Float64frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

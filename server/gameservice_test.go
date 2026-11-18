@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -205,4 +206,26 @@ func TestUpdateGameFieldMaskJSON(t *testing.T) {
 	require.NoError(t, applyGameSettingsUpdate(game, &request))
 	assert.False(t, game.PublicPlayerScores)
 	assert.False(t, game.RandomEvents)
+}
+
+func TestTechCostMultiplierSettings(t *testing.T) {
+	for _, multiplier := range []float64{0, 1, 2, 2.5, 10} {
+		game := &cs.GameWithPlayers{Game: *cs.NewGame()}
+		err := applyGameSettingsUpdate(game, &v1.UpdateGameRequest{Settings: &v1.GameSettings{TechCostMultiplier: multiplier}, UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"tech_cost_multiplier"}}})
+		require.NoError(t, err)
+		assert.Equal(t, cs.EffectiveTechCostMultiplier(multiplier), game.TechCostMultiplier)
+		assert.Equal(t, game.TechCostMultiplier, game.Rules.TechCostMultiplier)
+	}
+	for _, multiplier := range []float64{-1, .5, 11, math.NaN(), math.Inf(1)} {
+		game := &cs.GameWithPlayers{Game: *cs.NewGame()}
+		err := applyGameSettingsUpdate(game, &v1.UpdateGameRequest{Settings: &v1.GameSettings{Name: "changed", TechCostMultiplier: multiplier}, UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"name", "tech_cost_multiplier"}}})
+		require.Error(t, err)
+		assert.Equal(t, connect.CodeInvalidArgument, connect.CodeOf(err))
+		assert.NotEqual(t, "changed", game.Name)
+	}
+	game := &cs.GameWithPlayers{Game: *cs.NewGame(), Players: []cs.GamePlayer{{UserID: 1}}}
+	game.State = cs.GameStateWaitingForPlayers
+	err := applyGameSettingsUpdate(game, &v1.UpdateGameRequest{Settings: &v1.GameSettings{TechCostMultiplier: 2}, UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"tech_cost_multiplier"}}})
+	require.Error(t, err)
+	assert.Equal(t, 1.0, game.TechCostMultiplier)
 }
