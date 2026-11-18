@@ -334,6 +334,38 @@ func (s *server) apiOAuthTokenHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// apiOAuthRevokeHandler revokes an API token (RFC 7009). Holding the token is
+// the proof needed to revoke it, so clients such as `craig-stars logout` can
+// revoke their own token without a browser session. As the RFC requires, unknown
+// or already inactive tokens get the same 200 response as active ones.
+func (s *server) apiOAuthRevokeHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, err, "invalid_request")
+		return
+	}
+	raw := strings.TrimSpace(r.PostForm.Get("token"))
+	if raw == "" {
+		rest.SendErrorJSON(w, r, nil, http.StatusBadRequest, errors.New("missing token"), "invalid_request")
+		return
+	}
+	if strings.HasPrefix(raw, apiTokenPrefix) {
+		client := s.db.NewReadWriteClient()
+		apiToken, err := client.GetAPITokenByHash(r.Context(), hashAPIToken(raw))
+		if err != nil {
+			rest.SendErrorJSON(w, r, nil, http.StatusInternalServerError, err, "failed to load token")
+			return
+		}
+		if apiToken != nil && apiToken.RevokedAt == nil {
+			if err := client.RevokeAPIToken(r.Context(), apiToken.UserID, apiToken.ID); err != nil {
+				rest.SendErrorJSON(w, r, nil, http.StatusInternalServerError, err, "failed to revoke token")
+				return
+			}
+		}
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(http.StatusOK)
+}
+
 // apiOAuthMetadataHandler publishes metadata for clients that discover the
 // shared API-token authorization flow.
 func (s *server) apiOAuthMetadataHandler(w http.ResponseWriter, r *http.Request) {
@@ -346,6 +378,7 @@ func apiOAuthMetadata(base string) map[string]any {
 		"issuer":                                base,
 		"authorization_endpoint":                base + "/api/oauth/authorize",
 		"token_endpoint":                        base + "/api/oauth/token",
+		"revocation_endpoint":                   base + "/api/oauth/revoke",
 		"registration_endpoint":                 base + "/api/mcp/oauth/register",
 		"response_types_supported":              []string{"code"},
 		"grant_types_supported":                 []string{"authorization_code"},
